@@ -1,0 +1,269 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractJsInvokeService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api.js</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractJsInvokeService (org.thingsboard.script.api.js)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractJsInvokeService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api.js;
+&nbsp;
+&nbsp;import com.google.common.hash.Hashing;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.thingsboard.script.api.AbstractScriptInvokeService;
+&nbsp;import org.thingsboard.script.api.RuleNodeScriptFactory;
+&nbsp;import org.thingsboard.script.api.ScriptType;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageRecordKey;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.stats.StatsType;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;
+&nbsp;import static java.lang.String.format;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 26.09.18.
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public abstract class AbstractJsInvokeService extends AbstractScriptInvokeService implements JsInvokeService {
+&nbsp;
+<b class="nc">&nbsp;    protected final Map&lt;UUID, JsScriptInfo&gt; scriptInfoMap = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;    private final Optional&lt;TbApiUsageStateClient&gt; apiUsageStateClient;
+&nbsp;    private final Optional&lt;TbApiUsageReportClient&gt; apiUsageReportClient;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${js.max_total_args_size:100000}&quot;)
+&nbsp;    private long maxTotalArgsSize;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${js.max_result_size:300000}&quot;)
+&nbsp;    private long maxResultSize;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${js.max_script_body_size:50000}&quot;)
+&nbsp;    private long maxScriptBodySize;
+&nbsp;
+<b class="nc">&nbsp;    protected AbstractJsInvokeService(Optional&lt;TbApiUsageStateClient&gt; apiUsageStateClient, Optional&lt;TbApiUsageReportClient&gt; apiUsageReportClient) {</b>
+<b class="nc">&nbsp;        this.apiUsageStateClient = apiUsageStateClient;</b>
+<b class="nc">&nbsp;        this.apiUsageReportClient = apiUsageReportClient;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected boolean isScriptPresent(UUID scriptId) {
+<b class="nc">&nbsp;        return scriptInfoMap.containsKey(scriptId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected boolean isExecEnabled(TenantId tenantId) {
+<b class="nc">&nbsp;        return !apiUsageStateClient.isPresent() || apiUsageStateClient.get().getApiUsageState(tenantId).isJsExecEnabled();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void reportExecution(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        apiUsageReportClient.ifPresent(client -&gt; client.report(tenantId, customerId, ApiUsageRecordKey.JS_EXEC_COUNT, 1));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected JsScriptExecutionTask doInvokeFunction(UUID scriptId, Object[] args) {
+<b class="nc">&nbsp;        return new JsScriptExecutionTask(doInvokeFunction(scriptId, scriptInfoMap.get(scriptId), args));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ListenableFuture&lt;UUID&gt; doEvalScript(TenantId tenantId, ScriptType scriptType, String scriptBody, UUID scriptId, String[] argNames) {
+<b class="nc">&nbsp;        String scriptHash = hash(tenantId, scriptBody);</b>
+<b class="nc">&nbsp;        String functionName = constructFunctionName(scriptId, scriptHash);</b>
+<b class="nc">&nbsp;        String jsScript = generateJsScript(scriptType, functionName, scriptBody, argNames);</b>
+<b class="nc">&nbsp;        return doEval(scriptId, new JsScriptInfo(scriptHash, functionName), jsScript);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void doRelease(UUID scriptId) throws Exception {
+<b class="nc">&nbsp;        doRelease(scriptId, scriptInfoMap.remove(scriptId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String validate(TenantId tenantId, String scriptBody) {
+<b class="nc">&nbsp;        String errorMessage = super.validate(tenantId, scriptBody);</b>
+<b class="nc">&nbsp;        if (errorMessage == null) {</b>
+<b class="nc">&nbsp;            return JsValidator.validate(scriptBody);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return errorMessage;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract ListenableFuture&lt;UUID&gt; doEval(UUID scriptId, JsScriptInfo jsInfo, String scriptBody);
+&nbsp;
+&nbsp;    protected abstract ListenableFuture&lt;Object&gt; doInvokeFunction(UUID scriptId, JsScriptInfo jsInfo, Object[] args);
+&nbsp;
+&nbsp;    protected abstract void doRelease(UUID scriptId, JsScriptInfo scriptInfo) throws Exception;
+&nbsp;
+&nbsp;    private String generateJsScript(ScriptType scriptType, String functionName, String scriptBody, String... argNames) {
+<b class="nc">&nbsp;        if (scriptType == ScriptType.RULE_NODE_SCRIPT) {</b>
+<b class="nc">&nbsp;            return RuleNodeScriptFactory.generateRuleNodeScript(functionName, scriptBody, argNames);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        throw new RuntimeException(&quot;No script factory implemented for scriptType: &quot; + scriptType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected String constructFunctionName(UUID scriptId, String scriptHash) {
+<b class="nc">&nbsp;        return &quot;invokeInternal_&quot; + scriptId.toString().replace(&#39;-&#39;, &#39;_&#39;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected String hash(TenantId tenantId, String scriptBody) {
+<b class="nc">&nbsp;        return Hashing.murmur3_128().newHasher()</b>
+<b class="nc">&nbsp;                .putLong(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .putLong(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .putUnencodedChars(scriptBody)</b>
+<b class="nc">&nbsp;                .hash().toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected StatsType getStatsType() {
+<b class="nc">&nbsp;        return StatsType.JS_INVOKE;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

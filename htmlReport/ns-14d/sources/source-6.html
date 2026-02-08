@@ -1,0 +1,338 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > KafkaTbTransportQueueFactory</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.provider</a>
+</div>
+
+<h1>Coverage Summary for Class: KafkaTbTransportQueueFactory (org.thingsboard.server.queue.provider)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KafkaTbTransportQueueFactory</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/86)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.provider;
+&nbsp;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueAdmin;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.TbQueueProducer;
+&nbsp;import org.thingsboard.server.queue.TbQueueRequestTemplate;
+&nbsp;import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.discovery.TopicService;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaConsumerStatsService;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaSettings;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
+&nbsp;
+&nbsp;@Component
+&nbsp;@ConditionalOnExpression(&quot;&#39;${queue.type:null}&#39;==&#39;kafka&#39; &amp;&amp; ((&#39;${service.type:null}&#39;==&#39;monolith&#39; &amp;&amp; &#39;${transport.api_enabled:true}&#39;==&#39;true&#39;) || &#39;${service.type:null}&#39;==&#39;tb-transport&#39;)&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class KafkaTbTransportQueueFactory implements TbTransportQueueFactory {
+&nbsp;
+&nbsp;    private final TbKafkaSettings kafkaSettings;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final TbQueueCoreSettings coreSettings;
+&nbsp;    private final TbQueueRuleEngineSettings ruleEngineSettings;
+&nbsp;    private final TbQueueTransportApiSettings transportApiSettings;
+&nbsp;    private final TbQueueTransportNotificationSettings transportNotificationSettings;
+&nbsp;    private final TbKafkaConsumerStatsService consumerStatsService;
+&nbsp;    private final TopicService topicService;
+&nbsp;
+&nbsp;    private final TbQueueAdmin coreAdmin;
+&nbsp;    private final TbQueueAdmin ruleEngineAdmin;
+&nbsp;    private final TbQueueAdmin transportApiRequestAdmin;
+&nbsp;    private final TbQueueAdmin transportApiResponseAdmin;
+&nbsp;    private final TbQueueAdmin notificationAdmin;
+&nbsp;    private final TbQueueAdmin housekeeperAdmin;
+&nbsp;
+&nbsp;    public KafkaTbTransportQueueFactory(TbKafkaSettings kafkaSettings,
+&nbsp;                                        TbServiceInfoProvider serviceInfoProvider,
+&nbsp;                                        TbQueueCoreSettings coreSettings,
+&nbsp;                                        TbQueueRuleEngineSettings ruleEngineSettings,
+&nbsp;                                        TbQueueTransportApiSettings transportApiSettings,
+&nbsp;                                        TbQueueTransportNotificationSettings transportNotificationSettings,
+&nbsp;                                        TbKafkaConsumerStatsService consumerStatsService,
+&nbsp;                                        TbKafkaTopicConfigs kafkaTopicConfigs,
+<b class="nc">&nbsp;                                        TopicService topicService) {</b>
+<b class="nc">&nbsp;        this.kafkaSettings = kafkaSettings;</b>
+<b class="nc">&nbsp;        this.serviceInfoProvider = serviceInfoProvider;</b>
+<b class="nc">&nbsp;        this.coreSettings = coreSettings;</b>
+<b class="nc">&nbsp;        this.ruleEngineSettings = ruleEngineSettings;</b>
+<b class="nc">&nbsp;        this.transportApiSettings = transportApiSettings;</b>
+<b class="nc">&nbsp;        this.transportNotificationSettings = transportNotificationSettings;</b>
+<b class="nc">&nbsp;        this.consumerStatsService = consumerStatsService;</b>
+<b class="nc">&nbsp;        this.topicService = topicService;</b>
+&nbsp;
+<b class="nc">&nbsp;        this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());</b>
+<b class="nc">&nbsp;        this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());</b>
+<b class="nc">&nbsp;        this.transportApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiRequestConfigs());</b>
+<b class="nc">&nbsp;        this.transportApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiResponseConfigs());</b>
+<b class="nc">&nbsp;        this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());</b>
+<b class="nc">&nbsp;        this.housekeeperAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperConfigs());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueRequestTemplate&lt;TbProtoQueueMsg&lt;TransportApiRequestMsg&gt;, TbProtoQueueMsg&lt;TransportApiResponseMsg&gt;&gt; createTransportApiRequestTemplate() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;TransportApiRequestMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;transport-api-request-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(transportApiSettings.getRequestsTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(transportApiRequestAdmin);</b>
+&nbsp;
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;TransportApiResponseMsg&gt;&gt; responseBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        responseBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        responseBuilder.topic(topicService.buildTopicName(transportApiSettings.getResponsesTopic() + &quot;.&quot; + serviceInfoProvider.getServiceId()));</b>
+<b class="nc">&nbsp;        responseBuilder.clientId(&quot;transport-api-response-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        responseBuilder.groupId(topicService.buildTopicName(&quot;transport-node-&quot; + serviceInfoProvider.getServiceId()));</b>
+<b class="nc">&nbsp;        responseBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), TransportApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        responseBuilder.admin(transportApiResponseAdmin);</b>
+<b class="nc">&nbsp;        responseBuilder.statsService(consumerStatsService);</b>
+&nbsp;
+&nbsp;        DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
+<b class="nc">&nbsp;                &lt;TbProtoQueueMsg&lt;TransportApiRequestMsg&gt;, TbProtoQueueMsg&lt;TransportApiResponseMsg&gt;&gt; templateBuilder = DefaultTbQueueRequestTemplate.builder();</b>
+<b class="nc">&nbsp;        templateBuilder.queueAdmin(transportApiResponseAdmin);</b>
+<b class="nc">&nbsp;        templateBuilder.requestTemplate(requestBuilder.build());</b>
+<b class="nc">&nbsp;        templateBuilder.responseTemplate(responseBuilder.build());</b>
+<b class="nc">&nbsp;        templateBuilder.maxPendingRequests(transportApiSettings.getMaxPendingRequests());</b>
+<b class="nc">&nbsp;        templateBuilder.maxRequestTimeout(transportApiSettings.getMaxRequestsTimeout());</b>
+<b class="nc">&nbsp;        templateBuilder.pollInterval(transportApiSettings.getResponsePollInterval());</b>
+<b class="nc">&nbsp;        return templateBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToRuleEngineMsg&gt;&gt; createRuleEngineMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToRuleEngineMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;transport-node-rule-engine-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(ruleEngineSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(ruleEngineAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; createTbCoreMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;transport-node-core-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(coreAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; createTbCoreNotificationsMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;transport-node-to-core-notifications-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToTransportMsg&gt;&gt; createTransportNotificationsConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToTransportMsg&gt;&gt; responseBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        responseBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        responseBuilder.topic(topicService.buildTopicName(transportNotificationSettings.getNotificationsTopic() + &quot;.&quot; + serviceInfoProvider.getServiceId()));</b>
+<b class="nc">&nbsp;        responseBuilder.clientId(&quot;transport-api-notifications-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        responseBuilder.groupId(topicService.buildTopicName(&quot;transport-node-&quot; + serviceInfoProvider.getServiceId()));</b>
+<b class="nc">&nbsp;        responseBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToTransportMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        responseBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        responseBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return responseBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; createToUsageStatsServiceMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;transport-node-us-producer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getUsageStatsTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(coreAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; createHousekeeperMsgProducer() {
+<b class="nc">&nbsp;        return TbKafkaProducerTemplate.&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .clientId(&quot;tb-transport-housekeeper-producer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .defaultTopic(topicService.buildTopicName(coreSettings.getHousekeeperTopic()))</b>
+<b class="nc">&nbsp;                .admin(housekeeperAdmin)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void destroy() {
+<b class="nc">&nbsp;        if (coreAdmin != null) {</b>
+<b class="nc">&nbsp;            coreAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (ruleEngineAdmin != null) {</b>
+<b class="nc">&nbsp;            ruleEngineAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (transportApiRequestAdmin != null) {</b>
+<b class="nc">&nbsp;            transportApiRequestAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (transportApiResponseAdmin != null) {</b>
+<b class="nc">&nbsp;            transportApiResponseAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (notificationAdmin != null) {</b>
+<b class="nc">&nbsp;            notificationAdmin.destroy();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

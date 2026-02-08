@@ -1,0 +1,346 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractOAuth2ClientMapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.security.auth.oauth2</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractOAuth2ClientMapper (org.thingsboard.server.service.security.auth.oauth2)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractOAuth2ClientMapper</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/74)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.security.auth.oauth2;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+&nbsp;import org.springframework.security.core.userdetails.UsernameNotFoundException;
+&nbsp;import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.DashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.Tenant;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DashboardId;
+&nbsp;import org.thingsboard.server.common.data.id.IdBased;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.oauth2.OAuth2Client;
+&nbsp;import org.thingsboard.server.common.data.oauth2.OAuth2MapperConfig;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.security.Authority;
+&nbsp;import org.thingsboard.server.common.data.security.UserCredentials;
+&nbsp;import org.thingsboard.server.dao.customer.CustomerService;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2User;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;import org.thingsboard.server.service.entitiy.tenant.TbTenantService;
+&nbsp;import org.thingsboard.server.service.entitiy.user.TbUserService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.model.UserPrincipal;
+&nbsp;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class AbstractOAuth2ClientMapper {</b>
+&nbsp;
+&nbsp;    private static final int DASHBOARDS_REQUEST_LIMIT = 10;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserService userService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private BCryptPasswordEncoder passwordEncoder;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TenantService tenantService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TbTenantService tbTenantService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private CustomerService customerService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DashboardService dashboardService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TbUserService tbUserService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbTenantProfileCache tenantProfileCache;
+&nbsp;
+&nbsp;    @Value(&quot;${edges.enabled}&quot;)
+&nbsp;    @Getter
+&nbsp;    private boolean edgesEnabled;
+&nbsp;
+<b class="nc">&nbsp;    private final Lock userCreationLock = new ReentrantLock();</b>
+&nbsp;
+&nbsp;    protected SecurityUser getOrCreateSecurityUserFromOAuth2User(OAuth2User oauth2User, OAuth2Client oAuth2Client) {
+&nbsp;
+<b class="nc">&nbsp;        OAuth2MapperConfig config = oAuth2Client.getMapperConfig();</b>
+&nbsp;
+<b class="nc">&nbsp;        UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, oauth2User.getEmail());</b>
+&nbsp;
+<b class="nc">&nbsp;        User user = userService.findUserByEmail(TenantId.SYS_TENANT_ID, oauth2User.getEmail());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (user == null &amp;&amp; !config.isAllowUserCreation()) {</b>
+<b class="nc">&nbsp;            throw new UsernameNotFoundException(&quot;User not found: &quot; + oauth2User.getEmail());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            userCreationLock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                user = userService.findUserByEmail(TenantId.SYS_TENANT_ID, oauth2User.getEmail());</b>
+<b class="nc">&nbsp;                if (user == null) {</b>
+<b class="nc">&nbsp;                    user = new User();</b>
+<b class="nc">&nbsp;                    if (oauth2User.getCustomerId() == null &amp;&amp; StringUtils.isEmpty(oauth2User.getCustomerName())) {</b>
+<b class="nc">&nbsp;                        user.setAuthority(Authority.TENANT_ADMIN);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        user.setAuthority(Authority.CUSTOMER_USER);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    TenantId tenantId = oauth2User.getTenantId() != null ? oauth2User.getTenantId() : getTenantId(oauth2User.getTenantName());</b>
+<b class="nc">&nbsp;                    user.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;                    CustomerId customerId = oauth2User.getCustomerId() != null ?</b>
+<b class="nc">&nbsp;                            oauth2User.getCustomerId() : getCustomerId(user.getTenantId(), oauth2User.getCustomerName());</b>
+<b class="nc">&nbsp;                    user.setCustomerId(customerId);</b>
+<b class="nc">&nbsp;                    user.setEmail(oauth2User.getEmail());</b>
+<b class="nc">&nbsp;                    user.setFirstName(oauth2User.getFirstName());</b>
+<b class="nc">&nbsp;                    user.setLastName(oauth2User.getLastName());</b>
+&nbsp;
+<b class="nc">&nbsp;                    ObjectNode additionalInfo = JacksonUtil.newObjectNode();</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (!StringUtils.isEmpty(oauth2User.getDefaultDashboardName())) {</b>
+&nbsp;                        Optional&lt;DashboardId&gt; dashboardIdOpt =
+<b class="nc">&nbsp;                                user.getAuthority() == Authority.TENANT_ADMIN ?</b>
+<b class="nc">&nbsp;                                        getDashboardId(tenantId, oauth2User.getDefaultDashboardName())</b>
+<b class="nc">&nbsp;                                        : getDashboardId(tenantId, customerId, oauth2User.getDefaultDashboardName());</b>
+<b class="nc">&nbsp;                        if (dashboardIdOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                            additionalInfo.put(&quot;defaultDashboardFullscreen&quot;, oauth2User.isAlwaysFullScreen());</b>
+<b class="nc">&nbsp;                            additionalInfo.put(&quot;defaultDashboardId&quot;, dashboardIdOpt.get().getId().toString());</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    if (oAuth2Client.getAdditionalInfo() != null &amp;&amp;</b>
+<b class="nc">&nbsp;                            oAuth2Client.getAdditionalInfo().has(&quot;providerName&quot;)) {</b>
+<b class="nc">&nbsp;                        additionalInfo.put(&quot;authProviderName&quot;, oAuth2Client.getAdditionalInfo().get(&quot;providerName&quot;).asText());</b>
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    user.setAdditionalInfo(additionalInfo);</b>
+&nbsp;
+<b class="nc">&nbsp;                    user = tbUserService.save(tenantId, customerId, user, false, null, null);</b>
+<b class="nc">&nbsp;                    if (config.isActivateUser()) {</b>
+<b class="nc">&nbsp;                        UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());</b>
+<b class="nc">&nbsp;                        userService.activateUserCredentials(user.getTenantId(), userCredentials.getActivateToken(), passwordEncoder.encode(&quot;&quot;));</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Can&#39;t get or create security user from oauth2 user&quot;, e);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Can&#39;t get or create security user from oauth2 user&quot;, e);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                userCreationLock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            SecurityUser securityUser = new SecurityUser(user, true, principal);</b>
+<b class="nc">&nbsp;            return (SecurityUser) new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities()).getPrincipal();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Can&#39;t get or create security user from oauth2 user&quot;, e);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Can&#39;t get or create security user from oauth2 user&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TenantId getTenantId(String name) throws Exception {
+<b class="nc">&nbsp;        Tenant tenant = tenantService.findTenantByName(name);</b>
+<b class="nc">&nbsp;        if (tenant != null) {</b>
+<b class="nc">&nbsp;            return tenant.getId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        tenant = new Tenant();</b>
+<b class="nc">&nbsp;        tenant.setTitle(name);</b>
+<b class="nc">&nbsp;        tenant = tbTenantService.save(tenant);</b>
+<b class="nc">&nbsp;        return tenant.getId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private CustomerId getCustomerId(TenantId tenantId, String customerName) {
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(customerName)) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Optional&lt;Customer&gt; customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantId, customerName);</b>
+<b class="nc">&nbsp;        if (customerOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            return customerOpt.get().getId();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            Customer customer = new Customer();</b>
+<b class="nc">&nbsp;            customer.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;            customer.setTitle(customerName);</b>
+<b class="nc">&nbsp;            return customerService.saveCustomer(customer).getId();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;DashboardId&gt; getDashboardId(TenantId tenantId, String dashboardName) {
+<b class="nc">&nbsp;        return Optional.ofNullable(dashboardService.findFirstDashboardInfoByTenantIdAndName(tenantId, dashboardName)).map(IdBased::getId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;DashboardId&gt; getDashboardId(TenantId tenantId, CustomerId customerId, String dashboardName) {
+&nbsp;        PageData&lt;DashboardInfo&gt; dashboardsPage;
+<b class="nc">&nbsp;        PageLink pageLink = null;</b>
+&nbsp;        do {
+<b class="nc">&nbsp;            pageLink = pageLink == null ? new PageLink(DASHBOARDS_REQUEST_LIMIT) : pageLink.nextPageLink();</b>
+<b class="nc">&nbsp;            dashboardsPage = dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink);</b>
+<b class="nc">&nbsp;            Optional&lt;DashboardInfo&gt; dashboardInfoOpt = dashboardsPage.getData().stream()</b>
+<b class="nc">&nbsp;                    .filter(dashboardInfo -&gt; dashboardName.equals(dashboardInfo.getName()))</b>
+<b class="nc">&nbsp;                    .findAny();</b>
+<b class="nc">&nbsp;            if (dashboardInfoOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                return dashboardInfoOpt.map(DashboardInfo::getId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } while (dashboardsPage.hasNext());</b>
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

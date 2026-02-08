@@ -1,0 +1,356 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > OtaPackageController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: OtaPackageController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OtaPackageController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.Content;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.core.io.ByteArrayResource;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RequestPart;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.springframework.web.multipart.MultipartFile;
+&nbsp;import org.thingsboard.server.common.data.OtaPackage;
+&nbsp;import org.thingsboard.server.common.data.OtaPackageInfo;
+&nbsp;import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.OtaPackageId;
+&nbsp;import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
+&nbsp;import org.thingsboard.server.common.data.ota.OtaPackageType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.ota.TbOtaPackageService;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.OTA_PACKAGE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.OTA_PACKAGE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.OTA_PACKAGE_INFO_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.OTA_PACKAGE_TEXT_SEARCH_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class OtaPackageController extends BaseController {
+&nbsp;
+&nbsp;    private final TbOtaPackageService tbOtaPackageService;
+&nbsp;
+&nbsp;    public static final String OTA_PACKAGE_ID = &quot;otaPackageId&quot;;
+&nbsp;    public static final String CHECKSUM_ALGORITHM = &quot;checksumAlgorithm&quot;;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Download OTA Package (downloadOtaPackage)&quot;, notes = &quot;Download OTA Package based on the provided OTA Package Id.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority( &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/otaPackage/{otaPackageId}/download&quot;)
+&nbsp;    public ResponseEntity&lt;org.springframework.core.io.Resource&gt; downloadOtaPackage(@Parameter(description = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
+&nbsp;                                                                                   @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(OTA_PACKAGE_ID, strOtaPackageId);</b>
+<b class="nc">&nbsp;        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));</b>
+<b class="nc">&nbsp;        OtaPackage otaPackage = checkOtaPackageId(otaPackageId, Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (otaPackage.hasUrl()) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().build();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ByteArrayResource resource = new ByteArrayResource(otaPackage.getData().array());</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok()</b>
+<b class="nc">&nbsp;                .header(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment;filename=&quot; + otaPackage.getFileName())</b>
+<b class="nc">&nbsp;                .header(&quot;x-filename&quot;, otaPackage.getFileName())</b>
+<b class="nc">&nbsp;                .contentLength(resource.contentLength())</b>
+<b class="nc">&nbsp;                .contentType(parseMediaType(otaPackage.getContentType()))</b>
+<b class="nc">&nbsp;                .body(resource);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get OTA Package Info (getOtaPackageInfoById)&quot;,
+&nbsp;            notes = &quot;Fetch the OTA Package Info object based on the provided OTA Package Id. &quot; +
+&nbsp;                    OTA_PACKAGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/otaPackage/info/{otaPackageId}&quot;)
+&nbsp;    public OtaPackageInfo getOtaPackageInfoById(@Parameter(description = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
+&nbsp;                                                @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(OTA_PACKAGE_ID, strOtaPackageId);</b>
+<b class="nc">&nbsp;        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));</b>
+<b class="nc">&nbsp;        return checkNotNull(otaPackageService.findOtaPackageInfoById(getTenantId(), otaPackageId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get OTA Package (getOtaPackageById)&quot;,
+&nbsp;            notes = &quot;Fetch the OTA Package object based on the provided OTA Package Id. &quot; +
+&nbsp;                    &quot;The server checks that the OTA Package is owned by the same tenant. &quot; + OTA_PACKAGE_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/otaPackage/{otaPackageId}&quot;)
+&nbsp;    public OtaPackage getOtaPackageById(@Parameter(description = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
+&nbsp;                                        @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(OTA_PACKAGE_ID, strOtaPackageId);</b>
+<b class="nc">&nbsp;        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));</b>
+<b class="nc">&nbsp;        return checkOtaPackageId(otaPackageId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Or Update OTA Package Info (saveOtaPackageInfo)&quot;,
+&nbsp;            notes = &quot;Create or update the OTA Package Info. When creating OTA Package Info, platform generates OTA Package id as &quot; + UUID_WIKI_LINK +
+&nbsp;                    &quot;The newly created OTA Package id will be present in the response. &quot; +
+&nbsp;                    &quot;Specify existing OTA Package id to update the OTA Package Info. &quot; +
+&nbsp;                    &quot;Referencing non-existing OTA Package Id will cause &#39;Not Found&#39; error. &quot; +
+&nbsp;                    &quot;\n\nOTA Package combination of the title with the version is unique in the scope of tenant. &quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/otaPackage&quot;)
+&nbsp;    public OtaPackageInfo saveOtaPackageInfo(@Parameter(description = &quot;A JSON value representing the OTA Package.&quot;)
+&nbsp;                                             @RequestBody SaveOtaPackageInfoRequest otaPackageInfo) throws Exception {
+<b class="nc">&nbsp;        otaPackageInfo.setTenantId(getTenantId());</b>
+<b class="nc">&nbsp;        checkEntity(otaPackageInfo.getId(), otaPackageInfo, Resource.OTA_PACKAGE);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbOtaPackageService.save(otaPackageInfo, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Save OTA Package data (saveOtaPackageData)&quot;,
+&nbsp;            notes = &quot;Update the OTA Package. Adds the date to the existing OTA Package Info&quot; + TENANT_AUTHORITY_PARAGRAPH,
+&nbsp;            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MULTIPART_FORM_DATA_VALUE)))
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/otaPackage/{otaPackageId}&quot;, consumes = MULTIPART_FORM_DATA_VALUE)
+&nbsp;    public OtaPackageInfo saveOtaPackageData(@Parameter(description = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
+&nbsp;                                             @PathVariable(OTA_PACKAGE_ID) String strOtaPackageId,
+&nbsp;                                             @Parameter(description = &quot;OTA Package checksum. For example, &#39;0xd87f7e0c&#39;&quot;)
+&nbsp;                                             @RequestParam(required = false) String checksum,
+&nbsp;                                             @Parameter(description = &quot;OTA Package checksum algorithm.&quot;, schema = @Schema(allowableValues = {&quot;MD5&quot;, &quot;SHA256&quot;, &quot;SHA384&quot;, &quot;SHA512&quot;, &quot;CRC32&quot;, &quot;MURMUR3_32&quot;, &quot;MURMUR3_128&quot;}))
+&nbsp;                                             @RequestParam(CHECKSUM_ALGORITHM) String checksumAlgorithmStr,
+&nbsp;                                             @Parameter(description = &quot;OTA Package data.&quot;)
+&nbsp;                                             @RequestPart MultipartFile file) throws Exception {
+<b class="nc">&nbsp;        checkParameter(OTA_PACKAGE_ID, strOtaPackageId);</b>
+<b class="nc">&nbsp;        checkParameter(CHECKSUM_ALGORITHM, checksumAlgorithmStr);</b>
+<b class="nc">&nbsp;        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));</b>
+<b class="nc">&nbsp;        OtaPackageInfo otaPackageInfo = checkOtaPackageInfoId(otaPackageId, Operation.READ);</b>
+<b class="nc">&nbsp;        ChecksumAlgorithm checksumAlgorithm = ChecksumAlgorithm.valueOf(checksumAlgorithmStr.toUpperCase());</b>
+<b class="nc">&nbsp;        byte[] data = file.getBytes();</b>
+<b class="nc">&nbsp;        return tbOtaPackageService.saveOtaPackageData(otaPackageInfo, checksum, checksumAlgorithm,</b>
+<b class="nc">&nbsp;                data, file.getOriginalFilename(), file.getContentType(), getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get OTA Package Infos (getOtaPackages)&quot;,
+&nbsp;            notes = &quot;Returns a page of OTA Package Info objects owned by tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + OTA_PACKAGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/otaPackages&quot;)
+&nbsp;    public PageData&lt;OtaPackageInfo&gt; getOtaPackages(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;                                                   @RequestParam int pageSize,
+&nbsp;                                                   @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;                                                   @RequestParam int page,
+&nbsp;                                                   @Parameter(description = OTA_PACKAGE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;                                                   @RequestParam(required = false) String textSearch,
+&nbsp;                                                   @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;type&quot;, &quot;title&quot;, &quot;version&quot;, &quot;tag&quot;, &quot;url&quot;, &quot;fileName&quot;, &quot;dataSize&quot;, &quot;checksum&quot;}))
+&nbsp;                                                   @RequestParam(required = false) String sortProperty,
+&nbsp;                                                   @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;                                                   @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantId(getTenantId(), pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get OTA Package Infos (getOtaPackages)&quot;,
+&nbsp;            notes = &quot;Returns a page of OTA Package Info objects owned by tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + OTA_PACKAGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/otaPackages/{deviceProfileId}/{type}&quot;)
+&nbsp;    public PageData&lt;OtaPackageInfo&gt; getOtaPackages(@Parameter(description = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
+&nbsp;                                                   @PathVariable(&quot;deviceProfileId&quot;) String strDeviceProfileId,
+&nbsp;                                                   @Parameter(description = &quot;OTA Package type.&quot;, schema = @Schema(allowableValues = {&quot;FIRMWARE&quot;, &quot;SOFTWARE&quot;}))
+&nbsp;                                                   @PathVariable(&quot;type&quot;) String strType,
+&nbsp;                                                   @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;                                                   @RequestParam int pageSize,
+&nbsp;                                                   @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;                                                   @RequestParam int page,
+&nbsp;                                                   @Parameter(description = OTA_PACKAGE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;                                                   @RequestParam(required = false) String textSearch,
+&nbsp;                                                   @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;type&quot;, &quot;title&quot;, &quot;version&quot;, &quot;tag&quot;, &quot;url&quot;, &quot;fileName&quot;, &quot;dataSize&quot;, &quot;checksum&quot;}))
+&nbsp;                                                   @RequestParam(required = false) String sortProperty,
+&nbsp;                                                   @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;                                                   @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;deviceProfileId&quot;, strDeviceProfileId);</b>
+<b class="nc">&nbsp;        checkParameter(&quot;type&quot;, strType);</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantIdAndDeviceProfileIdAndTypeAndHasData(getTenantId(),</b>
+<b class="nc">&nbsp;                new DeviceProfileId(toUUID(strDeviceProfileId)), OtaPackageType.valueOf(strType), pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete OTA Package (deleteOtaPackage)&quot;,
+&nbsp;            notes = &quot;Deletes the OTA Package. Referencing non-existing OTA Package Id will cause an error. &quot; +
+&nbsp;                    &quot;Can&#39;t delete the OTA Package if it is referenced by existing devices or device profile.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/otaPackage/{otaPackageId}&quot;)
+&nbsp;    public void deleteOtaPackage(@Parameter(description = OTA_PACKAGE_ID_PARAM_DESCRIPTION)
+&nbsp;                                 @PathVariable(&quot;otaPackageId&quot;) String strOtaPackageId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(OTA_PACKAGE_ID, strOtaPackageId);</b>
+<b class="nc">&nbsp;        OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));</b>
+<b class="nc">&nbsp;        OtaPackageInfo otaPackageInfo = checkOtaPackageInfoId(otaPackageId, Operation.DELETE);</b>
+<b class="nc">&nbsp;        tbOtaPackageService.delete(otaPackageInfo, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

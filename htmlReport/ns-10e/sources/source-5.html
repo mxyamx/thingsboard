@@ -1,0 +1,655 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JpaBaseEventDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.event</a>
+</div>
+
+<h1>Coverage Summary for Class: JpaBaseEventDao (org.thingsboard.server.dao.sql.event)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JpaBaseEventDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/203)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JpaBaseEventDao$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/204)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.event;
+&nbsp;
+&nbsp;import com.datastax.oss.driver.api.core.uuid.Uuids;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.event.CalculatedFieldDebugEventFilter;
+&nbsp;import org.thingsboard.server.common.data.event.ErrorEventFilter;
+&nbsp;import org.thingsboard.server.common.data.event.Event;
+&nbsp;import org.thingsboard.server.common.data.event.EventFilter;
+&nbsp;import org.thingsboard.server.common.data.event.EventType;
+&nbsp;import org.thingsboard.server.common.data.event.LifeCycleEventFilter;
+&nbsp;import org.thingsboard.server.common.data.event.RuleChainDebugEventFilter;
+&nbsp;import org.thingsboard.server.common.data.event.RuleNodeDebugEventFilter;
+&nbsp;import org.thingsboard.server.common.data.event.StatisticsEventFilter;
+&nbsp;import org.thingsboard.server.common.data.id.EventId;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.TimePageLink;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.config.DefaultDataSource;
+&nbsp;import org.thingsboard.server.dao.event.EventDao;
+&nbsp;import org.thingsboard.server.dao.model.sql.EventEntity;
+&nbsp;import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
+&nbsp;import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
+&nbsp;import org.thingsboard.server.dao.util.SqlDao;
+&nbsp;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.function.Function;
+&nbsp;
+&nbsp;@DefaultDataSource
+&nbsp;@Component
+&nbsp;@SqlDao
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class JpaBaseEventDao implements EventDao {
+&nbsp;
+&nbsp;    private final EventPartitionConfiguration partitionConfiguration;
+&nbsp;    private final SqlPartitioningRepository partitioningRepository;
+&nbsp;    private final LifecycleEventRepository lcEventRepository;
+&nbsp;    private final StatisticsEventRepository statsEventRepository;
+&nbsp;    private final ErrorEventRepository errorEventRepository;
+&nbsp;    private final EventInsertRepository eventInsertRepository;
+&nbsp;    private final RuleNodeDebugEventRepository ruleNodeDebugEventRepository;
+&nbsp;    private final RuleChainDebugEventRepository ruleChainDebugEventRepository;
+&nbsp;    private final ScheduledLogExecutorComponent logExecutor;
+&nbsp;    private final StatsFactory statsFactory;
+&nbsp;    private final CalculatedFieldDebugEventRepository calculatedFieldDebugEventRepository;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.events.batch_size:10000}&quot;)
+&nbsp;    private int batchSize;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.events.batch_max_delay:100}&quot;)
+&nbsp;    private long maxDelay;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.events.stats_print_interval_ms:10000}&quot;)
+&nbsp;    private long statsPrintIntervalMs;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.events.batch_threads:3}&quot;)
+&nbsp;    private int batchThreads;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.batch_sort:true}&quot;)
+&nbsp;    private boolean batchSortEnabled;
+&nbsp;
+&nbsp;    private TbSqlBlockingQueueWrapper&lt;Event, Void&gt; queue;
+&nbsp;
+&nbsp;    private final Map&lt;EventType, EventRepository&lt;?, ?&gt;&gt; repositories = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    private void init() {
+<b class="nc">&nbsp;        TbSqlBlockingQueueParams params = TbSqlBlockingQueueParams.builder()</b>
+<b class="nc">&nbsp;                .logName(&quot;Events&quot;)</b>
+<b class="nc">&nbsp;                .batchSize(batchSize)</b>
+<b class="nc">&nbsp;                .maxDelay(maxDelay)</b>
+<b class="nc">&nbsp;                .statsPrintIntervalMs(statsPrintIntervalMs)</b>
+<b class="nc">&nbsp;                .statsNamePrefix(&quot;events&quot;)</b>
+<b class="nc">&nbsp;                .batchSortEnabled(batchSortEnabled)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        Function&lt;Event, Integer&gt; hashcodeFunction = entity -&gt; Objects.hash(super.hashCode(), entity.getTenantId(), entity.getEntityId());</b>
+<b class="nc">&nbsp;        queue = new TbSqlBlockingQueueWrapper&lt;&gt;(params, hashcodeFunction, batchThreads, statsFactory);</b>
+<b class="nc">&nbsp;        queue.init(logExecutor, v -&gt; eventInsertRepository.save(v), Comparator.comparing(Event::getCreatedTime));</b>
+<b class="nc">&nbsp;        repositories.put(EventType.LC_EVENT, lcEventRepository);</b>
+<b class="nc">&nbsp;        repositories.put(EventType.STATS, statsEventRepository);</b>
+<b class="nc">&nbsp;        repositories.put(EventType.ERROR, errorEventRepository);</b>
+<b class="nc">&nbsp;        repositories.put(EventType.DEBUG_RULE_NODE, ruleNodeDebugEventRepository);</b>
+<b class="nc">&nbsp;        repositories.put(EventType.DEBUG_RULE_CHAIN, ruleChainDebugEventRepository);</b>
+<b class="nc">&nbsp;        repositories.put(EventType.DEBUG_CALCULATED_FIELD, calculatedFieldDebugEventRepository);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void destroy() {
+<b class="nc">&nbsp;        if (queue != null) {</b>
+<b class="nc">&nbsp;            queue.destroy();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Void&gt; saveAsync(Event event) {
+<b class="nc">&nbsp;        log.debug(&quot;Save event [{}] &quot;, event);</b>
+<b class="nc">&nbsp;        if (event.getId() == null) {</b>
+<b class="nc">&nbsp;            UUID timeBased = Uuids.timeBased();</b>
+<b class="nc">&nbsp;            event.setId(new EventId(timeBased));</b>
+<b class="nc">&nbsp;            event.setCreatedTime(Uuids.unixTimestamp(timeBased));</b>
+<b class="nc">&nbsp;        } else if (event.getCreatedTime() == 0L) {</b>
+<b class="nc">&nbsp;            UUID eventId = event.getId().getId();</b>
+<b class="nc">&nbsp;            if (eventId.version() == 1) {</b>
+<b class="nc">&nbsp;                event.setCreatedTime(Uuids.unixTimestamp(eventId));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                event.setCreatedTime(System.currentTimeMillis());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        partitioningRepository.createPartitionIfNotExists(event.getType().getTable(), event.getCreatedTime(),</b>
+<b class="nc">&nbsp;                partitionConfiguration.getPartitionSizeInMs(event.getType()));</b>
+<b class="nc">&nbsp;        return queue.add(event);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;? extends Event&gt; findEvents(UUID tenantId, UUID entityId, EventType eventType, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(getEventRepository(eventType).findEvents(tenantId, entityId, pageLink.getStartTime(), pageLink.getEndTime(), DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;? extends Event&gt; findEventByFilter(UUID tenantId, UUID entityId, EventFilter eventFilter, TimePageLink pageLink) {
+<b class="nc">&nbsp;        if (eventFilter.isNotEmpty()) {</b>
+<b class="nc">&nbsp;            switch (eventFilter.getEventType()) {</b>
+&nbsp;                case DEBUG_RULE_NODE:
+<b class="nc">&nbsp;                    return findEventByFilter(tenantId, entityId, (RuleNodeDebugEventFilter) eventFilter, pageLink);</b>
+&nbsp;                case DEBUG_RULE_CHAIN:
+<b class="nc">&nbsp;                    return findEventByFilter(tenantId, entityId, (RuleChainDebugEventFilter) eventFilter, pageLink);</b>
+&nbsp;                case LC_EVENT:
+<b class="nc">&nbsp;                    return findEventByFilter(tenantId, entityId, (LifeCycleEventFilter) eventFilter, pageLink);</b>
+&nbsp;                case ERROR:
+<b class="nc">&nbsp;                    return findEventByFilter(tenantId, entityId, (ErrorEventFilter) eventFilter, pageLink);</b>
+&nbsp;                case STATS:
+<b class="nc">&nbsp;                    return findEventByFilter(tenantId, entityId, (StatisticsEventFilter) eventFilter, pageLink);</b>
+&nbsp;                case DEBUG_CALCULATED_FIELD:
+<b class="nc">&nbsp;                    return findEventByFilter(tenantId, entityId, (CalculatedFieldDebugEventFilter) eventFilter, pageLink);</b>
+&nbsp;                default:
+<b class="nc">&nbsp;                    throw new RuntimeException(&quot;Not supported event type: &quot; + eventFilter.getEventType());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return findEvents(tenantId, entityId, eventFilter.getEventType(), pageLink);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void removeEvents(UUID tenantId, UUID entityId, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        removeEvents(tenantId, entityId, startTime, endTime, EventType.values());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void removeEvents(UUID tenantId, UUID entityId, Long startTime, Long endTime, EventType... types) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] Remove events [{}-{}] &quot;, tenantId, entityId, startTime, endTime);</b>
+<b class="nc">&nbsp;        EventType[] eventTypes = (types == null || types.length == 0) ? EventType.values() : types;</b>
+<b class="nc">&nbsp;        for (EventType eventType : eventTypes) {</b>
+<b class="nc">&nbsp;            getEventRepository(eventType).removeEvents(tenantId, entityId, startTime, endTime);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void removeEvents(UUID tenantId, UUID entityId, EventFilter eventFilter, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        if (eventFilter.isNotEmpty()) {</b>
+<b class="nc">&nbsp;            switch (eventFilter.getEventType()) {</b>
+&nbsp;                case DEBUG_RULE_NODE:
+<b class="nc">&nbsp;                    removeEventsByFilter(tenantId, entityId, (RuleNodeDebugEventFilter) eventFilter, startTime, endTime);</b>
+&nbsp;                    break;
+&nbsp;                case DEBUG_RULE_CHAIN:
+<b class="nc">&nbsp;                    removeEventsByFilter(tenantId, entityId, (RuleChainDebugEventFilter) eventFilter, startTime, endTime);</b>
+&nbsp;                    break;
+&nbsp;                case LC_EVENT:
+<b class="nc">&nbsp;                    removeEventsByFilter(tenantId, entityId, (LifeCycleEventFilter) eventFilter, startTime, endTime);</b>
+&nbsp;                    break;
+&nbsp;                case ERROR:
+<b class="nc">&nbsp;                    removeEventsByFilter(tenantId, entityId, (ErrorEventFilter) eventFilter, startTime, endTime);</b>
+&nbsp;                    break;
+&nbsp;                case STATS:
+<b class="nc">&nbsp;                    removeEventsByFilter(tenantId, entityId, (StatisticsEventFilter) eventFilter, startTime, endTime);</b>
+&nbsp;                    break;
+&nbsp;                case DEBUG_CALCULATED_FIELD:
+<b class="nc">&nbsp;                    removeEventsByFilter(tenantId, entityId, (CalculatedFieldDebugEventFilter) eventFilter, startTime, endTime);</b>
+&nbsp;                    break;
+&nbsp;                default:
+<b class="nc">&nbsp;                    throw new RuntimeException(&quot;Not supported event type: &quot; + eventFilter.getEventType());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            getEventRepository(eventFilter.getEventType()).removeEvents(tenantId, entityId, startTime, endTime);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private PageData&lt;? extends Event&gt; findEventByFilter(UUID tenantId, UUID entityId, RuleChainDebugEventFilter eventFilter, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                ruleChainDebugEventRepository.findEvents(</b>
+&nbsp;                        tenantId,
+&nbsp;                        entityId,
+<b class="nc">&nbsp;                        pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                        pageLink.getEndTime(),</b>
+<b class="nc">&nbsp;                        eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMessage(),</b>
+<b class="nc">&nbsp;                        eventFilter.isError(),</b>
+<b class="nc">&nbsp;                        eventFilter.getErrorStr(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PageData&lt;? extends Event&gt; findEventByFilter(UUID tenantId, UUID entityId, RuleNodeDebugEventFilter eventFilter, TimePageLink pageLink) {
+<b class="nc">&nbsp;        parseUUID(eventFilter.getEntityId(), &quot;Entity Id&quot;);</b>
+<b class="nc">&nbsp;        parseUUID(eventFilter.getMsgId(), &quot;Message Id&quot;);</b>
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                ruleNodeDebugEventRepository.findEvents(</b>
+&nbsp;                        tenantId,
+&nbsp;                        entityId,
+<b class="nc">&nbsp;                        pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                        pageLink.getEndTime(),</b>
+<b class="nc">&nbsp;                        eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMsgDirectionType(),</b>
+<b class="nc">&nbsp;                        eventFilter.getEntityId(),</b>
+<b class="nc">&nbsp;                        eventFilter.getEntityType(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMsgId(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMsgType(),</b>
+<b class="nc">&nbsp;                        eventFilter.getRelationType(),</b>
+<b class="nc">&nbsp;                        eventFilter.getDataSearch(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMetadataSearch(),</b>
+<b class="nc">&nbsp;                        eventFilter.isError(),</b>
+<b class="nc">&nbsp;                        eventFilter.getErrorStr(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PageData&lt;? extends Event&gt; findEventByFilter(UUID tenantId, UUID entityId, ErrorEventFilter eventFilter, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                errorEventRepository.findEvents(</b>
+&nbsp;                        tenantId,
+&nbsp;                        entityId,
+<b class="nc">&nbsp;                        pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                        pageLink.getEndTime(),</b>
+<b class="nc">&nbsp;                        eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMethod(),</b>
+<b class="nc">&nbsp;                        eventFilter.getErrorStr(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap))</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private PageData&lt;? extends Event&gt; findEventByFilter(UUID tenantId, UUID entityId, LifeCycleEventFilter eventFilter, TimePageLink pageLink) {
+<b class="nc">&nbsp;        boolean statusFilterEnabled = !StringUtils.isEmpty(eventFilter.getStatus());</b>
+<b class="nc">&nbsp;        boolean statusFilter = statusFilterEnabled &amp;&amp; eventFilter.getStatus().equalsIgnoreCase(TbNodeConnectionType.SUCCESS);</b>
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                lcEventRepository.findEvents(</b>
+&nbsp;                        tenantId,
+&nbsp;                        entityId,
+<b class="nc">&nbsp;                        pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                        pageLink.getEndTime(),</b>
+<b class="nc">&nbsp;                        eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                        eventFilter.getEvent(),</b>
+&nbsp;                        statusFilterEnabled,
+&nbsp;                        statusFilter,
+<b class="nc">&nbsp;                        eventFilter.getErrorStr(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap))</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private PageData&lt;? extends Event&gt; findEventByFilter(UUID tenantId, UUID entityId, StatisticsEventFilter eventFilter, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                statsEventRepository.findEvents(</b>
+&nbsp;                        tenantId,
+&nbsp;                        entityId,
+<b class="nc">&nbsp;                        pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                        pageLink.getEndTime(),</b>
+<b class="nc">&nbsp;                        eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMinMessagesProcessed(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMaxMessagesProcessed(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMinErrorsOccurred(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMaxErrorsOccurred(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap))</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private PageData&lt;? extends Event&gt; findEventByFilter(UUID tenantId, UUID entityId, CalculatedFieldDebugEventFilter eventFilter, TimePageLink pageLink) {
+<b class="nc">&nbsp;        parseUUID(eventFilter.getEntityId(), &quot;Entity Id&quot;);</b>
+<b class="nc">&nbsp;        parseUUID(eventFilter.getMsgId(), &quot;Message Id&quot;);</b>
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                calculatedFieldDebugEventRepository.findEvents(</b>
+&nbsp;                        tenantId,
+&nbsp;                        entityId,
+<b class="nc">&nbsp;                        pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                        pageLink.getEndTime(),</b>
+<b class="nc">&nbsp;                        eventFilter.getServer(),</b>
+&nbsp;                        entityId,
+<b class="nc">&nbsp;                        eventFilter.getEntityId(),</b>
+<b class="nc">&nbsp;                        eventFilter.getEntityType(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMsgId(),</b>
+<b class="nc">&nbsp;                        eventFilter.getMsgType(),</b>
+<b class="nc">&nbsp;                        eventFilter.getArguments(),</b>
+<b class="nc">&nbsp;                        eventFilter.getResult(),</b>
+<b class="nc">&nbsp;                        eventFilter.isError(),</b>
+<b class="nc">&nbsp;                        eventFilter.getErrorStr(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeEventsByFilter(UUID tenantId, UUID entityId, RuleChainDebugEventFilter eventFilter, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        ruleChainDebugEventRepository.removeEvents(</b>
+&nbsp;                tenantId,
+&nbsp;                entityId,
+&nbsp;                startTime,
+&nbsp;                endTime,
+<b class="nc">&nbsp;                eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                eventFilter.getMessage(),</b>
+<b class="nc">&nbsp;                eventFilter.isError(),</b>
+<b class="nc">&nbsp;                eventFilter.getErrorStr());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeEventsByFilter(UUID tenantId, UUID entityId, RuleNodeDebugEventFilter eventFilter, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        parseUUID(eventFilter.getEntityId(), &quot;Entity Id&quot;);</b>
+<b class="nc">&nbsp;        parseUUID(eventFilter.getMsgId(), &quot;Message Id&quot;);</b>
+<b class="nc">&nbsp;        ruleNodeDebugEventRepository.removeEvents(</b>
+&nbsp;                tenantId,
+&nbsp;                entityId,
+&nbsp;                startTime,
+&nbsp;                endTime,
+<b class="nc">&nbsp;                eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                eventFilter.getMsgDirectionType(),</b>
+<b class="nc">&nbsp;                eventFilter.getEntityId(),</b>
+<b class="nc">&nbsp;                eventFilter.getEntityType(),</b>
+<b class="nc">&nbsp;                eventFilter.getMsgId(),</b>
+<b class="nc">&nbsp;                eventFilter.getMsgType(),</b>
+<b class="nc">&nbsp;                eventFilter.getRelationType(),</b>
+<b class="nc">&nbsp;                eventFilter.getDataSearch(),</b>
+<b class="nc">&nbsp;                eventFilter.getMetadataSearch(),</b>
+<b class="nc">&nbsp;                eventFilter.isError(),</b>
+<b class="nc">&nbsp;                eventFilter.getErrorStr());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeEventsByFilter(UUID tenantId, UUID entityId, ErrorEventFilter eventFilter, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        errorEventRepository.removeEvents(</b>
+&nbsp;                tenantId,
+&nbsp;                entityId,
+&nbsp;                startTime,
+&nbsp;                endTime,
+<b class="nc">&nbsp;                eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                eventFilter.getMethod(),</b>
+<b class="nc">&nbsp;                eventFilter.getErrorStr());</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeEventsByFilter(UUID tenantId, UUID entityId, LifeCycleEventFilter eventFilter, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        boolean statusFilterEnabled = !StringUtils.isEmpty(eventFilter.getStatus());</b>
+<b class="nc">&nbsp;        boolean statusFilter = statusFilterEnabled &amp;&amp; eventFilter.getStatus().equalsIgnoreCase(TbNodeConnectionType.SUCCESS);</b>
+<b class="nc">&nbsp;        lcEventRepository.removeEvents(</b>
+&nbsp;                tenantId,
+&nbsp;                entityId,
+&nbsp;                startTime,
+&nbsp;                endTime,
+<b class="nc">&nbsp;                eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                eventFilter.getEvent(),</b>
+&nbsp;                statusFilterEnabled,
+&nbsp;                statusFilter,
+<b class="nc">&nbsp;                eventFilter.getErrorStr());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeEventsByFilter(UUID tenantId, UUID entityId, StatisticsEventFilter eventFilter, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        statsEventRepository.removeEvents(</b>
+&nbsp;                tenantId,
+&nbsp;                entityId,
+&nbsp;                startTime,
+&nbsp;                endTime,
+<b class="nc">&nbsp;                eventFilter.getServer(),</b>
+<b class="nc">&nbsp;                eventFilter.getMinMessagesProcessed(),</b>
+<b class="nc">&nbsp;                eventFilter.getMaxMessagesProcessed(),</b>
+<b class="nc">&nbsp;                eventFilter.getMinErrorsOccurred(),</b>
+<b class="nc">&nbsp;                eventFilter.getMaxErrorsOccurred()</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeEventsByFilter(UUID tenantId, UUID entityId, CalculatedFieldDebugEventFilter eventFilter, Long startTime, Long endTime) {
+<b class="nc">&nbsp;        parseUUID(eventFilter.getEntityId(), &quot;Entity Id&quot;);</b>
+<b class="nc">&nbsp;        parseUUID(eventFilter.getMsgId(), &quot;Message Id&quot;);</b>
+<b class="nc">&nbsp;        calculatedFieldDebugEventRepository.removeEvents(</b>
+&nbsp;                tenantId,
+&nbsp;                entityId,
+&nbsp;                startTime,
+&nbsp;                endTime,
+<b class="nc">&nbsp;                eventFilter.getServer(),</b>
+&nbsp;                entityId,
+<b class="nc">&nbsp;                eventFilter.getEntityId(),</b>
+<b class="nc">&nbsp;                eventFilter.getEntityType(),</b>
+<b class="nc">&nbsp;                eventFilter.getMsgId(),</b>
+<b class="nc">&nbsp;                eventFilter.getMsgType(),</b>
+<b class="nc">&nbsp;                eventFilter.getArguments(),</b>
+<b class="nc">&nbsp;                eventFilter.getResult(),</b>
+<b class="nc">&nbsp;                eventFilter.isError(),</b>
+<b class="nc">&nbsp;                eventFilter.getErrorStr());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;? extends Event&gt; findLatestEvents(UUID tenantId, UUID entityId, EventType eventType, int limit) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(getEventRepository(eventType).findLatestEvents(tenantId, entityId, limit));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Event findLatestDebugRuleNodeInEvent(UUID tenantId, UUID entityId) {
+<b class="nc">&nbsp;        return DaoUtil.getData(ruleNodeDebugEventRepository.findLatestDebugRuleNodeInEvent(tenantId, entityId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void cleanupEvents(long regularEventExpTs, long debugEventExpTs, boolean cleanupDb) {
+<b class="nc">&nbsp;        if (regularEventExpTs &gt; 0) {</b>
+<b class="nc">&nbsp;            log.info(&quot;Going to cleanup regular events with exp time: {}&quot;, regularEventExpTs);</b>
+<b class="nc">&nbsp;            if (cleanupDb) {</b>
+<b class="nc">&nbsp;                cleanupEvents(regularEventExpTs, false);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                cleanupPartitionsCache(regularEventExpTs, false);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (debugEventExpTs &gt; 0) {</b>
+<b class="nc">&nbsp;            log.info(&quot;Going to cleanup debug events with exp time: {}&quot;, debugEventExpTs);</b>
+<b class="nc">&nbsp;            if (cleanupDb) {</b>
+<b class="nc">&nbsp;                cleanupEvents(debugEventExpTs, true);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                cleanupPartitionsCache(debugEventExpTs, true);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanupEvents(long eventExpTime, boolean debug) {
+<b class="nc">&nbsp;        for (EventType eventType : EventType.values()) {</b>
+<b class="nc">&nbsp;            if (eventType.isDebug() == debug) {</b>
+<b class="nc">&nbsp;                cleanupPartitions(eventType, eventExpTime);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanupPartitions(EventType eventType, long eventExpTime) {
+<b class="nc">&nbsp;        partitioningRepository.dropPartitionsBefore(eventType.getTable(), eventExpTime, partitionConfiguration.getPartitionSizeInMs(eventType));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanupPartitionsCache(long expTime, boolean isDebug) {
+<b class="nc">&nbsp;        for (EventType eventType : EventType.values()) {</b>
+<b class="nc">&nbsp;            if (eventType.isDebug() == isDebug) {</b>
+<b class="nc">&nbsp;                partitioningRepository.cleanupPartitionsCache(eventType.getTable(), expTime, partitionConfiguration.getPartitionSizeInMs(eventType));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void parseUUID(String src, String paramName) {
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(src)) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                UUID.fromString(src);</b>
+&nbsp;            } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Failed to convert &quot; + paramName + &quot; to UUID!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private EventRepository&lt;? extends EventEntity&lt;?&gt;, ?&gt; getEventRepository(EventType eventType) {
+<b class="nc">&nbsp;        var repository = repositories.get(eventType);</b>
+<b class="nc">&nbsp;        if (repository == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Event type: &quot; + eventType + &quot; is not supported!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return repository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

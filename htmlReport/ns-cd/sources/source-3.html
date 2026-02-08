@@ -1,0 +1,311 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AiModelController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: AiModelController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AiModelController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import dev.langchain4j.model.chat.request.ChatRequest;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.validation.annotation.Validated;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.springframework.web.context.request.async.DeferredResult;
+&nbsp;import org.thingsboard.server.common.data.ai.AiModel;
+&nbsp;import org.thingsboard.server.common.data.ai.dto.TbChatRequest;
+&nbsp;import org.thingsboard.server.common.data.ai.dto.TbChatResponse;
+&nbsp;import org.thingsboard.server.common.data.ai.model.chat.AiChatModelConfig;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.AiModelId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.ai.AiChatModelService;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.time.Duration;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.AI_MODEL_TEXT_SEARCH_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;
+&nbsp;@Validated
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;@RequestMapping(&quot;/api/ai/model&quot;)
+&nbsp;class AiModelController extends BaseController {
+&nbsp;
+&nbsp;    private final AiChatModelService aiChatModelService;
+&nbsp;
+&nbsp;    @ApiOperation(
+&nbsp;            value = &quot;Create or update AI model (saveAiModel)&quot;,
+&nbsp;            notes = &quot;Creates or updates an AI model record.\n\n&quot; +
+&nbsp;                    &quot;• **Create:** Omit the `id` to create a new record. The platform assigns a UUID to the new record and returns it in the `id` field of the response.\n\n&quot; +
+&nbsp;                    &quot;• **Update:** Include an existing `id` to modify that record. If no matching record exists, the API responds with **404 Not Found**.\n\n&quot; +
+&nbsp;                    &quot;Tenant ID for the AI model will be taken from the authenticated user making the request, regardless of any value provided in the request body.&quot; +
+&nbsp;                    TENANT_AUTHORITY_PARAGRAPH
+&nbsp;    )
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping
+&nbsp;    public AiModel saveAiModel(@RequestBody @Valid AiModel model) throws ThingsboardException {
+<b class="nc">&nbsp;        var user = getCurrentUser();</b>
+<b class="nc">&nbsp;        model.setTenantId(user.getTenantId());</b>
+<b class="nc">&nbsp;        checkEntity(model.getId(), model, Resource.AI_MODEL);</b>
+<b class="nc">&nbsp;        return tbAiModelService.save(model, user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(
+&nbsp;            value = &quot;Get AI model by ID (getAiModelById)&quot;,
+&nbsp;            notes = &quot;Fetches an AI model record by its `id`.&quot; +
+&nbsp;                    TENANT_AUTHORITY_PARAGRAPH
+&nbsp;    )
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/{modelUuid}&quot;)
+&nbsp;    public AiModel getAiModelById(
+&nbsp;            @Parameter(
+&nbsp;                    description = &quot;ID of the AI model record&quot;,
+&nbsp;                    required = true,
+&nbsp;                    example = &quot;de7900d4-30e2-11f0-9cd2-0242ac120002&quot;
+&nbsp;            )
+&nbsp;            @PathVariable UUID modelUuid
+&nbsp;    ) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkAiModelId(new AiModelId(modelUuid), Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(
+&nbsp;            value = &quot;Get AI models (getAiModels)&quot;,
+&nbsp;            notes = &quot;Returns a page of AI models. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH
+&nbsp;    )
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping
+&nbsp;    public PageData&lt;AiModel&gt; getAiModels(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = AI_MODEL_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;provider&quot;, &quot;modelId&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder
+&nbsp;    ) throws ThingsboardException {
+<b class="nc">&nbsp;        var user = getCurrentUser();</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(user, Resource.AI_MODEL, Operation.READ);</b>
+<b class="nc">&nbsp;        var pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        return aiModelService.findAiModelsByTenantId(user.getTenantId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(
+&nbsp;            value = &quot;Delete AI model by ID (deleteAiModelById)&quot;,
+&nbsp;            notes = &quot;Deletes the AI model record by its `id`. &quot; +
+&nbsp;                    &quot;If a record with the specified `id` exists, the record is deleted and the endpoint returns `true`. &quot; +
+&nbsp;                    &quot;If no such record exists, the endpoint returns `false`.&quot; +
+&nbsp;                    TENANT_AUTHORITY_PARAGRAPH
+&nbsp;    )
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(&quot;/{modelUuid}&quot;)
+&nbsp;    public boolean deleteAiModelById(
+&nbsp;            @Parameter(
+&nbsp;                    description = &quot;ID of the AI model record&quot;,
+&nbsp;                    required = true,
+&nbsp;                    example = &quot;de7900d4-30e2-11f0-9cd2-0242ac120002&quot;
+&nbsp;            )
+&nbsp;            @PathVariable UUID modelUuid
+&nbsp;    ) throws ThingsboardException {
+<b class="nc">&nbsp;        var user = getCurrentUser();</b>
+<b class="nc">&nbsp;        var modelId = new AiModelId(modelUuid);</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(user, Resource.AI_MODEL, Operation.DELETE);</b>
+<b class="nc">&nbsp;        Optional&lt;AiModel&gt; toDelete = aiModelService.findAiModelByTenantIdAndId(user.getTenantId(), modelId);</b>
+<b class="nc">&nbsp;        if (toDelete.isEmpty()) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        accessControlService.checkPermission(user, Resource.AI_MODEL, Operation.DELETE, modelId, toDelete.get());</b>
+<b class="nc">&nbsp;        return tbAiModelService.delete(toDelete.get(), user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(
+&nbsp;            value = &quot;Send request to AI chat model (sendChatRequest)&quot;,
+&nbsp;            notes = &quot;Submits a single prompt - made up of an optional system message and a required user message - to the specified AI chat model &quot; +
+&nbsp;                    &quot;and returns either the generated answer or an error envelope.&quot; +
+&nbsp;                    TENANT_AUTHORITY_PARAGRAPH
+&nbsp;    )
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/chat&quot;)
+&nbsp;    public DeferredResult&lt;TbChatResponse&gt; sendChatRequest(@Valid @RequestBody TbChatRequest tbChatRequest) {
+<b class="nc">&nbsp;        ChatRequest langChainChatRequest = tbChatRequest.toLangChainChatRequest();</b>
+<b class="nc">&nbsp;        AiChatModelConfig&lt;?&gt; chatModelConfig = tbChatRequest.chatModelConfig();</b>
+&nbsp;
+<b class="nc">&nbsp;        ListenableFuture&lt;TbChatResponse&gt; future = aiChatModelService.sendChatRequestAsync(chatModelConfig, langChainChatRequest)</b>
+<b class="nc">&nbsp;                .transform(chatResponse -&gt; (TbChatResponse) new TbChatResponse.Success(chatResponse.aiMessage().text()), directExecutor())</b>
+<b class="nc">&nbsp;                .catching(Throwable.class, ex -&gt; new TbChatResponse.Failure(ex.getMessage()), directExecutor());</b>
+&nbsp;
+<b class="nc">&nbsp;        Integer requestTimeoutSeconds = chatModelConfig.timeoutSeconds();</b>
+<b class="nc">&nbsp;        return requestTimeoutSeconds != null ? wrapFuture(future, Duration.ofSeconds(requestTimeoutSeconds).toMillis()) : wrapFuture(future);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

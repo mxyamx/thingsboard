@@ -1,0 +1,472 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WidgetsBundleServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.widget</a>
+</div>
+
+<h1>Coverage Summary for Class: WidgetsBundleServiceImpl (org.thingsboard.server.dao.widget)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WidgetsBundleServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/109)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">WidgetsBundleServiceImpl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/112)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.widget;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.WidgetsBundleId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetType;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetsBundle;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetsBundleFilter;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.resource.ImageService;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+&nbsp;import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
+&nbsp;
+&nbsp;@Service(&quot;WidgetsBundleDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class WidgetsBundleServiceImpl implements WidgetsBundleService {</b>
+&nbsp;
+&nbsp;    private static final int DEFAULT_WIDGETS_BUNDLE_LIMIT = 300;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private WidgetsBundleDao widgetsBundleDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private WidgetTypeService widgetTypeService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;WidgetsBundle&gt; widgetsBundleValidator;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ApplicationEventPublisher eventPublisher;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ImageService imageService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public WidgetsBundle findWidgetsBundleById(TenantId tenantId, WidgetsBundleId widgetsBundleId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findWidgetsBundleById [{}]&quot;, widgetsBundleId);</b>
+<b class="nc">&nbsp;        Validator.validateId(widgetsBundleId, id -&gt; &quot;Incorrect widgetsBundleId &quot; + id);</b>
+<b class="nc">&nbsp;        return widgetsBundleDao.findById(tenantId, widgetsBundleId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveWidgetsBundle [{}]&quot;, widgetsBundle);</b>
+<b class="nc">&nbsp;        widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            imageService.replaceBase64WithImageUrl(widgetsBundle, &quot;bundle&quot;);</b>
+<b class="nc">&nbsp;            WidgetsBundle result = widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())</b>
+<b class="nc">&nbsp;                    .entityId(result.getId()).created(widgetsBundle.getId() == null).build());</b>
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            checkConstraintViolation(e,</b>
+&nbsp;                    &quot;uq_widgets_bundle_alias&quot;, &quot;Widgets Bundle with such alias already exists!&quot;,
+&nbsp;                    &quot;widgets_bundle_external_id_unq_key&quot;, &quot;Widgets Bundle with such external id already exists!&quot;);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteWidgetsBundle(TenantId tenantId, WidgetsBundleId widgetsBundleId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteWidgetsBundle [{}]&quot;, widgetsBundleId);</b>
+<b class="nc">&nbsp;        Validator.validateId(widgetsBundleId, id -&gt; &quot;Incorrect widgetsBundleId &quot; + id);</b>
+<b class="nc">&nbsp;        deleteEntity(tenantId, widgetsBundleId, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        WidgetsBundle widgetsBundle = findWidgetsBundleById(tenantId, (WidgetsBundleId) id);</b>
+<b class="nc">&nbsp;        if (widgetsBundle == null) {</b>
+<b class="nc">&nbsp;            if (force) {</b>
+&nbsp;                return;
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new IncorrectParameterException(&quot;Unable to delete non-existent widgets bundle.&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(id).build());</b>
+<b class="nc">&nbsp;        widgetsBundleDao.removeById(tenantId, id.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public WidgetsBundle findWidgetsBundleByTenantIdAndAlias(TenantId tenantId, String alias) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findWidgetsBundleByTenantIdAndAlias, tenantId [{}], alias [{}]&quot;, tenantId, alias);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validateString(alias, a -&gt; &quot;Incorrect alias &quot; + a);</b>
+<b class="nc">&nbsp;        return widgetsBundleDao.findWidgetsBundleByTenantIdAndAlias(tenantId.getId(), alias);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;WidgetsBundle&gt; findSystemWidgetsBundlesByPageLink(WidgetsBundleFilter widgetsBundleFilter, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findSystemWidgetsBundles, widgetsBundleFilter [{}], pageLink [{}]&quot;, widgetsBundleFilter, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return widgetsBundleDao.findSystemWidgetsBundles(widgetsBundleFilter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;WidgetsBundle&gt; findSystemWidgetsBundles(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findSystemWidgetsBundles&quot;);</b>
+<b class="nc">&nbsp;        List&lt;WidgetsBundle&gt; widgetsBundles = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        PageLink pageLink = new PageLink(DEFAULT_WIDGETS_BUNDLE_LIMIT);</b>
+&nbsp;        PageData&lt;WidgetsBundle&gt; pageData;
+&nbsp;        do {
+<b class="nc">&nbsp;            pageData = findSystemWidgetsBundlesByPageLink(WidgetsBundleFilter.fromTenantId(tenantId), pageLink);</b>
+<b class="nc">&nbsp;            widgetsBundles.addAll(pageData.getData());</b>
+<b class="nc">&nbsp;            if (pageData.hasNext()) {</b>
+<b class="nc">&nbsp;                pageLink = pageLink.nextPageLink();</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } while (pageData.hasNext());</b>
+<b class="nc">&nbsp;        return widgetsBundles;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;WidgetsBundle&gt; findTenantWidgetsBundlesByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantWidgetsBundlesByTenantId, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return widgetsBundleDao.findTenantWidgetsBundlesByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;WidgetsBundle&gt; findAllTenantWidgetsBundlesByTenantIdAndPageLink(WidgetsBundleFilter widgetsBundleFilter, PageLink pageLink) {
+<b class="nc">&nbsp;        TenantId tenantId = widgetsBundleFilter.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllTenantWidgetsBundlesByTenantIdAndPageLink, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(widgetsBundleFilter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;WidgetsBundle&gt; findTenantWidgetsBundlesByTenantIdAndPageLink(WidgetsBundleFilter widgetsBundleFilter, PageLink pageLink) {
+<b class="nc">&nbsp;        TenantId tenantId = widgetsBundleFilter.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantWidgetsBundlesByTenantIdAndPageLink, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return widgetsBundleDao.findTenantWidgetsBundlesByTenantId(widgetsBundleFilter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;WidgetsBundle&gt; findAllTenantWidgetsBundlesByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllTenantWidgetsBundlesByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        List&lt;WidgetsBundle&gt; widgetsBundles = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        PageLink pageLink = new PageLink(DEFAULT_WIDGETS_BUNDLE_LIMIT);</b>
+&nbsp;        PageData&lt;WidgetsBundle&gt; pageData;
+&nbsp;        do {
+<b class="nc">&nbsp;            pageData = findAllTenantWidgetsBundlesByTenantIdAndPageLink(WidgetsBundleFilter.fromTenantId(tenantId), pageLink);</b>
+<b class="nc">&nbsp;            widgetsBundles.addAll(pageData.getData());</b>
+<b class="nc">&nbsp;            if (pageData.hasNext()) {</b>
+<b class="nc">&nbsp;                pageLink = pageLink.nextPageLink();</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } while (pageData.hasNext());</b>
+<b class="nc">&nbsp;        return widgetsBundles;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteWidgetsBundlesByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteWidgetsBundlesByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        tenantWidgetsBundleRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteWidgetsBundlesByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void updateSystemWidgets(Stream&lt;String&gt; bundles, Stream&lt;String&gt; widgets) {
+<b class="nc">&nbsp;        widgets.forEach(widgetTypeJson -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                updateSystemWidget(JacksonUtil.toJsonNode(widgetTypeJson));</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Unable to load widget type from json: &quot; + widgetTypeJson, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        bundles.forEach(widgetsBundleDescriptorJson -&gt; {</b>
+<b class="nc">&nbsp;            JsonNode widgetsBundleDescriptor = JacksonUtil.toJsonNode(widgetsBundleDescriptorJson);</b>
+<b class="nc">&nbsp;            if (widgetsBundleDescriptor == null || !widgetsBundleDescriptor.has(&quot;widgetsBundle&quot;)) {</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Invalid widgets bundle json: [&quot; + widgetsBundleDescriptorJson + &quot;]&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            JsonNode widgetsBundleJson = widgetsBundleDescriptor.get(&quot;widgetsBundle&quot;);</b>
+<b class="nc">&nbsp;            WidgetsBundle widgetsBundle = JacksonUtil.treeToValue(widgetsBundleJson, WidgetsBundle.class);</b>
+<b class="nc">&nbsp;            WidgetsBundle existingWidgetsBundle = findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());</b>
+<b class="nc">&nbsp;            if (existingWidgetsBundle != null) {</b>
+<b class="nc">&nbsp;                widgetsBundle.setId(existingWidgetsBundle.getId());</b>
+<b class="nc">&nbsp;                widgetsBundle.setCreatedTime(existingWidgetsBundle.getCreatedTime());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;            widgetsBundle = saveWidgetsBundle(widgetsBundle);</b>
+<b class="nc">&nbsp;            log.debug(&quot;{} widgets bundle {}&quot;, existingWidgetsBundle == null ? &quot;Created&quot; : &quot;Updated&quot;, widgetsBundle.getAlias());</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;String&gt; widgetTypeFqns = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            if (widgetsBundleDescriptor.has(&quot;widgetTypes&quot;)) {</b>
+<b class="nc">&nbsp;                JsonNode widgetTypesArrayJson = widgetsBundleDescriptor.get(&quot;widgetTypes&quot;);</b>
+<b class="nc">&nbsp;                widgetTypesArrayJson.forEach(widgetTypeJson -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        WidgetTypeDetails widgetTypeDetails = updateSystemWidget(widgetTypeJson);</b>
+<b class="nc">&nbsp;                        widgetTypeFqns.add(widgetTypeDetails.getFqn());</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        throw new RuntimeException(&quot;Unable to load widget type from json: &quot; + widgetsBundleDescriptorJson, e);</b>
+&nbsp;                    }
+&nbsp;                });
+&nbsp;            }
+<b class="nc">&nbsp;            if (widgetsBundleDescriptor.has(&quot;widgetTypeFqns&quot;)) {</b>
+<b class="nc">&nbsp;                JsonNode widgetFqnsArrayJson = widgetsBundleDescriptor.get(&quot;widgetTypeFqns&quot;);</b>
+<b class="nc">&nbsp;                widgetFqnsArrayJson.forEach(fqnJson -&gt; widgetTypeFqns.add(fqnJson.asText()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            widgetTypeService.updateWidgetsBundleWidgetFqns(TenantId.SYS_TENANT_ID, widgetsBundle.getId(), widgetTypeFqns);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;WidgetsBundle&gt; findSystemOrTenantWidgetsBundlesByIds(TenantId tenantId, List&lt;WidgetsBundleId&gt; widgetsBundleIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findSystemOrTenantWidgetsBundlesByIds, tenantId [{}], widgetsBundleIds [{}]&quot;, tenantId, widgetsBundleIds);</b>
+<b class="nc">&nbsp;        return widgetsBundleDao.findSystemOrTenantWidgetBundlesByIds(tenantId.getId(), toUUIDs(widgetsBundleIds));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private WidgetTypeDetails updateSystemWidget(JsonNode widgetTypeJson) {
+<b class="nc">&nbsp;        WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);</b>
+<b class="nc">&nbsp;        WidgetType existingWidget = widgetTypeService.findWidgetTypeByTenantIdAndFqn(TenantId.SYS_TENANT_ID, widgetTypeDetails.getFqn());</b>
+<b class="nc">&nbsp;        if (existingWidget != null) {</b>
+<b class="nc">&nbsp;            widgetTypeDetails.setId(existingWidget.getId());</b>
+<b class="nc">&nbsp;            widgetTypeDetails.setCreatedTime(existingWidget.getCreatedTime());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;        widgetTypeDetails = widgetTypeService.saveWidgetType(widgetTypeDetails);</b>
+<b class="nc">&nbsp;        log.debug(&quot;{} widget type {}&quot;, existingWidget == null ? &quot;Created&quot; : &quot;Updated&quot;, widgetTypeDetails.getFqn());</b>
+<b class="nc">&nbsp;        return widgetTypeDetails;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findWidgetsBundleById(tenantId, new WidgetsBundleId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(widgetsBundleDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.WIDGETS_BUNDLE;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, WidgetsBundle&gt; tenantWidgetsBundleRemover = new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;WidgetsBundle&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;            return widgetsBundleDao.findTenantWidgetsBundlesByTenantId(id.getId(), pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, WidgetsBundle entity) {
+<b class="nc">&nbsp;            deleteWidgetsBundle(tenantId, new WidgetsBundleId(entity.getUuidId()));</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    };
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

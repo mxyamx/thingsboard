@@ -1,0 +1,167 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NotificationRequestRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.notification</a>
+</div>
+
+<h1>Coverage Summary for Class: NotificationRequestRepository (org.thingsboard.server.dao.sql.notification)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">NotificationRequestRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.notification;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Modifying;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
+&nbsp;import org.thingsboard.server.dao.model.sql.NotificationRequestEntity;
+&nbsp;import org.thingsboard.server.dao.model.sql.NotificationRequestInfoEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@Repository
+&nbsp;public interface NotificationRequestRepository extends JpaRepository&lt;NotificationRequestEntity, UUID&gt; {
+&nbsp;
+&nbsp;    String REQUEST_INFO_QUERY = &quot;SELECT new org.thingsboard.server.dao.model.sql.NotificationRequestInfoEntity(r, t.name, t.configuration) &quot; +
+&nbsp;            &quot;FROM NotificationRequestEntity r LEFT JOIN NotificationTemplateEntity t ON r.templateId = t.id&quot;;
+&nbsp;
+&nbsp;    Page&lt;NotificationRequestEntity&gt; findByTenantIdAndOriginatorEntityType(UUID tenantId, EntityType originatorType, Pageable pageable);
+&nbsp;
+&nbsp;    @Query(REQUEST_INFO_QUERY + &quot; WHERE r.tenantId = :tenantId AND r.originatorEntityType = :originatorType &quot; +
+&nbsp;            &quot;AND (:searchText is NULL OR (t.name IS NOT NULL AND ilike(t.name, concat(&#39;%&#39;, :searchText, &#39;%&#39;)) = true))&quot;)
+&nbsp;    Page&lt;NotificationRequestInfoEntity&gt; findInfosByTenantIdAndOriginatorEntityTypeAndSearchText(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                                                @Param(&quot;originatorType&quot;) EntityType originatorType,
+&nbsp;                                                                                                @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                                                                Pageable pageable);
+&nbsp;
+&nbsp;    @Query(REQUEST_INFO_QUERY + &quot; WHERE r.id = :id&quot;)
+&nbsp;    NotificationRequestInfoEntity findInfoById(@Param(&quot;id&quot;) UUID id);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT r.id FROM NotificationRequestEntity r WHERE r.status = :status AND r.ruleId = :ruleId&quot;)
+&nbsp;    List&lt;UUID&gt; findAllIdsByStatusAndRuleId(@Param(&quot;status&quot;) NotificationRequestStatus status,
+&nbsp;                                           @Param(&quot;ruleId&quot;) UUID ruleId);
+&nbsp;
+&nbsp;    List&lt;NotificationRequestEntity&gt; findAllByRuleIdAndOriginatorEntityIdAndOriginatorEntityTypeAndStatus(UUID ruleId, UUID originatorEntityId, EntityType originatorEntityType, NotificationRequestStatus status);
+&nbsp;
+&nbsp;    Page&lt;NotificationRequestEntity&gt; findAllByStatus(NotificationRequestStatus status, Pageable pageable);
+&nbsp;
+&nbsp;    @Modifying
+&nbsp;    @Transactional
+&nbsp;    @Query(&quot;UPDATE NotificationRequestEntity r SET r.status = :status, r.stats = :stats WHERE r.id = :id&quot;)
+&nbsp;    void updateStatusAndStatsById(@Param(&quot;id&quot;) UUID id,
+&nbsp;                                  @Param(&quot;status&quot;) NotificationRequestStatus status,
+&nbsp;                                  @Param(&quot;stats&quot;) JsonNode stats);
+&nbsp;
+&nbsp;    boolean existsByTenantIdAndStatusAndTargetsContaining(UUID tenantId, NotificationRequestStatus status, String targetIdStr);
+&nbsp;
+&nbsp;    boolean existsByTenantIdAndStatusAndTemplateId(UUID tenantId, NotificationRequestStatus status, UUID templateId);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying
+&nbsp;    @Query(&quot;DELETE FROM NotificationRequestEntity r WHERE r.createdTime &lt; :ts&quot;)
+&nbsp;    int deleteAllByCreatedTimeBefore(@Param(&quot;ts&quot;) long ts);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying
+&nbsp;    @Query(&quot;DELETE FROM NotificationRequestEntity r WHERE r.tenantId = :tenantId&quot;)
+&nbsp;    void deleteByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

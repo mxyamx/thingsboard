@@ -1,0 +1,263 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbAbstractCustomerActionNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.action</a>
+</div>
+
+<h1>Coverage Summary for Class: TbAbstractCustomerActionNode (org.thingsboard.rule.engine.action)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbAbstractCustomerActionNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.action;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;
+&nbsp;import java.util.EnumSet;
+&nbsp;import java.util.NoSuchElementException;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.common.util.DonAsynchron.withCallback;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class TbAbstractCustomerActionNode&lt;C extends TbAbstractCustomerActionNodeConfiguration&gt; implements TbNode {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final Set&lt;EntityType&gt; supportedEntityTypes = EnumSet.of(EntityType.ASSET, EntityType.DEVICE,</b>
+&nbsp;            EntityType.ENTITY_VIEW, EntityType.DASHBOARD, EntityType.EDGE);
+&nbsp;
+<b class="nc">&nbsp;    private static final String supportedEntityTypesStr = supportedEntityTypes.stream().map(Enum::name).collect(Collectors.joining(&quot;, &quot;));</b>
+&nbsp;
+&nbsp;    protected C config;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = loadCustomerNodeActionConfig(configuration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract boolean createCustomerIfNotExists();
+&nbsp;
+&nbsp;    protected abstract C loadCustomerNodeActionConfig(TbNodeConfiguration configuration) throws TbNodeException;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        var entityType = msg.getOriginator().getEntityType();</b>
+<b class="nc">&nbsp;        if (!supportedEntityTypes.contains(entityType)) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(unsupportedOriginatorTypeErrorMessage(entityType));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        withCallback(processCustomerAction(ctx, msg),</b>
+<b class="nc">&nbsp;                m -&gt; ctx.tellSuccess(msg),</b>
+<b class="nc">&nbsp;                t -&gt; ctx.tellFailure(msg, t), MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract ListenableFuture&lt;Void&gt; processCustomerAction(TbContext ctx, TbMsg msg);
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;CustomerId&gt; getCustomerIdFuture(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        var tenantId = ctx.getTenantId();</b>
+<b class="nc">&nbsp;        var customerTitle = TbNodeUtils.processPattern(this.config.getCustomerNamePattern(), msg);</b>
+<b class="nc">&nbsp;        var customerService = ctx.getCustomerService();</b>
+<b class="nc">&nbsp;        var customerByTitleFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, customerTitle);</b>
+<b class="nc">&nbsp;        if (createCustomerIfNotExists()) {</b>
+<b class="nc">&nbsp;            return Futures.transform(customerByTitleFuture, customerOpt -&gt; {</b>
+<b class="nc">&nbsp;                if (customerOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                    return customerOpt.get().getId();</b>
+&nbsp;                }
+&nbsp;                try {
+<b class="nc">&nbsp;                    var newCustomer = new Customer();</b>
+<b class="nc">&nbsp;                    newCustomer.setTitle(customerTitle);</b>
+<b class="nc">&nbsp;                    newCustomer.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;                    var savedCustomer = customerService.saveCustomer(newCustomer);</b>
+<b class="nc">&nbsp;                    ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),</b>
+<b class="nc">&nbsp;                            () -&gt; log.trace(&quot;Pushed Customer Created message: {}&quot;, savedCustomer),</b>
+<b class="nc">&nbsp;                            throwable -&gt; log.warn(&quot;Failed to push Customer Created message: {}&quot;, savedCustomer, throwable));</b>
+<b class="nc">&nbsp;                    return savedCustomer.getId();</b>
+&nbsp;                } catch (DataValidationException e) {
+<b class="nc">&nbsp;                    customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle);</b>
+<b class="nc">&nbsp;                    if (customerOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                        return customerOpt.get().getId();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    throw new RuntimeException(&quot;Failed to create customer with title &#39;&quot; + customerTitle + &quot;&#39; due to: &quot;, e);</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }, MoreExecutors.directExecutor());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.transform(customerByTitleFuture, customerOpt -&gt; {</b>
+<b class="nc">&nbsp;            if (customerOpt.isEmpty()) {</b>
+<b class="nc">&nbsp;                throw new NoSuchElementException(&quot;Customer with title &#39;&quot; + customerTitle + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return customerOpt.get().getId();</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String unsupportedOriginatorTypeErrorMessage(EntityType originatorType) {
+<b class="nc">&nbsp;        return &quot;Unsupported originator type &#39;&quot; + originatorType +</b>
+&nbsp;                &quot;&#39;! Only &quot; + supportedEntityTypesStr + &quot; types are allowed.&quot;;
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        switch (fromVersion) {</b>
+&nbsp;            case 0 -&gt; {
+<b class="nc">&nbsp;                if (oldConfiguration.has(&quot;customerCacheExpiration&quot;)) {</b>
+<b class="nc">&nbsp;                    ((ObjectNode) oldConfiguration).remove(&quot;customerCacheExpiration&quot;);</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

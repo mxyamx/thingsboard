@@ -1,0 +1,482 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractScriptInvokeService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractScriptInvokeService (org.thingsboard.script.api)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractScriptInvokeService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/121)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AbstractScriptInvokeService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/122)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.script.api.tbel.TbelCfArg;
+&nbsp;import org.thingsboard.script.api.tbel.TbelCfObject;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.stats.StatsCounter;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.common.stats.StatsType;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.Executor;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.TimeoutException;
+&nbsp;
+&nbsp;import static java.lang.String.format;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class AbstractScriptInvokeService implements ScriptInvokeService {</b>
+&nbsp;
+&nbsp;    private static final String REQUESTS = &quot;requests&quot;;
+&nbsp;    private static final String INVOKE_RESPONSES = &quot;invoke_responses&quot;;
+&nbsp;    private static final String EVAL_RESPONSES = &quot;eval_responses&quot;;
+&nbsp;    private static final String FAILURES = &quot;failures&quot;;
+&nbsp;    private static final String TIMEOUTS = &quot;timeouts&quot;;
+&nbsp;
+<b class="nc">&nbsp;    protected final Map&lt;UUID, BlockedScriptInfo&gt; disabledScripts = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    private StatsCounter requestsCounter;
+&nbsp;    private StatsCounter invokeResponsesCounter;
+&nbsp;    private StatsCounter evalResponsesCounter;
+&nbsp;    private StatsCounter failuresCounter;
+&nbsp;    private StatsCounter timeoutsCounter;
+&nbsp;
+&nbsp;    private FutureCallback&lt;UUID&gt; evalCallback;
+&nbsp;    private FutureCallback&lt;Object&gt; invokeCallback;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private StatsFactory statsFactory;
+&nbsp;
+&nbsp;    protected ScheduledExecutorService timeoutExecutorService;
+&nbsp;
+&nbsp;    protected long getMaxEvalRequestsTimeout() {
+<b class="nc">&nbsp;        return getMaxInvokeRequestsTimeout();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract long getMaxInvokeRequestsTimeout();
+&nbsp;
+&nbsp;    protected abstract long getMaxScriptBodySize();
+&nbsp;
+&nbsp;    protected abstract long getMaxTotalArgsSize();
+&nbsp;
+&nbsp;    protected abstract long getMaxResultSize();
+&nbsp;
+&nbsp;    protected abstract int getMaxBlackListDurationSec();
+&nbsp;
+&nbsp;    protected abstract int getMaxErrors();
+&nbsp;
+&nbsp;    protected abstract boolean isStatsEnabled();
+&nbsp;
+&nbsp;    protected abstract String getStatsName();
+&nbsp;
+&nbsp;    protected abstract Executor getCallbackExecutor();
+&nbsp;
+&nbsp;    protected abstract boolean isScriptPresent(UUID scriptId);
+&nbsp;
+&nbsp;    protected abstract boolean isExecEnabled(TenantId tenantId);
+&nbsp;
+&nbsp;    protected abstract void reportExecution(TenantId tenantId, CustomerId customerId);
+&nbsp;
+&nbsp;    protected abstract ListenableFuture&lt;UUID&gt; doEvalScript(TenantId tenantId, ScriptType scriptType, String scriptBody, UUID scriptId, String[] argNames);
+&nbsp;
+&nbsp;    protected abstract TbScriptExecutionTask doInvokeFunction(UUID scriptId, Object[] args);
+&nbsp;
+&nbsp;    protected abstract void doRelease(UUID scriptId) throws Exception;
+&nbsp;
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        String key = getStatsType().getName();</b>
+<b class="nc">&nbsp;        this.requestsCounter = statsFactory.createStatsCounter(key, REQUESTS);</b>
+<b class="nc">&nbsp;        this.invokeResponsesCounter = statsFactory.createStatsCounter(key, INVOKE_RESPONSES);</b>
+<b class="nc">&nbsp;        this.evalResponsesCounter = statsFactory.createStatsCounter(key, EVAL_RESPONSES);</b>
+<b class="nc">&nbsp;        this.failuresCounter = statsFactory.createStatsCounter(key, FAILURES);</b>
+<b class="nc">&nbsp;        this.timeoutsCounter = statsFactory.createStatsCounter(key, TIMEOUTS);</b>
+<b class="nc">&nbsp;        this.evalCallback = new ScriptStatCallback&lt;&gt;(evalResponsesCounter, timeoutsCounter, failuresCounter);</b>
+<b class="nc">&nbsp;        this.invokeCallback = new ScriptStatCallback&lt;&gt;(invokeResponsesCounter, timeoutsCounter, failuresCounter);</b>
+<b class="nc">&nbsp;        if (getMaxEvalRequestsTimeout() &gt; 0 || getMaxInvokeRequestsTimeout() &gt; 0) {</b>
+<b class="nc">&nbsp;            timeoutExecutorService = ThingsBoardExecutors.newSingleThreadScheduledExecutor(&quot;script-timeout&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        if (timeoutExecutorService != null) {</b>
+<b class="nc">&nbsp;            timeoutExecutorService.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        if (isStatsEnabled()) {</b>
+<b class="nc">&nbsp;            int pushed = requestsCounter.getAndClear();</b>
+<b class="nc">&nbsp;            int invoked = invokeResponsesCounter.getAndClear();</b>
+<b class="nc">&nbsp;            int evaluated = evalResponsesCounter.getAndClear();</b>
+<b class="nc">&nbsp;            int failed = failuresCounter.getAndClear();</b>
+<b class="nc">&nbsp;            int timedOut = timeoutsCounter.getAndClear();</b>
+<b class="nc">&nbsp;            if (pushed &gt; 0 || invoked &gt; 0 || evaluated &gt; 0 || failed &gt; 0 || timedOut &gt; 0) {</b>
+<b class="nc">&nbsp;                log.info(&quot;{}: pushed [{}] received [{}] invoke [{}] eval [{}] failed [{}] timedOut [{}]&quot;,</b>
+<b class="nc">&nbsp;                        getStatsName(), pushed, invoked + evaluated, invoked, evaluated, failed, timedOut);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public String validate(TenantId tenantId, String scriptBody) {
+<b class="nc">&nbsp;        if (isExecEnabled(tenantId)) {</b>
+<b class="nc">&nbsp;            if (scriptBodySizeExceeded(scriptBody)) {</b>
+<b class="nc">&nbsp;                return format(&quot;Script body exceeds maximum allowed size of %s symbols&quot;, getMaxScriptBodySize());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return &quot;Script Execution is disabled due to API limits!&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;UUID&gt; eval(TenantId tenantId, ScriptType scriptType, String scriptBody, String... argNames) {
+<b class="nc">&nbsp;        String validationError = validate(tenantId, scriptBody);</b>
+<b class="nc">&nbsp;        if (validationError != null) {</b>
+<b class="nc">&nbsp;            return error(validationError);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        UUID scriptId = UUID.randomUUID();</b>
+<b class="nc">&nbsp;        requestsCounter.increment();</b>
+<b class="nc">&nbsp;        return withTimeoutAndStatsCallback(scriptId, null,</b>
+<b class="nc">&nbsp;                doEvalScript(tenantId, scriptType, scriptBody, scriptId, argNames), evalCallback, getMaxEvalRequestsTimeout());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Object&gt; invokeScript(TenantId tenantId, CustomerId customerId, UUID scriptId, Object... args) {
+<b class="nc">&nbsp;        if (isExecEnabled(tenantId)) {</b>
+<b class="nc">&nbsp;            if (!isScriptPresent(scriptId)) {</b>
+<b class="nc">&nbsp;                return error(&quot;No compiled script found for scriptId: [&quot; + scriptId + &quot;]!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!isDisabled(scriptId)) {</b>
+<b class="nc">&nbsp;                if (argsSizeExceeded(args)) {</b>
+<b class="nc">&nbsp;                    TbScriptException t = new TbScriptException(scriptId, TbScriptException.ErrorCode.OTHER, null, new IllegalArgumentException(</b>
+<b class="nc">&nbsp;                            format(&quot;Script input arguments exceed maximum allowed total args size of %s symbols&quot;, getMaxTotalArgsSize())</b>
+&nbsp;                    ));
+<b class="nc">&nbsp;                    return Futures.immediateFailedFuture(handleScriptException(scriptId, null, t));</b>
+&nbsp;                }
+<b class="nc">&nbsp;                reportExecution(tenantId, customerId);</b>
+<b class="nc">&nbsp;                requestsCounter.increment();</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] InvokeScript uuid {} with timeout {}ms&quot;, tenantId, scriptId, getMaxInvokeRequestsTimeout());</b>
+<b class="nc">&nbsp;                var task = doInvokeFunction(scriptId, args);</b>
+&nbsp;
+<b class="nc">&nbsp;                var resultFuture = Futures.transform(task.getResultFuture(), output -&gt; {</b>
+<b class="nc">&nbsp;                    String result = JacksonUtil.toString(output);</b>
+<b class="nc">&nbsp;                    if (resultSizeExceeded(result)) {</b>
+<b class="nc">&nbsp;                        throw new TbScriptException(scriptId, TbScriptException.ErrorCode.OTHER, null, new RuntimeException(</b>
+<b class="nc">&nbsp;                                format(&quot;Script invocation result exceeds maximum allowed size of %s symbols&quot;, getMaxResultSize())</b>
+&nbsp;                        ));
+&nbsp;                    }
+<b class="nc">&nbsp;                    return output;</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;
+<b class="nc">&nbsp;                return withTimeoutAndStatsCallback(scriptId, task, resultFuture, invokeCallback, getMaxInvokeRequestsTimeout());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                String message = &quot;Script invocation is blocked due to maximum error count &quot;</b>
+<b class="nc">&nbsp;                        + getMaxErrors() + &quot;, scriptId &quot; + scriptId + &quot;!&quot;;</b>
+<b class="nc">&nbsp;                log.warn(&quot;[{}] &quot; + message, tenantId);</b>
+<b class="nc">&nbsp;                return error(message);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return error(&quot;Script execution is disabled due to API limits!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T extends V, V&gt; ListenableFuture&lt;T&gt; withTimeoutAndStatsCallback(UUID scriptId, TbScriptExecutionTask task, ListenableFuture&lt;T&gt; future, FutureCallback&lt;V&gt; statsCallback, long timeout) {
+<b class="nc">&nbsp;        if (timeout &gt; 0) {</b>
+<b class="nc">&nbsp;            future = Futures.withTimeout(future, timeout, TimeUnit.MILLISECONDS, timeoutExecutorService);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Futures.addCallback(future, statsCallback, getCallbackExecutor());</b>
+<b class="nc">&nbsp;        return Futures.catchingAsync(future, Exception.class,</b>
+<b class="nc">&nbsp;                input -&gt; Futures.immediateFailedFuture(handleScriptException(scriptId, task, input)),</b>
+<b class="nc">&nbsp;                MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Throwable handleScriptException(UUID scriptId, TbScriptExecutionTask task, Throwable t) {
+<b class="nc">&nbsp;        boolean timeout = t instanceof TimeoutException || (t.getCause() != null &amp;&amp; t.getCause() instanceof TimeoutException);</b>
+<b class="nc">&nbsp;        if (timeout &amp;&amp; task != null) {</b>
+<b class="nc">&nbsp;            task.stop();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        boolean blockList = timeout;</b>
+<b class="nc">&nbsp;        String scriptBody = null;</b>
+<b class="nc">&nbsp;        if (t instanceof TbScriptException) {</b>
+<b class="nc">&nbsp;            var scriptException = (TbScriptException) t;</b>
+<b class="nc">&nbsp;            scriptBody = scriptException.getBody();</b>
+<b class="nc">&nbsp;            var cause = scriptException.getCause();</b>
+<b class="nc">&nbsp;            switch (scriptException.getErrorCode()) {</b>
+&nbsp;                case COMPILATION:
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Failed to compile script: {}&quot;, scriptId, scriptException.getBody(), cause);</b>
+&nbsp;                    break;
+&nbsp;                case TIMEOUT:
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Timeout to execute script: {}&quot;, scriptId, scriptException.getBody(), cause);</b>
+&nbsp;                    break;
+&nbsp;                case OTHER:
+&nbsp;                case RUNTIME:
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Failed to execute script: {}&quot;, scriptId, scriptException.getBody(), cause);</b>
+&nbsp;                    break;
+&nbsp;            }
+<b class="nc">&nbsp;            blockList = timeout || scriptException.getErrorCode() != TbScriptException.ErrorCode.RUNTIME;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (blockList) {</b>
+<b class="nc">&nbsp;            BlockedScriptInfo disableListInfo = disabledScripts.computeIfAbsent(scriptId, key -&gt; new BlockedScriptInfo(getMaxBlackListDurationSec()));</b>
+<b class="nc">&nbsp;            int counter = disableListInfo.incrementAndGet();</b>
+<b class="nc">&nbsp;            if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;Script has exception counter {} on disabledFunctions for id {}, exception {}, cause {}, scriptBody {}&quot;,</b>
+<b class="nc">&nbsp;                        counter, scriptId, t, t.getCause(), scriptBody);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;Script has exception counter {} on disabledFunctions for id {}, exception {}&quot;,</b>
+<b class="nc">&nbsp;                        counter, scriptId, t.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (timeout) {</b>
+<b class="nc">&nbsp;            return new TimeoutException(&quot;Script timeout!&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return t;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Void&gt; release(UUID scriptId) {
+<b class="nc">&nbsp;        if (isScriptPresent(scriptId)) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                disabledScripts.remove(scriptId);</b>
+<b class="nc">&nbsp;                doRelease(scriptId);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                return Futures.immediateFailedFuture(e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.immediateFuture(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isDisabled(UUID scriptId) {
+<b class="nc">&nbsp;        BlockedScriptInfo errorCount = disabledScripts.get(scriptId);</b>
+<b class="nc">&nbsp;        if (errorCount != null) {</b>
+<b class="nc">&nbsp;            if (errorCount.getExpirationTime() &lt;= System.currentTimeMillis()) {</b>
+<b class="nc">&nbsp;                disabledScripts.remove(scriptId);</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return errorCount.get() &gt;= getMaxErrors();</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean scriptBodySizeExceeded(String scriptBody) {
+<b class="nc">&nbsp;        if (getMaxScriptBodySize() &lt;= 0) return false;</b>
+<b class="nc">&nbsp;        return scriptBody.length() &gt; getMaxScriptBodySize();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean argsSizeExceeded(Object[] args) {
+<b class="nc">&nbsp;        if (getMaxTotalArgsSize() &lt;= 0) return false;</b>
+<b class="nc">&nbsp;        long totalArgsSize = 0;</b>
+<b class="nc">&nbsp;        for (Object arg : args) {</b>
+<b class="nc">&nbsp;            if (arg instanceof CharSequence) {</b>
+<b class="nc">&nbsp;                totalArgsSize += ((CharSequence) arg).length();</b>
+<b class="nc">&nbsp;            } else if (arg instanceof TbelCfObject tbelCfObj) {</b>
+<b class="nc">&nbsp;                totalArgsSize += tbelCfObj.memorySize();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                var str = JacksonUtil.toString(arg);</b>
+<b class="nc">&nbsp;                if (str != null) {</b>
+<b class="nc">&nbsp;                    totalArgsSize += str.length();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return totalArgsSize &gt; getMaxTotalArgsSize();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean resultSizeExceeded(String result) {
+<b class="nc">&nbsp;        if (getMaxResultSize() &lt;= 0) return false;</b>
+<b class="nc">&nbsp;        return result != null &amp;&amp; result.length() &gt; getMaxResultSize();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public &lt;T&gt; ListenableFuture&lt;T&gt; error(String message) {
+<b class="nc">&nbsp;        return Futures.immediateFailedFuture(new RuntimeException(message));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract StatsType getStatsType();
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

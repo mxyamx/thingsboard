@@ -1,0 +1,992 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbEntityDataSubscriptionService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.subscription</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbEntityDataSubscriptionService (org.thingsboard.server.service.subscription)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbEntityDataSubscriptionService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/142)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/350)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultTbEntityDataSubscriptionService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DefaultTbEntityDataSubscriptionService$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/57)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/144)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/370)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.subscription;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.ArrayUtils;
+&nbsp;import org.checkerframework.checker.nullness.qual.Nullable;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.web.socket.CloseStatus;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.ComparisonTsValue;
+&nbsp;import org.thingsboard.server.common.data.query.EntityData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.query.TsValue;
+&nbsp;import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmService;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.timeseries.TimeseriesService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketService;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketSessionRef;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AggHistoryCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AggKey;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AggTimeSeriesCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountUpdate;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmDataCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmDataUpdate;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmStatusCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityHistoryCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.GetTsCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.LatestValueCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.TimeSeriesCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.UnsubscribeCmd;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.ScheduledFuture;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@SuppressWarnings(&quot;UnstableApiUsage&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@TbCoreComponent
+&nbsp;@Service
+<b class="nc">&nbsp;public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubscriptionService {</b>
+&nbsp;
+&nbsp;    private static final int DEFAULT_LIMIT = 100;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, ConcurrentMap&lt;Integer, TbAbstractSubCtx&gt;&gt; subscriptionsBySessionId = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private WebSocketService wsService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityService entityService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AlarmService alarmService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AttributesService attributesService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private TbLocalSubscriptionService localSubscriptionService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TimeseriesService tsService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TbServiceInfoProvider serviceInfoProvider;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Getter
+&nbsp;    private DbCallbackExecutorService dbCallbackExecutor;
+&nbsp;
+&nbsp;    private ScheduledExecutorService scheduler;
+&nbsp;
+&nbsp;    @Value(&quot;${database.ts.type}&quot;)
+&nbsp;    private String databaseTsType;
+&nbsp;    @Value(&quot;${server.ws.dynamic_page_link.refresh_interval:6}&quot;)
+&nbsp;    private long dynamicPageLinkRefreshInterval;
+&nbsp;    @Value(&quot;${server.ws.dynamic_page_link.refresh_pool_size:1}&quot;)
+&nbsp;    private int dynamicPageLinkRefreshPoolSize;
+&nbsp;    @Value(&quot;${server.ws.max_entities_per_data_subscription:1000}&quot;)
+&nbsp;    private int maxEntitiesPerDataSubscription;
+&nbsp;    @Value(&quot;${server.ws.max_entities_per_alarm_subscription:1000}&quot;)
+&nbsp;    private int maxEntitiesPerAlarmSubscription;
+&nbsp;    @Value(&quot;${server.ws.dynamic_page_link.max_alarm_queries_per_refresh_interval:10}&quot;)
+&nbsp;    private int maxAlarmQueriesPerRefreshInterval;
+&nbsp;    @Value(&quot;${ui.dashboard.max_datapoints_limit:50000}&quot;)
+&nbsp;    private int maxDatapointLimit;
+&nbsp;    @Value(&quot;${server.ws.alarms_per_alarm_status_subscription_cache_size:10}&quot;)
+&nbsp;    private int alarmsPerAlarmStatusSubscriptionCacheSize;
+&nbsp;
+&nbsp;    private ExecutorService wsCallBackExecutor;
+&nbsp;    private boolean tsInSqlDB;
+&nbsp;    private String serviceId;
+<b class="nc">&nbsp;    private SubscriptionServiceStatistics stats = new SubscriptionServiceStatistics();</b>
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void initExecutor() {
+<b class="nc">&nbsp;        serviceId = serviceInfoProvider.getServiceId();</b>
+<b class="nc">&nbsp;        wsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;ws-entity-sub-callback&quot;));</b>
+<b class="nc">&nbsp;        tsInSqlDB = databaseTsType.equalsIgnoreCase(&quot;sql&quot;) || databaseTsType.equalsIgnoreCase(&quot;timescale&quot;);</b>
+<b class="nc">&nbsp;        if (dynamicPageLinkRefreshPoolSize == 1) {</b>
+<b class="nc">&nbsp;            scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor(&quot;ws-entity-sub-scheduler&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            scheduler = ThingsBoardExecutors.newScheduledThreadPool(dynamicPageLinkRefreshPoolSize, &quot;ws-entity-sub-scheduler&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void shutdownExecutor() {
+<b class="nc">&nbsp;        if (wsCallBackExecutor != null) {</b>
+<b class="nc">&nbsp;            wsCallBackExecutor.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (scheduler != null) {</b>
+<b class="nc">&nbsp;            scheduler.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleCmd(WebSocketSessionRef session, EntityDataCmd cmd) {
+<b class="nc">&nbsp;        TbEntityDataSubCtx ctx = getSubCtx(session.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        if (ctx != null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Updating existing subscriptions using: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd);</b>
+<b class="nc">&nbsp;            if (cmd.hasAnyCmd()) {</b>
+<b class="nc">&nbsp;                ctx.clearEntitySubscriptions();</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Creating new subscription using: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd);</b>
+<b class="nc">&nbsp;            ctx = createSubCtx(session, cmd);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.setCurrentCmd(cmd);</b>
+&nbsp;
+&nbsp;        // Fetch entity list using entity data query
+<b class="nc">&nbsp;        if (cmd.getQuery() != null) {</b>
+<b class="nc">&nbsp;            if (ctx.getQuery() == null) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}][{}] Initializing data using query: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd.getQuery());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}][{}] Updating data using query: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd.getQuery());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            ctx.setAndResolveQuery(cmd.getQuery());</b>
+<b class="nc">&nbsp;            EntityDataQuery query = ctx.getQuery();</b>
+&nbsp;            //Step 1. Update existing query with the contents of LatestValueCmd
+<b class="nc">&nbsp;            if (cmd.getLatestCmd() != null) {</b>
+<b class="nc">&nbsp;                cmd.getLatestCmd().getKeys().forEach(key -&gt; {</b>
+<b class="nc">&nbsp;                    if (!query.getLatestValues().contains(key)) {</b>
+<b class="nc">&nbsp;                        query.getLatestValues().add(key);</b>
+&nbsp;                    }
+&nbsp;                });
+&nbsp;            }
+<b class="nc">&nbsp;            long start = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            ctx.fetchData();</b>
+<b class="nc">&nbsp;            long end = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            stats.getRegularQueryInvocationCnt().incrementAndGet();</b>
+<b class="nc">&nbsp;            stats.getRegularQueryTimeSpent().addAndGet(end - start);</b>
+<b class="nc">&nbsp;            ctx.cancelTasks();</b>
+<b class="nc">&nbsp;            if (ctx.getQuery().getPageLink().isDynamic()) {</b>
+&nbsp;                //TODO: validate number of dynamic page links against rate limits. Ignore dynamic flag if limit is reached.
+<b class="nc">&nbsp;                TbEntityDataSubCtx finalCtx = ctx;</b>
+<b class="nc">&nbsp;                ScheduledFuture&lt;?&gt; task = scheduler.scheduleWithFixedDelay(</b>
+<b class="nc">&nbsp;                        () -&gt; refreshDynamicQuery(finalCtx),</b>
+&nbsp;                        dynamicPageLinkRefreshInterval, dynamicPageLinkRefreshInterval, TimeUnit.SECONDS);
+<b class="nc">&nbsp;                finalCtx.setRefreshTask(task);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            List&lt;ListenableFuture&lt;?&gt;&gt; cmdFutures = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            if (cmd.getAggHistoryCmd() != null) {</b>
+<b class="nc">&nbsp;                cmdFutures.add(handleAggHistoryCmd(ctx, cmd.getAggHistoryCmd()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (cmd.getAggTsCmd() != null) {</b>
+<b class="nc">&nbsp;                cmdFutures.add(handleAggTsCmd(ctx, cmd.getAggTsCmd()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (cmd.getHistoryCmd() != null) {</b>
+<b class="nc">&nbsp;                cmdFutures.add(handleHistoryCmd(ctx, cmd.getHistoryCmd()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (cmdFutures.isEmpty()) {</b>
+<b class="nc">&nbsp;                handleRegularCommands(ctx, cmd);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                TbEntityDataSubCtx finalCtx = ctx;</b>
+<b class="nc">&nbsp;                Futures.addCallback(Futures.allAsList(cmdFutures), new FutureCallback&lt;&gt;() {</b>
+&nbsp;                    @Override
+&nbsp;                    public void onSuccess(@Nullable List&lt;Object&gt; result) {
+<b class="nc">&nbsp;                        handleRegularCommands(finalCtx, cmd);</b>
+&nbsp;                    }
+&nbsp;
+&nbsp;                    @Override
+&nbsp;                    public void onFailure(Throwable t) {
+<b class="nc">&nbsp;                        log.warn(&quot;[{}][{}] Failed to process command&quot;, finalCtx.getSessionId(), finalCtx.getCmdId());</b>
+&nbsp;                    }
+&nbsp;                }, wsCallBackExecutor);
+&nbsp;            }
+&nbsp;        } catch (RuntimeException e) {
+<b class="nc">&nbsp;            handleWsCmdRuntimeException(ctx.getSessionId(), e, cmd);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleRegularCommands(TbEntityDataSubCtx ctx, EntityDataCmd cmd) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (cmd.getLatestCmd() != null || cmd.getTsCmd() != null) {</b>
+<b class="nc">&nbsp;                if (cmd.getLatestCmd() != null) {</b>
+<b class="nc">&nbsp;                    handleLatestCmd(ctx, cmd.getLatestCmd());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (cmd.getTsCmd() != null) {</b>
+<b class="nc">&nbsp;                    handleTimeSeriesCmd(ctx, cmd.getTsCmd());</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                checkAndSendInitialData(ctx);</b>
+&nbsp;            }
+&nbsp;        } catch (RuntimeException e) {
+<b class="nc">&nbsp;            handleWsCmdRuntimeException(ctx.getSessionId(), e, cmd);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkAndSendInitialData(@Nullable TbEntityDataSubCtx theCtx) {
+<b class="nc">&nbsp;        if (!theCtx.isInitialDataSent()) {</b>
+<b class="nc">&nbsp;            EntityDataUpdate update = new EntityDataUpdate(theCtx.getCmdId(), theCtx.getData(), null, theCtx.getMaxEntitiesPerDataSubscription());</b>
+<b class="nc">&nbsp;            theCtx.sendWsMsg(update);</b>
+<b class="nc">&nbsp;            theCtx.setInitialDataSent(true);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbEntityDataSubCtx&gt; handleAggHistoryCmd(TbEntityDataSubCtx ctx, AggHistoryCmd cmd) {
+<b class="nc">&nbsp;        ConcurrentMap&lt;Integer, ReadTsKvQueryInfo&gt; queries = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (AggKey key : cmd.getKeys()) {</b>
+<b class="nc">&nbsp;            if (key.getPreviousValueOnly() == null || !key.getPreviousValueOnly()) {</b>
+<b class="nc">&nbsp;                var query = new BaseReadTsKvQuery(key.getKey(), cmd.getStartTs(), cmd.getEndTs(), cmd.getEndTs() - cmd.getStartTs(), 1, key.getAgg());</b>
+<b class="nc">&nbsp;                queries.put(query.getId(), new ReadTsKvQueryInfo(key, query, false));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (key.getPreviousStartTs() != null &amp;&amp; key.getPreviousEndTs() != null &amp;&amp; key.getPreviousEndTs() &gt;= key.getPreviousStartTs()) {</b>
+<b class="nc">&nbsp;                var query = new BaseReadTsKvQuery(key.getKey(), key.getPreviousStartTs(), key.getPreviousEndTs(), key.getPreviousEndTs() - key.getPreviousStartTs(), 1, key.getAgg());</b>
+<b class="nc">&nbsp;                queries.put(query.getId(), new ReadTsKvQueryInfo(key, query, true));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return handleAggCmd(ctx, cmd.getKeys(), queries, cmd.getStartTs(), cmd.getEndTs(), false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbEntityDataSubCtx&gt; handleAggTsCmd(TbEntityDataSubCtx ctx, AggTimeSeriesCmd cmd) {
+<b class="nc">&nbsp;        ConcurrentMap&lt;Integer, ReadTsKvQueryInfo&gt; queries = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (AggKey key : cmd.getKeys()) {</b>
+<b class="nc">&nbsp;            var query = new BaseReadTsKvQuery(key.getKey(), cmd.getStartTs(), cmd.getStartTs() + cmd.getTimeWindow(), cmd.getTimeWindow(), 1, key.getAgg());</b>
+<b class="nc">&nbsp;            queries.put(query.getId(), new ReadTsKvQueryInfo(key, query, false));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return handleAggCmd(ctx, cmd.getKeys(), queries, cmd.getStartTs(), cmd.getStartTs() + cmd.getTimeWindow(), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbEntityDataSubCtx&gt; handleAggCmd(TbEntityDataSubCtx ctx, List&lt;AggKey&gt; keys, ConcurrentMap&lt;Integer, ReadTsKvQueryInfo&gt; queries,
+&nbsp;                                                              long startTs, long endTs, boolean subscribe) {
+<b class="nc">&nbsp;        Map&lt;EntityData, ListenableFuture&lt;List&lt;ReadTsKvQueryResult&gt;&gt;&gt; fetchResultMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;EntityData&gt; entityDataList = ctx.getData().getData();</b>
+<b class="nc">&nbsp;        List&lt;ReadTsKvQuery&gt; queryList = queries.values().stream().map(ReadTsKvQueryInfo::getQuery).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        entityDataList.forEach(entityData -&gt; fetchResultMap.put(entityData,</b>
+<b class="nc">&nbsp;                tsService.findAllByQueries(ctx.getTenantId(), entityData.getEntityId(), queryList)));</b>
+<b class="nc">&nbsp;        return Futures.transform(Futures.allAsList(fetchResultMap.values()), f -&gt; {</b>
+&nbsp;            // Map that holds last ts for each key for each entity.
+<b class="nc">&nbsp;            Map&lt;EntityData, Map&lt;String, Long&gt;&gt; lastTsEntityMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            fetchResultMap.forEach((entityData, future) -&gt; {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    Map&lt;String, Long&gt; lastTsMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;                    lastTsEntityMap.put(entityData, lastTsMap);</b>
+&nbsp;
+<b class="nc">&nbsp;                    List&lt;ReadTsKvQueryResult&gt; queryResults = future.get();</b>
+<b class="nc">&nbsp;                    if (queryResults != null) {</b>
+<b class="nc">&nbsp;                        for (ReadTsKvQueryResult queryResult : queryResults) {</b>
+<b class="nc">&nbsp;                            ReadTsKvQueryInfo queryInfo = queries.get(queryResult.getQueryId());</b>
+<b class="nc">&nbsp;                            ComparisonTsValue comparisonTsValue = entityData.getAggLatest().computeIfAbsent(queryInfo.getKey().getId(), agg -&gt; new ComparisonTsValue());</b>
+<b class="nc">&nbsp;                            if (queryInfo.isPrevious()) {</b>
+<b class="nc">&nbsp;                                comparisonTsValue.setPrevious(queryResult.toTsValue(queryInfo.getQuery()));</b>
+&nbsp;                            } else {
+<b class="nc">&nbsp;                                comparisonTsValue.setCurrent(queryResult.toTsValue(queryInfo.getQuery()));</b>
+<b class="nc">&nbsp;                                lastTsMap.put(queryInfo.getQuery().getKey(), queryResult.getLastEntryTs());</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    // Populate with empty values if no data found.
+<b class="nc">&nbsp;                    keys.forEach(key -&gt; {</b>
+<b class="nc">&nbsp;                        entityData.getAggLatest().putIfAbsent(key.getId(), new ComparisonTsValue(TsValue.EMPTY, TsValue.EMPTY));</b>
+&nbsp;                    });
+&nbsp;                } catch (InterruptedException | ExecutionException e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}][{}][{}] Failed to fetch historical data&quot;, ctx.getSessionId(), ctx.getCmdId(), entityData.getEntityId(), e);</b>
+<b class="nc">&nbsp;                    ctx.sendWsMsg(new EntityDataUpdate(ctx.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR.getCode(), &quot;Failed to fetch historical data!&quot;));</b>
+&nbsp;                }
+&nbsp;            });
+<b class="nc">&nbsp;            ctx.getWsLock().lock();</b>
+&nbsp;            try {
+&nbsp;                EntityDataUpdate update;
+<b class="nc">&nbsp;                if (!ctx.isInitialDataSent()) {</b>
+<b class="nc">&nbsp;                    update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());</b>
+<b class="nc">&nbsp;                    ctx.setInitialDataSent(true);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    update = new EntityDataUpdate(ctx.getCmdId(), null, entityDataList, ctx.getMaxEntitiesPerDataSubscription());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (subscribe) {</b>
+<b class="nc">&nbsp;                    ctx.createTimeSeriesSubscriptions(lastTsEntityMap, startTs, endTs, true);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                ctx.sendWsMsg(update);</b>
+<b class="nc">&nbsp;                entityDataList.forEach(EntityData::clearTsAndAggData);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                ctx.getWsLock().unlock();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return ctx;</b>
+&nbsp;        }, wsCallBackExecutor);
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleWsCmdRuntimeException(String sessionId, RuntimeException e, EntityDataCmd cmd) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Failed to process ws cmd: {}&quot;, sessionId, cmd, e);</b>
+<b class="nc">&nbsp;        if (e instanceof TbRateLimitsException) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        wsService.close(sessionId, CloseStatus.SERVICE_RESTARTED);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleCmd(WebSocketSessionRef session, EntityCountCmd cmd) {
+<b class="nc">&nbsp;        TbEntityCountSubCtx ctx = getSubCtx(session.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        if (ctx == null) {</b>
+<b class="nc">&nbsp;            ctx = createSubCtx(session, cmd);</b>
+<b class="nc">&nbsp;            long start = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            ctx.fetchData();</b>
+<b class="nc">&nbsp;            long end = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            stats.getRegularQueryInvocationCnt().incrementAndGet();</b>
+<b class="nc">&nbsp;            stats.getRegularQueryTimeSpent().addAndGet(end - start);</b>
+<b class="nc">&nbsp;            TbEntityCountSubCtx finalCtx = ctx;</b>
+<b class="nc">&nbsp;            ScheduledFuture&lt;?&gt; task = scheduler.scheduleWithFixedDelay(</b>
+<b class="nc">&nbsp;                    () -&gt; refreshDynamicQuery(finalCtx),</b>
+&nbsp;                    dynamicPageLinkRefreshInterval, dynamicPageLinkRefreshInterval, TimeUnit.SECONDS);
+<b class="nc">&nbsp;            finalCtx.setRefreshTask(task);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Received duplicate command: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleCmd(WebSocketSessionRef session, AlarmDataCmd cmd) {
+<b class="nc">&nbsp;        TbAlarmDataSubCtx ctx = getSubCtx(session.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        if (ctx == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Creating new alarm subscription using: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd);</b>
+<b class="nc">&nbsp;            ctx = createSubCtx(session, cmd);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.setAndResolveQuery(cmd.getQuery());</b>
+<b class="nc">&nbsp;        AlarmDataQuery adq = ctx.getQuery();</b>
+<b class="nc">&nbsp;        long start = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        ctx.fetchData();</b>
+<b class="nc">&nbsp;        long end = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        stats.getRegularQueryInvocationCnt().incrementAndGet();</b>
+<b class="nc">&nbsp;        stats.getRegularQueryTimeSpent().addAndGet(end - start);</b>
+<b class="nc">&nbsp;        List&lt;EntityData&gt; entities = ctx.getEntitiesData();</b>
+<b class="nc">&nbsp;        ctx.cancelTasks();</b>
+<b class="nc">&nbsp;        ctx.clearEntitySubscriptions();</b>
+<b class="nc">&nbsp;        if (entities.isEmpty()) {</b>
+<b class="nc">&nbsp;            AlarmDataUpdate update = new AlarmDataUpdate(cmd.getCmdId(), new PageData&lt;&gt;(), null, 0, 0);</b>
+<b class="nc">&nbsp;            ctx.sendWsMsg(update);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ctx.fetchAlarms();</b>
+<b class="nc">&nbsp;            ctx.createLatestValuesSubscriptions(cmd.getQuery().getLatestValues());</b>
+<b class="nc">&nbsp;            if (adq.getPageLink().getTimeWindow() &gt; 0) {</b>
+<b class="nc">&nbsp;                TbAlarmDataSubCtx finalCtx = ctx;</b>
+<b class="nc">&nbsp;                ScheduledFuture&lt;?&gt; task = scheduler.scheduleWithFixedDelay(</b>
+<b class="nc">&nbsp;                        () -&gt; refreshAlarmQuery(finalCtx), dynamicPageLinkRefreshInterval, dynamicPageLinkRefreshInterval, TimeUnit.SECONDS);</b>
+<b class="nc">&nbsp;                finalCtx.setRefreshTask(task);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleCmd(WebSocketSessionRef session, AlarmCountCmd cmd) {
+<b class="nc">&nbsp;        TbAlarmCountSubCtx ctx = getSubCtx(session.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        if (ctx == null) {</b>
+<b class="nc">&nbsp;            ctx = createSubCtx(session, cmd);</b>
+<b class="nc">&nbsp;            long start = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            ctx.fetchData();</b>
+<b class="nc">&nbsp;            long end = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            stats.getRegularQueryInvocationCnt().incrementAndGet();</b>
+<b class="nc">&nbsp;            stats.getRegularQueryTimeSpent().addAndGet(end - start);</b>
+<b class="nc">&nbsp;            Set&lt;EntityId&gt; entitiesIds = ctx.getEntitiesIds();</b>
+<b class="nc">&nbsp;            ctx.cancelTasks();</b>
+<b class="nc">&nbsp;            ctx.clearAlarmSubscriptions();</b>
+<b class="nc">&nbsp;            if (entitiesIds != null &amp;&amp; entitiesIds.isEmpty()) {</b>
+<b class="nc">&nbsp;                AlarmCountUpdate update = new AlarmCountUpdate(cmd.getCmdId(), 0);</b>
+<b class="nc">&nbsp;                ctx.sendWsMsg(update);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                ctx.doFetchAlarmCount();</b>
+<b class="nc">&nbsp;                if (entitiesIds != null) {</b>
+<b class="nc">&nbsp;                    ctx.createAlarmSubscriptions();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                TbAlarmCountSubCtx finalCtx = ctx;</b>
+<b class="nc">&nbsp;                ScheduledFuture&lt;?&gt; task = scheduler.scheduleWithFixedDelay(</b>
+<b class="nc">&nbsp;                        () -&gt; refreshDynamicQuery(finalCtx),</b>
+&nbsp;                        dynamicPageLinkRefreshInterval, dynamicPageLinkRefreshInterval, TimeUnit.SECONDS);
+<b class="nc">&nbsp;                finalCtx.setRefreshTask(task);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Received duplicate command: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleCmd(WebSocketSessionRef session, AlarmStatusCmd cmd) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Handling alarm status subscription cmd (cmdId: {})&quot;, session.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        TbAlarmStatusSubCtx ctx = getSubCtx(session.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        if (ctx == null) {</b>
+<b class="nc">&nbsp;            ctx = createSubCtx(session, cmd);</b>
+<b class="nc">&nbsp;            long start = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            ctx.fetchActiveAlarms();</b>
+<b class="nc">&nbsp;            long end = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            stats.getAlarmQueryInvocationCnt().incrementAndGet();</b>
+<b class="nc">&nbsp;            stats.getAlarmQueryTimeSpent().addAndGet(end - start);</b>
+<b class="nc">&nbsp;            ctx.sendUpdate();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Received duplicate command: {}&quot;, session.getSessionId(), cmd.getCmdId(), cmd);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean validate(TbAbstractSubCtx finalCtx) {
+<b class="nc">&nbsp;        if (finalCtx.isStopped()) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}][{}] Received validation task for already stopped context.&quot;, finalCtx.getTenantId(), finalCtx.getSessionId(), finalCtx.getCmdId());</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var cmdMap = subscriptionsBySessionId.get(finalCtx.getSessionId());</b>
+<b class="nc">&nbsp;        if (cmdMap == null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}][{}] Received validation task for already removed session.&quot;, finalCtx.getTenantId(), finalCtx.getSessionId(), finalCtx.getCmdId());</b>
+<b class="nc">&nbsp;            return false;</b>
+<b class="nc">&nbsp;        } else if (!cmdMap.containsKey(finalCtx.getCmdId())) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}][{}] Received validation task for unregistered cmdId.&quot;, finalCtx.getTenantId(), finalCtx.getSessionId(), finalCtx.getCmdId());</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void refreshDynamicQuery(TbAbstractEntityQuerySubCtx&lt;?&gt; finalCtx) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (validate(finalCtx)) {</b>
+<b class="nc">&nbsp;                long start = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;                finalCtx.update();</b>
+<b class="nc">&nbsp;                long end = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}][{}] Executing query: {}&quot;, finalCtx.getSessionId(), finalCtx.getCmdId(), finalCtx.getQuery());</b>
+<b class="nc">&nbsp;                stats.getDynamicQueryInvocationCnt().incrementAndGet();</b>
+<b class="nc">&nbsp;                stats.getDynamicQueryTimeSpent().addAndGet(end - start);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                finalCtx.stop();</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}] Failed to refresh query&quot;, finalCtx.getSessionId(), finalCtx.getCmdId(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void refreshAlarmQuery(TbAlarmDataSubCtx finalCtx) {
+<b class="nc">&nbsp;        if (validate(finalCtx)) {</b>
+<b class="nc">&nbsp;            finalCtx.checkAndResetInvocationCounter();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            finalCtx.stop();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(fixedDelayString = &quot;${server.ws.dynamic_page_link.stats:10000}&quot;)
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        int alarmQueryInvocationCntValue = stats.getAlarmQueryInvocationCnt().getAndSet(0);</b>
+<b class="nc">&nbsp;        long alarmQueryInvocationTimeValue = stats.getAlarmQueryTimeSpent().getAndSet(0);</b>
+<b class="nc">&nbsp;        int regularQueryInvocationCntValue = stats.getRegularQueryInvocationCnt().getAndSet(0);</b>
+<b class="nc">&nbsp;        long regularQueryInvocationTimeValue = stats.getRegularQueryTimeSpent().getAndSet(0);</b>
+<b class="nc">&nbsp;        int dynamicQueryInvocationCntValue = stats.getDynamicQueryInvocationCnt().getAndSet(0);</b>
+<b class="nc">&nbsp;        long dynamicQueryInvocationTimeValue = stats.getDynamicQueryTimeSpent().getAndSet(0);</b>
+<b class="nc">&nbsp;        long dynamicQueryCnt = subscriptionsBySessionId.values().stream().mapToLong(m -&gt; m.values().stream().filter(TbAbstractSubCtx::isDynamic).count()).sum();</b>
+<b class="nc">&nbsp;        if (regularQueryInvocationCntValue &gt; 0 || dynamicQueryInvocationCntValue &gt; 0 || dynamicQueryCnt &gt; 0 || alarmQueryInvocationCntValue &gt; 0) {</b>
+<b class="nc">&nbsp;            log.info(&quot;Stats: regularQueryInvocationCnt = [{}], regularQueryInvocationTime = [{}], &quot; +</b>
+&nbsp;                            &quot;dynamicQueryCnt = [{}] dynamicQueryInvocationCnt = [{}], dynamicQueryInvocationTime = [{}], &quot; +
+&nbsp;                            &quot;alarmQueryInvocationCnt = [{}], alarmQueryInvocationTime = [{}]&quot;,
+<b class="nc">&nbsp;                    regularQueryInvocationCntValue, regularQueryInvocationTimeValue,</b>
+<b class="nc">&nbsp;                    dynamicQueryCnt, dynamicQueryInvocationCntValue, dynamicQueryInvocationTimeValue,</b>
+<b class="nc">&nbsp;                    alarmQueryInvocationCntValue, alarmQueryInvocationTimeValue);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbEntityDataSubCtx createSubCtx(WebSocketSessionRef sessionRef, EntityDataCmd cmd) {
+<b class="nc">&nbsp;        Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.computeIfAbsent(sessionRef.getSessionId(), k -&gt; new ConcurrentHashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;        TbEntityDataSubCtx ctx = new TbEntityDataSubCtx(serviceId, wsService, entityService, localSubscriptionService,</b>
+<b class="nc">&nbsp;                attributesService, stats, sessionRef, cmd.getCmdId(), maxEntitiesPerDataSubscription);</b>
+<b class="nc">&nbsp;        if (cmd.getQuery() != null) {</b>
+<b class="nc">&nbsp;            ctx.setAndResolveQuery(cmd.getQuery());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sessionSubs.put(cmd.getCmdId(), ctx);</b>
+<b class="nc">&nbsp;        return ctx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbEntityCountSubCtx createSubCtx(WebSocketSessionRef sessionRef, EntityCountCmd cmd) {
+<b class="nc">&nbsp;        Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.computeIfAbsent(sessionRef.getSessionId(), k -&gt; new ConcurrentHashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;        TbEntityCountSubCtx ctx = new TbEntityCountSubCtx(serviceId, wsService, entityService, localSubscriptionService,</b>
+<b class="nc">&nbsp;                attributesService, stats, sessionRef, cmd.getCmdId());</b>
+<b class="nc">&nbsp;        if (cmd.getQuery() != null) {</b>
+<b class="nc">&nbsp;            ctx.setAndResolveQuery(cmd.getQuery());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sessionSubs.put(cmd.getCmdId(), ctx);</b>
+<b class="nc">&nbsp;        return ctx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private TbAlarmDataSubCtx createSubCtx(WebSocketSessionRef sessionRef, AlarmDataCmd cmd) {
+<b class="nc">&nbsp;        Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.computeIfAbsent(sessionRef.getSessionId(), k -&gt; new ConcurrentHashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;        TbAlarmDataSubCtx ctx = new TbAlarmDataSubCtx(serviceId, wsService, entityService, localSubscriptionService,</b>
+<b class="nc">&nbsp;                attributesService, stats, alarmService, sessionRef, cmd.getCmdId(), maxEntitiesPerAlarmSubscription,</b>
+&nbsp;                maxAlarmQueriesPerRefreshInterval);
+<b class="nc">&nbsp;        ctx.setAndResolveQuery(cmd.getQuery());</b>
+<b class="nc">&nbsp;        sessionSubs.put(cmd.getCmdId(), ctx);</b>
+<b class="nc">&nbsp;        return ctx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbAlarmCountSubCtx createSubCtx(WebSocketSessionRef sessionRef, AlarmCountCmd cmd) {
+<b class="nc">&nbsp;        Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.computeIfAbsent(sessionRef.getSessionId(), k -&gt; new ConcurrentHashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;        TbAlarmCountSubCtx ctx = new TbAlarmCountSubCtx(serviceId, wsService, entityService, localSubscriptionService,</b>
+<b class="nc">&nbsp;                attributesService, stats, alarmService, sessionRef, cmd.getCmdId(), maxEntitiesPerAlarmSubscription, maxAlarmQueriesPerRefreshInterval);</b>
+<b class="nc">&nbsp;        if (cmd.getQuery() != null) {</b>
+<b class="nc">&nbsp;            ctx.setAndResolveQuery(cmd.getQuery());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sessionSubs.put(cmd.getCmdId(), ctx);</b>
+<b class="nc">&nbsp;        return ctx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbAlarmStatusSubCtx createSubCtx(WebSocketSessionRef sessionRef, AlarmStatusCmd cmd) {
+<b class="nc">&nbsp;        Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.computeIfAbsent(sessionRef.getSessionId(), k -&gt; new ConcurrentHashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;        TbAlarmStatusSubCtx ctx = new TbAlarmStatusSubCtx(serviceId, wsService, localSubscriptionService,</b>
+<b class="nc">&nbsp;                stats, alarmService, alarmsPerAlarmStatusSubscriptionCacheSize, sessionRef, cmd.getCmdId());</b>
+<b class="nc">&nbsp;        ctx.createSubscription(cmd);</b>
+<b class="nc">&nbsp;        sessionSubs.put(cmd.getCmdId(), ctx);</b>
+<b class="nc">&nbsp;        return ctx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    private &lt;T extends TbAbstractSubCtx&gt; T getSubCtx(String sessionId, int cmdId) {
+<b class="nc">&nbsp;        Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.get(sessionId);</b>
+<b class="nc">&nbsp;        if (sessionSubs != null) {</b>
+<b class="nc">&nbsp;            return (T) sessionSubs.get(cmdId);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbEntityDataSubCtx&gt; handleTimeSeriesCmd(TbEntityDataSubCtx ctx, TimeSeriesCmd cmd) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] Fetching time-series data for last {} ms for keys: ({})&quot;, ctx.getSessionId(), ctx.getCmdId(), cmd.getTimeWindow(), cmd.getKeys());</b>
+<b class="nc">&nbsp;        return handleGetTsCmd(ctx, cmd, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbEntityDataSubCtx&gt; handleHistoryCmd(TbEntityDataSubCtx ctx, EntityHistoryCmd cmd) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] Fetching history data for start {} and end {} ms for keys: ({})&quot;, ctx.getSessionId(), ctx.getCmdId(), cmd.getStartTs(), cmd.getEndTs(), cmd.getKeys());</b>
+<b class="nc">&nbsp;        return handleGetTsCmd(ctx, cmd, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbEntityDataSubCtx&gt; handleGetTsCmd(TbEntityDataSubCtx ctx, GetTsCmd cmd, boolean subscribe) {
+<b class="nc">&nbsp;        Map&lt;Integer, String&gt; queriesKeys = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;String&gt; keys = cmd.getKeys();</b>
+&nbsp;        List&lt;ReadTsKvQuery&gt; finalTsKvQueryList;
+<b class="nc">&nbsp;        List&lt;ReadTsKvQuery&gt; tsKvQueryList = keys.stream().map(key -&gt; {</b>
+<b class="nc">&nbsp;            var query = new BaseReadTsKvQuery(key, cmd.getStartTs(), cmd.getEndTs(), cmd.toAggregationParams(), getLimit(cmd.getLimit()));</b>
+<b class="nc">&nbsp;            queriesKeys.put(query.getId(), query.getKey());</b>
+<b class="nc">&nbsp;            return query;</b>
+<b class="nc">&nbsp;        }).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        if (cmd.isFetchLatestPreviousPoint()) {</b>
+<b class="nc">&nbsp;            finalTsKvQueryList = new ArrayList&lt;&gt;(tsKvQueryList);</b>
+<b class="nc">&nbsp;            finalTsKvQueryList.addAll(keys.stream().map(key -&gt; {</b>
+<b class="nc">&nbsp;                        var query = new BaseReadTsKvQuery(key, cmd.getStartTs() - TimeUnit.DAYS.toMillis(365), cmd.getStartTs(), cmd.toAggregationParams(), 1);</b>
+<b class="nc">&nbsp;                        queriesKeys.put(query.getId(), query.getKey());</b>
+<b class="nc">&nbsp;                        return query;</b>
+&nbsp;                    }
+<b class="nc">&nbsp;            ).collect(Collectors.toList()));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            finalTsKvQueryList = tsKvQueryList;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Map&lt;EntityData, ListenableFuture&lt;List&lt;ReadTsKvQueryResult&gt;&gt;&gt; fetchResultMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;EntityData&gt; entityDataList = ctx.getData().getData();</b>
+<b class="nc">&nbsp;        entityDataList.forEach(entityData -&gt; fetchResultMap.put(entityData,</b>
+<b class="nc">&nbsp;                tsService.findAllByQueries(ctx.getTenantId(), entityData.getEntityId(), finalTsKvQueryList)));</b>
+<b class="nc">&nbsp;        return Futures.transform(Futures.allAsList(fetchResultMap.values()), f -&gt; {</b>
+&nbsp;            // Map that holds last ts for each key for each entity.
+<b class="nc">&nbsp;            Map&lt;EntityData, Map&lt;String, Long&gt;&gt; lastTsEntityMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            fetchResultMap.forEach((entityData, future) -&gt; {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    Map&lt;String, Long&gt; lastTsMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;                    lastTsEntityMap.put(entityData, lastTsMap);</b>
+&nbsp;
+<b class="nc">&nbsp;                    List&lt;ReadTsKvQueryResult&gt; queryResults = future.get();</b>
+<b class="nc">&nbsp;                    if (queryResults != null) {</b>
+<b class="nc">&nbsp;                        for (ReadTsKvQueryResult queryResult : queryResults) {</b>
+<b class="nc">&nbsp;                            String queryKey = queriesKeys.get(queryResult.getQueryId());</b>
+<b class="nc">&nbsp;                            if (queryKey != null) {</b>
+<b class="nc">&nbsp;                                entityData.getTimeseries().merge(queryKey, queryResult.toTsValues(), ArrayUtils::addAll);</b>
+<b class="nc">&nbsp;                                lastTsMap.merge(queryKey, queryResult.getLastEntryTs(), Math::max);</b>
+&nbsp;                            } else {
+<b class="nc">&nbsp;                                log.warn(&quot;ReadTsKvQueryResult for {} {} has queryId not matching the initial query&quot;,</b>
+<b class="nc">&nbsp;                                        entityData.getEntityId().getEntityType(), entityData.getEntityId());</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    // Populate with empty values if no data found.
+<b class="nc">&nbsp;                    keys.forEach(key -&gt; {</b>
+<b class="nc">&nbsp;                        if (!entityData.getTimeseries().containsKey(key)) {</b>
+<b class="nc">&nbsp;                            entityData.getTimeseries().put(key, new TsValue[0]);</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;
+<b class="nc">&nbsp;                    if (cmd.isFetchLatestPreviousPoint()) {</b>
+<b class="nc">&nbsp;                        entityData.getTimeseries().values().forEach(dataArray -&gt; Arrays.sort(dataArray, (o1, o2) -&gt; Long.compare(o2.getTs(), o1.getTs())));</b>
+&nbsp;                    }
+&nbsp;                } catch (InterruptedException | ExecutionException e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}][{}][{}] Failed to fetch historical data&quot;, ctx.getSessionId(), ctx.getCmdId(), entityData.getEntityId(), e);</b>
+<b class="nc">&nbsp;                    ctx.sendWsMsg(new EntityDataUpdate(ctx.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR.getCode(), &quot;Failed to fetch historical data!&quot;));</b>
+&nbsp;                }
+&nbsp;            });
+<b class="nc">&nbsp;            ctx.getWsLock().lock();</b>
+&nbsp;            try {
+&nbsp;                EntityDataUpdate update;
+<b class="nc">&nbsp;                if (!ctx.isInitialDataSent()) {</b>
+<b class="nc">&nbsp;                    update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());</b>
+<b class="nc">&nbsp;                    ctx.setInitialDataSent(true);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    update = new EntityDataUpdate(ctx.getCmdId(), null, entityDataList, ctx.getMaxEntitiesPerDataSubscription());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (subscribe) {</b>
+<b class="nc">&nbsp;                    ctx.createTimeSeriesSubscriptions(lastTsEntityMap, cmd.getStartTs(), cmd.getEndTs());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                ctx.sendWsMsg(update);</b>
+<b class="nc">&nbsp;                entityDataList.forEach(EntityData::clearTsAndAggData);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                ctx.getWsLock().unlock();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return ctx;</b>
+&nbsp;        }, wsCallBackExecutor);
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleLatestCmd(TbEntityDataSubCtx ctx, LatestValueCmd latestCmd) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}] Going to process latest command: {}&quot;, ctx.getSessionId(), ctx.getCmdId(), latestCmd);</b>
+&nbsp;        //Fetch the latest values for telemetry keys in case they are not copied from NoSQL to SQL DB in hybrid mode.
+<b class="nc">&nbsp;        if (!tsInSqlDB) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Going to fetch missing latest values: {}&quot;, ctx.getSessionId(), ctx.getCmdId(), latestCmd);</b>
+<b class="nc">&nbsp;            List&lt;String&gt; allTsKeys = latestCmd.getKeys().stream()</b>
+<b class="nc">&nbsp;                    .filter(key -&gt; key.getType().equals(EntityKeyType.TIME_SERIES))</b>
+<b class="nc">&nbsp;                    .map(EntityKey::getKey).collect(Collectors.toList());</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;EntityData, ListenableFuture&lt;Map&lt;String, TsValue&gt;&gt;&gt; missingTelemetryFutures = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (EntityData entityData : ctx.getData().getData()) {</b>
+<b class="nc">&nbsp;                Map&lt;EntityKeyType, Map&lt;String, TsValue&gt;&gt; latestEntityData = entityData.getLatest();</b>
+<b class="nc">&nbsp;                Map&lt;String, TsValue&gt; tsEntityData = latestEntityData.get(EntityKeyType.TIME_SERIES);</b>
+<b class="nc">&nbsp;                Set&lt;String&gt; missingTsKeys = new LinkedHashSet&lt;&gt;(allTsKeys);</b>
+<b class="nc">&nbsp;                if (tsEntityData != null) {</b>
+<b class="nc">&nbsp;                    missingTsKeys.removeAll(tsEntityData.keySet());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    tsEntityData = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;                    latestEntityData.put(EntityKeyType.TIME_SERIES, tsEntityData);</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; missingTsData = tsService.findLatest(ctx.getTenantId(), entityData.getEntityId(), missingTsKeys);</b>
+<b class="nc">&nbsp;                missingTelemetryFutures.put(entityData, Futures.transform(missingTsData, this::toTsValue, MoreExecutors.directExecutor()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            Futures.addCallback(Futures.allAsList(missingTelemetryFutures.values()), new FutureCallback&lt;&gt;() {</b>
+&nbsp;                @Override
+&nbsp;                public void onSuccess(@Nullable List&lt;Map&lt;String, TsValue&gt;&gt; result) {
+<b class="nc">&nbsp;                    missingTelemetryFutures.forEach((key, value) -&gt; {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            key.getLatest().get(EntityKeyType.TIME_SERIES).putAll(value.get());</b>
+&nbsp;                        } catch (InterruptedException | ExecutionException e) {
+<b class="nc">&nbsp;                            log.warn(&quot;[{}][{}] Failed to lookup latest telemetry: {}:{}&quot;, ctx.getSessionId(), ctx.getCmdId(), key.getEntityId(), allTsKeys, e);</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;                    EntityDataUpdate update;
+<b class="nc">&nbsp;                    ctx.getWsLock().lock();</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        ctx.createLatestValuesSubscriptions(latestCmd.getKeys());</b>
+<b class="nc">&nbsp;                        if (!ctx.isInitialDataSent()) {</b>
+<b class="nc">&nbsp;                            update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());</b>
+<b class="nc">&nbsp;                            ctx.setInitialDataSent(true);</b>
+&nbsp;                        } else {
+&nbsp;                            // if ctx has timeseries subscription, timeseries values are cleared after each update and is empty in ctx data,
+&nbsp;                            // so to avoid sending timeseries update with empty map we set it to null
+<b class="nc">&nbsp;                            List&lt;EntityData&gt; preparedData = ctx.getData().getData().stream()</b>
+<b class="nc">&nbsp;                                    .map(entityData -&gt; new EntityData(entityData.getEntityId(), entityData.getLatest(), null))</b>
+<b class="nc">&nbsp;                                    .toList();</b>
+<b class="nc">&nbsp;                            update = new EntityDataUpdate(ctx.getCmdId(), null, preparedData, ctx.getMaxEntitiesPerDataSubscription());</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        ctx.sendWsMsg(update);</b>
+&nbsp;                    } finally {
+<b class="nc">&nbsp;                        ctx.getWsLock().unlock();</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                @Override
+&nbsp;                public void onFailure(Throwable t) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}][{}] Failed to process websocket command: {}:{}&quot;, ctx.getSessionId(), ctx.getCmdId(), ctx.getQuery(), latestCmd, t);</b>
+<b class="nc">&nbsp;                    ctx.sendWsMsg(new EntityDataUpdate(ctx.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR.getCode(), &quot;Failed to process websocket command!&quot;));</b>
+&nbsp;                }
+&nbsp;            }, wsCallBackExecutor);
+&nbsp;        } else {
+<b class="nc">&nbsp;            ctx.getWsLock().lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                ctx.createLatestValuesSubscriptions(latestCmd.getKeys());</b>
+<b class="nc">&nbsp;                checkAndSendInitialData(ctx);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                ctx.getWsLock().unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, TsValue&gt; toTsValue(List&lt;TsKvEntry&gt; data) {
+<b class="nc">&nbsp;        return data.stream().collect(Collectors.toMap(TsKvEntry::getKey, value -&gt; new TsValue(value.getTs(), value.getValueAsString())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void cancelSubscription(String sessionId, UnsubscribeCmd cmd) {
+<b class="nc">&nbsp;        cleanupAndCancel(getSubCtx(sessionId, cmd.getCmdId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanupAndCancel(TbAbstractSubCtx ctx) {
+<b class="nc">&nbsp;        if (ctx != null) {</b>
+<b class="nc">&nbsp;            ctx.stop();</b>
+<b class="nc">&nbsp;            if (ctx.getSessionId() != null) {</b>
+<b class="nc">&nbsp;                Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.get(ctx.getSessionId());</b>
+<b class="nc">&nbsp;                if (sessionSubs != null) {</b>
+<b class="nc">&nbsp;                    sessionSubs.remove(ctx.getCmdId());</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void cancelAllSessionSubscriptions(String sessionId) {
+<b class="nc">&nbsp;        Map&lt;Integer, TbAbstractSubCtx&gt; sessionSubs = subscriptionsBySessionId.remove(sessionId);</b>
+<b class="nc">&nbsp;        if (sessionSubs != null) {</b>
+<b class="nc">&nbsp;            sessionSubs.values().forEach(sub -&gt; {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            cleanupAndCancel(sub);</b>
+&nbsp;                        } catch (Exception e) {
+<b class="nc">&nbsp;                            log.warn(&quot;[{}] Failed to remove subscription {} due to &quot;, sub.getTenantId(), sub, e);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;            );
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private int getLimit(int limit) {
+<b class="nc">&nbsp;        return limit == 0 ? DEFAULT_LIMIT : limit;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

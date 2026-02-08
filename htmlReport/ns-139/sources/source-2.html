@@ -1,0 +1,363 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > KafkaEdqsStateService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.edqs.state</a>
+</div>
+
+<h1>Coverage Summary for Class: KafkaEdqsStateService (org.thingsboard.server.edqs.state)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KafkaEdqsStateService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/86)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.edqs.state;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.ObjectType;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsEventType;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsObject;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.edqs.processor.EdqsProcessor;
+&nbsp;import org.thingsboard.server.edqs.processor.EdqsProducer;
+&nbsp;import org.thingsboard.server.edqs.util.EdqsMapper;
+&nbsp;import org.thingsboard.server.edqs.util.VersionsStore;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EdqsEventMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.common.state.KafkaQueueStateService;
+&nbsp;import org.thingsboard.server.queue.discovery.DiscoveryService;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;import org.thingsboard.server.queue.discovery.TopicService;
+&nbsp;import org.thingsboard.server.queue.edqs.EdqsConfig;
+&nbsp;import org.thingsboard.server.queue.edqs.EdqsExecutors;
+&nbsp;import org.thingsboard.server.queue.edqs.KafkaEdqsComponent;
+&nbsp;import org.thingsboard.server.queue.edqs.KafkaEdqsQueueFactory;
+&nbsp;import org.thingsboard.server.queue.kafka.KafkaAdmin;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.IntStream;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;@KafkaEdqsComponent
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class KafkaEdqsStateService implements EdqsStateService {
+&nbsp;
+&nbsp;    private final EdqsConfig config;
+&nbsp;    private final EdqsPartitionService partitionService;
+&nbsp;    private final KafkaEdqsQueueFactory queueFactory;
+&nbsp;    private final DiscoveryService discoveryService;
+&nbsp;    private final EdqsExecutors edqsExecutors;
+&nbsp;    private final EdqsMapper mapper;
+&nbsp;    private final TopicService topicService;
+&nbsp;    private final KafkaAdmin kafkaAdmin;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private EdqsProcessor edqsProcessor;
+&nbsp;
+&nbsp;    private PartitionedQueueConsumerManager&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt; stateConsumer;
+&nbsp;    private KafkaQueueStateService&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;, TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt; queueStateService;
+&nbsp;    private QueueConsumerManager&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt; eventsToBackupConsumer;
+&nbsp;    private EdqsProducer stateProducer;
+&nbsp;    private VersionsStore versionsStore;
+&nbsp;
+&nbsp;    private final AtomicInteger stateReadCount = new AtomicInteger();
+&nbsp;    private final AtomicInteger eventsReadCount = new AtomicInteger();
+&nbsp;
+&nbsp;    private boolean ready = false;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(PartitionedQueueConsumerManager&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt; eventConsumer, List&lt;PartitionedQueueConsumerManager&lt;?&gt;&gt; otherConsumers) {
+<b class="nc">&nbsp;        versionsStore = new VersionsStore(config.getVersionsCacheTtl());</b>
+<b class="nc">&nbsp;        stateConsumer = PartitionedQueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt;create()</b>
+<b class="nc">&nbsp;                .queueKey(new QueueKey(ServiceType.EDQS, config.getStateTopic()))</b>
+<b class="nc">&nbsp;                .topic(topicService.buildTopicName(config.getStateTopic()))</b>
+<b class="nc">&nbsp;                .pollInterval(config.getPollInterval())</b>
+<b class="nc">&nbsp;                .msgPackProcessor((msgs, consumer, consumerKey, config) -&gt; {</b>
+<b class="nc">&nbsp;                    for (TbProtoQueueMsg&lt;ToEdqsMsg&gt; queueMsg : msgs) {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            ToEdqsMsg msg = queueMsg.getValue();</b>
+<b class="nc">&nbsp;                            edqsProcessor.process(msg, false);</b>
+<b class="nc">&nbsp;                            if (stateReadCount.incrementAndGet() % 100000 == 0) {</b>
+<b class="nc">&nbsp;                                log.info(&quot;[state] Processed {} msgs&quot;, stateReadCount.get());</b>
+&nbsp;                            }
+&nbsp;                        } catch (Exception e) {
+<b class="nc">&nbsp;                            log.error(&quot;Failed to process message: {}&quot;, queueMsg, e);</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    consumer.commit();</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .consumerCreator((config, tpi) -&gt; queueFactory.createEdqsStateConsumer())</b>
+<b class="nc">&nbsp;                .queueAdmin(queueFactory.getEdqsQueueAdmin())</b>
+<b class="nc">&nbsp;                .consumerExecutor(edqsExecutors.getConsumersExecutor())</b>
+<b class="nc">&nbsp;                .taskExecutor(edqsExecutors.getConsumerTaskExecutor())</b>
+<b class="nc">&nbsp;                .scheduler(edqsExecutors.getScheduler())</b>
+<b class="nc">&nbsp;                .uncaughtErrorHandler(edqsProcessor.getErrorHandler())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt; eventsToBackupKafkaConsumer = queueFactory.createEdqsEventsToBackupConsumer();</b>
+<b class="nc">&nbsp;        eventsToBackupConsumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .name(&quot;edqs-events-to-backup-consumer&quot;)</b>
+<b class="nc">&nbsp;                .pollInterval(config.getPollInterval())</b>
+<b class="nc">&nbsp;                .msgPackProcessor((msgs, consumer) -&gt; {</b>
+<b class="nc">&nbsp;                    for (TbProtoQueueMsg&lt;ToEdqsMsg&gt; queueMsg : msgs) {</b>
+<b class="nc">&nbsp;                        if (consumer.isStopped()) {</b>
+&nbsp;                            return;
+&nbsp;                        }
+&nbsp;                        try {
+<b class="nc">&nbsp;                            ToEdqsMsg msg = queueMsg.getValue();</b>
+<b class="nc">&nbsp;                            log.trace(&quot;Processing message: {}&quot;, msg);</b>
+&nbsp;
+<b class="nc">&nbsp;                            if (msg.hasEventMsg()) {</b>
+<b class="nc">&nbsp;                                EdqsEventMsg eventMsg = msg.getEventMsg();</b>
+<b class="nc">&nbsp;                                ObjectType objectType = ObjectType.valueOf(eventMsg.getObjectType());</b>
+<b class="nc">&nbsp;                                EdqsObject object = mapper.deserialize(objectType, eventMsg.getData().toByteArray(), true);</b>
+&nbsp;
+<b class="nc">&nbsp;                                if (eventMsg.hasVersion()) {</b>
+<b class="nc">&nbsp;                                    if (!versionsStore.isNew(mapper.getKey(object), eventMsg.getVersion())) {</b>
+&nbsp;                                        continue;
+&nbsp;                                    }
+&nbsp;                                }
+&nbsp;
+<b class="nc">&nbsp;                                TenantId tenantId = getTenantId(msg);</b>
+<b class="nc">&nbsp;                                EdqsEventType eventType = EdqsEventType.valueOf(eventMsg.getEventType());</b>
+<b class="nc">&nbsp;                                String key = object.stringKey();</b>
+<b class="nc">&nbsp;                                log.trace(&quot;[{}] Saving to backup [{}] [{}] [{}]&quot;, tenantId, objectType, eventType, key);</b>
+<b class="nc">&nbsp;                                stateProducer.send(tenantId, objectType, object.stringKey(), msg);</b>
+&nbsp;
+<b class="nc">&nbsp;                                int count = eventsReadCount.incrementAndGet();</b>
+<b class="nc">&nbsp;                                if (count % 100000 == 0) {</b>
+<b class="nc">&nbsp;                                    log.info(&quot;[events-to-backup] Processed {} msgs&quot;, count);</b>
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        } catch (Throwable t) {
+<b class="nc">&nbsp;                            log.error(&quot;Failed to process message: {}&quot;, queueMsg, t);</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    consumer.commit();</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .consumerCreator(() -&gt; eventsToBackupKafkaConsumer)</b>
+<b class="nc">&nbsp;                .consumerExecutor(edqsExecutors.getConsumersExecutor())</b>
+<b class="nc">&nbsp;                .threadPrefix(&quot;edqs-events-to-backup&quot;)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        stateProducer = EdqsProducer.builder()</b>
+<b class="nc">&nbsp;                .producer(queueFactory.createEdqsStateProducer())</b>
+<b class="nc">&nbsp;                .partitionService(partitionService)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        queueStateService = KafkaQueueStateService.&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;, TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .eventConsumer(eventConsumer)</b>
+<b class="nc">&nbsp;                .stateConsumer(stateConsumer)</b>
+<b class="nc">&nbsp;                .otherConsumers(otherConsumers)</b>
+<b class="nc">&nbsp;                .eventsStartOffsetsProvider(() -&gt; {</b>
+&nbsp;                    // taking start offsets for events topics from the events-to-backup consumer group,
+&nbsp;                    // since eventConsumer doesn&#39;t use consumer group management and thus offset tracking
+&nbsp;                    // (because we need to be able to consume the same topic-partition by multiple instances)
+<b class="nc">&nbsp;                    Map&lt;String, Long&gt; offsets = new HashMap&lt;&gt;();</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        kafkaAdmin.getConsumerGroupOffsets(eventsToBackupKafkaConsumer.getGroupId())</b>
+<b class="nc">&nbsp;                                .forEach((topicPartition, offsetAndMetadata) -&gt; {</b>
+<b class="nc">&nbsp;                                    offsets.put(topicPartition.topic(), offsetAndMetadata.offset());</b>
+&nbsp;                                });
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        log.error(&quot;Failed to get consumer group offsets for {}&quot;, eventsToBackupKafkaConsumer.getGroupId(), e);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return offsets;</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void process(Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        if (queueStateService.getPartitions().isEmpty()) {</b>
+<b class="nc">&nbsp;            Set&lt;TopicPartitionInfo&gt; allPartitions = IntStream.range(0, config.getPartitions())</b>
+<b class="nc">&nbsp;                    .mapToObj(partition -&gt; TopicPartitionInfo.builder()</b>
+<b class="nc">&nbsp;                            .topic(topicService.buildTopicName(config.getEventsTopic()))</b>
+<b class="nc">&nbsp;                            .partition(partition)</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;            eventsToBackupConsumer.subscribe(allPartitions);</b>
+<b class="nc">&nbsp;            eventsToBackupConsumer.launch();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        queueStateService.update(new QueueKey(ServiceType.EDQS), partitions, () -&gt; {</b>
+<b class="nc">&nbsp;            ready = true;</b>
+<b class="nc">&nbsp;            discoveryService.setReady(true);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void save(TenantId tenantId, ObjectType type, String key, EdqsEventType eventType, ToEdqsMsg msg) {
+&nbsp;        // do nothing here, backup is done by events consumer
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isReady() {
+<b class="nc">&nbsp;        return ready;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TenantId getTenantId(ToEdqsMsg edqsMsg) {
+<b class="nc">&nbsp;        return TenantId.fromUUID(new UUID(edqsMsg.getTenantIdMSB(), edqsMsg.getTenantIdLSB()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        stateConsumer.stop();</b>
+<b class="nc">&nbsp;        stateConsumer.awaitStop();</b>
+<b class="nc">&nbsp;        eventsToBackupConsumer.stop();</b>
+<b class="nc">&nbsp;        stateProducer.stop();</b>
+<b class="nc">&nbsp;        versionsStore.shutdown();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

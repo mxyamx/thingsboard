@@ -1,0 +1,458 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CustomOAuth2AuthorizationRequestResolver</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.config</a>
+</div>
+
+<h1>Coverage Summary for Class: CustomOAuth2AuthorizationRequestResolver (org.thingsboard.server.config)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CustomOAuth2AuthorizationRequestResolver</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/119)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.config;
+&nbsp;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
+&nbsp;import org.springframework.security.crypto.keygen.StringKeyGenerator;
+&nbsp;import org.springframework.security.oauth2.client.registration.ClientRegistration;
+&nbsp;import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+&nbsp;import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+&nbsp;import org.springframework.security.oauth2.core.AuthorizationGrantType;
+&nbsp;import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+&nbsp;import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+&nbsp;import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+&nbsp;import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
+&nbsp;import org.springframework.security.oauth2.core.oidc.OidcScopes;
+&nbsp;import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
+&nbsp;import org.springframework.security.web.util.UrlUtils;
+&nbsp;import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.springframework.web.util.UriComponents;
+&nbsp;import org.springframework.web.util.UriComponentsBuilder;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.OAuth2ClientId;
+&nbsp;import org.thingsboard.server.common.data.oauth2.PlatformType;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2Configuration;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.auth.oauth2.TbOAuth2ParameterNames;
+&nbsp;import org.thingsboard.server.service.security.model.token.OAuth2AppTokenFactory;
+&nbsp;import org.thingsboard.server.utils.MiscUtils;
+&nbsp;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.security.MessageDigest;
+&nbsp;import java.security.NoSuchAlgorithmException;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@TbCoreComponent
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class CustomOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {</b>
+&nbsp;    private static final String DEFAULT_AUTHORIZATION_REQUEST_BASE_URI = &quot;/oauth2/authorization&quot;;
+&nbsp;    private static final String DEFAULT_LOGIN_PROCESSING_URI = &quot;/login/oauth2/code/&quot;;
+&nbsp;    private static final String REGISTRATION_ID_URI_VARIABLE_NAME = &quot;registrationId&quot;;
+&nbsp;    private static final char PATH_DELIMITER = &#39;/&#39;;
+&nbsp;
+<b class="nc">&nbsp;    private final AntPathRequestMatcher authorizationRequestMatcher = new AntPathRequestMatcher(</b>
+&nbsp;            DEFAULT_AUTHORIZATION_REQUEST_BASE_URI + &quot;/{&quot; + REGISTRATION_ID_URI_VARIABLE_NAME + &quot;}&quot;);
+<b class="nc">&nbsp;    private final StringKeyGenerator stateGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder());</b>
+<b class="nc">&nbsp;    private final StringKeyGenerator secureKeyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 96);</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ClientRegistrationRepository clientRegistrationRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private OAuth2ClientService oAuth2ClientService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private OAuth2AppTokenFactory oAuth2AppTokenFactory;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private OAuth2Configuration oauth2Configuration;
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+<b class="nc">&nbsp;        String registrationId = this.resolveRegistrationId(request);</b>
+<b class="nc">&nbsp;        String redirectUriAction = getAction(request, &quot;login&quot;);</b>
+<b class="nc">&nbsp;        String appPackage = getAppPackage(request);</b>
+<b class="nc">&nbsp;        String platform = getPlatform(request);</b>
+<b class="nc">&nbsp;        String appToken = getAppToken(request);</b>
+<b class="nc">&nbsp;        return resolve(request, registrationId, redirectUriAction, appPackage, platform, appToken);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId) {
+<b class="nc">&nbsp;        if (registrationId == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String redirectUriAction = getAction(request, &quot;authorize&quot;);</b>
+<b class="nc">&nbsp;        String appPackage = getAppPackage(request);</b>
+<b class="nc">&nbsp;        String platform = getPlatform(request);</b>
+<b class="nc">&nbsp;        String appToken = getAppToken(request);</b>
+<b class="nc">&nbsp;        return resolve(request, registrationId, redirectUriAction, appPackage, platform, appToken);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getAction(HttpServletRequest request, String defaultAction) {
+<b class="nc">&nbsp;        String action = request.getParameter(&quot;action&quot;);</b>
+<b class="nc">&nbsp;        if (action == null) {</b>
+<b class="nc">&nbsp;            return defaultAction;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return action;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getAppPackage(HttpServletRequest request) {
+<b class="nc">&nbsp;        return request.getParameter(&quot;pkg&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getPlatform(HttpServletRequest request) {
+<b class="nc">&nbsp;        return request.getParameter(&quot;platform&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getAppToken(HttpServletRequest request) {
+<b class="nc">&nbsp;        return request.getParameter(&quot;appToken&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private OAuth2AuthorizationRequest resolve(HttpServletRequest request, String oauth2ClientId, String redirectUriAction, String appPackage, String platform, String appToken) {
+<b class="nc">&nbsp;        if (oauth2ClientId == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ClientRegistration clientRegistration = this.clientRegistrationRepository.findByRegistrationId(oauth2ClientId);</b>
+<b class="nc">&nbsp;        if (clientRegistration == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid Client Registration with Id: &quot; + oauth2ClientId);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; attributes = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        attributes.put(OAuth2ParameterNames.REGISTRATION_ID, clientRegistration.getRegistrationId());</b>
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(appPackage)) {</b>
+<b class="nc">&nbsp;            if (StringUtils.isEmpty(appToken)) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Invalid application token.&quot;);</b>
+&nbsp;            } else {
+&nbsp;                String callbackUrlScheme;
+<b class="nc">&nbsp;                if (platform != null) {</b>
+<b class="nc">&nbsp;                    callbackUrlScheme = validateMobileAppToken(oauth2ClientId, appPackage, PlatformType.valueOf(platform), appToken);</b>
+&nbsp;                } else {
+&nbsp;                    // for backward compatibility with mobile apps of version 1.3.0 and less try to validate token with android and then ios app secret
+&nbsp;                    try {
+<b class="nc">&nbsp;                        callbackUrlScheme = validateMobileAppToken(oauth2ClientId, appPackage, PlatformType.ANDROID, appToken);</b>
+&nbsp;                    } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                        log.debug(&quot;Failed attempt to validate android application token, oauth client id: [{}], package name: [{}], appToken [{}] &quot;,</b>
+&nbsp;                                oauth2ClientId, appPackage, appToken, e);
+<b class="nc">&nbsp;                        callbackUrlScheme = validateMobileAppToken(oauth2ClientId, appPackage, PlatformType.IOS, appToken);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                attributes.put(TbOAuth2ParameterNames.CALLBACK_URL_SCHEME, callbackUrlScheme);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        OAuth2AuthorizationRequest.Builder builder;
+<b class="nc">&nbsp;        if (AuthorizationGrantType.AUTHORIZATION_CODE.equals(clientRegistration.getAuthorizationGrantType())) {</b>
+<b class="nc">&nbsp;            builder = OAuth2AuthorizationRequest.authorizationCode();</b>
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; additionalParameters = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            if (!CollectionUtils.isEmpty(clientRegistration.getScopes()) &amp;&amp;</b>
+<b class="nc">&nbsp;                    clientRegistration.getScopes().contains(OidcScopes.OPENID)) {</b>
+&nbsp;                // Section 3.1.2.1 Authentication Request - https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+&nbsp;                // scope
+&nbsp;                // 		REQUIRED. OpenID Connect requests MUST contain the &quot;openid&quot; scope value.
+<b class="nc">&nbsp;                addNonceParameters(attributes, additionalParameters);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (ClientAuthenticationMethod.NONE.equals(clientRegistration.getClientAuthenticationMethod())) {</b>
+<b class="nc">&nbsp;                addPkceParameters(attributes, additionalParameters);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            builder.additionalParameters(additionalParameters);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid Authorization Grant Type (&quot;  +</b>
+<b class="nc">&nbsp;                    clientRegistration.getAuthorizationGrantType().getValue() +</b>
+<b class="nc">&nbsp;                    &quot;) for Client Registration with Id: &quot; + clientRegistration.getRegistrationId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String redirectUriStr = expandRedirectUri(request, clientRegistration, redirectUriAction);</b>
+&nbsp;
+<b class="nc">&nbsp;        return builder</b>
+<b class="nc">&nbsp;                .clientId(clientRegistration.getClientId())</b>
+<b class="nc">&nbsp;                .authorizationUri(clientRegistration.getProviderDetails().getAuthorizationUri())</b>
+<b class="nc">&nbsp;                .redirectUri(redirectUriStr)</b>
+<b class="nc">&nbsp;                .scopes(clientRegistration.getScopes())</b>
+<b class="nc">&nbsp;                .state(this.stateGenerator.generateKey())</b>
+<b class="nc">&nbsp;                .attributes(attributes)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String validateMobileAppToken(String oauth2ClientId, String appPackage, PlatformType platformType, String appToken) {
+<b class="nc">&nbsp;        String appSecret = this.oAuth2ClientService.findAppSecret(new OAuth2ClientId(UUID.fromString(oauth2ClientId)), appPackage, platformType);</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(appSecret)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid package: &quot; + appPackage + &quot;. No application secret found for Client Registration with given application package.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return this.oAuth2AppTokenFactory.validateTokenAndGetCallbackUrlScheme(appPackage, appToken, appSecret);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String resolveRegistrationId(HttpServletRequest request) {
+<b class="nc">&nbsp;        if (this.authorizationRequestMatcher.matches(request)) {</b>
+<b class="nc">&nbsp;            return this.authorizationRequestMatcher</b>
+<b class="nc">&nbsp;                    .matcher(request).getVariables().get(REGISTRATION_ID_URI_VARIABLE_NAME);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Expands the {@link ClientRegistration#getRedirectUriTemplate()} with following provided variables:&lt;br/&gt;
+&nbsp;     * - baseUrl (e.g. https://localhost/app) &lt;br/&gt;
+&nbsp;     * - baseScheme (e.g. https) &lt;br/&gt;
+&nbsp;     * - baseHost (e.g. localhost) &lt;br/&gt;
+&nbsp;     * - basePort (e.g. :8080) &lt;br/&gt;
+&nbsp;     * - basePath (e.g. /app) &lt;br/&gt;
+&nbsp;     * - registrationId (e.g. google) &lt;br/&gt;
+&nbsp;     * - action (e.g. login) &lt;br/&gt;
+&nbsp;     * &lt;p/&gt;
+&nbsp;     * Null variables are provided as empty strings.
+&nbsp;     * &lt;p/&gt;
+&nbsp;     * Default redirectUriTemplate is: {@link org.springframework.security.config.oauth2.client}.CommonOAuth2Provider#DEFAULT_REDIRECT_URL
+&nbsp;     *
+&nbsp;     * @return expanded URI
+&nbsp;     */
+&nbsp;    private String expandRedirectUri(HttpServletRequest request, ClientRegistration clientRegistration, String action) {
+<b class="nc">&nbsp;        Map&lt;String, String&gt; uriVariables = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        uriVariables.put(&quot;registrationId&quot;, clientRegistration.getRegistrationId());</b>
+&nbsp;
+<b class="nc">&nbsp;        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))</b>
+<b class="nc">&nbsp;                .replacePath(request.getContextPath())</b>
+<b class="nc">&nbsp;                .replaceQuery(null)</b>
+<b class="nc">&nbsp;                .fragment(null)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        String scheme = uriComponents.getScheme();</b>
+<b class="nc">&nbsp;        uriVariables.put(&quot;baseScheme&quot;, scheme == null ? &quot;&quot; : scheme);</b>
+<b class="nc">&nbsp;        String host = uriComponents.getHost();</b>
+<b class="nc">&nbsp;        uriVariables.put(&quot;baseHost&quot;, host == null ? &quot;&quot; : host);</b>
+&nbsp;        // following logic is based on HierarchicalUriComponents#toUriString()
+<b class="nc">&nbsp;        int port = uriComponents.getPort();</b>
+<b class="nc">&nbsp;        uriVariables.put(&quot;basePort&quot;, port == -1 ? &quot;&quot; : &quot;:&quot; + port);</b>
+<b class="nc">&nbsp;        String path = uriComponents.getPath();</b>
+<b class="nc">&nbsp;        if (StringUtils.hasLength(path)) {</b>
+<b class="nc">&nbsp;            if (path.charAt(0) != PATH_DELIMITER) {</b>
+<b class="nc">&nbsp;                path = PATH_DELIMITER + path;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        uriVariables.put(&quot;basePath&quot;, path == null ? &quot;&quot; : path);</b>
+<b class="nc">&nbsp;        uriVariables.put(&quot;baseUrl&quot;, uriComponents.toUriString());</b>
+&nbsp;
+<b class="nc">&nbsp;        uriVariables.put(&quot;action&quot;, action == null ? &quot;&quot; : action);</b>
+&nbsp;
+<b class="nc">&nbsp;        String redirectUri = getRedirectUri(request);</b>
+<b class="nc">&nbsp;        log.trace(&quot;Redirect URI - {}.&quot;, redirectUri);</b>
+&nbsp;
+<b class="nc">&nbsp;        return UriComponentsBuilder.fromUriString(redirectUri)</b>
+<b class="nc">&nbsp;                .buildAndExpand(uriVariables)</b>
+<b class="nc">&nbsp;                .toUriString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getRedirectUri(HttpServletRequest request) {
+<b class="nc">&nbsp;        String loginProcessingUri = oauth2Configuration != null ? oauth2Configuration.getLoginProcessingUrl() : DEFAULT_LOGIN_PROCESSING_URI;</b>
+&nbsp;
+<b class="nc">&nbsp;        String scheme = MiscUtils.getScheme(request);</b>
+<b class="nc">&nbsp;        String domainName = MiscUtils.getDomainName(request);</b>
+<b class="nc">&nbsp;        int port = MiscUtils.getPort(request);</b>
+<b class="nc">&nbsp;        String baseUrl = scheme + &quot;://&quot; + domainName;</b>
+<b class="nc">&nbsp;        if (needsPort(scheme, port)){</b>
+<b class="nc">&nbsp;            baseUrl += &quot;:&quot; + port;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return baseUrl + loginProcessingUri;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean needsPort(String scheme, int port) {
+<b class="nc">&nbsp;        boolean isHttpDefault = &quot;http&quot;.equals(scheme.toLowerCase()) &amp;&amp; port == 80;</b>
+<b class="nc">&nbsp;        boolean isHttpsDefault = &quot;https&quot;.equals(scheme.toLowerCase()) &amp;&amp; port == 443;</b>
+<b class="nc">&nbsp;        return !isHttpDefault &amp;&amp; !isHttpsDefault;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Creates nonce and its hash for use in OpenID Connect 1.0 Authentication Requests.
+&nbsp;     *
+&nbsp;     * @param attributes where the {@link OidcParameterNames#NONCE} is stored for the authentication request
+&nbsp;     * @param additionalParameters where the {@link OidcParameterNames#NONCE} hash is added for the authentication request
+&nbsp;     *
+&nbsp;     * @since 5.2
+&nbsp;     * @see &lt;a target=&quot;_blank&quot; href=&quot;https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest&quot;&gt;3.1.2.1.  Authentication Request&lt;/a&gt;
+&nbsp;     */
+&nbsp;    private void addNonceParameters(Map&lt;String, Object&gt; attributes, Map&lt;String, Object&gt; additionalParameters) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String nonce = this.secureKeyGenerator.generateKey();</b>
+<b class="nc">&nbsp;            String nonceHash = createHash(nonce);</b>
+<b class="nc">&nbsp;            attributes.put(OidcParameterNames.NONCE, nonce);</b>
+<b class="nc">&nbsp;            additionalParameters.put(OidcParameterNames.NONCE, nonceHash);</b>
+&nbsp;        } catch (NoSuchAlgorithmException e) { }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Creates and adds additional PKCE parameters for use in the OAuth 2.0 Authorization and Access Token Requests
+&nbsp;     *
+&nbsp;     * @param attributes where {@link PkceParameterNames#CODE_VERIFIER} is stored for the token request
+&nbsp;     * @param additionalParameters where {@link PkceParameterNames#CODE_CHALLENGE} and, usually,
+&nbsp;     * {@link PkceParameterNames#CODE_CHALLENGE_METHOD} are added to be used in the authorization request.
+&nbsp;     *
+&nbsp;     * @since 5.2
+&nbsp;     * @see &lt;a target=&quot;_blank&quot; href=&quot;https://tools.ietf.org/html/rfc7636#section-1.1&quot;&gt;1.1.  Protocol Flow&lt;/a&gt;
+&nbsp;     * @see &lt;a target=&quot;_blank&quot; href=&quot;https://tools.ietf.org/html/rfc7636#section-4.1&quot;&gt;4.1.  Client Creates a Code Verifier&lt;/a&gt;
+&nbsp;     * @see &lt;a target=&quot;_blank&quot; href=&quot;https://tools.ietf.org/html/rfc7636#section-4.2&quot;&gt;4.2.  Client Creates the Code Challenge&lt;/a&gt;
+&nbsp;     */
+&nbsp;    private void addPkceParameters(Map&lt;String, Object&gt; attributes, Map&lt;String, Object&gt; additionalParameters) {
+<b class="nc">&nbsp;        String codeVerifier = this.secureKeyGenerator.generateKey();</b>
+<b class="nc">&nbsp;        attributes.put(PkceParameterNames.CODE_VERIFIER, codeVerifier);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            String codeChallenge = createHash(codeVerifier);</b>
+<b class="nc">&nbsp;            additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeChallenge);</b>
+<b class="nc">&nbsp;            additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, &quot;S256&quot;);</b>
+&nbsp;        } catch (NoSuchAlgorithmException e) {
+<b class="nc">&nbsp;            additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeVerifier);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String createHash(String value) throws NoSuchAlgorithmException {
+<b class="nc">&nbsp;        MessageDigest md = MessageDigest.getInstance(&quot;SHA-256&quot;);</b>
+<b class="nc">&nbsp;        byte[] digest = md.digest(value.getBytes(StandardCharsets.US_ASCII));</b>
+<b class="nc">&nbsp;        return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

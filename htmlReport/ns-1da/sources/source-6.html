@@ -1,0 +1,261 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DashboardImportService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.sync.ie.importing.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: DashboardImportService (org.thingsboard.server.service.sync.ie.importing.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DashboardImportService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.sync.ie.importing.impl;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.Dashboard;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.ShortCustomerInfo;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DashboardId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.regex.Pattern;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DashboardImportService extends BaseEntityImportService&lt;DashboardId, Dashboard, EntityExportData&lt;Dashboard&gt;&gt; {
+&nbsp;
+<b class="nc">&nbsp;    private static final LinkedHashSet&lt;EntityType&gt; HINTS = new LinkedHashSet&lt;&gt;(Arrays.asList(EntityType.DASHBOARD, EntityType.DEVICE, EntityType.ASSET));</b>
+<b class="nc">&nbsp;    public static final Pattern WIDGET_CONFIG_PROCESSED_FIELDS_PATTERN = Pattern.compile(&quot;.*Id.*&quot;);</b>
+&nbsp;
+&nbsp;    private final DashboardService dashboardService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void setOwner(TenantId tenantId, Dashboard dashboard, IdProvider idProvider) {
+<b class="nc">&nbsp;        dashboard.setTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Dashboard findExistingEntity(EntitiesImportCtx ctx, Dashboard dashboard, IdProvider idProvider) {
+<b class="nc">&nbsp;        Dashboard existingDashboard = super.findExistingEntity(ctx, dashboard, idProvider);</b>
+<b class="nc">&nbsp;        if (existingDashboard == null &amp;&amp; ctx.isFindExistingByName()) {</b>
+<b class="nc">&nbsp;            existingDashboard = dashboardService.findTenantDashboardsByTitle(ctx.getTenantId(), dashboard.getName()).stream().findFirst().orElse(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return existingDashboard;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Dashboard prepare(EntitiesImportCtx ctx, Dashboard dashboard, Dashboard old, EntityExportData&lt;Dashboard&gt; exportData, IdProvider idProvider) {
+<b class="nc">&nbsp;        for (JsonNode entityAlias : dashboard.getEntityAliasesConfig()) {</b>
+<b class="nc">&nbsp;            replaceIdsRecursively(ctx, idProvider, entityAlias, Set.of(&quot;id&quot;), null, HINTS);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (JsonNode widgetConfig : dashboard.getWidgetsConfig()) {</b>
+<b class="nc">&nbsp;            replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(widgetConfig, &quot;config&quot;, &quot;actions&quot;), Collections.emptySet(), WIDGET_CONFIG_PROCESSED_FIELDS_PATTERN, HINTS);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return dashboard;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Dashboard saveOrUpdate(EntitiesImportCtx ctx, Dashboard dashboard, EntityExportData&lt;Dashboard&gt; exportData, IdProvider idProvider, CompareResult compareResult) {
+<b class="nc">&nbsp;        var tenantId = ctx.getTenantId();</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;ShortCustomerInfo&gt; assignedCustomers = Optional.ofNullable(dashboard.getAssignedCustomers()).orElse(Collections.emptySet()).stream()</b>
+<b class="nc">&nbsp;                .peek(customerInfo -&gt; customerInfo.setCustomerId(idProvider.getInternalId(customerInfo.getCustomerId())))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toSet());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (dashboard.getId() == null) {</b>
+<b class="nc">&nbsp;            dashboard.setAssignedCustomers(assignedCustomers);</b>
+<b class="nc">&nbsp;            dashboard = dashboardService.saveDashboard(dashboard);</b>
+<b class="nc">&nbsp;            for (ShortCustomerInfo customerInfo : assignedCustomers) {</b>
+<b class="nc">&nbsp;                dashboard = dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerInfo.getCustomerId());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            Set&lt;CustomerId&gt; existingAssignedCustomers = Optional.ofNullable(dashboardService.findDashboardById(tenantId, dashboard.getId()).getAssignedCustomers())</b>
+<b class="nc">&nbsp;                    .orElse(Collections.emptySet()).stream().map(ShortCustomerInfo::getCustomerId).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;            Set&lt;CustomerId&gt; newAssignedCustomers = assignedCustomers.stream().map(ShortCustomerInfo::getCustomerId).collect(Collectors.toSet());</b>
+&nbsp;
+<b class="nc">&nbsp;            Set&lt;CustomerId&gt; toUnassign = new HashSet&lt;&gt;(existingAssignedCustomers);</b>
+<b class="nc">&nbsp;            toUnassign.removeAll(newAssignedCustomers);</b>
+<b class="nc">&nbsp;            for (CustomerId customerId : toUnassign) {</b>
+<b class="nc">&nbsp;                assignedCustomers = dashboardService.unassignDashboardFromCustomer(tenantId, dashboard.getId(), customerId).getAssignedCustomers();</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Set&lt;CustomerId&gt; toAssign = new HashSet&lt;&gt;(newAssignedCustomers);</b>
+<b class="nc">&nbsp;            toAssign.removeAll(existingAssignedCustomers);</b>
+<b class="nc">&nbsp;            for (CustomerId customerId : toAssign) {</b>
+<b class="nc">&nbsp;                assignedCustomers = dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerId).getAssignedCustomers();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            dashboard.setAssignedCustomers(assignedCustomers);</b>
+<b class="nc">&nbsp;            dashboard = dashboardService.saveDashboard(dashboard);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return dashboard;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Dashboard deepCopy(Dashboard dashboard) {
+<b class="nc">&nbsp;        return new Dashboard(dashboard);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected boolean isUpdateNeeded(EntitiesImportCtx ctx, EntityExportData&lt;Dashboard&gt; exportData, Dashboard prepared, Dashboard existing) {
+<b class="nc">&nbsp;        return super.isUpdateNeeded(ctx, exportData, prepared, existing) || !prepared.getConfiguration().equals(existing.getConfiguration());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.DASHBOARD;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

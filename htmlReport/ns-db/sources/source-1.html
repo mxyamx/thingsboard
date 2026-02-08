@@ -1,0 +1,241 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseComponentDescriptorService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.component</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseComponentDescriptorService (org.thingsboard.server.dao.component)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseComponentDescriptorService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.component;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.networknt.schema.JsonSchema;
+&nbsp;import com.networknt.schema.JsonSchemaFactory;
+&nbsp;import com.networknt.schema.SpecVersion;
+&nbsp;import com.networknt.schema.ValidationMessage;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.id.ComponentDescriptorId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentScope;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;/**
+&nbsp; * @author Andrew Shvayka
+&nbsp; */
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class BaseComponentDescriptorService implements ComponentDescriptorService {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ComponentDescriptorDao componentDescriptorDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;ComponentDescriptor&gt; componentValidator;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ComponentDescriptor saveComponent(TenantId tenantId, ComponentDescriptor component) {
+<b class="nc">&nbsp;        componentValidator.validate(component, data -&gt; TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;        Optional&lt;ComponentDescriptor&gt; result = componentDescriptorDao.saveIfNotExist(tenantId, component);</b>
+<b class="nc">&nbsp;        return result.orElseGet(() -&gt; componentDescriptorDao.findByClazz(tenantId, component.getClazz()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ComponentDescriptor findById(TenantId tenantId, ComponentDescriptorId componentId) {
+<b class="nc">&nbsp;        Validator.validateId(componentId, &quot;Incorrect component id for search request.&quot;);</b>
+<b class="nc">&nbsp;        return componentDescriptorDao.findById(tenantId, componentId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ComponentDescriptor findByClazz(TenantId tenantId, String clazz) {
+<b class="nc">&nbsp;        Validator.validateString(clazz, &quot;Incorrect clazz for search request.&quot;);</b>
+<b class="nc">&nbsp;        return componentDescriptorDao.findByClazz(tenantId, clazz);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;ComponentDescriptor&gt; findByTypeAndPageLink(TenantId tenantId, ComponentType type, PageLink pageLink) {
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return componentDescriptorDao.findByTypeAndPageLink(tenantId, type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;ComponentDescriptor&gt; findByScopeAndTypeAndPageLink(TenantId tenantId, ComponentScope scope, ComponentType type, PageLink pageLink) {
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return componentDescriptorDao.findByScopeAndTypeAndPageLink(tenantId, scope, type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByClazz(TenantId tenantId, String clazz) {
+<b class="nc">&nbsp;        Validator.validateString(clazz, &quot;Incorrect clazz for delete request.&quot;);</b>
+<b class="nc">&nbsp;        componentDescriptorDao.deleteByClazz(tenantId, clazz);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean validate(TenantId tenantId, ComponentDescriptor component, JsonNode configuration) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (!component.getConfigurationDescriptor().has(&quot;schema&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Configuration descriptor doesn&#39;t contain schema property!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            JsonNode configurationSchema = component.getConfigurationDescriptor().get(&quot;schema&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);</b>
+<b class="nc">&nbsp;            JsonSchema schema = factory.getSchema(configurationSchema);</b>
+&nbsp;
+<b class="nc">&nbsp;            Set&lt;ValidationMessage&gt; validationMessages = schema.validate(configuration);</b>
+<b class="nc">&nbsp;            return validationMessages.isEmpty();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new IncorrectParameterException(e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

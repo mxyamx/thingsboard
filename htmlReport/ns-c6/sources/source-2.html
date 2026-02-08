@@ -1,0 +1,515 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTransportRateLimitService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.common.transport.limits</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTransportRateLimitService (org.thingsboard.server.common.transport.limits)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTransportRateLimitService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/76)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/147)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultTransportRateLimitService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/76)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/148)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.common.transport.limits;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.transport.TransportTenantProfileCache;
+&nbsp;import org.thingsboard.server.common.transport.profile.TenantProfileUpdateResult;
+&nbsp;import org.thingsboard.server.queue.util.TbTransportComponent;
+&nbsp;
+&nbsp;import java.net.InetAddress;
+&nbsp;import java.net.InetSocketAddress;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;import java.util.function.Function;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.transport.limits.TransportLimitsType.DEVICE_LIMITS;
+&nbsp;import static org.thingsboard.server.common.transport.limits.TransportLimitsType.GATEWAY_DEVICE_LIMITS;
+&nbsp;import static org.thingsboard.server.common.transport.limits.TransportLimitsType.GATEWAY_LIMITS;
+&nbsp;import static org.thingsboard.server.common.transport.limits.TransportLimitsType.TENANT_LIMITS;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbTransportComponent
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultTransportRateLimitService implements TransportRateLimitService {
+&nbsp;
+<b class="nc">&nbsp;    private final static DummyTransportRateLimit ALLOW = new DummyTransportRateLimit();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, Boolean&gt; tenantAllowed = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, Set&lt;DeviceId&gt;&gt; tenantDevices = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, Set&lt;DeviceId&gt;&gt; tenantGateways = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, Set&lt;DeviceId&gt;&gt; tenantGatewayDevices = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, EntityTransportRateLimits&gt; perTenantLimits = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;DeviceId, EntityTransportRateLimits&gt; perDeviceLimits = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;DeviceId, EntityTransportRateLimits&gt; perGatewayLimits = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;DeviceId, EntityTransportRateLimits&gt; perGatewayDeviceLimits = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Map&lt;InetAddress, InetAddressRateLimitStats&gt; ipMap = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    private final TransportTenantProfileCache tenantProfileCache;
+&nbsp;
+&nbsp;    @Value(&quot;${transport.rate_limits.ip_limits_enabled:false}&quot;)
+&nbsp;    private boolean ipRateLimitsEnabled;
+&nbsp;    @Value(&quot;${transport.rate_limits.max_wrong_credentials_per_ip:10}&quot;)
+&nbsp;    private int maxWrongCredentialsPerIp;
+&nbsp;    @Value(&quot;${transport.rate_limits.ip_block_timeout:60000}&quot;)
+&nbsp;    private long ipBlockTimeout;
+&nbsp;
+<b class="nc">&nbsp;    public DefaultTransportRateLimitService(TransportTenantProfileCache tenantProfileCache) {</b>
+<b class="nc">&nbsp;        this.tenantProfileCache = tenantProfileCache;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;EntityType, Boolean&gt; checkLimits(TenantId tenantId, DeviceId gatewayId, DeviceId deviceId, int dataPoints, boolean isGateway) {
+<b class="nc">&nbsp;        if (!tenantAllowed.getOrDefault(tenantId, Boolean.TRUE)) {</b>
+<b class="nc">&nbsp;            return TbPair.of(EntityType.API_USAGE_STATE, false);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!checkEntityRateLimit(dataPoints, getTenantRateLimits(tenantId))) {</b>
+<b class="nc">&nbsp;            return TbPair.of(EntityType.TENANT, false);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (isGateway) {</b>
+<b class="nc">&nbsp;            if (!checkEntityRateLimit(dataPoints, getGatewayDeviceRateLimits(tenantId, deviceId))) {</b>
+<b class="nc">&nbsp;                return TbPair.of(EntityType.DEVICE, true);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (gatewayId == null &amp;&amp; deviceId != null) {</b>
+<b class="nc">&nbsp;            if (!checkEntityRateLimit(dataPoints, getDeviceRateLimits(tenantId, deviceId))) {</b>
+<b class="nc">&nbsp;                return TbPair.of(EntityType.DEVICE, false);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (gatewayId != null &amp;&amp; !checkEntityRateLimit(dataPoints, getGatewayRateLimits(tenantId, gatewayId))) {</b>
+<b class="nc">&nbsp;            return TbPair.of(EntityType.DEVICE, true);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean checkEntityRateLimit(int dataPoints, EntityTransportRateLimits limits) {
+<b class="nc">&nbsp;        if (dataPoints &gt; 0) {</b>
+<b class="nc">&nbsp;            return limits.getTelemetryMsgRateLimit().tryConsume() &amp;&amp; limits.getTelemetryDataPointsRateLimit().tryConsume(dataPoints);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return limits.getRegularMsgRateLimit().tryConsume();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void update(TenantProfileUpdateResult update) {
+<b class="nc">&nbsp;        log.info(&quot;Received tenant profile update: {}&quot;, update.getProfile());</b>
+<b class="nc">&nbsp;        EntityTransportRateLimits tenantRateLimitPrototype = createRateLimits(update.getProfile(), TENANT_LIMITS);</b>
+<b class="nc">&nbsp;        EntityTransportRateLimits deviceRateLimitPrototype = createRateLimits(update.getProfile(), DEVICE_LIMITS);</b>
+<b class="nc">&nbsp;        EntityTransportRateLimits gatewayRateLimitPrototype = createRateLimits(update.getProfile(), GATEWAY_LIMITS);</b>
+<b class="nc">&nbsp;        EntityTransportRateLimits gatewayDeviceRateLimitPrototype = createRateLimits(update.getProfile(), GATEWAY_DEVICE_LIMITS);</b>
+<b class="nc">&nbsp;        for (TenantId tenantId : update.getAffectedTenants()) {</b>
+<b class="nc">&nbsp;            update(tenantId, tenantRateLimitPrototype, deviceRateLimitPrototype, gatewayRateLimitPrototype, gatewayDeviceRateLimitPrototype);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void update(TenantId tenantId) {
+<b class="nc">&nbsp;        EntityTransportRateLimits tenantRateLimitPrototype = createRateLimits(tenantProfileCache.get(tenantId), TENANT_LIMITS);</b>
+<b class="nc">&nbsp;        EntityTransportRateLimits deviceRateLimitPrototype = createRateLimits(tenantProfileCache.get(tenantId), DEVICE_LIMITS);</b>
+<b class="nc">&nbsp;        EntityTransportRateLimits gatewayRateLimitPrototype = createRateLimits(tenantProfileCache.get(tenantId), GATEWAY_LIMITS);</b>
+<b class="nc">&nbsp;        EntityTransportRateLimits gatewayDeviceRateLimitPrototype = createRateLimits(tenantProfileCache.get(tenantId), GATEWAY_DEVICE_LIMITS);</b>
+<b class="nc">&nbsp;        update(tenantId, tenantRateLimitPrototype, deviceRateLimitPrototype, gatewayRateLimitPrototype, gatewayDeviceRateLimitPrototype);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void update(TenantId tenantId, EntityTransportRateLimits tenantRateLimitPrototype, EntityTransportRateLimits deviceRateLimitPrototype,
+&nbsp;                        EntityTransportRateLimits gatewayRateLimitPrototype, EntityTransportRateLimits gatewayDeviceRateLimitPrototype) {
+<b class="nc">&nbsp;        mergeLimits(tenantId, tenantRateLimitPrototype, perTenantLimits::get, perTenantLimits::put);</b>
+<b class="nc">&nbsp;        getTenantDevices(tenantId).forEach(deviceId -&gt; mergeLimits(deviceId, deviceRateLimitPrototype, perDeviceLimits::get, perDeviceLimits::put));</b>
+<b class="nc">&nbsp;        getTenantGateways(tenantId).forEach(gatewayId -&gt; mergeLimits(gatewayId, gatewayRateLimitPrototype, perGatewayLimits::get, perGatewayLimits::put));</b>
+<b class="nc">&nbsp;        getTenantGatewayDevices(tenantId).forEach(gatewayId -&gt; mergeLimits(gatewayId, gatewayDeviceRateLimitPrototype, perGatewayDeviceLimits::get, perGatewayDeviceLimits::put));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void remove(TenantId tenantId) {
+<b class="nc">&nbsp;        perTenantLimits.remove(tenantId);</b>
+<b class="nc">&nbsp;        tenantDevices.remove(tenantId);</b>
+<b class="nc">&nbsp;        tenantGateways.remove(tenantId);</b>
+<b class="nc">&nbsp;        tenantGatewayDevices.remove(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void remove(DeviceId deviceId) {
+<b class="nc">&nbsp;        perDeviceLimits.remove(deviceId);</b>
+<b class="nc">&nbsp;        perGatewayLimits.remove(deviceId);</b>
+<b class="nc">&nbsp;        perGatewayDeviceLimits.remove(deviceId);</b>
+<b class="nc">&nbsp;        tenantDevices.values().forEach(set -&gt; set.remove(deviceId));</b>
+<b class="nc">&nbsp;        tenantGateways.values().forEach(set -&gt; set.remove(deviceId));</b>
+<b class="nc">&nbsp;        tenantGatewayDevices.values().forEach(set -&gt; set.remove(deviceId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void update(TenantId tenantId, boolean allowed) {
+<b class="nc">&nbsp;        tenantAllowed.put(tenantId, allowed);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean checkAddress(InetSocketAddress address) {
+<b class="nc">&nbsp;        if (!ipRateLimitsEnabled) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var stats = ipMap.computeIfAbsent(address.getAddress(), a -&gt; new InetAddressRateLimitStats());</b>
+<b class="nc">&nbsp;        return !stats.isBlocked() || (stats.getLastActivityTs() + ipBlockTimeout &lt; System.currentTimeMillis());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onAuthSuccess(InetSocketAddress address) {
+<b class="nc">&nbsp;        if (!ipRateLimitsEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        var stats = ipMap.computeIfAbsent(address.getAddress(), a -&gt; new InetAddressRateLimitStats());</b>
+<b class="nc">&nbsp;        stats.getLock().lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            stats.setLastActivityTs(System.currentTimeMillis());</b>
+<b class="nc">&nbsp;            stats.setFailureCount(0);</b>
+<b class="nc">&nbsp;            if (stats.isBlocked()) {</b>
+<b class="nc">&nbsp;                stats.setBlocked(false);</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] IP address un-blocked due to correct credentials.&quot;, address.getAddress());</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            stats.getLock().unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onAuthFailure(InetSocketAddress address) {
+<b class="nc">&nbsp;        if (!ipRateLimitsEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        var stats = ipMap.computeIfAbsent(address.getAddress(), a -&gt; new InetAddressRateLimitStats());</b>
+<b class="nc">&nbsp;        stats.getLock().lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            stats.setLastActivityTs(System.currentTimeMillis());</b>
+<b class="nc">&nbsp;            int failureCount = stats.getFailureCount() + 1;</b>
+<b class="nc">&nbsp;            stats.setFailureCount(failureCount);</b>
+<b class="nc">&nbsp;            if (failureCount &gt;= maxWrongCredentialsPerIp) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] IP address blocked due to constantly wrong credentials.&quot;, address.getAddress());</b>
+<b class="nc">&nbsp;                stats.setBlocked(true);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            stats.getLock().unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void invalidateRateLimitsIpTable(long sessionInactivityTimeout) {
+<b class="nc">&nbsp;        if (!ipRateLimitsEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        long currentTime = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        long expTime = currentTime - Math.max(sessionInactivityTimeout, ipBlockTimeout);</b>
+<b class="nc">&nbsp;        for (var entry : ipMap.entrySet()) {</b>
+<b class="nc">&nbsp;            var stats = entry.getValue();</b>
+<b class="nc">&nbsp;            if (stats.getLastActivityTs() &lt; expTime) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] IP address removed due to session inactivity timeout.&quot;, entry.getKey());</b>
+<b class="nc">&nbsp;                ipMap.remove(entry.getKey());</b>
+<b class="nc">&nbsp;            } else if (stats.isBlocked() &amp;&amp; (stats.getLastActivityTs() + ipBlockTimeout &lt; currentTime)) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] IP address unblocked due ip block timeout.&quot;, entry.getKey());</b>
+<b class="nc">&nbsp;                stats.setBlocked(false);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T extends EntityId&gt; void mergeLimits(T entityId, EntityTransportRateLimits newRateLimits,
+&nbsp;                                                  Function&lt;T, EntityTransportRateLimits&gt; getFunction,
+&nbsp;                                                  BiConsumer&lt;T, EntityTransportRateLimits&gt; putFunction) {
+<b class="nc">&nbsp;        EntityTransportRateLimits oldRateLimits = getFunction.apply(entityId);</b>
+<b class="nc">&nbsp;        if (oldRateLimits == null) {</b>
+<b class="nc">&nbsp;            if (EntityType.TENANT.equals(entityId.getEntityType())) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] New rate limits: {}&quot;, entityId, newRateLimits);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] New rate limits: {}&quot;, entityId, newRateLimits);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            putFunction.accept(entityId, newRateLimits);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            EntityTransportRateLimits updated = merge(oldRateLimits, newRateLimits);</b>
+<b class="nc">&nbsp;            if (updated != null) {</b>
+<b class="nc">&nbsp;                if (EntityType.TENANT.equals(entityId.getEntityType())) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;[{}] Updated rate limits: {}&quot;, entityId, updated);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Updated rate limits: {}&quot;, entityId, updated);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                putFunction.accept(entityId, updated);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityTransportRateLimits merge(EntityTransportRateLimits oldRateLimits, EntityTransportRateLimits newRateLimits) {
+<b class="nc">&nbsp;        boolean regularUpdate = !oldRateLimits.getRegularMsgRateLimit().getConfiguration().equals(newRateLimits.getRegularMsgRateLimit().getConfiguration());</b>
+<b class="nc">&nbsp;        boolean telemetryMsgRateUpdate = !oldRateLimits.getTelemetryMsgRateLimit().getConfiguration().equals(newRateLimits.getTelemetryMsgRateLimit().getConfiguration());</b>
+<b class="nc">&nbsp;        boolean telemetryDataPointUpdate = !oldRateLimits.getTelemetryDataPointsRateLimit().getConfiguration().equals(newRateLimits.getTelemetryDataPointsRateLimit().getConfiguration());</b>
+<b class="nc">&nbsp;        if (regularUpdate || telemetryMsgRateUpdate || telemetryDataPointUpdate) {</b>
+<b class="nc">&nbsp;            return new EntityTransportRateLimits(</b>
+<b class="nc">&nbsp;                    regularUpdate ? newLimit(newRateLimits.getRegularMsgRateLimit().getConfiguration()) : oldRateLimits.getRegularMsgRateLimit(),</b>
+<b class="nc">&nbsp;                    telemetryMsgRateUpdate ? newLimit(newRateLimits.getTelemetryMsgRateLimit().getConfiguration()) : oldRateLimits.getTelemetryMsgRateLimit(),</b>
+<b class="nc">&nbsp;                    telemetryDataPointUpdate ? newLimit(newRateLimits.getTelemetryDataPointsRateLimit().getConfiguration()) : oldRateLimits.getTelemetryDataPointsRateLimit());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityTransportRateLimits createRateLimits(TenantProfile tenantProfile, TransportLimitsType limitsType) {
+<b class="nc">&nbsp;        TenantProfileData profileData = tenantProfile.getProfileData();</b>
+<b class="nc">&nbsp;        DefaultTenantProfileConfiguration profile = (DefaultTenantProfileConfiguration) profileData.getConfiguration();</b>
+<b class="nc">&nbsp;        if (profile == null) {</b>
+<b class="nc">&nbsp;            return new EntityTransportRateLimits(ALLOW, ALLOW, ALLOW);</b>
+&nbsp;        } else {
+&nbsp;            TransportRateLimit regularMsgRateLimit;
+&nbsp;            TransportRateLimit telemetryMsgRateLimit;
+&nbsp;            TransportRateLimit telemetryDpRateLimit;
+<b class="nc">&nbsp;            switch (limitsType) {</b>
+&nbsp;                case TENANT_LIMITS -&gt; {
+<b class="nc">&nbsp;                    regularMsgRateLimit = newLimit(profile.getTransportTenantMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryMsgRateLimit = newLimit(profile.getTransportTenantTelemetryMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryDpRateLimit = newLimit(profile.getTransportTenantTelemetryDataPointsRateLimit());</b>
+&nbsp;                }
+&nbsp;                case DEVICE_LIMITS -&gt; {
+<b class="nc">&nbsp;                    regularMsgRateLimit = newLimit(profile.getTransportDeviceMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryMsgRateLimit = newLimit(profile.getTransportDeviceTelemetryMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryDpRateLimit = newLimit(profile.getTransportDeviceTelemetryDataPointsRateLimit());</b>
+&nbsp;                }
+&nbsp;                case GATEWAY_LIMITS -&gt; {
+<b class="nc">&nbsp;                    regularMsgRateLimit = newLimit(profile.getTransportGatewayMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryMsgRateLimit = newLimit(profile.getTransportGatewayTelemetryMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryDpRateLimit = newLimit(profile.getTransportGatewayTelemetryDataPointsRateLimit());</b>
+&nbsp;                }
+&nbsp;                case GATEWAY_DEVICE_LIMITS -&gt; {
+<b class="nc">&nbsp;                    regularMsgRateLimit = newLimit(profile.getTransportGatewayDeviceMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryMsgRateLimit = newLimit(profile.getTransportGatewayDeviceTelemetryMsgRateLimit());</b>
+<b class="nc">&nbsp;                    telemetryDpRateLimit = newLimit(profile.getTransportGatewayDeviceTelemetryDataPointsRateLimit());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                default -&gt; throw new IllegalStateException(&quot;Unknown limits type: &quot; + limitsType);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            return new EntityTransportRateLimits(regularMsgRateLimit, telemetryMsgRateLimit, telemetryDpRateLimit);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static TransportRateLimit newLimit(String config) {
+<b class="nc">&nbsp;        return StringUtils.isEmpty(config) ? ALLOW : new SimpleTransportRateLimit(config);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityTransportRateLimits getTenantRateLimits(TenantId tenantId) {
+<b class="nc">&nbsp;        return perTenantLimits.computeIfAbsent(tenantId, k -&gt; createRateLimits(tenantProfileCache.get(tenantId), TENANT_LIMITS));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityTransportRateLimits getDeviceRateLimits(TenantId tenantId, DeviceId deviceId) {
+<b class="nc">&nbsp;        return perDeviceLimits.computeIfAbsent(deviceId, k -&gt; {</b>
+<b class="nc">&nbsp;            EntityTransportRateLimits limits = createRateLimits(tenantProfileCache.get(tenantId), DEVICE_LIMITS);</b>
+<b class="nc">&nbsp;            getTenantDevices(tenantId).add(deviceId);</b>
+<b class="nc">&nbsp;            return limits;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityTransportRateLimits getGatewayRateLimits(TenantId tenantId, DeviceId gatewayId) {
+<b class="nc">&nbsp;        return perGatewayLimits.computeIfAbsent(gatewayId, k -&gt; {</b>
+<b class="nc">&nbsp;            EntityTransportRateLimits limits = createRateLimits(tenantProfileCache.get(tenantId), GATEWAY_LIMITS);</b>
+<b class="nc">&nbsp;            getTenantGateways(tenantId).add(gatewayId);</b>
+<b class="nc">&nbsp;            return limits;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityTransportRateLimits getGatewayDeviceRateLimits(TenantId tenantId, DeviceId gatewayId) {
+<b class="nc">&nbsp;        return perGatewayDeviceLimits.computeIfAbsent(gatewayId, k -&gt; {</b>
+<b class="nc">&nbsp;            EntityTransportRateLimits limits = createRateLimits(tenantProfileCache.get(tenantId), GATEWAY_DEVICE_LIMITS);</b>
+<b class="nc">&nbsp;            getTenantGatewayDevices(tenantId).add(gatewayId);</b>
+<b class="nc">&nbsp;            return limits;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;DeviceId&gt; getTenantDevices(TenantId tenantId) {
+<b class="nc">&nbsp;        return tenantDevices.computeIfAbsent(tenantId, id -&gt; ConcurrentHashMap.newKeySet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;DeviceId&gt; getTenantGateways(TenantId tenantId) {
+<b class="nc">&nbsp;        return tenantGateways.computeIfAbsent(tenantId, id -&gt; ConcurrentHashMap.newKeySet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;DeviceId&gt; getTenantGatewayDevices(TenantId tenantId) {
+<b class="nc">&nbsp;        return tenantGatewayDevices.computeIfAbsent(tenantId, id -&gt; ConcurrentHashMap.newKeySet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

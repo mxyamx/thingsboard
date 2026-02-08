@@ -1,0 +1,313 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WidgetTypeInfoRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.widget</a>
+</div>
+
+<h1>Coverage Summary for Class: WidgetTypeInfoRepository (org.thingsboard.server.dao.sql.widget)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">WidgetTypeInfoRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.widget;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.dao.model.sql.WidgetTypeInfoEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface WidgetTypeInfoRepository extends JpaRepository&lt;WidgetTypeInfoEntity, UUID&gt;  {
+&nbsp;
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;SELECT * FROM widget_type_info_view wti WHERE wti.tenant_id = :systemTenantId &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;)))) &quot; +
+&nbsp;                    &quot;ORDER BY CASE WHEN :scadaFirst then wti.scada END DESC&quot;,
+&nbsp;            countQuery = &quot;SELECT count(*) FROM widget_type_info_view wti WHERE wti.tenant_id = :systemTenantId &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;))))&quot;
+&nbsp;    )
+&nbsp;    Page&lt;WidgetTypeInfoEntity&gt; findSystemWidgetTypes(@Param(&quot;systemTenantId&quot;) UUID systemTenantId,
+&nbsp;                                                          @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                          @Param(&quot;fullSearch&quot;) boolean fullSearch,
+&nbsp;                                                          @Param(&quot;deprecatedFilterEnabled&quot;) boolean deprecatedFilterEnabled,
+&nbsp;                                                          @Param(&quot;deprecatedFilter&quot;) boolean deprecatedFilter,
+&nbsp;                                                          @Param(&quot;widgetTypesEmpty&quot;) boolean widgetTypesEmpty,
+&nbsp;                                                          @Param(&quot;widgetTypes&quot;) List&lt;String&gt; widgetTypes,
+&nbsp;                                                          @Param(&quot;scadaFirst&quot;) boolean scadaFirst,
+&nbsp;                                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;SELECT * FROM widget_type_info_view wti WHERE wti.tenant_id IN (:tenantId, :nullTenantId) &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;)))) &quot; +
+&nbsp;                    &quot;ORDER BY CASE WHEN :scadaFirst then wti.scada END DESC&quot;,
+&nbsp;            countQuery = &quot;SELECT count(*) FROM widget_type_info_view wti WHERE wti.tenant_id IN (:tenantId, :nullTenantId) &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;))))&quot;
+&nbsp;    )
+&nbsp;    Page&lt;WidgetTypeInfoEntity&gt; findAllTenantWidgetTypesByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                  @Param(&quot;nullTenantId&quot;) UUID nullTenantId,
+&nbsp;                                                                  @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                                  @Param(&quot;fullSearch&quot;) boolean fullSearch,
+&nbsp;                                                                  @Param(&quot;deprecatedFilterEnabled&quot;) boolean deprecatedFilterEnabled,
+&nbsp;                                                                  @Param(&quot;deprecatedFilter&quot;) boolean deprecatedFilter,
+&nbsp;                                                                  @Param(&quot;widgetTypesEmpty&quot;) boolean widgetTypesEmpty,
+&nbsp;                                                                  @Param(&quot;widgetTypes&quot;) List&lt;String&gt; widgetTypes,
+&nbsp;                                                                  @Param(&quot;scadaFirst&quot;) boolean scadaFirst,
+&nbsp;                                                                  Pageable pageable);
+&nbsp;
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;SELECT * FROM widget_type_info_view wti WHERE wti.tenant_id = :tenantId &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;)))) &quot; +
+&nbsp;                    &quot;ORDER BY CASE WHEN :scadaFirst then wti.scada END DESC&quot;,
+&nbsp;            countQuery = &quot;SELECT count(*) FROM widget_type_info_view wti WHERE wti.tenant_id = :tenantId &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;))))&quot;
+&nbsp;    )
+&nbsp;    Page&lt;WidgetTypeInfoEntity&gt; findTenantWidgetTypesByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                               @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                               @Param(&quot;fullSearch&quot;) boolean fullSearch,
+&nbsp;                                                               @Param(&quot;deprecatedFilterEnabled&quot;) boolean deprecatedFilterEnabled,
+&nbsp;                                                               @Param(&quot;deprecatedFilter&quot;) boolean deprecatedFilter,
+&nbsp;                                                               @Param(&quot;widgetTypesEmpty&quot;) boolean widgetTypesEmpty,
+&nbsp;                                                               @Param(&quot;widgetTypes&quot;) List&lt;String&gt; widgetTypes,
+&nbsp;                                                               @Param(&quot;scadaFirst&quot;) boolean scadaFirst,
+&nbsp;                                                               Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT wti FROM WidgetTypeInfoEntity wti, WidgetsBundleWidgetEntity wbw &quot; +
+&nbsp;            &quot;WHERE wbw.widgetsBundleId = :widgetsBundleId &quot; +
+&nbsp;            &quot;AND wbw.widgetTypeId = wti.id ORDER BY wbw.widgetTypeOrder&quot;)
+&nbsp;    List&lt;WidgetTypeInfoEntity&gt; findWidgetTypesInfosByWidgetsBundleId(@Param(&quot;widgetsBundleId&quot;) UUID widgetsBundleId);
+&nbsp;
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;SELECT * FROM widget_type_info_view wti, widgets_bundle_widget wbw &quot; +
+&nbsp;                    &quot;WHERE wbw.widgets_bundle_id = :widgetsBundleId &quot; +
+&nbsp;                    &quot;AND wbw.widget_type_id = wti.id &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;)))) &quot; +
+&nbsp;                    &quot;ORDER BY wbw.widget_type_order&quot;,
+&nbsp;            countQuery = &quot;SELECT count(*) FROM widget_type_info_view wti, widgets_bundle_widget wbw &quot; +
+&nbsp;                    &quot;WHERE wbw.widgets_bundle_id = :widgetsBundleId &quot; +
+&nbsp;                    &quot;AND wbw.widget_type_id = wti.id &quot; +
+&nbsp;                    &quot;AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) &quot; +
+&nbsp;                    &quot;AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) &quot; +
+&nbsp;                    &quot;AND (wti.name ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR ((:fullSearch) IS TRUE AND (wti.description ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;) &quot; +
+&nbsp;                    &quot;OR EXISTS (&quot; +
+&nbsp;                        &quot;SELECT 1 &quot; +
+&nbsp;                        &quot;FROM unnest(wti.tags) AS currentTag &quot; +
+&nbsp;                        &quot;WHERE :searchText ILIKE &#39;%&#39; || currentTag || &#39;%&#39; &quot; +
+&nbsp;                            &quot;AND (length(:searchText) = length(currentTag) &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE currentTag || &#39; %&#39; &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag &quot; +
+&nbsp;                            &quot;OR :searchText ILIKE &#39;% &#39; || currentTag || &#39; %&#39;)&quot; +
+&nbsp;                    &quot;))))&quot;
+&nbsp;    )
+&nbsp;    Page&lt;WidgetTypeInfoEntity&gt; findWidgetTypesInfosByWidgetsBundleId(@Param(&quot;widgetsBundleId&quot;) UUID widgetsBundleId,
+&nbsp;                                                                     @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                                     @Param(&quot;fullSearch&quot;) boolean fullSearch,
+&nbsp;                                                                     @Param(&quot;deprecatedFilterEnabled&quot;) boolean deprecatedFilterEnabled,
+&nbsp;                                                                     @Param(&quot;deprecatedFilter&quot;) boolean deprecatedFilter,
+&nbsp;                                                                     @Param(&quot;widgetTypesEmpty&quot;) boolean widgetTypesEmpty,
+&nbsp;                                                                     @Param(&quot;widgetTypes&quot;) List&lt;String&gt; widgetTypes,
+&nbsp;                                                                     Pageable pageable);
+&nbsp;
+&nbsp;
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;SELECT * FROM widget_type_info_view wti WHERE wti.id IN &quot; +
+&nbsp;                    &quot;(select id from widget_type where tenant_id = :tenantId &quot; +
+&nbsp;                    &quot;and (image = :imageLink or descriptor ILIKE CONCAT(&#39;%\&quot;&#39;, :imageLink, &#39;\&quot;%&#39;)) limit :limit)&quot;
+&nbsp;    )
+&nbsp;    List&lt;WidgetTypeInfoEntity&gt; findByTenantAndImageUrl(@Param(&quot;tenantId&quot;) UUID tenantId, @Param(&quot;imageLink&quot;) String imageLink, @Param(&quot;limit&quot;) int limit);
+&nbsp;
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;SELECT * FROM widget_type_info_view wti WHERE wti.id IN &quot; +
+&nbsp;                    &quot;(select id from widget_type where image = :imageLink or descriptor ILIKE CONCAT(&#39;%&#39;, :imageLink, &#39;%&#39;) limit :limit)&quot;
+&nbsp;    )
+&nbsp;    List&lt;WidgetTypeInfoEntity&gt; findByImageUrl(@Param(&quot;imageLink&quot;) String imageLink, @Param(&quot;limit&quot;) int limit);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.EntityInfo(w.id, &#39;WIDGET_TYPE&#39;, w.name) &quot; +
+&nbsp;            &quot;FROM WidgetTypeEntity w WHERE w.tenantId = :tenantId AND ilike(cast(w.descriptor as string), CONCAT(&#39;%&#39;, :link, &#39;%&#39;)) = true&quot;)
+&nbsp;    List&lt;EntityInfo&gt; findWidgetTypeInfosByTenantIdAndResourceLink(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                  @Param(&quot;link&quot;) String link,
+&nbsp;                                                                  Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.EntityInfo(w.id, &#39;WIDGET_TYPE&#39;, w.name) &quot; +
+&nbsp;            &quot;FROM WidgetTypeEntity w WHERE ilike(cast(w.descriptor as string), CONCAT(&#39;%&#39;, :link, &#39;%&#39;)) = true&quot;)
+&nbsp;    List&lt;EntityInfo&gt; findWidgetTypeInfosByResourceLink(@Param(&quot;link&quot;) String link,
+&nbsp;                                                       Pageable pageable);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

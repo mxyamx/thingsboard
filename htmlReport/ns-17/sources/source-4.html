@@ -1,0 +1,324 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MqttClient</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.mqtt</a>
+</div>
+
+<h1>Coverage Summary for Class: MqttClient (org.thingsboard.mqtt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MqttClient</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.mqtt;
+&nbsp;
+&nbsp;import io.netty.buffer.ByteBuf;
+&nbsp;import io.netty.channel.Channel;
+&nbsp;import io.netty.channel.EventLoopGroup;
+&nbsp;import io.netty.channel.nio.NioEventLoopGroup;
+&nbsp;import io.netty.handler.codec.mqtt.MqttQoS;
+&nbsp;import io.netty.util.concurrent.Future;
+&nbsp;import io.netty.util.concurrent.Promise;
+&nbsp;import org.thingsboard.common.util.ListeningExecutor;
+&nbsp;
+&nbsp;public interface MqttClient {
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Connect to the specified hostname/ip. By default uses port 1883.
+&nbsp;     * If you want to change the port number, see {@link #connect(String, int)}
+&nbsp;     *
+&nbsp;     * @param host The ip address or host to connect to
+&nbsp;     * @return A future which will be completed when the connection is opened and we received an CONNACK
+&nbsp;     */
+&nbsp;    Promise&lt;MqttConnectResult&gt; connect(String host);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Connect to the specified hostname/ip using the specified port
+&nbsp;     *
+&nbsp;     * @param host The ip address or host to connect to
+&nbsp;     * @param port The tcp port to connect to
+&nbsp;     * @return A future which will be completed when the connection is opened and we received an CONNACK
+&nbsp;     */
+&nbsp;    Promise&lt;MqttConnectResult&gt; connect(String host, int port);
+&nbsp;
+&nbsp;    /**
+&nbsp;     *
+&nbsp;     * @return boolean value indicating if channel is active
+&nbsp;     */
+&nbsp;    boolean isConnected();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Attempt reconnect to the host that was attempted with {@link #connect(String, int)} method before
+&nbsp;     *
+&nbsp;     * @return A future which will be completed when the connection is opened and we received an CONNACK
+&nbsp;     * @throws IllegalStateException if no previous {@link #connect(String, int)} calls were attempted
+&nbsp;     */
+&nbsp;    Promise&lt;MqttConnectResult&gt; reconnect();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Retrieve the netty {@link EventLoopGroup} we are using
+&nbsp;     * @return The netty {@link EventLoopGroup} we use for the connection
+&nbsp;     */
+&nbsp;    EventLoopGroup getEventLoop();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * By default we use the netty {@link NioEventLoopGroup}.
+&nbsp;     * If you change the EventLoopGroup to another type, make sure to change the {@link Channel} class using {@link MqttClientConfig#setChannelClass(Class)}
+&nbsp;     * If you want to force the MqttClient to use another {@link EventLoopGroup}, call this function before calling {@link #connect(String, int)}
+&nbsp;     *
+&nbsp;     * @param eventLoop The new eventloop to use
+&nbsp;     */
+&nbsp;    void setEventLoop(EventLoopGroup eventLoop);
+&nbsp;
+&nbsp;    ListeningExecutor getHandlerExecutor();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Subscribe on the given topic. When a message is received, MqttClient will invoke the {@link MqttHandler#onMessage(String, ByteBuf)} function of the given handler
+&nbsp;     *
+&nbsp;     * @param topic The topic filter to subscribe to
+&nbsp;     * @param handler The handler to invoke when we receive a message
+&nbsp;     * @return A future which will be completed when the server acknowledges our subscribe request
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; on(String topic, MqttHandler handler);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Subscribe on the given topic, with the given qos. When a message is received, MqttClient will invoke the {@link MqttHandler#onMessage(String, ByteBuf)} function of the given handler
+&nbsp;     *
+&nbsp;     * @param topic The topic filter to subscribe to
+&nbsp;     * @param handler The handler to invoke when we receive a message
+&nbsp;     * @param qos The qos to request to the server
+&nbsp;     * @return A future which will be completed when the server acknowledges our subscribe request
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; on(String topic, MqttHandler handler, MqttQoS qos);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Subscribe on the given topic. When a message is received, MqttClient will invoke the {@link MqttHandler#onMessage(String, ByteBuf)} function of the given handler
+&nbsp;     * This subscription is only once. If the MqttClient has received 1 message, the subscription will be removed
+&nbsp;     *
+&nbsp;     * @param topic The topic filter to subscribe to
+&nbsp;     * @param handler The handler to invoke when we receive a message
+&nbsp;     * @return A future which will be completed when the server acknowledges our subscribe request
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; once(String topic, MqttHandler handler);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Subscribe on the given topic, with the given qos. When a message is received, MqttClient will invoke the {@link MqttHandler#onMessage(String, ByteBuf)} function of the given handler
+&nbsp;     * This subscription is only once. If the MqttClient has received 1 message, the subscription will be removed
+&nbsp;     *
+&nbsp;     * @param topic The topic filter to subscribe to
+&nbsp;     * @param handler The handler to invoke when we receive a message
+&nbsp;     * @param qos The qos to request to the server
+&nbsp;     * @return A future which will be completed when the server acknowledges our subscribe request
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; once(String topic, MqttHandler handler, MqttQoS qos);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Remove the subscription for the given topic and handler
+&nbsp;     * If you want to unsubscribe from all handlers known for this topic, use {@link #off(String)}
+&nbsp;     *
+&nbsp;     * @param topic The topic to unsubscribe for
+&nbsp;     * @param handler The handler to unsubscribe
+&nbsp;     * @return A future which will be completed when the server acknowledges our unsubscribe request
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; off(String topic, MqttHandler handler);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Remove all subscriptions for the given topic.
+&nbsp;     * If you want to specify which handler to unsubscribe, use {@link #off(String, MqttHandler)}
+&nbsp;     *
+&nbsp;     * @param topic The topic to unsubscribe for
+&nbsp;     * @return A future which will be completed when the server acknowledges our unsubscribe request
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; off(String topic);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Publish a message to the given payload
+&nbsp;     * @param topic The topic to publish to
+&nbsp;     * @param payload The payload to send
+&nbsp;     * @return A future which will be completed when the message is sent out of the MqttClient
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; publish(String topic, ByteBuf payload);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Publish a message to the given payload, using the given qos
+&nbsp;     * @param topic The topic to publish to
+&nbsp;     * @param payload The payload to send
+&nbsp;     * @param qos The qos to use while publishing
+&nbsp;     * @return A future which will be completed when the message is delivered to the server
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; publish(String topic, ByteBuf payload, MqttQoS qos);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Publish a message to the given payload, using optional retain
+&nbsp;     * @param topic The topic to publish to
+&nbsp;     * @param payload The payload to send
+&nbsp;     * @param retain true if you want to retain the message on the server, false otherwise
+&nbsp;     * @return A future which will be completed when the message is sent out of the MqttClient
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; publish(String topic, ByteBuf payload, boolean retain);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Publish a message to the given payload, using the given qos and optional retain
+&nbsp;     * @param topic The topic to publish to
+&nbsp;     * @param payload The payload to send
+&nbsp;     * @param qos The qos to use while publishing
+&nbsp;     * @param retain true if you want to retain the message on the server, false otherwise
+&nbsp;     * @return A future which will be completed when the message is delivered to the server
+&nbsp;     */
+&nbsp;    Future&lt;Void&gt; publish(String topic, ByteBuf payload, MqttQoS qos, boolean retain);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Retrieve the MqttClient configuration
+&nbsp;     * @return The {@link MqttClientConfig} instance we use
+&nbsp;     */
+&nbsp;    MqttClientConfig getClientConfig();
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Construct the MqttClientImpl with additional config.
+&nbsp;     * This config can also be changed using the {@link #getClientConfig()} function
+&nbsp;     *
+&nbsp;     * @param config The config object to use while looking for settings
+&nbsp;     * @param defaultHandler The handler for incoming messages that do not match any topic subscriptions
+&nbsp;     */
+&nbsp;    static MqttClient create(MqttClientConfig config, MqttHandler defaultHandler, ListeningExecutor handlerExecutor) {
+<b class="nc">&nbsp;        return new MqttClientImpl(config, defaultHandler, handlerExecutor);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Send disconnect and close channel
+&nbsp;     *
+&nbsp;     */
+&nbsp;    void disconnect();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sets the {@see #MqttClientCallback} object for this MqttClient
+&nbsp;     * @param callback The callback to be set
+&nbsp;     */
+&nbsp;    void setCallback(MqttClientCallback callback);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbRuleEngineConsumerStats</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: TbRuleEngineConsumerStats (org.thingsboard.server.service.queue)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbRuleEngineConsumerStats</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/70)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue;
+&nbsp;
+&nbsp;import io.micrometer.core.instrument.Timer;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.queue.RuleEngineException;
+&nbsp;import org.thingsboard.server.common.stats.StatsCounter;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.common.stats.StatsType;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;import org.thingsboard.server.service.queue.processing.TbRuleEngineProcessingResult;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbRuleEngineConsumerStats {
+&nbsp;
+&nbsp;    public static final String TOTAL_MSGS = &quot;totalMsgs&quot;;
+&nbsp;    public static final String SUCCESSFUL_MSGS = &quot;successfulMsgs&quot;;
+&nbsp;    public static final String TMP_TIMEOUT = &quot;tmpTimeout&quot;;
+&nbsp;    public static final String TMP_FAILED = &quot;tmpFailed&quot;;
+&nbsp;    public static final String TIMEOUT_MSGS = &quot;timeoutMsgs&quot;;
+&nbsp;    public static final String FAILED_MSGS = &quot;failedMsgs&quot;;
+&nbsp;    public static final String SUCCESSFUL_ITERATIONS = &quot;successfulIterations&quot;;
+&nbsp;    public static final String FAILED_ITERATIONS = &quot;failedIterations&quot;;
+&nbsp;    public static final String TENANT_ID_TAG = &quot;tenantId&quot;;
+&nbsp;
+&nbsp;    private final StatsFactory statsFactory;
+&nbsp;
+&nbsp;    private final StatsCounter totalMsgCounter;
+&nbsp;    private final StatsCounter successMsgCounter;
+&nbsp;    private final StatsCounter tmpTimeoutMsgCounter;
+&nbsp;    private final StatsCounter tmpFailedMsgCounter;
+&nbsp;
+&nbsp;    private final StatsCounter timeoutMsgCounter;
+&nbsp;    private final StatsCounter failedMsgCounter;
+&nbsp;
+&nbsp;    private final StatsCounter successIterationsCounter;
+&nbsp;    private final StatsCounter failedIterationsCounter;
+&nbsp;
+<b class="nc">&nbsp;    private final List&lt;StatsCounter&gt; counters = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;UUID, TbTenantRuleEngineStats&gt; tenantStats = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, Timer&gt; tenantMsgProcessTimers = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, RuleEngineException&gt; tenantExceptions = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    private final String queueName;
+&nbsp;    private final TenantId tenantId;
+&nbsp;
+<b class="nc">&nbsp;    public TbRuleEngineConsumerStats(QueueKey queueKey, StatsFactory statsFactory) {</b>
+<b class="nc">&nbsp;        this.queueName = queueKey.getQueueName();</b>
+<b class="nc">&nbsp;        this.tenantId = queueKey.getTenantId();</b>
+<b class="nc">&nbsp;        this.statsFactory = statsFactory;</b>
+&nbsp;
+<b class="nc">&nbsp;        String statsKey = StatsType.RULE_ENGINE.getName() + &quot;.&quot; + queueName;</b>
+<b class="nc">&nbsp;        String tenant = tenantId == null || tenantId.isSysTenantId() ? &quot;system&quot; : tenantId.toString();</b>
+<b class="nc">&nbsp;        this.totalMsgCounter = statsFactory.createStatsCounter(statsKey, TOTAL_MSGS, TENANT_ID_TAG, tenant);</b>
+<b class="nc">&nbsp;        this.successMsgCounter = statsFactory.createStatsCounter(statsKey, SUCCESSFUL_MSGS, TENANT_ID_TAG, tenant);</b>
+<b class="nc">&nbsp;        this.timeoutMsgCounter = statsFactory.createStatsCounter(statsKey, TIMEOUT_MSGS, TENANT_ID_TAG, tenant);</b>
+<b class="nc">&nbsp;        this.failedMsgCounter = statsFactory.createStatsCounter(statsKey, FAILED_MSGS, TENANT_ID_TAG, tenant);</b>
+<b class="nc">&nbsp;        this.tmpTimeoutMsgCounter = statsFactory.createStatsCounter(statsKey, TMP_TIMEOUT, TENANT_ID_TAG, tenant);</b>
+<b class="nc">&nbsp;        this.tmpFailedMsgCounter = statsFactory.createStatsCounter(statsKey, TMP_FAILED, TENANT_ID_TAG, tenant);</b>
+<b class="nc">&nbsp;        this.successIterationsCounter = statsFactory.createStatsCounter(statsKey, SUCCESSFUL_ITERATIONS, TENANT_ID_TAG, tenant);</b>
+<b class="nc">&nbsp;        this.failedIterationsCounter = statsFactory.createStatsCounter(statsKey, FAILED_ITERATIONS, TENANT_ID_TAG, tenant);</b>
+&nbsp;
+<b class="nc">&nbsp;        counters.add(totalMsgCounter);</b>
+<b class="nc">&nbsp;        counters.add(successMsgCounter);</b>
+<b class="nc">&nbsp;        counters.add(timeoutMsgCounter);</b>
+<b class="nc">&nbsp;        counters.add(failedMsgCounter);</b>
+&nbsp;
+<b class="nc">&nbsp;        counters.add(tmpTimeoutMsgCounter);</b>
+<b class="nc">&nbsp;        counters.add(tmpFailedMsgCounter);</b>
+<b class="nc">&nbsp;        counters.add(successIterationsCounter);</b>
+<b class="nc">&nbsp;        counters.add(failedIterationsCounter);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Timer getTimer(TenantId tenantId, String status) {
+<b class="nc">&nbsp;        return tenantMsgProcessTimers.computeIfAbsent(tenantId,</b>
+<b class="nc">&nbsp;                id -&gt; statsFactory.createTimer(StatsType.RULE_ENGINE.getName() + &quot;.&quot; + queueName,</b>
+<b class="nc">&nbsp;                        &quot;tenantId&quot;, tenantId.getId().toString(),</b>
+&nbsp;                        &quot;status&quot;, status
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    public void log(TbRuleEngineProcessingResult msg, boolean finalIterationForPack) {
+<b class="nc">&nbsp;        int success = msg.getSuccessMap().size();</b>
+<b class="nc">&nbsp;        int pending = msg.getPendingMap().size();</b>
+<b class="nc">&nbsp;        int failed = msg.getFailedMap().size();</b>
+<b class="nc">&nbsp;        totalMsgCounter.add(success + pending + failed);</b>
+<b class="nc">&nbsp;        successMsgCounter.add(success);</b>
+<b class="nc">&nbsp;        msg.getSuccessMap().values().forEach(m -&gt; getTenantStats(m).logSuccess());</b>
+<b class="nc">&nbsp;        if (finalIterationForPack) {</b>
+<b class="nc">&nbsp;            if (pending &gt; 0 || failed &gt; 0) {</b>
+<b class="nc">&nbsp;                timeoutMsgCounter.add(pending);</b>
+<b class="nc">&nbsp;                failedMsgCounter.add(failed);</b>
+<b class="nc">&nbsp;                if (pending &gt; 0) {</b>
+<b class="nc">&nbsp;                    msg.getPendingMap().values().forEach(m -&gt; getTenantStats(m).logTimeout());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (failed &gt; 0) {</b>
+<b class="nc">&nbsp;                    msg.getFailedMap().values().forEach(m -&gt; getTenantStats(m).logFailed());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                failedIterationsCounter.increment();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                successIterationsCounter.increment();</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            failedIterationsCounter.increment();</b>
+<b class="nc">&nbsp;            tmpTimeoutMsgCounter.add(pending);</b>
+<b class="nc">&nbsp;            tmpFailedMsgCounter.add(failed);</b>
+<b class="nc">&nbsp;            if (pending &gt; 0) {</b>
+<b class="nc">&nbsp;                msg.getPendingMap().values().forEach(m -&gt; getTenantStats(m).logTmpTimeout());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (failed &gt; 0) {</b>
+<b class="nc">&nbsp;                msg.getFailedMap().values().forEach(m -&gt; getTenantStats(m).logTmpFailed());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        msg.getExceptionsMap().forEach(tenantExceptions::putIfAbsent);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbTenantRuleEngineStats getTenantStats(TbProtoQueueMsg&lt;ToRuleEngineMsg&gt; m) {
+<b class="nc">&nbsp;        ToRuleEngineMsg reMsg = m.getValue();</b>
+<b class="nc">&nbsp;        return tenantStats.computeIfAbsent(new UUID(reMsg.getTenantIdMSB(), reMsg.getTenantIdLSB()), TbTenantRuleEngineStats::new);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ConcurrentMap&lt;UUID, TbTenantRuleEngineStats&gt; getTenantStats() {
+<b class="nc">&nbsp;        return tenantStats;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getQueueName() {
+<b class="nc">&nbsp;        return queueName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ConcurrentMap&lt;TenantId, RuleEngineException&gt; getTenantExceptions() {
+<b class="nc">&nbsp;        return tenantExceptions;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        int total = totalMsgCounter.get();</b>
+<b class="nc">&nbsp;        if (total &gt; 0) {</b>
+<b class="nc">&nbsp;            StringBuilder stats = new StringBuilder();</b>
+<b class="nc">&nbsp;            counters.forEach(counter -&gt; {</b>
+<b class="nc">&nbsp;                stats.append(counter.getName()).append(&quot; = [&quot;).append(counter.get()).append(&quot;] &quot;);</b>
+&nbsp;            });
+<b class="nc">&nbsp;            if (tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] Stats: {}&quot;, queueName, stats);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.info(&quot;[{}][{}] Stats: {}&quot;, queueName, tenantId, stats);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void reset() {
+<b class="nc">&nbsp;        counters.forEach(StatsCounter::clear);</b>
+<b class="nc">&nbsp;        tenantStats.clear();</b>
+<b class="nc">&nbsp;        tenantExceptions.clear();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

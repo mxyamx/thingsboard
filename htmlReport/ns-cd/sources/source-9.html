@@ -1,0 +1,359 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AuditLogController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: AuditLogController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AuditLogController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMethod;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.ResponseBody;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.audit.AuditLog;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.TimePageLink;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.AUDIT_LOG_TEXT_SEARCH_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ENTITY_TYPE_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.USER_ID_PARAM_DESCRIPTION;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+<b class="nc">&nbsp;public class AuditLogController extends BaseController {</b>
+&nbsp;
+&nbsp;    private static final String AUDIT_LOG_QUERY_START_TIME_DESCRIPTION = &quot;The start timestamp in milliseconds of the search time range over the AuditLog class field: &#39;createdTime&#39;.&quot;;
+&nbsp;    private static final String AUDIT_LOG_QUERY_END_TIME_DESCRIPTION = &quot;The end timestamp in milliseconds of the search time range over the AuditLog class field: &#39;createdTime&#39;.&quot;;
+&nbsp;    private static final String AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION = &quot;A String value representing comma-separated list of action types. &quot; +
+&nbsp;            &quot;This parameter is optional, but it can be used to filter results to fetch only audit logs of specific action types. &quot; +
+&nbsp;            &quot;For example, &#39;LOGIN&#39;, &#39;LOGOUT&#39;. See the &#39;Model&#39; tab of the Response Class for more details.&quot;;
+&nbsp;    private static final String AUDIT_LOG_SORT_PROPERTY_DESCRIPTION = &quot;Property of audit log to sort by. &quot; +
+&nbsp;            &quot;See the &#39;Model&#39; tab of the Response Class for more details. &quot; +
+&nbsp;            &quot;Note: entityType sort property is not defined in the AuditLog class, however, it can be used to sort audit logs by types of entities that were logged.&quot;;
+&nbsp;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get audit logs by customer id (getAuditLogsByCustomerId)&quot;,
+&nbsp;            notes = &quot;Returns a page of audit logs related to the targeted customer entities (devices, assets, etc.), &quot; +
+&nbsp;                    &quot;and users actions (login, logout, etc.) that belong to this customer. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/audit/logs/customer/{customerId}&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;AuditLog&gt; getAuditLogsByCustomerId(
+&nbsp;            @Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(&quot;customerId&quot;) String strCustomerId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = AUDIT_LOG_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = AUDIT_LOG_SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;entityType&quot;, &quot;entityName&quot;, &quot;userName&quot;, &quot;actionType&quot;, &quot;actionStatus&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_START_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long startTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_END_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long endTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
+&nbsp;            @RequestParam(name = &quot;actionTypes&quot;, required = false) String actionTypesStr) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;CustomerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, getStartTime(startTime), getEndTime(endTime));</b>
+<b class="nc">&nbsp;        List&lt;ActionType&gt; actionTypes = parseActionTypesStr(actionTypesStr);</b>
+<b class="nc">&nbsp;        return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, new CustomerId(UUID.fromString(strCustomerId)), actionTypes, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get audit logs by user id (getAuditLogsByUserId)&quot;,
+&nbsp;            notes = &quot;Returns a page of audit logs related to the actions of targeted user. &quot; +
+&nbsp;                    &quot;For example, RPC call to a particular device, or alarm acknowledgment for a specific device, etc. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/audit/logs/user/{userId}&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;AuditLog&gt; getAuditLogsByUserId(
+&nbsp;            @Parameter(description = USER_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(&quot;userId&quot;) String strUserId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = AUDIT_LOG_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = AUDIT_LOG_SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;entityType&quot;, &quot;entityName&quot;, &quot;userName&quot;, &quot;actionType&quot;, &quot;actionStatus&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_START_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long startTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_END_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long endTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
+&nbsp;            @RequestParam(name = &quot;actionTypes&quot;, required = false) String actionTypesStr) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;UserId&quot;, strUserId);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, getStartTime(startTime), getEndTime(endTime));</b>
+<b class="nc">&nbsp;        List&lt;ActionType&gt; actionTypes = parseActionTypesStr(actionTypesStr);</b>
+<b class="nc">&nbsp;        return checkNotNull(auditLogService.findAuditLogsByTenantIdAndUserId(tenantId, new UserId(UUID.fromString(strUserId)), actionTypes, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get audit logs by entity id (getAuditLogsByEntityId)&quot;,
+&nbsp;            notes = &quot;Returns a page of audit logs related to the actions on the targeted entity. &quot; +
+&nbsp;                    &quot;Basically, this API call is used to get the full lifecycle of some specific entity. &quot; +
+&nbsp;                    &quot;For example to see when a device was created, updated, assigned to some customer, or even deleted from the system. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/audit/logs/entity/{entityType}/{entityId}&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;AuditLog&gt; getAuditLogsByEntityId(
+&nbsp;            @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, schema = @Schema(defaultValue = &quot;DEVICE&quot;))
+&nbsp;            @PathVariable(&quot;entityType&quot;) String strEntityType,
+&nbsp;            @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;entityId&quot;) String strEntityId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = AUDIT_LOG_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = AUDIT_LOG_SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;entityType&quot;, &quot;entityName&quot;, &quot;userName&quot;, &quot;actionType&quot;, &quot;actionStatus&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_START_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long startTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_END_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long endTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
+&nbsp;            @RequestParam(name = &quot;actionTypes&quot;, required = false) String actionTypesStr) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;EntityId&quot;, strEntityId);</b>
+<b class="nc">&nbsp;        checkParameter(&quot;EntityType&quot;, strEntityType);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, getStartTime(startTime), getEndTime(endTime));</b>
+<b class="nc">&nbsp;        List&lt;ActionType&gt; actionTypes = parseActionTypesStr(actionTypesStr);</b>
+<b class="nc">&nbsp;        return checkNotNull(auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, EntityIdFactory.getByTypeAndId(strEntityType, strEntityId), actionTypes, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get all audit logs (getAuditLogs)&quot;,
+&nbsp;            notes = &quot;Returns a page of audit logs related to all entities in the scope of the current user&#39;s Tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/audit/logs&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;AuditLog&gt; getAuditLogs(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = AUDIT_LOG_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = AUDIT_LOG_SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;entityType&quot;, &quot;entityName&quot;, &quot;userName&quot;, &quot;actionType&quot;, &quot;actionStatus&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_START_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long startTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_END_TIME_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Long endTime,
+&nbsp;            @Parameter(description = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
+&nbsp;            @RequestParam(name = &quot;actionTypes&quot;, required = false) String actionTypesStr) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        List&lt;ActionType&gt; actionTypes = parseActionTypesStr(actionTypesStr);</b>
+<b class="nc">&nbsp;        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, getStartTime(startTime), getEndTime(endTime));</b>
+<b class="nc">&nbsp;        return checkNotNull(auditLogService.findAuditLogsByTenantId(tenantId, actionTypes, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;ActionType&gt; parseActionTypesStr(String actionTypesStr) {
+<b class="nc">&nbsp;        List&lt;ActionType&gt; result = null;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNoneBlank(actionTypesStr)) {</b>
+<b class="nc">&nbsp;            String[] tmp = actionTypesStr.split(&quot;,&quot;);</b>
+<b class="nc">&nbsp;            result = Arrays.stream(tmp).map(at -&gt; ActionType.valueOf(at.toUpperCase())).collect(Collectors.toList());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Long getStartTime(Long startTime) {
+<b class="nc">&nbsp;        if (startTime == null) {</b>
+<b class="nc">&nbsp;            return 1L;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return startTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Long getEndTime(Long endTime) {
+<b class="nc">&nbsp;        if (endTime == null) {</b>
+<b class="nc">&nbsp;            return System.currentTimeMillis();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return endTime;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

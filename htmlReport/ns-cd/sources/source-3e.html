@@ -1,0 +1,530 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WidgetTypeController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: WidgetTypeController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WidgetTypeController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/85)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.ResponseStatus;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.WidgetTypeId;
+&nbsp;import org.thingsboard.server.common.data.id.WidgetsBundleId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.security.Authority;
+&nbsp;import org.thingsboard.server.common.data.widget.DeprecatedFilter;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetType;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetsBundle;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.widgets.type.TbWidgetTypeService;
+&nbsp;import org.thingsboard.server.service.resource.TbResourceService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_RESOURCES;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_RESOURCES_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.WIDGET_TYPE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.WIDGET_TYPE_TEXT_SEARCH_DESCRIPTION;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class WidgetTypeController extends AutoCommitController {
+&nbsp;
+&nbsp;    private final TbWidgetTypeService tbWidgetTypeService;
+&nbsp;    private final TbResourceService tbResourceService;
+&nbsp;
+&nbsp;    private static final String WIDGET_TYPE_DESCRIPTION = &quot;Widget Type represents the template for widget creation. Widget Type and Widget are similar to class and object in OOP theory.&quot;;
+&nbsp;    private static final String WIDGET_TYPE_DETAILS_DESCRIPTION = &quot;Widget Type Details extend Widget Type and add image and description properties. &quot; +
+&nbsp;            &quot;Those properties are useful to edit the Widget Type but they are not required for Dashboard rendering. &quot;;
+&nbsp;    private static final String WIDGET_TYPE_INFO_DESCRIPTION = &quot;Widget Type Info is a lightweight object that represents Widget Type but does not contain the heavyweight widget descriptor JSON&quot;;
+&nbsp;    private static final String TENANT_ONLY_PARAM_DESCRIPTION = &quot;Optional boolean parameter indicating whether only tenant widget types should be returned&quot;;
+&nbsp;    private static final String FULL_SEARCH_PARAM_DESCRIPTION = &quot;Optional boolean parameter indicating whether search widgets by description not only by name&quot;;
+&nbsp;    private static final String SCADA_FIRST_PARAM_DESCRIPTION = &quot;Optional boolean parameter indicating whether to fetch SCADA symbol widgets first&quot;;
+&nbsp;    private static final String DEPRECATED_FILTER_PARAM_DESCRIPTION = &quot;Optional string parameter indicating whether to include deprecated widgets&quot;;
+&nbsp;    private static final String UPDATE_EXISTING_BY_FQN_PARAM_DESCRIPTION = &quot;Optional boolean parameter indicating whether to update existing widget type by FQN if present instead of creating new one&quot;;
+&nbsp;    private static final String WIDGET_TYPE_ARRAY_DESCRIPTION = &quot;A list of string values separated by comma &#39;,&#39; representing one of the widget type value&quot;;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Type Details (getWidgetTypeById)&quot;,
+&nbsp;            notes = &quot;Get the Widget Type Details based on the provided Widget Type Id. &quot; + WIDGET_TYPE_DETAILS_DESCRIPTION + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetType/{widgetTypeId}&quot;)
+&nbsp;    public WidgetTypeDetails getWidgetTypeById(@Parameter(description = WIDGET_TYPE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                               @PathVariable(&quot;widgetTypeId&quot;) String strWidgetTypeId,
+&nbsp;                                               @Parameter(description = INCLUDE_RESOURCES_DESCRIPTION)
+&nbsp;                                               @RequestParam(value = INCLUDE_RESOURCES, required = false) boolean includeResources) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;widgetTypeId&quot;, strWidgetTypeId);</b>
+<b class="nc">&nbsp;        WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));</b>
+<b class="nc">&nbsp;        WidgetTypeDetails widgetTypeDetails = checkWidgetTypeId(widgetTypeId, Operation.READ);</b>
+<b class="nc">&nbsp;        if (includeResources) {</b>
+<b class="nc">&nbsp;            widgetTypeDetails.setResources(tbResourceService.exportResources(widgetTypeDetails, getCurrentUser()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return widgetTypeDetails;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Type Info (getWidgetTypeInfoById)&quot;,
+&nbsp;            notes = &quot;Get the Widget Type Info based on the provided Widget Type Id. &quot; + WIDGET_TYPE_DETAILS_DESCRIPTION + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypeInfo/{widgetTypeId}&quot;)
+&nbsp;    public WidgetTypeInfo getWidgetTypeInfoById(
+&nbsp;            @Parameter(description = WIDGET_TYPE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;widgetTypeId&quot;) String strWidgetTypeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;widgetTypeId&quot;, strWidgetTypeId);</b>
+<b class="nc">&nbsp;        WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));</b>
+<b class="nc">&nbsp;        return checkWidgetTypeInfoId(widgetTypeId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Or Update Widget Type (saveWidgetType)&quot;,
+&nbsp;            notes = &quot;Create or update the Widget Type. &quot; + WIDGET_TYPE_DESCRIPTION + &quot; &quot; +
+&nbsp;                    &quot;When creating the Widget Type, platform generates Widget Type Id as &quot; + UUID_WIKI_LINK +
+&nbsp;                    &quot;The newly created Widget Type Id will be present in the response. &quot; +
+&nbsp;                    &quot;Specify existing Widget Type id to update the Widget Type. &quot; +
+&nbsp;                    &quot;Referencing non-existing Widget Type Id will cause &#39;Not Found&#39; error.&quot; +
+&nbsp;                    &quot;\n\nWidget Type fqn is unique in the scope of System or Tenant. &quot; +
+&nbsp;                    &quot;Special Tenant Id &#39;13814000-1dd2-11b2-8080-808080808080&#39; is automatically used if the create request is sent by user with &#39;SYS_ADMIN&#39; authority.&quot; +
+&nbsp;                    &quot;Remove &#39;id&#39;, &#39;tenantId&#39; rom the request body example (below) to create new Widget Type entity.&quot; +
+&nbsp;                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/widgetType&quot;)
+&nbsp;    public WidgetTypeDetails saveWidgetType(
+&nbsp;            @Parameter(description = &quot;A JSON value representing the Widget Type Details.&quot;, required = true)
+&nbsp;            @RequestBody WidgetTypeDetails widgetTypeDetails,
+&nbsp;            @Parameter(description = UPDATE_EXISTING_BY_FQN_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean updateExistingByFqn) throws Exception {
+<b class="nc">&nbsp;        var currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        if (Authority.SYS_ADMIN.equals(currentUser.getAuthority())) {</b>
+<b class="nc">&nbsp;            widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            widgetTypeDetails.setTenantId(currentUser.getTenantId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        checkEntity(widgetTypeDetails.getId(), widgetTypeDetails, Resource.WIDGET_TYPE);</b>
+<b class="nc">&nbsp;        return tbWidgetTypeService.save(widgetTypeDetails, updateExistingByFqn != null &amp;&amp; updateExistingByFqn, currentUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete widget type (deleteWidgetType)&quot;,
+&nbsp;            notes = &quot;Deletes the  Widget Type. Referencing non-existing Widget Type Id will cause an error.&quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/widgetType/{widgetTypeId}&quot;)
+&nbsp;    @ResponseStatus(value = HttpStatus.OK)
+&nbsp;    public void deleteWidgetType(
+&nbsp;            @Parameter(description = WIDGET_TYPE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;widgetTypeId&quot;) String strWidgetTypeId) throws Exception {
+<b class="nc">&nbsp;        checkParameter(&quot;widgetTypeId&quot;, strWidgetTypeId);</b>
+<b class="nc">&nbsp;        WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));</b>
+<b class="nc">&nbsp;        WidgetTypeDetails wtd = checkWidgetTypeId(widgetTypeId, Operation.DELETE);</b>
+<b class="nc">&nbsp;        tbWidgetTypeService.delete(wtd, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Types (getWidgetTypes)&quot;,
+&nbsp;            notes = &quot;Returns a page of Widget Type objects available for current user. &quot; + WIDGET_TYPE_DESCRIPTION + &quot; &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypes&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;WidgetTypeInfo&gt; getWidgetTypes(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = WIDGET_TYPE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;deprecated&quot;, &quot;tenantId&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC, DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = TENANT_ONLY_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean tenantOnly,
+&nbsp;            @Parameter(description = FULL_SEARCH_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean fullSearch,
+&nbsp;            @Parameter(description = DEPRECATED_FILTER_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ALL&quot;, &quot;ACTUAL&quot;, &quot;DEPRECATED&quot;}))
+&nbsp;            @RequestParam(required = false) String deprecatedFilter,
+&nbsp;            @Parameter(description = WIDGET_TYPE_ARRAY_DESCRIPTION, array = @ArraySchema(schema = @Schema(type = &quot;string&quot;, allowableValues = {&quot;timeseries&quot;, &quot;latest&quot;, &quot;control&quot;, &quot;alarm&quot;, &quot;static&quot;})))
+&nbsp;            @RequestParam(required = false) String[] widgetTypeList,
+&nbsp;            @Parameter(description = SCADA_FIRST_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean scadaFirst) throws ThingsboardException {
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        List&lt;String&gt; widgetTypes = widgetTypeList != null ? Arrays.asList(widgetTypeList) : Collections.emptyList();</b>
+<b class="nc">&nbsp;        DeprecatedFilter widgetTypeDeprecatedFilter = StringUtils.isNotEmpty(deprecatedFilter) ? DeprecatedFilter.valueOf(deprecatedFilter) : DeprecatedFilter.ALL;</b>
+<b class="nc">&nbsp;        WidgetTypeFilter widgetTypeFilter = WidgetTypeFilter.builder()</b>
+<b class="nc">&nbsp;                .tenantId(getTenantId())</b>
+<b class="nc">&nbsp;                .widgetTypes(widgetTypes)</b>
+<b class="nc">&nbsp;                .deprecatedFilter(widgetTypeDeprecatedFilter)</b>
+<b class="nc">&nbsp;                .fullSearch(fullSearch != null &amp;&amp; fullSearch)</b>
+<b class="nc">&nbsp;                .scadaFirst(scadaFirst != null &amp;&amp; scadaFirst)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {</b>
+<b class="nc">&nbsp;            return checkNotNull(widgetTypeService.findSystemWidgetTypesByPageLink(widgetTypeFilter, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (tenantOnly != null &amp;&amp; tenantOnly) {</b>
+<b class="nc">&nbsp;                return checkNotNull(widgetTypeService.findTenantWidgetTypesByTenantIdAndPageLink(widgetTypeFilter, pageLink));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return checkNotNull(widgetTypeService.findAllTenantWidgetTypesByTenantIdAndPageLink(widgetTypeFilter, pageLink));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get all Widget types for specified Bundle (getBundleWidgetTypesByBundleAlias) (Deprecated)&quot;,
+&nbsp;            notes = &quot;Returns an array of Widget Type objects that belong to specified Widget Bundle.&quot; + WIDGET_TYPE_DESCRIPTION + &quot; &quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypes&quot;, params = {&quot;isSystem&quot;, &quot;bundleAlias&quot;})
+&nbsp;    @Deprecated
+&nbsp;    public List&lt;WidgetType&gt; getBundleWidgetTypesByBundleAlias(
+&nbsp;            @Parameter(description = &quot;System or Tenant&quot;, required = true)
+&nbsp;            @RequestParam boolean isSystem,
+&nbsp;            @Parameter(description = &quot;Widget Bundle alias&quot;, required = true)
+&nbsp;            @RequestParam String bundleAlias) throws ThingsboardException {
+&nbsp;        TenantId tenantId;
+<b class="nc">&nbsp;        if (isSystem) {</b>
+<b class="nc">&nbsp;            tenantId = TenantId.SYS_TENANT_ID;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            tenantId = getCurrentUser().getTenantId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        WidgetsBundle widgetsBundle = checkNotNull(widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(tenantId, bundleAlias));</b>
+<b class="nc">&nbsp;        return checkNotNull(widgetTypeService.findWidgetTypesByWidgetsBundleId(getTenantId(), widgetsBundle.getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get all Widget types for specified Bundle (getBundleWidgetTypes)&quot;,
+&nbsp;            notes = &quot;Returns an array of Widget Type objects that belong to specified Widget Bundle.&quot; + WIDGET_TYPE_DESCRIPTION + &quot; &quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypes&quot;, params = {&quot;widgetsBundleId&quot;})
+&nbsp;    public List&lt;WidgetType&gt; getBundleWidgetTypes(
+&nbsp;            @Parameter(description = &quot;Widget Bundle Id&quot;, required = true)
+&nbsp;            @RequestParam(&quot;widgetsBundleId&quot;) String strWidgetsBundleId) throws ThingsboardException {
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        return checkNotNull(widgetTypeService.findWidgetTypesByWidgetsBundleId(getTenantId(), widgetsBundleId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get all Widget types details for specified Bundle (getBundleWidgetTypesDetailsByBundleAlias) (Deprecated)&quot;,
+&nbsp;            notes = &quot;Returns an array of Widget Type Details objects that belong to specified Widget Bundle.&quot; + WIDGET_TYPE_DETAILS_DESCRIPTION + &quot; &quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypesDetails&quot;, params = {&quot;isSystem&quot;, &quot;bundleAlias&quot;})
+&nbsp;    @Deprecated
+&nbsp;    public List&lt;WidgetTypeDetails&gt; getBundleWidgetTypesDetailsByBundleAlias(
+&nbsp;            @Parameter(description = &quot;System or Tenant&quot;, required = true)
+&nbsp;            @RequestParam boolean isSystem,
+&nbsp;            @Parameter(description = &quot;Widget Bundle alias&quot;, required = true)
+&nbsp;            @RequestParam String bundleAlias) throws ThingsboardException {
+&nbsp;        TenantId tenantId;
+<b class="nc">&nbsp;        if (isSystem) {</b>
+<b class="nc">&nbsp;            tenantId = TenantId.SYS_TENANT_ID;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            tenantId = getCurrentUser().getTenantId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        WidgetsBundle widgetsBundle = checkNotNull(widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(tenantId, bundleAlias));</b>
+<b class="nc">&nbsp;        return checkNotNull(widgetTypeService.findWidgetTypesDetailsByWidgetsBundleId(getTenantId(), widgetsBundle.getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get all Widget types details for specified Bundle (getBundleWidgetTypesDetails)&quot;,
+&nbsp;            notes = &quot;Returns an array of Widget Type Details objects that belong to specified Widget Bundle.&quot; + WIDGET_TYPE_DETAILS_DESCRIPTION + &quot; &quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypesDetails&quot;, params = {&quot;widgetsBundleId&quot;})
+&nbsp;    public List&lt;WidgetTypeDetails&gt; getBundleWidgetTypesDetails(
+&nbsp;            @Parameter(description = &quot;Widget Bundle Id&quot;, required = true)
+&nbsp;            @RequestParam(&quot;widgetsBundleId&quot;) String strWidgetsBundleId,
+&nbsp;            @Parameter(description = INCLUDE_RESOURCES_DESCRIPTION)
+&nbsp;            @RequestParam(value = INCLUDE_RESOURCES, required = false) boolean includeResources
+&nbsp;    ) throws ThingsboardException {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        List&lt;WidgetTypeDetails&gt; result = checkNotNull(widgetTypeService.findWidgetTypesDetailsByWidgetsBundleId(getTenantId(), widgetsBundleId));</b>
+<b class="nc">&nbsp;        if (includeResources) {</b>
+<b class="nc">&nbsp;            for (WidgetTypeDetails widgetTypeDetails : result) {</b>
+<b class="nc">&nbsp;                widgetTypeDetails.setResources(tbResourceService.exportResources(widgetTypeDetails, user));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get all Widget type fqns for specified Bundle (getBundleWidgetTypeFqns)&quot;,
+&nbsp;            notes = &quot;Returns an array of Widget Type fqns that belong to specified Widget Bundle.&quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypeFqns&quot;, params = {&quot;widgetsBundleId&quot;})
+&nbsp;    public List&lt;String&gt; getBundleWidgetTypeFqns(
+&nbsp;            @Parameter(description = &quot;Widget Bundle Id&quot;, required = true)
+&nbsp;            @RequestParam(&quot;widgetsBundleId&quot;) String strWidgetsBundleId) throws ThingsboardException {
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        return checkNotNull(widgetTypeService.findWidgetFqnsByWidgetsBundleId(getTenantId(), widgetsBundleId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Type Info objects (getBundleWidgetTypesInfosByBundleAlias) (Deprecated)&quot;,
+&nbsp;            notes = &quot;Get the Widget Type Info objects based on the provided parameters. &quot; + WIDGET_TYPE_INFO_DESCRIPTION + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypesInfos&quot;, params = {&quot;isSystem&quot;, &quot;bundleAlias&quot;})
+&nbsp;    @Deprecated
+&nbsp;    public List&lt;WidgetTypeInfo&gt; getBundleWidgetTypesInfosByBundleAlias(
+&nbsp;            @Parameter(description = &quot;System or Tenant&quot;, required = true)
+&nbsp;            @RequestParam boolean isSystem,
+&nbsp;            @Parameter(description = &quot;Widget Bundle alias&quot;, required = true)
+&nbsp;            @RequestParam String bundleAlias) throws ThingsboardException {
+&nbsp;        TenantId tenantId;
+<b class="nc">&nbsp;        if (isSystem) {</b>
+<b class="nc">&nbsp;            tenantId = TenantId.SYS_TENANT_ID;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            tenantId = getCurrentUser().getTenantId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        WidgetsBundle widgetsBundle = checkNotNull(widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(tenantId, bundleAlias));</b>
+<b class="nc">&nbsp;        return checkNotNull(widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(getTenantId(), widgetsBundle.getId(), false, DeprecatedFilter.ALL,</b>
+<b class="nc">&nbsp;                null, new PageLink(1024))).getData();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Type Info objects (getBundleWidgetTypesInfos)&quot;,
+&nbsp;            notes = &quot;Get the Widget Type Info objects based on the provided parameters. &quot; + WIDGET_TYPE_INFO_DESCRIPTION + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetTypesInfos&quot;, params = {&quot;widgetsBundleId&quot;, &quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;WidgetTypeInfo&gt; getBundleWidgetTypesInfos(
+&nbsp;            @Parameter(description = &quot;Widget Bundle Id&quot;, required = true)
+&nbsp;            @RequestParam(&quot;widgetsBundleId&quot;) String strWidgetsBundleId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = WIDGET_TYPE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;deprecated&quot;, &quot;tenantId&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = FULL_SEARCH_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean fullSearch,
+&nbsp;            @Parameter(description = DEPRECATED_FILTER_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ALL&quot;, &quot;ACTUAL&quot;, &quot;DEPRECATED&quot;}))
+&nbsp;            @RequestParam(required = false) String deprecatedFilter,
+&nbsp;            @Parameter(description = WIDGET_TYPE_ARRAY_DESCRIPTION, array = @ArraySchema(schema = @Schema(allowableValues = {&quot;timeseries&quot;, &quot;latest&quot;, &quot;control&quot;, &quot;alarm&quot;, &quot;static&quot;})))
+&nbsp;            @RequestParam(required = false) String[] widgetTypeList) throws ThingsboardException {
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        List&lt;String&gt; widgetTypes = widgetTypeList != null ? Arrays.asList(widgetTypeList) : Collections.emptyList();</b>
+<b class="nc">&nbsp;        DeprecatedFilter widgetTypeDeprecatedFilter = StringUtils.isNotEmpty(deprecatedFilter) ? DeprecatedFilter.valueOf(deprecatedFilter) : DeprecatedFilter.ALL;</b>
+<b class="nc">&nbsp;        return checkNotNull(widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(getTenantId(), widgetsBundleId, fullSearch != null &amp;&amp; fullSearch,</b>
+&nbsp;                widgetTypeDeprecatedFilter, widgetTypes, pageLink));
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Type (getWidgetTypeByBundleAliasAndTypeAlias) (Deprecated)&quot;,
+&nbsp;            notes = &quot;Get the Widget Type based on the provided parameters. &quot; + WIDGET_TYPE_DESCRIPTION + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetType&quot;, params = {&quot;isSystem&quot;, &quot;bundleAlias&quot;, &quot;alias&quot;})
+&nbsp;    @Deprecated
+&nbsp;    public WidgetType getWidgetTypeByBundleAliasAndTypeAlias(
+&nbsp;            @Parameter(description = &quot;System or Tenant&quot;, required = true)
+&nbsp;            @RequestParam boolean isSystem,
+&nbsp;            @Parameter(description = &quot;Widget Bundle alias&quot;, required = true)
+&nbsp;            @RequestParam String bundleAlias,
+&nbsp;            @Parameter(description = &quot;Widget Type alias&quot;, required = true)
+&nbsp;            @RequestParam String alias) throws ThingsboardException {
+&nbsp;        TenantId tenantId;
+<b class="nc">&nbsp;        if (isSystem) {</b>
+<b class="nc">&nbsp;            tenantId = TenantId.fromUUID(ModelConstants.NULL_UUID);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            tenantId = getCurrentUser().getTenantId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdAndFqn(tenantId, bundleAlias + &quot;.&quot; + alias);</b>
+<b class="nc">&nbsp;        checkNotNull(widgetType);</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ, widgetType.getId(), widgetType);</b>
+<b class="nc">&nbsp;        return widgetType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Type (getWidgetType)&quot;,
+&nbsp;            notes = &quot;Get the Widget Type by FQN. &quot; + WIDGET_TYPE_DESCRIPTION + AVAILABLE_FOR_ANY_AUTHORIZED_USER, hidden = true)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetType&quot;, params = {&quot;fqn&quot;})
+&nbsp;    public WidgetType getWidgetType(
+&nbsp;            @Parameter(description = &quot;Widget Type fqn&quot;, required = true)
+&nbsp;            @RequestParam String fqn) throws ThingsboardException {
+<b class="nc">&nbsp;        String[] parts = fqn.split(&quot;\\.&quot;);</b>
+<b class="nc">&nbsp;        String scopeQualifier = parts.length &gt; 0 ? parts[0] : null;</b>
+<b class="nc">&nbsp;        if (parts.length &lt; 2 || (!scopeQualifier.equals(&quot;system&quot;) &amp;&amp; !scopeQualifier.equals(&quot;tenant&quot;))) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Invalid fqn!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+&nbsp;        TenantId tenantId;
+<b class="nc">&nbsp;        if (&quot;system&quot;.equals(scopeQualifier)) {</b>
+<b class="nc">&nbsp;            tenantId = TenantId.fromUUID(ModelConstants.NULL_UUID);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            tenantId = getCurrentUser().getTenantId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String typeFqn = fqn.substring(scopeQualifier.length() + 1);</b>
+<b class="nc">&nbsp;        WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdAndFqn(tenantId, typeFqn);</b>
+<b class="nc">&nbsp;        checkNotNull(widgetType);</b>
+&nbsp;
+<b class="nc">&nbsp;        accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ, widgetType.getId(), widgetType);</b>
+<b class="nc">&nbsp;        return widgetType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

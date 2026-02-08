@@ -1,0 +1,228 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultEdgeInstallInstructionsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge.instructions</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultEdgeInstallInstructionsService (org.thingsboard.server.service.edge.instructions)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultEdgeInstallInstructionsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge.instructions;
+&nbsp;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeInstructions;
+&nbsp;import org.thingsboard.server.dao.util.DeviceConnectivityUtil;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.install.InstallScripts;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@ConditionalOnProperty(prefix = &quot;edges&quot;, value = &quot;enabled&quot;, havingValue = &quot;true&quot;)
+&nbsp;@TbCoreComponent
+&nbsp;public class DefaultEdgeInstallInstructionsService extends BaseEdgeInstallUpgradeInstructionsService implements EdgeInstallInstructionsService {
+&nbsp;
+&nbsp;    private static final String INSTALL_DIR = &quot;install&quot;;
+&nbsp;
+&nbsp;    @Value(&quot;${edges.rpc.port}&quot;)
+&nbsp;    private int rpcPort;
+&nbsp;
+&nbsp;    @Value(&quot;${edges.rpc.ssl.enabled}&quot;)
+&nbsp;    private boolean sslEnabled;
+&nbsp;
+&nbsp;    public DefaultEdgeInstallInstructionsService(InstallScripts installScripts) {
+<b class="nc">&nbsp;        super(installScripts);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EdgeInstructions getInstallInstructions(Edge edge, String installationMethod, HttpServletRequest request) {
+<b class="nc">&nbsp;        return switch (installationMethod.toLowerCase()) {</b>
+<b class="nc">&nbsp;            case &quot;docker&quot; -&gt; getDockerInstallInstructions(edge, request);</b>
+<b class="nc">&nbsp;            case &quot;ubuntu&quot;, &quot;centos&quot; -&gt; getLinuxInstallInstructions(edge, request, installationMethod.toLowerCase());</b>
+&nbsp;            default -&gt;
+<b class="nc">&nbsp;                    throw new IllegalArgumentException(&quot;Unsupported installation method for Edge: &quot; + installationMethod);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdgeInstructions getDockerInstallInstructions(Edge edge, HttpServletRequest request) {
+<b class="nc">&nbsp;        String dockerInstallInstructions = readFile(resolveFile(&quot;docker&quot;, &quot;instructions.md&quot;));</b>
+<b class="nc">&nbsp;        String baseUrl = request.getServerName();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (DeviceConnectivityUtil.isLocalhost(baseUrl)) {</b>
+<b class="nc">&nbsp;            dockerInstallInstructions = dockerInstallInstructions.replace(&quot;${EXTRA_HOSTS}&quot;, &quot;extra_hosts:\n      - \&quot;host.docker.internal:host-gateway\&quot;\n&quot;);</b>
+<b class="nc">&nbsp;            dockerInstallInstructions = dockerInstallInstructions.replace(&quot;${BASE_URL}&quot;, &quot;host.docker.internal&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            dockerInstallInstructions = dockerInstallInstructions.replace(&quot;${EXTRA_HOSTS}&quot;, &quot;&quot;);</b>
+<b class="nc">&nbsp;            dockerInstallInstructions = dockerInstallInstructions.replace(&quot;${BASE_URL}&quot;, baseUrl);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        dockerInstallInstructions = dockerInstallInstructions.replace(&quot;${TB_EDGE_VERSION}&quot;, platformEdgeVersion + &quot;EDGE&quot;);</b>
+<b class="nc">&nbsp;        dockerInstallInstructions = replacePlaceholders(dockerInstallInstructions, edge);</b>
+<b class="nc">&nbsp;        return new EdgeInstructions(dockerInstallInstructions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdgeInstructions getLinuxInstallInstructions(Edge edge, HttpServletRequest request, String os) {
+<b class="nc">&nbsp;        String ubuntuInstallInstructions = readFile(resolveFile(os, &quot;instructions.md&quot;));</b>
+<b class="nc">&nbsp;        ubuntuInstallInstructions = replacePlaceholders(ubuntuInstallInstructions, edge);</b>
+<b class="nc">&nbsp;        ubuntuInstallInstructions = ubuntuInstallInstructions.replace(&quot;${BASE_URL}&quot;, request.getServerName());</b>
+<b class="nc">&nbsp;        ubuntuInstallInstructions = ubuntuInstallInstructions.replace(&quot;${TB_EDGE_VERSION}&quot;, platformEdgeVersion);</b>
+<b class="nc">&nbsp;        ubuntuInstallInstructions = ubuntuInstallInstructions.replace(&quot;${TB_EDGE_TAG}&quot;, getTagVersion(platformEdgeVersion));</b>
+<b class="nc">&nbsp;        return new EdgeInstructions(ubuntuInstallInstructions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String replacePlaceholders(String instructions, Edge edge) {
+<b class="nc">&nbsp;        instructions = instructions.replace(&quot;${CLOUD_ROUTING_KEY}&quot;, edge.getRoutingKey());</b>
+<b class="nc">&nbsp;        instructions = instructions.replace(&quot;${CLOUD_ROUTING_SECRET}&quot;, edge.getSecret());</b>
+<b class="nc">&nbsp;        instructions = instructions.replace(&quot;${CLOUD_RPC_PORT}&quot;, Integer.toString(rpcPort));</b>
+<b class="nc">&nbsp;        instructions = instructions.replace(&quot;${CLOUD_RPC_SSL_ENABLED}&quot;, Boolean.toString(sslEnabled));</b>
+<b class="nc">&nbsp;        return instructions;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getBaseDirName() {
+<b class="nc">&nbsp;        return INSTALL_DIR;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

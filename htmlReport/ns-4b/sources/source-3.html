@@ -1,0 +1,333 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CaffeineTbTransactionalCache</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.cache</a>
+</div>
+
+<h1>Coverage Summary for Class: CaffeineTbTransactionalCache (org.thingsboard.server.cache)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CaffeineTbTransactionalCache</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/67)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.cache;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.cache.Cache;
+&nbsp;import org.springframework.cache.CacheManager;
+&nbsp;
+&nbsp;import java.io.Serializable;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+&nbsp;@RequiredArgsConstructor
+&nbsp;public abstract class CaffeineTbTransactionalCache&lt;K extends Serializable, V extends Serializable&gt; implements TbTransactionalCache&lt;K, V&gt; {
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    protected final String cacheName;
+&nbsp;    protected final Cache cache;
+<b class="nc">&nbsp;    protected final Lock lock = new ReentrantLock();</b>
+<b class="nc">&nbsp;    private final Map&lt;K, Set&lt;UUID&gt;&gt; objectTransactions = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Map&lt;UUID, CaffeineTbCacheTransaction&lt;K, V&gt;&gt; transactions = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    public CaffeineTbTransactionalCache(CacheManager cacheManager, String cacheName) {</b>
+<b class="nc">&nbsp;        this.cacheName = cacheName;</b>
+<b class="nc">&nbsp;        this.cache = Optional.ofNullable(cacheManager.getCache(cacheName))</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Cache &#39;&quot; + cacheName + &quot;&#39; is not configured&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbCacheValueWrapper&lt;V&gt; get(K key) {
+<b class="nc">&nbsp;        return SimpleTbCacheValueWrapper.wrap(cache.get(key));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void put(K key, V value) {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            failAllTransactionsByKey(key);</b>
+<b class="nc">&nbsp;            cache.put(key, value);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void putIfAbsent(K key, V value) {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            failAllTransactionsByKey(key);</b>
+<b class="nc">&nbsp;            doPutIfAbsent(key, value);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evict(K key) {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            failAllTransactionsByKey(key);</b>
+<b class="nc">&nbsp;            doEvict(key);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evict(Collection&lt;K&gt; keys) {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            keys.forEach(key -&gt; {</b>
+<b class="nc">&nbsp;                failAllTransactionsByKey(key);</b>
+<b class="nc">&nbsp;                doEvict(key);</b>
+&nbsp;            });
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evictOrPut(K key, V value) {
+&nbsp;        //No need to put the value in case of Caffeine, because evict will cancel concurrent transaction used to &quot;get&quot; the missing value from cache.
+<b class="nc">&nbsp;        evict(key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbCacheTransaction&lt;K, V&gt; newTransactionForKey(K key) {
+<b class="nc">&nbsp;        return newTransaction(Collections.singletonList(key));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbCacheTransaction&lt;K, V&gt; newTransactionForKeys(List&lt;K&gt; keys) {
+<b class="nc">&nbsp;        return newTransaction(keys);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void doPutIfAbsent(K key, V value) {
+<b class="nc">&nbsp;        cache.putIfAbsent(key, value);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void doEvict(K key) {
+<b class="nc">&nbsp;        cache.evict(key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    TbCacheTransaction&lt;K, V&gt; newTransaction(List&lt;K&gt; keys) {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            var transaction = new CaffeineTbCacheTransaction&lt;&gt;(this, keys);</b>
+<b class="nc">&nbsp;            var transactionId = transaction.getId();</b>
+<b class="nc">&nbsp;            for (K key : keys) {</b>
+<b class="nc">&nbsp;                objectTransactions.computeIfAbsent(key, k -&gt; new HashSet&lt;&gt;()).add(transactionId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            transactions.put(transactionId, transaction);</b>
+<b class="nc">&nbsp;            return transaction;</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean commit(UUID trId, Map&lt;K, V&gt; pendingPuts) {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            var tr = transactions.get(trId);</b>
+<b class="nc">&nbsp;            var success = !tr.isFailed();</b>
+<b class="nc">&nbsp;            if (success) {</b>
+<b class="nc">&nbsp;                for (K key : tr.getKeys()) {</b>
+<b class="nc">&nbsp;                    Set&lt;UUID&gt; otherTransactions = objectTransactions.get(key);</b>
+<b class="nc">&nbsp;                    if (otherTransactions != null) {</b>
+<b class="nc">&nbsp;                        for (UUID otherTrId : otherTransactions) {</b>
+<b class="nc">&nbsp;                            if (trId == null || !trId.equals(otherTrId)) {</b>
+<b class="nc">&nbsp;                                transactions.get(otherTrId).setFailed(true);</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                pendingPuts.forEach(this::doPutIfAbsent);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            removeTransaction(trId);</b>
+<b class="nc">&nbsp;            return success;</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    void rollback(UUID id) {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            removeTransaction(id);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeTransaction(UUID id) {
+<b class="nc">&nbsp;        CaffeineTbCacheTransaction&lt;K, V&gt; transaction = transactions.remove(id);</b>
+<b class="nc">&nbsp;        if (transaction != null) {</b>
+<b class="nc">&nbsp;            for (var key : transaction.getKeys()) {</b>
+<b class="nc">&nbsp;                Set&lt;UUID&gt; transactions = objectTransactions.get(key);</b>
+<b class="nc">&nbsp;                if (transactions != null) {</b>
+<b class="nc">&nbsp;                    transactions.remove(id);</b>
+<b class="nc">&nbsp;                    if (transactions.isEmpty()) {</b>
+<b class="nc">&nbsp;                        objectTransactions.remove(key);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void failAllTransactionsByKey(K key) {
+<b class="nc">&nbsp;        Set&lt;UUID&gt; transactionsIds = objectTransactions.get(key);</b>
+<b class="nc">&nbsp;        if (transactionsIds != null) {</b>
+<b class="nc">&nbsp;            for (UUID otherTrId : transactionsIds) {</b>
+<b class="nc">&nbsp;                transactions.get(otherTrId).setFailed(true);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

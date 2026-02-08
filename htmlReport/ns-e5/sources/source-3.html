@@ -1,0 +1,356 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractEntityService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.entity</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractEntityService (org.thingsboard.server.dao.entity)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractEntityService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/57)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.entity;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.hibernate.exception.ConstraintViolationException;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.util.ConcurrentReferenceHashMap;
+&nbsp;import org.thingsboard.common.util.DebugModeUtil;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.EntityView;
+&nbsp;import org.thingsboard.server.common.data.HasDebugSettings;
+&nbsp;import org.thingsboard.server.common.data.HasTenantId;
+&nbsp;import org.thingsboard.server.common.data.HasName;
+&nbsp;import org.thingsboard.server.common.data.HasTenantId;
+&nbsp;import org.thingsboard.server.common.data.NameConflictStrategy;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.debug.DebugSettings;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.dao.Dao;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmService;
+&nbsp;import org.thingsboard.server.dao.cf.CalculatedFieldService;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeService;
+&nbsp;import org.thingsboard.server.dao.entityview.EntityViewService;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.housekeeper.CleanUpService;
+&nbsp;import org.thingsboard.server.dao.relation.RelationService;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;import java.util.function.Supplier;
+&nbsp;import java.util.function.Consumer;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.UniquifyStrategy.RANDOM;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class AbstractEntityService {</b>
+&nbsp;
+&nbsp;    public static final String INCORRECT_EDGE_ID = &quot;Incorrect edgeId &quot;;
+&nbsp;    public static final String INCORRECT_PAGE_LINK = &quot;Incorrect page link &quot;;
+&nbsp;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, ReentrantLock&gt; entityCreationLocks = new ConcurrentReferenceHashMap&lt;&gt;(16);</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ApplicationEventPublisher eventPublisher;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    protected RelationService relationService;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    protected AlarmService alarmService;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    protected EntityViewService entityViewService;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    protected CalculatedFieldService calculatedFieldService;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired(required = false)
+&nbsp;    protected EdgeService edgeService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    protected CleanUpService cleanUpService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    protected TbTenantProfileCache tbTenantProfileCache;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected EntityDaoRegistry entityDaoRegistry;
+&nbsp;
+&nbsp;    @Value(&quot;${debug.settings.default_duration:15}&quot;)
+&nbsp;    private int defaultDebugDurationMinutes;
+&nbsp;
+&nbsp;    protected &lt;E extends HasId &amp; HasTenantId&gt; E saveEntity(E entity, Supplier&lt;E&gt; saveFunction) {
+<b class="nc">&nbsp;        if (entity.getId() == null) {</b>
+<b class="nc">&nbsp;            ReentrantLock lock = entityCreationLocks.computeIfAbsent(entity.getTenantId(), id -&gt; new ReentrantLock());</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                return saveFunction.get();</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return saveFunction.get();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void createRelation(TenantId tenantId, EntityRelation relation) {
+<b class="nc">&nbsp;        log.debug(&quot;Creating relation: {}&quot;, relation);</b>
+<b class="nc">&nbsp;        relationService.saveRelation(tenantId, relation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void deleteRelation(TenantId tenantId, EntityRelation relation) {
+<b class="nc">&nbsp;        log.debug(&quot;Deleting relation: {}&quot;, relation);</b>
+<b class="nc">&nbsp;        relationService.deleteRelation(tenantId, relation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected static Optional&lt;ConstraintViolationException&gt; extractConstraintViolationException(Exception t) {
+<b class="nc">&nbsp;        if (t instanceof ConstraintViolationException) {</b>
+<b class="nc">&nbsp;            return Optional.of((ConstraintViolationException) t);</b>
+<b class="nc">&nbsp;        } else if (t.getCause() instanceof ConstraintViolationException) {</b>
+<b class="nc">&nbsp;            return Optional.of((ConstraintViolationException) (t.getCause()));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Optional.empty();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static final void checkConstraintViolation(Exception t, String constraintName, String constraintMessage) {
+<b class="nc">&nbsp;        checkConstraintViolation(t, Collections.singletonMap(constraintName, constraintMessage));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static final void checkConstraintViolation(Exception t, String constraintName1, String constraintMessage1, String constraintName2, String constraintMessage2) {
+<b class="nc">&nbsp;        checkConstraintViolation(t, Map.of(constraintName1, constraintMessage1, constraintName2, constraintMessage2));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static final void checkConstraintViolation(Exception t, Map&lt;String, String&gt; constraints) {
+<b class="nc">&nbsp;        var exOpt = extractConstraintViolationException(t);</b>
+<b class="nc">&nbsp;        if (exOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            var ex = exOpt.get();</b>
+<b class="nc">&nbsp;            if (StringUtils.isNotEmpty(ex.getConstraintName())) {</b>
+<b class="nc">&nbsp;                var constraintName = ex.getConstraintName();</b>
+<b class="nc">&nbsp;                for (var constraintMessage : constraints.entrySet()) {</b>
+<b class="nc">&nbsp;                    if (constraintName.equals(constraintMessage.getKey())) {</b>
+<b class="nc">&nbsp;                        throw new DataValidationException(constraintMessage.getValue());</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void checkAssignedEntityViewsToEdge(TenantId tenantId, EntityId entityId, EdgeId edgeId) {
+<b class="nc">&nbsp;        List&lt;EntityView&gt; entityViews = entityViewService.findEntityViewsByTenantIdAndEntityId(tenantId, entityId);</b>
+<b class="nc">&nbsp;        if (entityViews != null &amp;&amp; !entityViews.isEmpty()) {</b>
+<b class="nc">&nbsp;            EntityView entityView = entityViews.get(0);</b>
+<b class="nc">&nbsp;            boolean relationExists = relationService.checkRelation(</b>
+<b class="nc">&nbsp;                    tenantId, edgeId, entityView.getId(),</b>
+&nbsp;                    EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE
+&nbsp;            );
+<b class="nc">&nbsp;            if (relationExists) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Can&#39;t unassign device/asset from edge that is related to entity view and entity view is assigned to edge!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void updateDebugSettings(TenantId tenantId, HasDebugSettings entity, long now) {
+<b class="nc">&nbsp;        if (entity.getDebugSettings() != null) {</b>
+<b class="nc">&nbsp;            entity.setDebugSettings(entity.getDebugSettings().copy(getMaxDebugAllUntil(tenantId, now)));</b>
+<b class="nc">&nbsp;        } else if (entity.isDebugMode()) {</b>
+<b class="nc">&nbsp;            entity.setDebugSettings(DebugSettings.failuresOrUntil(getMaxDebugAllUntil(tenantId, now)));</b>
+<b class="nc">&nbsp;            entity.setDebugMode(false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private long getMaxDebugAllUntil(TenantId tenantId, long now) {
+<b class="nc">&nbsp;        return now + TimeUnit.MINUTES.toMillis(DebugModeUtil.getMaxDebugAllDuration(tbTenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getMaxDebugModeDurationMinutes(), defaultDebugDurationMinutes));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;E extends HasId&lt;?&gt; &amp; HasTenantId &amp; HasName&gt; void uniquifyEntityName(E entity, E oldEntity, Consumer&lt;String&gt; setName, EntityType entityType, NameConflictStrategy strategy) {
+<b class="nc">&nbsp;        Dao&lt;?&gt; dao = entityDaoRegistry.getDao(entityType);</b>
+<b class="nc">&nbsp;        List&lt;EntityInfo&gt; existingEntities = dao.findEntityInfosByNamePrefix(entity.getTenantId(), entity.getName());</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; existingNames = existingEntities.stream()</b>
+<b class="nc">&nbsp;                .filter(e -&gt; (oldEntity == null || !e.getId().equals(oldEntity.getId())))</b>
+<b class="nc">&nbsp;                .map(EntityInfo::getName)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toSet());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (existingNames.contains(entity.getName())) {</b>
+<b class="nc">&nbsp;            String uniqueName = generateUniqueName(entity.getName(), existingNames, strategy);</b>
+<b class="nc">&nbsp;            setName.accept(uniqueName);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String generateUniqueName(String baseName, Set&lt;String&gt; existingNames, NameConflictStrategy strategy) {
+&nbsp;        String newName;
+<b class="nc">&nbsp;        int index = 1;</b>
+<b class="nc">&nbsp;        String separator = strategy.separator();</b>
+<b class="nc">&nbsp;        boolean isRandom = strategy.uniquifyStrategy() == RANDOM;</b>
+&nbsp;
+&nbsp;        do {
+<b class="nc">&nbsp;            String suffix = isRandom ? StringUtils.randomAlphanumeric(6) : String.valueOf(index++);</b>
+<b class="nc">&nbsp;            newName = baseName + separator + suffix;</b>
+<b class="nc">&nbsp;        } while (existingNames.contains(newName));</b>
+&nbsp;
+<b class="nc">&nbsp;        return newName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NotificationsCleanUpService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.ttl</a>
+</div>
+
+<h1>Coverage Summary for Class: NotificationsCleanUpService (org.thingsboard.server.service.ttl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NotificationsCleanUpService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.ttl;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRequestDao;
+&nbsp;import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.NOTIFICATION_TABLE_NAME;
+&nbsp;
+&nbsp;@Service
+&nbsp;@ConditionalOnExpression(&quot;${sql.ttl.notifications.enabled:true} &amp;&amp; ${sql.ttl.notifications.ttl:0} &gt; 0&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class NotificationsCleanUpService extends AbstractCleanUpService {
+&nbsp;
+&nbsp;    private final SqlPartitioningRepository partitioningRepository;
+&nbsp;    private final NotificationRequestDao notificationRequestDao;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.ttl.notifications.ttl:2592000}&quot;)
+&nbsp;    private long ttlInSec;
+&nbsp;    @Value(&quot;${sql.notifications.partition_size:168}&quot;)
+&nbsp;    private int partitionSizeInHours;
+&nbsp;
+&nbsp;    public NotificationsCleanUpService(PartitionService partitionService, SqlPartitioningRepository partitioningRepository,
+&nbsp;                                       NotificationRequestDao notificationRequestDao) {
+<b class="nc">&nbsp;        super(partitionService);</b>
+<b class="nc">&nbsp;        this.partitioningRepository = partitioningRepository;</b>
+<b class="nc">&nbsp;        this.notificationRequestDao = notificationRequestDao;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(initialDelayString = &quot;#{T(org.apache.commons.lang3.RandomUtils).nextLong(0, ${sql.ttl.notifications.checking_interval_ms:86400000})}&quot;,
+&nbsp;            fixedDelayString = &quot;${sql.ttl.notifications.checking_interval_ms:86400000}&quot;)
+&nbsp;    public void cleanUp() {
+<b class="nc">&nbsp;        long expTime = System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(ttlInSec);</b>
+<b class="nc">&nbsp;        long partitionDurationMs = TimeUnit.HOURS.toMillis(partitionSizeInHours);</b>
+<b class="nc">&nbsp;        if (!isSystemTenantPartitionMine()) {</b>
+<b class="nc">&nbsp;            partitioningRepository.cleanupPartitionsCache(NOTIFICATION_TABLE_NAME, expTime, partitionDurationMs);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        long lastRemovedNotificationTs = partitioningRepository.dropPartitionsBefore(NOTIFICATION_TABLE_NAME, expTime, partitionDurationMs);</b>
+<b class="nc">&nbsp;        if (lastRemovedNotificationTs &gt; 0) {</b>
+<b class="nc">&nbsp;            long gap = TimeUnit.MINUTES.toMillis(10);</b>
+<b class="nc">&nbsp;            long requestExpTime = lastRemovedNotificationTs - TimeUnit.SECONDS.toMillis(NotificationRequestConfig.MAX_SENDING_DELAY) - gap;</b>
+<b class="nc">&nbsp;            int removed = notificationRequestDao.removeAllByCreatedTimeBefore(requestExpTime);</b>
+<b class="nc">&nbsp;            log.info(&quot;Removed {} outdated notification requests older than {}&quot;, removed, requestExpTime);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

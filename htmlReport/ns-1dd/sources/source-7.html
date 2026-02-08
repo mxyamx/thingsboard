@@ -1,0 +1,280 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EntitiesImportCtx</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.sync.vc.data</a>
+</div>
+
+<h1>Coverage Summary for Class: EntitiesImportCtx (org.thingsboard.server.service.sync.vc.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EntitiesImportCtx</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.sync.vc.data;
+&nbsp;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
+&nbsp;import org.thingsboard.server.common.data.util.ThrowingRunnable;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Data
+&nbsp;public class EntitiesImportCtx {
+&nbsp;
+&nbsp;    private final UUID requestId;
+&nbsp;    private final User user;
+&nbsp;    private final String versionId;
+&nbsp;
+<b class="nc">&nbsp;    private final Map&lt;EntityType, EntityTypeLoadResult&gt; results = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Map&lt;EntityType, Set&lt;EntityId&gt;&gt; importedEntities = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Map&lt;EntityId, ReimportTask&gt; toReimport = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Map&lt;EntityId, ThrowingRunnable&gt; referenceCallbacks = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final List&lt;ThrowingRunnable&gt; eventCallbacks = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Map&lt;EntityId, EntityId&gt; externalToInternalIdMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Set&lt;EntityId&gt; notFoundIds = new HashSet&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    private final Set&lt;EntityRelation&gt; relations = new LinkedHashSet&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    private boolean finalImportAttempt = false;</b>
+&nbsp;    private EntityImportSettings settings;
+&nbsp;    private EntityImportResult&lt;?&gt; currentImportResult;
+&nbsp;    private boolean rollbackOnError;
+&nbsp;
+&nbsp;    public EntitiesImportCtx(UUID requestId, User user, String versionId) {
+<b class="nc">&nbsp;        this(requestId, user, versionId, null);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public EntitiesImportCtx(UUID requestId, User user, String versionId, EntityImportSettings settings) {</b>
+<b class="nc">&nbsp;        this.requestId = requestId;</b>
+<b class="nc">&nbsp;        this.user = user;</b>
+<b class="nc">&nbsp;        this.versionId = versionId;</b>
+<b class="nc">&nbsp;        this.settings = settings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TenantId getTenantId() {
+<b class="nc">&nbsp;        return user.getTenantId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isFindExistingByName() {
+<b class="nc">&nbsp;        return getSettings().isFindExistingByName();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isUpdateRelations() {
+<b class="nc">&nbsp;        return getSettings().isUpdateRelations();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isSaveAttributes() {
+<b class="nc">&nbsp;        return getSettings().isSaveAttributes();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isSaveCredentials() {
+<b class="nc">&nbsp;        return getSettings().isSaveCredentials();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isSaveCalculatedFields() {
+<b class="nc">&nbsp;        return getSettings().isSaveCalculatedFields();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public EntityId getInternalId(EntityId externalId) {
+<b class="nc">&nbsp;        var result = externalToInternalIdMap.get(externalId);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] Local cache {} for id&quot;, externalId.getEntityType(), externalId.getId(), result != null ? &quot;hit&quot; : &quot;miss&quot;);</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void putInternalId(EntityId externalId, EntityId internalId) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] Local cache put: {}&quot;, externalId.getEntityType(), externalId.getId(), internalId);</b>
+<b class="nc">&nbsp;        externalToInternalIdMap.put(externalId, internalId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void registerResult(EntityType entityType, boolean created) {
+<b class="nc">&nbsp;        EntityTypeLoadResult result = results.computeIfAbsent(entityType, EntityTypeLoadResult::new);</b>
+<b class="nc">&nbsp;        if (created) {</b>
+<b class="nc">&nbsp;            result.setCreated(result.getCreated() + 1);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result.setUpdated(result.getUpdated() + 1);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void registerDeleted(EntityType entityType) {
+<b class="nc">&nbsp;        EntityTypeLoadResult result = results.computeIfAbsent(entityType, EntityTypeLoadResult::new);</b>
+<b class="nc">&nbsp;        result.setDeleted(result.getDeleted() + 1);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addRelations(Collection&lt;EntityRelation&gt; values) {
+<b class="nc">&nbsp;        relations.addAll(values);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addReferenceCallback(EntityId externalId, ThrowingRunnable tr) {
+<b class="nc">&nbsp;        if (tr != null) {</b>
+<b class="nc">&nbsp;            referenceCallbacks.put(externalId, tr);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addEventCallback(ThrowingRunnable tr) {
+<b class="nc">&nbsp;        if (tr != null) {</b>
+<b class="nc">&nbsp;            eventCallbacks.add(tr);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void registerNotFound(EntityId externalId) {
+<b class="nc">&nbsp;        notFoundIds.add(externalId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isNotFound(EntityId externalId) {
+<b class="nc">&nbsp;        return notFoundIds.contains(externalId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

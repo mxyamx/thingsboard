@@ -1,0 +1,373 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ProtoConverter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.common.adaptor</a>
+</div>
+
+<h1>Coverage Summary for Class: ProtoConverter (org.thingsboard.server.common.adaptor)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ProtoConverter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/96)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ProtoConverter$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/97)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.common.adaptor;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import com.google.gson.JsonParser;
+&nbsp;import com.google.protobuf.Descriptors;
+&nbsp;import com.google.protobuf.DynamicMessage;
+&nbsp;import com.google.protobuf.InvalidProtocolBufferException;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.DynamicProtoUtils;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.gen.transport.TransportApiProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.List;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class ProtoConverter {</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final Gson GSON = new Gson();</b>
+&nbsp;
+&nbsp;    public static TransportProtos.PostTelemetryMsg convertToTelemetryProto(byte[] payload) throws InvalidProtocolBufferException, IllegalArgumentException {
+<b class="nc">&nbsp;        TransportProtos.TsKvListProto protoPayload = TransportProtos.TsKvListProto.parseFrom(payload);</b>
+<b class="nc">&nbsp;        TransportProtos.PostTelemetryMsg.Builder postTelemetryMsgBuilder = TransportProtos.PostTelemetryMsg.newBuilder();</b>
+<b class="nc">&nbsp;        TransportProtos.TsKvListProto tsKvListProto = validateTsKvListProto(protoPayload);</b>
+<b class="nc">&nbsp;        postTelemetryMsgBuilder.addTsKvList(tsKvListProto);</b>
+<b class="nc">&nbsp;        return postTelemetryMsgBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static TransportProtos.PostTelemetryMsg validatePostTelemetryMsg(byte[] payload) throws InvalidProtocolBufferException, IllegalArgumentException {
+<b class="nc">&nbsp;        TransportProtos.PostTelemetryMsg msg = TransportProtos.PostTelemetryMsg.parseFrom(payload);</b>
+<b class="nc">&nbsp;        TransportProtos.PostTelemetryMsg.Builder postTelemetryMsgBuilder = TransportProtos.PostTelemetryMsg.newBuilder();</b>
+<b class="nc">&nbsp;        List&lt;TransportProtos.TsKvListProto&gt; tsKvListProtoList = msg.getTsKvListList();</b>
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(tsKvListProtoList)) {</b>
+<b class="nc">&nbsp;            List&lt;TransportProtos.TsKvListProto&gt; tsKvListProtos = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            tsKvListProtoList.forEach(tsKvListProto -&gt; {</b>
+<b class="nc">&nbsp;                TransportProtos.TsKvListProto transportTsKvListProto = validateTsKvListProto(tsKvListProto);</b>
+<b class="nc">&nbsp;                tsKvListProtos.add(transportTsKvListProto);</b>
+&nbsp;            });
+<b class="nc">&nbsp;            postTelemetryMsgBuilder.addAllTsKvList(tsKvListProtos);</b>
+<b class="nc">&nbsp;            return postTelemetryMsgBuilder.build();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;TsKv list is empty!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static TransportProtos.PostAttributeMsg validatePostAttributeMsg(TransportProtos.PostAttributeMsg msg) throws IllegalArgumentException, InvalidProtocolBufferException {
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(msg.getKvList())) {</b>
+<b class="nc">&nbsp;            byte[] bytes = msg.toByteArray();</b>
+<b class="nc">&nbsp;            TransportProtos.PostAttributeMsg proto = TransportProtos.PostAttributeMsg.parseFrom(bytes);</b>
+<b class="nc">&nbsp;            List&lt;TransportProtos.KeyValueProto&gt; kvList = proto.getKvList();</b>
+<b class="nc">&nbsp;            List&lt;TransportProtos.KeyValueProto&gt; keyValueProtos = validateKeyValueProtos(kvList);</b>
+<b class="nc">&nbsp;            TransportProtos.PostAttributeMsg.Builder result = TransportProtos.PostAttributeMsg.newBuilder();</b>
+<b class="nc">&nbsp;            result.addAllKv(keyValueProtos);</b>
+<b class="nc">&nbsp;            result.setShared(msg.getShared());</b>
+<b class="nc">&nbsp;            return result.build();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;KeyValue list is empty!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static TransportProtos.ClaimDeviceMsg convertToClaimDeviceProto(DeviceId deviceId, byte[] bytes) throws InvalidProtocolBufferException {
+<b class="nc">&nbsp;        if (bytes == null) {</b>
+<b class="nc">&nbsp;            return buildClaimDeviceMsg(deviceId, DataConstants.DEFAULT_SECRET_KEY, 0);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        TransportApiProtos.ClaimDevice proto = TransportApiProtos.ClaimDevice.parseFrom(bytes);</b>
+<b class="nc">&nbsp;        String secretKey = proto.getSecretKey() != null ? proto.getSecretKey() : DataConstants.DEFAULT_SECRET_KEY;</b>
+<b class="nc">&nbsp;        long durationMs = proto.getDurationMs();</b>
+<b class="nc">&nbsp;        return buildClaimDeviceMsg(deviceId, secretKey, durationMs);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static TransportProtos.GetAttributeRequestMsg convertToGetAttributeRequestMessage(byte[] bytes, int requestId) throws InvalidProtocolBufferException, RuntimeException {
+<b class="nc">&nbsp;        TransportApiProtos.AttributesRequest proto = TransportApiProtos.AttributesRequest.parseFrom(bytes);</b>
+<b class="nc">&nbsp;        TransportProtos.GetAttributeRequestMsg.Builder result = TransportProtos.GetAttributeRequestMsg.newBuilder();</b>
+<b class="nc">&nbsp;        result.setRequestId(requestId);</b>
+<b class="nc">&nbsp;        String clientKeys = proto.getClientKeys();</b>
+<b class="nc">&nbsp;        String sharedKeys = proto.getSharedKeys();</b>
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(clientKeys)) {</b>
+<b class="nc">&nbsp;            List&lt;String&gt; clientKeysList = Arrays.asList(clientKeys.split(&quot;,&quot;));</b>
+<b class="nc">&nbsp;            result.addAllClientAttributeNames(clientKeysList);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(sharedKeys)) {</b>
+<b class="nc">&nbsp;            List&lt;String&gt; sharedKeysList = Arrays.asList(sharedKeys.split(&quot;,&quot;));</b>
+<b class="nc">&nbsp;            result.addAllSharedAttributeNames(sharedKeysList);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static TransportProtos.ToServerRpcRequestMsg convertToServerRpcRequest(byte[] bytes, int requestId) throws InvalidProtocolBufferException {
+<b class="nc">&nbsp;        TransportApiProtos.RpcRequest proto = TransportApiProtos.RpcRequest.parseFrom(bytes);</b>
+<b class="nc">&nbsp;        String method = proto.getMethod();</b>
+<b class="nc">&nbsp;        String params = proto.getParams();</b>
+<b class="nc">&nbsp;        return TransportProtos.ToServerRpcRequestMsg.newBuilder().setRequestId(requestId).setMethodName(method).setParams(params).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static TransportProtos.ClaimDeviceMsg buildClaimDeviceMsg(DeviceId deviceId, String secretKey, long durationMs) {
+<b class="nc">&nbsp;        TransportProtos.ClaimDeviceMsg.Builder result = TransportProtos.ClaimDeviceMsg.newBuilder();</b>
+<b class="nc">&nbsp;        return result</b>
+<b class="nc">&nbsp;                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setSecretKey(secretKey)</b>
+<b class="nc">&nbsp;                .setDurationMs(durationMs)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static TransportProtos.TsKvListProto validateTsKvListProto(TransportProtos.TsKvListProto tsKvListProto) {
+<b class="nc">&nbsp;        TransportProtos.TsKvListProto.Builder tsKvListBuilder = TransportProtos.TsKvListProto.newBuilder();</b>
+<b class="nc">&nbsp;        long ts = tsKvListProto.getTs();</b>
+<b class="nc">&nbsp;        if (ts == 0) {</b>
+<b class="nc">&nbsp;            ts = System.currentTimeMillis();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        tsKvListBuilder.setTs(ts);</b>
+<b class="nc">&nbsp;        List&lt;TransportProtos.KeyValueProto&gt; kvList = tsKvListProto.getKvList();</b>
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(kvList)) {</b>
+<b class="nc">&nbsp;            List&lt;TransportProtos.KeyValueProto&gt; keyValueListProtos = validateKeyValueProtos(kvList);</b>
+<b class="nc">&nbsp;            tsKvListBuilder.addAllKv(keyValueListProtos);</b>
+<b class="nc">&nbsp;            return tsKvListBuilder.build();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;KeyValue list is empty!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static TransportProtos.ProvisionDeviceRequestMsg convertToProvisionRequestMsg(byte[] bytes) throws InvalidProtocolBufferException {
+<b class="nc">&nbsp;        return TransportProtos.ProvisionDeviceRequestMsg.parseFrom(bytes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;TransportProtos.KeyValueProto&gt; validateKeyValueProtos(List&lt;TransportProtos.KeyValueProto&gt; kvList) {
+<b class="nc">&nbsp;        kvList.forEach(keyValueProto -&gt; {</b>
+<b class="nc">&nbsp;            String key = keyValueProto.getKey();</b>
+<b class="nc">&nbsp;            if (StringUtils.isEmpty(key)) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Invalid key value: &quot; + key + &quot;!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            TransportProtos.KeyValueType type = keyValueProto.getType();</b>
+<b class="nc">&nbsp;            switch (type) {</b>
+&nbsp;                case BOOLEAN_V:
+&nbsp;                case LONG_V:
+&nbsp;                case DOUBLE_V:
+&nbsp;                    break;
+&nbsp;                case STRING_V:
+<b class="nc">&nbsp;                    if (StringUtils.isEmpty(keyValueProto.getStringV())) {</b>
+<b class="nc">&nbsp;                        throw new IllegalArgumentException(&quot;Value is empty for key: &quot; + key + &quot;!&quot;);</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case JSON_V:
+&nbsp;                    try {
+<b class="nc">&nbsp;                        JsonParser.parseString(keyValueProto.getJsonV());</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        throw new IllegalArgumentException(&quot;Can&#39;t parse value: &quot; + keyValueProto.getJsonV() + &quot; for key: &quot; + key + &quot;!&quot;);</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case UNRECOGNIZED:
+<b class="nc">&nbsp;                    throw new IllegalArgumentException(&quot;Unsupported keyValueType: &quot; + type + &quot;!&quot;);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        return kvList;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] convertToRpcRequest(TransportProtos.ToDeviceRpcRequestMsg toDeviceRpcRequestMsg, DynamicMessage.Builder rpcRequestDynamicMessageBuilder) throws AdaptorException {
+<b class="nc">&nbsp;        rpcRequestDynamicMessageBuilder = rpcRequestDynamicMessageBuilder.getDefaultInstanceForType().newBuilderForType();</b>
+<b class="nc">&nbsp;        JsonObject rpcRequestJson = new JsonObject();</b>
+<b class="nc">&nbsp;        rpcRequestJson.addProperty(&quot;method&quot;, toDeviceRpcRequestMsg.getMethodName());</b>
+<b class="nc">&nbsp;        rpcRequestJson.addProperty(&quot;requestId&quot;, toDeviceRpcRequestMsg.getRequestId());</b>
+<b class="nc">&nbsp;        String params = toDeviceRpcRequestMsg.getParams();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            JsonElement paramsElement = JsonParser.parseString(params);</b>
+<b class="nc">&nbsp;            rpcRequestJson.add(&quot;params&quot;, paramsElement);</b>
+<b class="nc">&nbsp;            DynamicMessage dynamicRpcRequest = DynamicProtoUtils.jsonToDynamicMessage(rpcRequestDynamicMessageBuilder, GSON.toJson(rpcRequestJson));</b>
+<b class="nc">&nbsp;            return dynamicRpcRequest.toByteArray();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new AdaptorException(&quot;Failed to convert ToDeviceRpcRequestMsg to Dynamic Rpc request message due to: &quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Descriptors.Descriptor validateDescriptor(Descriptors.Descriptor descriptor) throws AdaptorException {
+<b class="nc">&nbsp;        if (descriptor == null) {</b>
+<b class="nc">&nbsp;            throw new AdaptorException(&quot;Failed to get dynamic message descriptor!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return descriptor;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String dynamicMsgToJson(byte[] bytes, Descriptors.Descriptor descriptor) throws InvalidProtocolBufferException {
+<b class="nc">&nbsp;        return DynamicProtoUtils.dynamicMsgToJson(descriptor, bytes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

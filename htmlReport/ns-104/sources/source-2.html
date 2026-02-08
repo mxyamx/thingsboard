@@ -1,0 +1,380 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JpaAttributeDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.attributes</a>
+</div>
+
+<h1>Coverage Summary for Class: JpaAttributeDao (org.thingsboard.server.dao.sql.attributes)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JpaAttributeDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/86)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.attributes;
+&nbsp;
+&nbsp;import com.google.common.collect.Lists;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.tuple.Pair;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesDao;
+&nbsp;import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;import org.thingsboard.server.dao.model.sql.AttributeKvCompositeKey;
+&nbsp;import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
+&nbsp;import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
+&nbsp;import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
+&nbsp;import org.thingsboard.server.dao.util.SqlDao;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@SqlDao
+<b class="nc">&nbsp;public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService implements AttributesDao {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    ScheduledLogExecutorComponent logExecutor;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AttributeKvRepository attributeKvRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AttributeKvInsertRepository attributeKvInsertRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private StatsFactory statsFactory;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private KeyDictionaryDao keyDictionaryDao;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.attributes.batch_size:1000}&quot;)
+&nbsp;    private int batchSize;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.attributes.batch_max_delay:100}&quot;)
+&nbsp;    private long maxDelay;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.attributes.stats_print_interval_ms:1000}&quot;)
+&nbsp;    private long statsPrintIntervalMs;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.attributes.batch_threads:4}&quot;)
+&nbsp;    private int batchThreads;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.batch_sort:true}&quot;)
+&nbsp;    private boolean batchSortEnabled;
+&nbsp;
+&nbsp;    private TbSqlBlockingQueueWrapper&lt;AttributeKvEntity, Long&gt; queue;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    private void init() {
+<b class="nc">&nbsp;        TbSqlBlockingQueueParams params = TbSqlBlockingQueueParams.builder()</b>
+<b class="nc">&nbsp;                .logName(&quot;Attributes&quot;)</b>
+<b class="nc">&nbsp;                .batchSize(batchSize)</b>
+<b class="nc">&nbsp;                .maxDelay(maxDelay)</b>
+<b class="nc">&nbsp;                .statsPrintIntervalMs(statsPrintIntervalMs)</b>
+<b class="nc">&nbsp;                .statsNamePrefix(&quot;attributes&quot;)</b>
+<b class="nc">&nbsp;                .batchSortEnabled(batchSortEnabled)</b>
+<b class="nc">&nbsp;                .withResponse(true)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        Function&lt;AttributeKvEntity, Integer&gt; hashcodeFunction = entity -&gt; entity.getId().getEntityId().hashCode();</b>
+<b class="nc">&nbsp;        queue = new TbSqlBlockingQueueWrapper&lt;&gt;(params, hashcodeFunction, batchThreads, statsFactory);</b>
+<b class="nc">&nbsp;        queue.init(logExecutor, v -&gt; attributeKvInsertRepository.saveOrUpdate(v),</b>
+<b class="nc">&nbsp;                Comparator.comparing((AttributeKvEntity attributeKvEntity) -&gt; attributeKvEntity.getId().getEntityId())</b>
+<b class="nc">&nbsp;                        .thenComparing(attributeKvEntity -&gt; attributeKvEntity.getId().getAttributeType())</b>
+<b class="nc">&nbsp;                        .thenComparing(attributeKvEntity -&gt; attributeKvEntity.getId().getAttributeKey()), l -&gt; l</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void destroy() {
+<b class="nc">&nbsp;        if (queue != null) {</b>
+<b class="nc">&nbsp;            queue.destroy();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;AttributeKvEntry&gt; find(TenantId tenantId, EntityId entityId, AttributeScope attributeScope, String attributeKey) {
+<b class="nc">&nbsp;        AttributeKvCompositeKey compositeKey =</b>
+<b class="nc">&nbsp;                getAttributeKvCompositeKey(entityId, attributeScope.getId(), keyDictionaryDao.getOrSaveKeyId(attributeKey));</b>
+<b class="nc">&nbsp;        Optional&lt;AttributeKvEntity&gt; attributeKvEntityOptional = attributeKvRepository.findById(compositeKey);</b>
+<b class="nc">&nbsp;        if (attributeKvEntityOptional.isPresent()) {</b>
+<b class="nc">&nbsp;            AttributeKvEntity attributeKvEntity = attributeKvEntityOptional.get();</b>
+<b class="nc">&nbsp;            attributeKvEntity.setStrKey(attributeKey);</b>
+<b class="nc">&nbsp;            return Optional.ofNullable(DaoUtil.getData(attributeKvEntity));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.ofNullable(DaoUtil.getData(attributeKvEntityOptional));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;AttributeKvEntry&gt; find(TenantId tenantId, EntityId entityId, AttributeScope attributeScope, Collection&lt;String&gt; attributeKeys) {
+<b class="nc">&nbsp;        List&lt;AttributeKvCompositeKey&gt; compositeKeys =</b>
+&nbsp;                attributeKeys
+<b class="nc">&nbsp;                        .stream()</b>
+<b class="nc">&nbsp;                        .map(attributeKey -&gt;</b>
+<b class="nc">&nbsp;                                getAttributeKvCompositeKey(entityId, attributeScope.getId(), keyDictionaryDao.getOrSaveKeyId(attributeKey)))</b>
+<b class="nc">&nbsp;                        .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        List&lt;AttributeKvEntity&gt; attributes = attributeKvRepository.findAllById(compositeKeys);</b>
+<b class="nc">&nbsp;        attributes.forEach(attributeKvEntity -&gt; attributeKvEntity.setStrKey(keyDictionaryDao.getKey(attributeKvEntity.getId().getAttributeKey())));</b>
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(Lists.newArrayList(attributes));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;AttributeKvEntry&gt; findAll(TenantId tenantId, EntityId entityId, AttributeScope attributeScope) {
+<b class="nc">&nbsp;        List&lt;AttributeKvEntity&gt; attributes = attributeKvRepository.findAllByEntityIdAndAttributeType(</b>
+<b class="nc">&nbsp;                entityId.getId(),</b>
+<b class="nc">&nbsp;                attributeScope.getId());</b>
+<b class="nc">&nbsp;        attributes.forEach(attributeKvEntity -&gt; attributeKvEntity.setStrKey(keyDictionaryDao.getKey(attributeKvEntity.getId().getAttributeKey())));</b>
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(Lists.newArrayList(attributes));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;AttributeKvEntity&gt; findNextBatch(UUID entityId, int attributeType, int attributeKey, int batchSize) {
+<b class="nc">&nbsp;        return attributeKvRepository.findNextBatch(entityId, attributeType, attributeKey, batchSize);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId) {
+<b class="nc">&nbsp;        if (deviceProfileId != null) {</b>
+<b class="nc">&nbsp;            return attributeKvRepository.findAllKeysByDeviceProfileId(tenantId.getId(), deviceProfileId.getId())</b>
+<b class="nc">&nbsp;                    .stream().map(id -&gt; keyDictionaryDao.getKey(id)).collect(Collectors.toList());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return attributeKvRepository.findAllKeysByTenantId(tenantId.getId())</b>
+<b class="nc">&nbsp;                    .stream().map(id -&gt; keyDictionaryDao.getKey(id)).collect(Collectors.toList());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByEntityIds(TenantId tenantId, List&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        return attributeKvRepository</b>
+<b class="nc">&nbsp;                .findAllKeysByEntityIds(entityIds.stream().map(EntityId::getId).collect(Collectors.toList()))</b>
+<b class="nc">&nbsp;                .stream().map(id -&gt; keyDictionaryDao.getKey(id)).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByEntityIdsAndScope(TenantId tenantId, List&lt;EntityId&gt; entityIds, AttributeScope scope) {
+<b class="nc">&nbsp;        return attributeKvRepository</b>
+<b class="nc">&nbsp;                .findAllKeysByEntityIdsAndAttributeType(entityIds.stream().map(EntityId::getId).toList(), scope.getId())</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(keyDictionaryDao::getKey)</b>
+<b class="nc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Long&gt; save(TenantId tenantId, EntityId entityId, AttributeScope attributeScope, AttributeKvEntry attribute) {
+<b class="nc">&nbsp;        AttributeKvEntity entity = new AttributeKvEntity();</b>
+<b class="nc">&nbsp;        entity.setId(new AttributeKvCompositeKey(entityId.getId(), attributeScope.getId(), keyDictionaryDao.getOrSaveKeyId(attribute.getKey())));</b>
+<b class="nc">&nbsp;        entity.setLastUpdateTs(attribute.getLastUpdateTs());</b>
+<b class="nc">&nbsp;        entity.setStrValue(attribute.getStrValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setDoubleValue(attribute.getDoubleValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setLongValue(attribute.getLongValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setBooleanValue(attribute.getBooleanValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setJsonValue(attribute.getJsonValue().orElse(null));</b>
+<b class="nc">&nbsp;        return addToQueue(entity);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Long&gt; addToQueue(AttributeKvEntity entity) {
+<b class="nc">&nbsp;        return queue.add(entity);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;ListenableFuture&lt;String&gt;&gt; removeAll(TenantId tenantId, EntityId entityId, AttributeScope attributeScope, List&lt;String&gt; keys) {
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;String&gt;&gt; futuresList = new ArrayList&lt;&gt;(keys.size());</b>
+<b class="nc">&nbsp;        for (String key : keys) {</b>
+<b class="nc">&nbsp;            futuresList.add(service.submit(() -&gt; {</b>
+<b class="nc">&nbsp;                attributeKvRepository.delete(entityId.getId(), attributeScope.getId(), keyDictionaryDao.getOrSaveKeyId(key));</b>
+<b class="nc">&nbsp;                return key;</b>
+&nbsp;            }));
+&nbsp;        }
+<b class="nc">&nbsp;        return futuresList;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;ListenableFuture&lt;TbPair&lt;String, Long&gt;&gt;&gt; removeAllWithVersions(TenantId tenantId, EntityId entityId, AttributeScope attributeScope, List&lt;String&gt; keys) {
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;TbPair&lt;String, Long&gt;&gt;&gt; futuresList = new ArrayList&lt;&gt;(keys.size());</b>
+<b class="nc">&nbsp;        for (String key : keys) {</b>
+<b class="nc">&nbsp;            futuresList.add(service.submit(() -&gt; {</b>
+<b class="nc">&nbsp;                Long version = transactionTemplate.execute(status -&gt; jdbcTemplate.query(&quot;DELETE FROM attribute_kv WHERE entity_id = ? AND attribute_type = ? &quot; +</b>
+&nbsp;                                &quot;AND attribute_key = ? RETURNING nextval(&#39;attribute_kv_version_seq&#39;)&quot;,
+<b class="nc">&nbsp;                        rs -&gt; rs.next() ? rs.getLong(1) : null, entityId.getId(), attributeScope.getId(), keyDictionaryDao.getOrSaveKeyId(key)));</b>
+<b class="nc">&nbsp;                return TbPair.of(key, version);</b>
+&nbsp;            }));
+&nbsp;        }
+<b class="nc">&nbsp;        return futuresList;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public List&lt;Pair&lt;AttributeScope, String&gt;&gt; removeAllByEntityId(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return jdbcTemplate.queryForList(&quot;DELETE FROM attribute_kv WHERE entity_id = ? &quot; +</b>
+<b class="nc">&nbsp;                        &quot;RETURNING attribute_type, attribute_key&quot;, entityId.getId()).stream()</b>
+<b class="nc">&nbsp;                .map(row -&gt; Pair.of(AttributeScope.valueOf((Integer) row.get(ModelConstants.ATTRIBUTE_TYPE_COLUMN)),</b>
+<b class="nc">&nbsp;                        keyDictionaryDao.getKey((Integer) row.get(ModelConstants.ATTRIBUTE_KEY_COLUMN))))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AttributeKvCompositeKey getAttributeKvCompositeKey(EntityId entityId, Integer attributeType, Integer attributeKey) {
+<b class="nc">&nbsp;        return new AttributeKvCompositeKey(</b>
+<b class="nc">&nbsp;                entityId.getId(),</b>
+<b class="nc">&nbsp;                attributeType,</b>
+<b class="nc">&nbsp;                attributeKey);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

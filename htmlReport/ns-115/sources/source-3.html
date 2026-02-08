@@ -1,0 +1,1121 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultEntityQueryRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.query</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultEntityQueryRepository (org.thingsboard.server.dao.sql.query)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultEntityQueryRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/221)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/403)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultEntityQueryRepository$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/221)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/404)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.query;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.springframework.transaction.support.TransactionTemplate;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.permission.QueryContext;
+&nbsp;import org.thingsboard.server.common.data.query.ApiUsageStateFilter;
+&nbsp;import org.thingsboard.server.common.data.query.AssetSearchQueryFilter;
+&nbsp;import org.thingsboard.server.common.data.query.AssetTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.query.DeviceSearchQueryFilter;
+&nbsp;import org.thingsboard.server.common.data.query.DeviceTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EdgeSearchQueryFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EdgeTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityCountQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataPageLink;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+&nbsp;import org.thingsboard.server.common.data.query.EntityFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityFilterType;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.query.EntityListFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityNameFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntitySearchQueryFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityViewSearchQueryFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityViewTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.query.RelationsQueryFilter;
+&nbsp;import org.thingsboard.server.common.data.query.SingleEntityFilter;
+&nbsp;import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Repository
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultEntityQueryRepository implements EntityQueryRepository {
+<b class="nc">&nbsp;    private static final Map&lt;EntityType, String&gt; entityTableMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private static final Map&lt;EntityType, String&gt; entityNameColumns = new HashMap&lt;&gt;();</b>
+&nbsp;    private static final String SELECT_PHONE = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39; THEN (select phone from tenant where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; THEN (select phone from customer where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39; THEN (select phone from tb_user where id = entity_id) END as phone&quot;;
+&nbsp;    private static final String SELECT_ZIP = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39; THEN (select zip from tenant where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; THEN (select zip from customer where id = entity_id) END as zip&quot;;
+&nbsp;    private static final String SELECT_ADDRESS_2 = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select address2 from tenant where id = entity_id) WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select address2 from customer where id = entity_id) END as address2&quot;;
+&nbsp;    private static final String SELECT_ADDRESS = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select address from tenant where id = entity_id) WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select address from customer where id = entity_id) END as address&quot;;
+&nbsp;    private static final String SELECT_CITY = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select city from tenant where id = entity_id) WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select city from customer where id = entity_id) END as city&quot;;
+&nbsp;    private static final String SELECT_STATE = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select state from tenant where id = entity_id) WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select state from customer where id = entity_id) END as state&quot;;
+&nbsp;    private static final String SELECT_COUNTRY = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select country from tenant where id = entity_id) WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select country from customer where id = entity_id) END as country&quot;;
+&nbsp;    private static final String SELECT_TITLE = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select title from tenant where id = entity_id) WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select title from customer where id = entity_id) END as title&quot;;
+&nbsp;    private static final String SELECT_LAST_NAME = &quot; CASE WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select last_name from tb_user where id = entity_id) END as last_name&quot;;
+&nbsp;    private static final String SELECT_FIRST_NAME = &quot; CASE WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select first_name from tb_user where id = entity_id) END as first_name&quot;;
+&nbsp;    private static final String SELECT_REGION = &quot; CASE WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select region from tenant where id = entity_id) END as region&quot;;
+&nbsp;    private static final String SELECT_EMAIL = &quot; CASE&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select email from tenant where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select email from customer where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select email from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; END as email&quot;;
+<b class="nc">&nbsp;    private static final String SELECT_CUSTOMER_ID = &quot;CASE&quot; +</b>
+&nbsp;            &quot; WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN UUID(&#39;&quot; + TenantId.NULL_UUID + &quot;&#39;)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; THEN entity_id&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select customer_id from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DASHBOARD&#39;&quot; +
+&nbsp;            //TODO: parse assigned customers or use contains?
+&nbsp;            &quot; THEN NULL&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ASSET&#39;&quot; +
+&nbsp;            &quot; THEN (select customer_id from asset where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DEVICE&#39;&quot; +
+&nbsp;            &quot; THEN (select customer_id from device where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ENTITY_VIEW&#39;&quot; +
+&nbsp;            &quot; THEN (select customer_id from entity_view where id = entity.entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;EDGE&#39;&quot; +
+&nbsp;            &quot; THEN (select customer_id from edge where id = entity_id)&quot; +
+&nbsp;            &quot; END as customer_id&quot;;
+&nbsp;    private static final String SELECT_TENANT_ID = &quot;SELECT CASE&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;TENANT&#39; THEN entity_id&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39;&quot; +
+&nbsp;            &quot; THEN (select tenant_id from customer where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select tenant_id from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DASHBOARD&#39;&quot; +
+&nbsp;            &quot; THEN (select tenant_id from dashboard where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ASSET&#39;&quot; +
+&nbsp;            &quot; THEN (select tenant_id from asset where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DEVICE&#39;&quot; +
+&nbsp;            &quot; THEN (select tenant_id from device where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ENTITY_VIEW&#39;&quot; +
+&nbsp;            &quot; THEN (select tenant_id from entity_view where id = entity.entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;EDGE&#39;&quot; +
+&nbsp;            &quot; THEN (select tenant_id from edge where id = entity_id)&quot; +
+&nbsp;            &quot; END as tenant_id&quot;;
+&nbsp;    private static final String SELECT_CREATED_TIME = &quot; CASE&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select created_time from tenant where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select created_time from customer where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select created_time from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DASHBOARD&#39;&quot; +
+&nbsp;            &quot; THEN (select created_time from dashboard where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ASSET&#39;&quot; +
+&nbsp;            &quot; THEN (select created_time from asset where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DEVICE&#39;&quot; +
+&nbsp;            &quot; THEN (select created_time from device where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ENTITY_VIEW&#39;&quot; +
+&nbsp;            &quot; THEN (select created_time from entity_view where id = entity.entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;EDGE&#39;&quot; +
+&nbsp;            &quot; THEN (select created_time from edge where id = entity_id)&quot; +
+&nbsp;            &quot; END as created_time&quot;;
+&nbsp;    private static final String SELECT_NAME = &quot; CASE&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select title from tenant where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select title from customer where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select CONCAT (first_name, &#39; &#39;, last_name) from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DASHBOARD&#39;&quot; +
+&nbsp;            &quot; THEN (select title from dashboard where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ASSET&#39;&quot; +
+&nbsp;            &quot; THEN (select name from asset where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DEVICE&#39;&quot; +
+&nbsp;            &quot; THEN (select name from device where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ENTITY_VIEW&#39;&quot; +
+&nbsp;            &quot; THEN (select name from entity_view where id = entity.entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;EDGE&#39;&quot; +
+&nbsp;            &quot; THEN (select name from edge where id = entity_id)&quot; +
+&nbsp;            &quot; END as name&quot;;
+&nbsp;    private static final String SELECT_TYPE = &quot; CASE&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select authority from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ASSET&#39;&quot; +
+&nbsp;            &quot; THEN (select type from asset where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DEVICE&#39;&quot; +
+&nbsp;            &quot; THEN (select type from device where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ENTITY_VIEW&#39;&quot; +
+&nbsp;            &quot; THEN (select type from entity_view where id = entity.entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;EDGE&#39;&quot; +
+&nbsp;            &quot; THEN (select type from edge where id = entity_id)&quot; +
+&nbsp;            &quot; ELSE entity.entity_type END as type&quot;;
+&nbsp;    private static final String SELECT_LABEL = &quot; CASE&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select title from tenant where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select title from customer where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select CONCAT (first_name, &#39; &#39;, last_name) from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DASHBOARD&#39;&quot; +
+&nbsp;            &quot; THEN (select title from dashboard where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ASSET&#39;&quot; +
+&nbsp;            &quot; THEN (select label from asset where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DEVICE&#39;&quot; +
+&nbsp;            &quot; THEN (select label from device where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ENTITY_VIEW&#39;&quot; +
+&nbsp;            &quot; THEN (select name from entity_view where id = entity.entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;EDGE&#39;&quot; +
+&nbsp;            &quot; THEN (select label from edge where id = entity_id)&quot; +
+&nbsp;            &quot; END as label&quot;;
+&nbsp;    private static final String SELECT_ADDITIONAL_INFO = &quot; CASE&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;TENANT&#39;&quot; +
+&nbsp;            &quot; THEN (select additional_info from tenant where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;CUSTOMER&#39; &quot; +
+&nbsp;            &quot; THEN (select additional_info from customer where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;USER&#39;&quot; +
+&nbsp;            &quot; THEN (select additional_info from tb_user where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DASHBOARD&#39;&quot; +
+&nbsp;            &quot; THEN (select &#39;&#39; from dashboard where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ASSET&#39;&quot; +
+&nbsp;            &quot; THEN (select additional_info from asset where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;DEVICE&#39;&quot; +
+&nbsp;            &quot; THEN (select additional_info from device where id = entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;ENTITY_VIEW&#39;&quot; +
+&nbsp;            &quot; THEN (select additional_info from entity_view where id = entity.entity_id)&quot; +
+&nbsp;            &quot; WHEN entity.entity_type = &#39;EDGE&#39;&quot; +
+&nbsp;            &quot; THEN (select additional_info from edge where id = entity_id)&quot; +
+&nbsp;            &quot; END as additional_info&quot;;
+&nbsp;
+&nbsp;    private static final String SELECT_RELATED_PARENT_ID = &quot;entity.parent_id AS parent_id&quot;;
+&nbsp;
+&nbsp;    private static final String SELECT_API_USAGE_STATE = &quot;(select aus.id, aus.created_time, aus.tenant_id, aus.entity_id, &quot; +
+&nbsp;            &quot;coalesce((select title from tenant where id = aus.entity_id), (select title from customer where id = aus.entity_id)) as name &quot; +
+&nbsp;            &quot;from api_usage_state as aus)&quot;;
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.ASSET, &quot;asset&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.DEVICE, &quot;device&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.ENTITY_VIEW, &quot;entity_view&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.DASHBOARD, &quot;dashboard&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.CUSTOMER, &quot;customer&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.USER, &quot;tb_user&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.TENANT, &quot;tenant&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.API_USAGE_STATE, SELECT_API_USAGE_STATE);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.EDGE, &quot;edge&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.RULE_CHAIN, &quot;rule_chain&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.DEVICE_PROFILE, &quot;device_profile&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.ASSET_PROFILE, &quot;asset_profile&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.TENANT_PROFILE, &quot;tenant_profile&quot;);</b>
+<b class="nc">&nbsp;        entityTableMap.put(EntityType.QUEUE_STATS, &quot;queue_stats&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.DEVICE, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.CUSTOMER, &quot;title&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.DASHBOARD, &quot;title&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.RULE_CHAIN, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.RULE_NODE, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.OTA_PACKAGE, &quot;title&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.ASSET_PROFILE, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.ASSET, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.DEVICE_PROFILE, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.USER, &quot;email&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.TENANT_PROFILE, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.TENANT, &quot;title&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.WIDGETS_BUNDLE, &quot;title&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.ENTITY_VIEW, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.TB_RESOURCE, &quot;search_text&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.EDGE, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.QUEUE, &quot;name&quot;);</b>
+<b class="nc">&nbsp;        entityNameColumns.put(EntityType.QUEUE_STATS, &quot;queue_name&quot;);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{</b>
+&nbsp;            EntityType.TENANT, EntityType.CUSTOMER, EntityType.USER, EntityType.DASHBOARD, EntityType.ASSET, EntityType.DEVICE, EntityType.ENTITY_VIEW};
+&nbsp;
+&nbsp;    private static final String HIERARCHICAL_QUERY_TEMPLATE = &quot; FROM (WITH RECURSIVE related_entities(from_id, from_type, to_id, to_type, lvl, path) AS (&quot; +
+&nbsp;            &quot; SELECT from_id, from_type, to_id, to_type,&quot; +
+&nbsp;            &quot;        1 as lvl,&quot; +
+&nbsp;            &quot;        ARRAY[$in_id] as path&quot; + // initial path
+&nbsp;            &quot; FROM relation &quot; +
+&nbsp;            &quot; WHERE $in_id $rootIdCondition and $in_type = :relation_root_type and relation_type_group = &#39;COMMON&#39;&quot; +
+&nbsp;            &quot; GROUP BY from_id, from_type, to_id, to_type, lvl, path&quot; +
+&nbsp;            &quot; UNION ALL&quot; +
+&nbsp;            &quot; SELECT r.from_id, r.from_type, r.to_id, r.to_type,&quot; +
+&nbsp;            &quot;        (re.lvl + 1) as lvl, &quot; +
+&nbsp;            &quot;        (re.path || ARRAY[r.$in_id]) as path&quot; +
+&nbsp;            &quot; FROM relation r&quot; +
+&nbsp;            &quot; INNER JOIN related_entities re ON&quot; +
+&nbsp;            &quot; r.$in_id = re.$out_id and r.$in_type = re.$out_type and&quot; +
+&nbsp;            &quot; relation_type_group = &#39;COMMON&#39; &quot; +
+&nbsp;            &quot; AND r.$in_id NOT IN (SELECT * FROM unnest(re.path)) &quot; +
+&nbsp;            &quot; %s&quot; +
+&nbsp;            &quot; GROUP BY r.from_id, r.from_type, r.to_id, r.to_type, (re.lvl + 1), (re.path || ARRAY[r.$in_id])&quot; +
+&nbsp;            &quot; )&quot; +
+&nbsp;            &quot; SELECT re.$out_id entity_id, re.$out_type entity_type, $parenIdExp max(r_int.lvl) lvl&quot; +
+&nbsp;            &quot; from related_entities r_int&quot; +
+&nbsp;            &quot;  INNER JOIN relation re ON re.from_id = r_int.from_id AND re.from_type = r_int.from_type&quot; +
+&nbsp;            &quot;                         AND re.to_id = r_int.to_id AND re.to_type = r_int.to_type&quot; +
+&nbsp;            &quot;                         AND re.relation_type_group = &#39;COMMON&#39;&quot; +
+&nbsp;            &quot; %s GROUP BY entity_id, entity_type $parenIdSelection) entity&quot;;
+&nbsp;
+<b class="nc">&nbsp;    private static final String HIERARCHICAL_TO_QUERY_TEMPLATE = HIERARCHICAL_QUERY_TEMPLATE</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdExp&quot;, &quot;&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdSelection&quot;, &quot;&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$in&quot;, &quot;to&quot;).replace(&quot;$out&quot;, &quot;from&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$rootIdCondition&quot;, &quot;= :relation_root_id&quot;);</b>
+<b class="nc">&nbsp;    private static final String HIERARCHICAL_TO_MR_QUERY_TEMPLATE = HIERARCHICAL_QUERY_TEMPLATE</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdExp&quot;, &quot;re.$in_id parent_id, &quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdSelection&quot;, &quot;, parent_id&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$in&quot;, &quot;to&quot;).replace(&quot;$out&quot;, &quot;from&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$rootIdCondition&quot;, &quot;in (:relation_root_ids)&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final String HIERARCHICAL_FROM_QUERY_TEMPLATE = HIERARCHICAL_QUERY_TEMPLATE</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdExp&quot;, &quot;&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdSelection&quot;, &quot;&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$in&quot;, &quot;from&quot;).replace(&quot;$out&quot;, &quot;to&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$rootIdCondition&quot;, &quot;= :relation_root_id&quot;);</b>
+<b class="nc">&nbsp;    private static final String HIERARCHICAL_FROM_MR_QUERY_TEMPLATE = HIERARCHICAL_QUERY_TEMPLATE</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdExp&quot;, &quot;re.$in_id parent_id, &quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$parenIdSelection&quot;, &quot;, parent_id&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$in&quot;, &quot;from&quot;).replace(&quot;$out&quot;, &quot;to&quot;)</b>
+<b class="nc">&nbsp;            .replace(&quot;$rootIdCondition&quot;, &quot;in (:relation_root_ids)&quot;);</b>
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${sql.relations.max_level:50}&quot;)
+&nbsp;    int maxLevelAllowed; //This value has to be reasonable small to prevent infinite recursion as early as possible
+&nbsp;
+&nbsp;    private final NamedParameterJdbcTemplate jdbcTemplate;
+&nbsp;    private final TransactionTemplate transactionTemplate;
+&nbsp;    private final DefaultQueryLogComponent queryLog;
+&nbsp;
+<b class="nc">&nbsp;    public DefaultEntityQueryRepository(NamedParameterJdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate, DefaultQueryLogComponent queryLog) {</b>
+<b class="nc">&nbsp;        this.jdbcTemplate = jdbcTemplate;</b>
+<b class="nc">&nbsp;        this.transactionTemplate = transactionTemplate;</b>
+<b class="nc">&nbsp;        this.queryLog = queryLog;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, EntityCountQuery query) {
+<b class="nc">&nbsp;        EntityType entityType = resolveEntityType(query.getEntityFilter());</b>
+<b class="nc">&nbsp;        SqlQueryContext ctx = new SqlQueryContext(new QueryContext(tenantId, customerId, entityType, TenantId.SYS_TENANT_ID.equals(tenantId)));</b>
+<b class="nc">&nbsp;        if (query.getKeyFilters() == null || query.getKeyFilters().isEmpty()) {</b>
+<b class="nc">&nbsp;            ctx.append(&quot;select count(e.id) from &quot;);</b>
+<b class="nc">&nbsp;            ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));</b>
+<b class="nc">&nbsp;            ctx.append(&quot; e where &quot;);</b>
+<b class="nc">&nbsp;            ctx.append(buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList()));</b>
+&nbsp;
+<b class="nc">&nbsp;            return transactionTemplate.execute(status -&gt; {</b>
+<b class="nc">&nbsp;                long startTs = System.currentTimeMillis();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);</b>
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        } else {
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; mappings = EntityKeyMapping.prepareEntityCountKeyMapping(query);</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; entityFieldsSelectionMapping = selectionMapping.stream().filter(mapping -&gt; !mapping.isLatest())</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -&gt; !mapping.isLatest() &amp;&amp; mapping.getEntityKeyColumn() != null)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;            String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);</b>
+<b class="nc">&nbsp;            String aliasWhereQuery = DefaultEntityQueryRepository.this.buildAliasWhereQuery(ctx, query.getEntityFilter(), selectionMapping, &quot;&quot;);</b>
+<b class="nc">&nbsp;            String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), entityType, allLatestMappings, true);</b>
+<b class="nc">&nbsp;            String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), entityType);</b>
+&nbsp;            String entityTypeStr;
+<b class="nc">&nbsp;            if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {</b>
+<b class="nc">&nbsp;                entityTypeStr = &quot;e.entity_type&quot;;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                entityTypeStr = &quot;&#39;&quot; + entityType.name() + &quot;&#39;&quot;;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(entityFieldsSelection)) {</b>
+<b class="nc">&nbsp;                entityFieldsSelection = String.format(&quot;e.id id, %s entity_type, %s&quot;, entityTypeStr, entityFieldsSelection);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                entityFieldsSelection = String.format(&quot;e.id id, %s entity_type&quot;, entityTypeStr);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String fromClauseCount = String.format(&quot;from (select %s from (select %s from %s e where %s) entities %s ) result %s&quot;,</b>
+&nbsp;                    &quot;entities.*&quot;,
+&nbsp;                    entityFieldsSelection,
+<b class="nc">&nbsp;                    addEntityTableQuery(ctx, query.getEntityFilter()),</b>
+&nbsp;                    entityWhereClause,
+&nbsp;                    latestJoinsCnt,
+&nbsp;                    aliasWhereQuery);
+&nbsp;
+<b class="nc">&nbsp;            String countQuery = String.format(&quot;select count(id) %s&quot;, fromClauseCount);</b>
+&nbsp;
+<b class="nc">&nbsp;            return transactionTemplate.execute(status -&gt; {</b>
+<b class="nc">&nbsp;                long startTs = System.currentTimeMillis();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    return jdbcTemplate.queryForObject(countQuery, ctx, Long.class);</b>
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntityData&gt; findEntityDataByQueryInternal(EntityDataQuery query) {
+<b class="nc">&nbsp;        return findEntityDataByQuery(null, null, query, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntityData&gt; findEntityDataByQuery(TenantId tenantId, CustomerId customerId, EntityDataQuery query) {
+<b class="nc">&nbsp;        return findEntityDataByQuery(tenantId, customerId, query, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public PageData&lt;EntityData&gt; findEntityDataByQuery(TenantId tenantId, CustomerId customerId, EntityDataQuery query, boolean ignorePermissionCheck) {
+<b class="nc">&nbsp;        return transactionTemplate.execute(status -&gt; {</b>
+<b class="nc">&nbsp;            EntityType entityType = resolveEntityType(query.getEntityFilter());</b>
+<b class="nc">&nbsp;            SqlQueryContext ctx = new SqlQueryContext(new QueryContext(tenantId, customerId, entityType, ignorePermissionCheck));</b>
+<b class="nc">&nbsp;            EntityDataPageLink pageLink = query.getPageLink();</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; mappings = EntityKeyMapping.prepareKeyMapping(entityType, query);</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; entityFieldsSelectionMapping = selectionMapping.stream().filter(mapping -&gt; !mapping.isLatest())</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; latestSelectionMapping = selectionMapping.stream().filter(EntityKeyMapping::isLatest)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -&gt; !mapping.isLatest() &amp;&amp; mapping.getEntityKeyColumn() != null)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;EntityKeyMapping&gt; allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;            String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);</b>
+<b class="nc">&nbsp;            String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), entityType, allLatestMappings, true);</b>
+<b class="nc">&nbsp;            String latestJoinsData = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), entityType, allLatestMappings, false);</b>
+<b class="nc">&nbsp;            String aliasWhereQuery = DefaultEntityQueryRepository.this.buildAliasWhereQuery(ctx, query.getEntityFilter(), selectionMapping, pageLink.getTextSearch());</b>
+<b class="nc">&nbsp;            String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), entityType);</b>
+&nbsp;            String entityTypeStr;
+<b class="nc">&nbsp;            if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {</b>
+<b class="nc">&nbsp;                entityTypeStr = &quot;e.entity_type&quot;;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                entityTypeStr = &quot;&#39;&quot; + entityType.name() + &quot;&#39;&quot;;</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(entityFieldsSelection)) {</b>
+<b class="nc">&nbsp;                entityFieldsSelection = String.format(&quot;e.id id, %s entity_type, %s&quot;, entityTypeStr, entityFieldsSelection);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                entityFieldsSelection = String.format(&quot;e.id id, %s entity_type&quot;, entityTypeStr);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String latestSelection = EntityKeyMapping.buildSelections(latestSelectionMapping, query.getEntityFilter().getType(), entityType);</b>
+<b class="nc">&nbsp;            String topSelection = &quot;entities.*&quot;;</b>
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(latestSelection)) {</b>
+<b class="nc">&nbsp;                topSelection = topSelection + &quot;, &quot; + latestSelection;</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String fromClauseCount = String.format(&quot;from (select %s from (select %s from %s e where %s) entities %s ) result %s&quot;,</b>
+&nbsp;                    &quot;entities.*&quot;,
+&nbsp;                    entityFieldsSelection,
+<b class="nc">&nbsp;                    addEntityTableQuery(ctx, query.getEntityFilter()),</b>
+&nbsp;                    entityWhereClause,
+&nbsp;                    latestJoinsCnt,
+&nbsp;                    aliasWhereQuery);
+&nbsp;
+<b class="nc">&nbsp;            String fromClauseData = String.format(&quot;from (select %s from (select %s from %s e where %s) entities %s ) result %s&quot;,</b>
+&nbsp;                    topSelection,
+&nbsp;                    entityFieldsSelection,
+<b class="nc">&nbsp;                    addEntityTableQuery(ctx, query.getEntityFilter()),</b>
+&nbsp;                    entityWhereClause,
+&nbsp;                    latestJoinsData,
+&nbsp;                    aliasWhereQuery);
+&nbsp;
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(pageLink.getTextSearch())) {</b>
+&nbsp;                //Unfortunately, we need to sacrifice performance in case of full text search, because it is applied to all joined records.
+<b class="nc">&nbsp;                fromClauseCount = fromClauseData;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String countQuery = String.format(&quot;select count(id) %s&quot;, fromClauseCount);</b>
+&nbsp;
+<b class="nc">&nbsp;            long startTs = System.currentTimeMillis();</b>
+&nbsp;            int totalElements;
+&nbsp;            try {
+<b class="nc">&nbsp;                totalElements = jdbcTemplate.queryForObject(countQuery, ctx, Integer.class);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (totalElements == 0) {</b>
+<b class="nc">&nbsp;                return new PageData&lt;&gt;();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String dataQuery = String.format(&quot;select * %s&quot;, fromClauseData);</b>
+&nbsp;
+<b class="nc">&nbsp;            EntityDataSortOrder sortOrder = pageLink.getSortOrder();</b>
+<b class="nc">&nbsp;            if (sortOrder != null) {</b>
+<b class="nc">&nbsp;                Optional&lt;EntityKeyMapping&gt; sortOrderMappingOpt = mappings.stream().filter(EntityKeyMapping::isSortOrder).findFirst();</b>
+<b class="nc">&nbsp;                if (sortOrderMappingOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                    EntityKeyMapping sortOrderMapping = sortOrderMappingOpt.get();</b>
+<b class="nc">&nbsp;                    String direction = sortOrder.getDirection() == EntityDataSortOrder.Direction.ASC ? &quot;asc&quot; : &quot;desc&quot;;</b>
+<b class="nc">&nbsp;                    if (sortOrderMapping.getEntityKey().getType() == EntityKeyType.ENTITY_FIELD) {</b>
+<b class="nc">&nbsp;                        dataQuery = String.format(&quot;%s order by %s %s, result.id %s&quot;, dataQuery, sortOrderMapping.getValueAlias(), direction, direction);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        dataQuery = String.format(&quot;%s order by %s %s, %s %s, result.id %s&quot;, dataQuery,</b>
+<b class="nc">&nbsp;                                sortOrderMapping.getSortOrderNumAlias(), direction, sortOrderMapping.getSortOrderStrAlias(), direction, direction);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            int startIndex = pageLink.getPageSize() * pageLink.getPage();</b>
+<b class="nc">&nbsp;            if (pageLink.getPageSize() &gt; 0) {</b>
+<b class="nc">&nbsp;                dataQuery = String.format(&quot;%s limit %s offset %s&quot;, dataQuery, pageLink.getPageSize(), startIndex);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            startTs = System.currentTimeMillis();</b>
+&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; rows;
+&nbsp;            try {
+<b class="nc">&nbsp;                rows = jdbcTemplate.queryForList(dataQuery, ctx);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                queryLog.logQuery(ctx, dataQuery, System.currentTimeMillis() - startTs);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildEntityWhere(SqlQueryContext ctx, EntityFilter entityFilter, List&lt;EntityKeyMapping&gt; entityFieldsFilters) {
+<b class="nc">&nbsp;        String permissionQuery = this.buildPermissionQuery(ctx, entityFilter);</b>
+<b class="nc">&nbsp;        String entityFilterQuery = this.buildEntityFilterQuery(ctx, entityFilter);</b>
+<b class="nc">&nbsp;        String entityFieldsQuery = EntityKeyMapping.buildQuery(ctx, entityFieldsFilters, entityFilter.getType());</b>
+<b class="nc">&nbsp;        String result = permissionQuery;</b>
+<b class="nc">&nbsp;        if (!entityFilterQuery.isEmpty()) {</b>
+<b class="nc">&nbsp;            result += &quot; and (&quot; + entityFilterQuery + &quot;)&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!entityFieldsQuery.isEmpty()) {</b>
+<b class="nc">&nbsp;            result += &quot; and (&quot; + entityFieldsQuery + &quot;)&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildPermissionQuery(SqlQueryContext ctx, EntityFilter entityFilter) {
+<b class="nc">&nbsp;        if (ctx.isIgnorePermissionCheck() || (ctx.getTenantId().isSysTenantId() &amp;&amp;</b>
+<b class="nc">&nbsp;                (ctx.getEntityType() == EntityType.TENANT || ctx.getEntityType() == EntityType.TENANT_PROFILE))) {</b>
+<b class="nc">&nbsp;            return &quot;1=1&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        switch (entityFilter.getType()) {</b>
+&nbsp;            case RELATIONS_QUERY:
+&nbsp;            case DEVICE_SEARCH_QUERY:
+&nbsp;            case ASSET_SEARCH_QUERY:
+&nbsp;            case ENTITY_VIEW_SEARCH_QUERY:
+&nbsp;            case EDGE_SEARCH_QUERY:
+<b class="nc">&nbsp;                return this.defaultPermissionQuery(ctx);</b>
+&nbsp;            case API_USAGE_STATE:
+<b class="nc">&nbsp;                CustomerId filterCustomerId = ((ApiUsageStateFilter) entityFilter).getCustomerId();</b>
+<b class="nc">&nbsp;                if (ctx.getCustomerId() != null &amp;&amp; !ctx.getCustomerId().isNullUid()) {</b>
+<b class="nc">&nbsp;                    if (filterCustomerId != null &amp;&amp; !filterCustomerId.equals(ctx.getCustomerId())) {</b>
+<b class="nc">&nbsp;                        throw new SecurityException(&quot;Customer is not allowed to query other customer&#39;s data&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    filterCustomerId = ctx.getCustomerId();</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                ctx.addUuidParameter(&quot;permissions_tenant_id&quot;, ctx.getTenantId().getId());</b>
+<b class="nc">&nbsp;                if (filterCustomerId != null) {</b>
+<b class="nc">&nbsp;                    ctx.addUuidParameter(&quot;permissions_customer_id&quot;, filterCustomerId.getId());</b>
+<b class="nc">&nbsp;                    return &quot;e.tenant_id=:permissions_tenant_id and e.entity_id=:permissions_customer_id&quot;;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return &quot;e.tenant_id=:permissions_tenant_id and e.entity_id=:permissions_tenant_id&quot;;</b>
+&nbsp;                }
+&nbsp;            default:
+<b class="nc">&nbsp;                if (ctx.getEntityType() == EntityType.TENANT) {</b>
+<b class="nc">&nbsp;                    ctx.addUuidParameter(&quot;permissions_tenant_id&quot;, ctx.getTenantId().getId());</b>
+<b class="nc">&nbsp;                    return &quot;e.id=:permissions_tenant_id&quot;;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return this.defaultPermissionQuery(ctx);</b>
+&nbsp;                }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String defaultPermissionQuery(SqlQueryContext ctx) {
+<b class="nc">&nbsp;        ctx.addUuidParameter(&quot;permissions_tenant_id&quot;, ctx.getTenantId().getId());</b>
+<b class="nc">&nbsp;        if (ctx.getCustomerId() != null &amp;&amp; !ctx.getCustomerId().isNullUid()) {</b>
+<b class="nc">&nbsp;            ctx.addUuidParameter(&quot;permissions_customer_id&quot;, ctx.getCustomerId().getId());</b>
+<b class="nc">&nbsp;            if (ctx.getEntityType() == EntityType.CUSTOMER) {</b>
+<b class="nc">&nbsp;                return &quot;e.tenant_id=:permissions_tenant_id and e.id=:permissions_customer_id&quot;;</b>
+<b class="nc">&nbsp;            } else if (ctx.getEntityType() == EntityType.API_USAGE_STATE) {</b>
+<b class="nc">&nbsp;                return &quot;e.tenant_id=:permissions_tenant_id and e.entity_id=:permissions_customer_id&quot;;</b>
+<b class="nc">&nbsp;            } else if (ctx.getEntityType() == EntityType.DASHBOARD) {</b>
+<b class="nc">&nbsp;                return &quot;e.tenant_id=:permissions_tenant_id and e.assigned_customers like concat(&#39;%&#39;, :permissions_customer_id, &#39;%&#39;)&quot;;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return &quot;e.tenant_id=:permissions_tenant_id and e.customer_id=:permissions_customer_id&quot;;</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return &quot;e.tenant_id=:permissions_tenant_id&quot;;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildEntityFilterQuery(SqlQueryContext ctx, EntityFilter entityFilter) {
+<b class="nc">&nbsp;        switch (entityFilter.getType()) {</b>
+&nbsp;            case SINGLE_ENTITY:
+<b class="nc">&nbsp;                return this.singleEntityQuery(ctx, (SingleEntityFilter) entityFilter);</b>
+&nbsp;            case ENTITY_LIST:
+<b class="nc">&nbsp;                return this.entityListQuery(ctx, (EntityListFilter) entityFilter);</b>
+&nbsp;            case ENTITY_NAME:
+<b class="nc">&nbsp;                return this.entityNameQuery(ctx, (EntityNameFilter) entityFilter);</b>
+&nbsp;            case ASSET_TYPE:
+&nbsp;            case DEVICE_TYPE:
+&nbsp;            case ENTITY_VIEW_TYPE:
+&nbsp;            case EDGE_TYPE:
+<b class="nc">&nbsp;                return this.typeQuery(ctx, entityFilter);</b>
+&nbsp;            case RELATIONS_QUERY:
+&nbsp;            case DEVICE_SEARCH_QUERY:
+&nbsp;            case ASSET_SEARCH_QUERY:
+&nbsp;            case ENTITY_VIEW_SEARCH_QUERY:
+&nbsp;            case EDGE_SEARCH_QUERY:
+&nbsp;            case API_USAGE_STATE:
+&nbsp;            case ENTITY_TYPE:
+<b class="nc">&nbsp;                return &quot;&quot;;</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Not implemented!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String addEntityTableQuery(SqlQueryContext ctx, EntityFilter entityFilter) {
+<b class="nc">&nbsp;        switch (entityFilter.getType()) {</b>
+&nbsp;            case RELATIONS_QUERY:
+<b class="nc">&nbsp;                return relationQuery(ctx, (RelationsQueryFilter) entityFilter);</b>
+&nbsp;            case DEVICE_SEARCH_QUERY:
+<b class="nc">&nbsp;                DeviceSearchQueryFilter deviceQuery = (DeviceSearchQueryFilter) entityFilter;</b>
+<b class="nc">&nbsp;                return entitySearchQuery(ctx, deviceQuery, EntityType.DEVICE, deviceQuery.getDeviceTypes());</b>
+&nbsp;            case ASSET_SEARCH_QUERY:
+<b class="nc">&nbsp;                AssetSearchQueryFilter assetQuery = (AssetSearchQueryFilter) entityFilter;</b>
+<b class="nc">&nbsp;                return entitySearchQuery(ctx, assetQuery, EntityType.ASSET, assetQuery.getAssetTypes());</b>
+&nbsp;            case ENTITY_VIEW_SEARCH_QUERY:
+<b class="nc">&nbsp;                EntityViewSearchQueryFilter entityViewQuery = (EntityViewSearchQueryFilter) entityFilter;</b>
+<b class="nc">&nbsp;                return entitySearchQuery(ctx, entityViewQuery, EntityType.ENTITY_VIEW, entityViewQuery.getEntityViewTypes());</b>
+&nbsp;            case EDGE_SEARCH_QUERY:
+<b class="nc">&nbsp;                EdgeSearchQueryFilter edgeQuery = (EdgeSearchQueryFilter) entityFilter;</b>
+<b class="nc">&nbsp;                return entitySearchQuery(ctx, edgeQuery, EntityType.EDGE, edgeQuery.getEdgeTypes());</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                return entityTableMap.get(ctx.getEntityType());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String entitySearchQuery(SqlQueryContext ctx, EntitySearchQueryFilter entityFilter, EntityType entityType, List&lt;String&gt; types) {
+<b class="nc">&nbsp;        EntityId rootId = entityFilter.getRootEntity();</b>
+<b class="nc">&nbsp;        String lvlFilter = getLvlFilter(entityFilter.getMaxLevel());</b>
+&nbsp;        String selectFields = &quot;SELECT tenant_id, customer_id, id, created_time, type, name, additional_info &quot;
+<b class="nc">&nbsp;                + (entityType.equals(EntityType.ENTITY_VIEW) ? &quot;&quot; : &quot;, label &quot;)</b>
+<b class="nc">&nbsp;                + &quot;FROM &quot; + entityType.name() + &quot; WHERE id in ( SELECT entity_id&quot;;</b>
+<b class="nc">&nbsp;        String from = getQueryTemplate(entityFilter.getDirection(), false);</b>
+<b class="nc">&nbsp;        String whereFilter = &quot; WHERE&quot;;</b>
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(entityFilter.getRelationType())) {</b>
+<b class="nc">&nbsp;            ctx.addStringParameter(&quot;where_relation_type&quot;, entityFilter.getRelationType());</b>
+<b class="nc">&nbsp;            whereFilter += &quot; re.relation_type = :where_relation_type AND&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String toOrFrom = (entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? &quot;to&quot; : &quot;from&quot;);</b>
+<b class="nc">&nbsp;        whereFilter += &quot; re.&quot; + (entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? &quot;to&quot; : &quot;from&quot;) + &quot;_type = :where_entity_type&quot;;</b>
+<b class="nc">&nbsp;        if (entityFilter.isFetchLastLevelOnly()) {</b>
+<b class="nc">&nbsp;            String fromOrTo = (entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? &quot;from&quot; : &quot;to&quot;);</b>
+<b class="nc">&nbsp;            StringBuilder notExistsPart = new StringBuilder();</b>
+<b class="nc">&nbsp;            notExistsPart.append(&quot; NOT EXISTS (SELECT 1 from relation nr &quot;)</b>
+<b class="nc">&nbsp;                    .append(whereFilter.replaceAll(&quot;re\\.&quot;, &quot;nr\\.&quot;))</b>
+<b class="nc">&nbsp;                    .append(&quot; and &quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;nr.&quot;).append(fromOrTo).append(&quot;_id&quot;).append(&quot; = re.&quot;).append(toOrFrom).append(&quot;_id&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot; and &quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;nr.&quot;).append(fromOrTo).append(&quot;_type&quot;).append(&quot; = re.&quot;).append(toOrFrom).append(&quot;_type&quot;);</b>
+<b class="nc">&nbsp;            notExistsPart.append(&quot; and nr.relation_type_group = &#39;COMMON&#39;&quot;); // hit the index, the same condition are on the recursive query</b>
+<b class="nc">&nbsp;            notExistsPart.append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;            whereFilter += &quot; and ( r_int.lvl = &quot; + entityFilter.getMaxLevel() + &quot; OR &quot; + notExistsPart.toString() + &quot;)&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        from = String.format(from, lvlFilter, whereFilter);</b>
+<b class="nc">&nbsp;        String query = &quot;( &quot; + selectFields + from + &quot;)&quot;;</b>
+<b class="nc">&nbsp;        if (types != null &amp;&amp; !types.isEmpty()) {</b>
+<b class="nc">&nbsp;            query += &quot; and type in (:relation_sub_types)&quot;;</b>
+<b class="nc">&nbsp;            ctx.addStringListParameter(&quot;relation_sub_types&quot;, types);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        query += &quot; )&quot;;</b>
+<b class="nc">&nbsp;        ctx.addUuidParameter(&quot;relation_root_id&quot;, rootId.getId());</b>
+<b class="nc">&nbsp;        ctx.addStringParameter(&quot;relation_root_type&quot;, rootId.getEntityType().name());</b>
+<b class="nc">&nbsp;        ctx.addStringParameter(&quot;where_entity_type&quot;, entityType.name());</b>
+<b class="nc">&nbsp;        return query;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String relationQuery(SqlQueryContext ctx, RelationsQueryFilter entityFilter) {
+<b class="nc">&nbsp;        EntityId rootId = entityFilter.getRootEntity();</b>
+<b class="nc">&nbsp;        String lvlFilter = getLvlFilter(entityFilter.getMaxLevel());</b>
+<b class="nc">&nbsp;        String selectFields = SELECT_TENANT_ID + &quot;, &quot; + SELECT_CUSTOMER_ID</b>
+&nbsp;                + &quot;, &quot; + SELECT_CREATED_TIME + &quot;, &quot; +
+&nbsp;                &quot; entity.entity_id as id,&quot;
+&nbsp;                + SELECT_TYPE + &quot;, &quot; + SELECT_NAME + &quot;, &quot; + SELECT_LABEL + &quot;, &quot; +
+&nbsp;                SELECT_FIRST_NAME + &quot;, &quot; + SELECT_LAST_NAME + &quot;, &quot; + SELECT_EMAIL + &quot;, &quot; + SELECT_REGION + &quot;, &quot; +
+&nbsp;                SELECT_TITLE + &quot;, &quot; + SELECT_COUNTRY + &quot;, &quot; + SELECT_STATE + &quot;, &quot; + SELECT_CITY + &quot;, &quot; +
+&nbsp;                SELECT_ADDRESS + &quot;, &quot; + SELECT_ADDRESS_2 + &quot;, &quot; + SELECT_ZIP + &quot;, &quot; + SELECT_PHONE + &quot;, &quot; +
+<b class="nc">&nbsp;                SELECT_ADDITIONAL_INFO + (entityFilter.isMultiRoot() ? (&quot;, &quot; + SELECT_RELATED_PARENT_ID) : &quot;&quot;) +</b>
+&nbsp;                &quot;, entity.entity_type as entity_type&quot;;
+&nbsp;        /*
+&nbsp;        * FIXME:
+&nbsp;        *  target entities are duplicated in result list, if search direction is TO and multiple relations are references to target entity
+&nbsp;        * */
+<b class="nc">&nbsp;        String from = getQueryTemplate(entityFilter.getDirection(), entityFilter.isMultiRoot());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (entityFilter.isMultiRoot()) {</b>
+<b class="nc">&nbsp;            ctx.addUuidListParameter(&quot;relation_root_ids&quot;, entityFilter.getMultiRootEntityIds().stream().map(UUID::fromString).collect(Collectors.toList()));</b>
+<b class="nc">&nbsp;            ctx.addStringParameter(&quot;relation_root_type&quot;, entityFilter.getMultiRootEntitiesType().name());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ctx.addUuidParameter(&quot;relation_root_id&quot;, rootId.getId());</b>
+<b class="nc">&nbsp;            ctx.addStringParameter(&quot;relation_root_type&quot;, rootId.getEntityType().name());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        StringBuilder whereFilter = new StringBuilder();</b>
+&nbsp;
+<b class="nc">&nbsp;        boolean noConditions = true;</b>
+<b class="nc">&nbsp;        boolean single = entityFilter.getFilters() != null &amp;&amp; entityFilter.getFilters().size() == 1;</b>
+<b class="nc">&nbsp;        if (entityFilter.getFilters() != null &amp;&amp; !entityFilter.getFilters().isEmpty()) {</b>
+<b class="nc">&nbsp;            int entityTypeFilterIdx = 0;</b>
+<b class="nc">&nbsp;            for (RelationEntityTypeFilter etf : entityFilter.getFilters()) {</b>
+<b class="nc">&nbsp;                String etfCondition = buildEtfCondition(ctx, etf, entityFilter.getDirection(), entityTypeFilterIdx++);</b>
+<b class="nc">&nbsp;                if (!etfCondition.isEmpty()) {</b>
+<b class="nc">&nbsp;                    if (noConditions) {</b>
+<b class="nc">&nbsp;                        noConditions = false;</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        whereFilter.append(&quot; OR &quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (!single) {</b>
+<b class="nc">&nbsp;                        whereFilter.append(&quot; (&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    whereFilter.append(etfCondition);</b>
+<b class="nc">&nbsp;                    if (!single) {</b>
+<b class="nc">&nbsp;                        whereFilter.append(&quot; )&quot;);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (noConditions) {</b>
+<b class="nc">&nbsp;            whereFilter.append(&quot; re.&quot;)</b>
+<b class="nc">&nbsp;                    .append(entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? &quot;to&quot; : &quot;from&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;_type in (:where_entity_types&quot;).append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;            ctx.addStringListParameter(&quot;where_entity_types&quot;, Arrays.stream(RELATION_QUERY_ENTITY_TYPES).map(EntityType::name).collect(Collectors.toList()));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (!single) {</b>
+<b class="nc">&nbsp;                whereFilter = new StringBuilder()</b>
+<b class="nc">&nbsp;                        .append(entityFilter.isNegate() ? &quot; NOT (&quot; : &quot;(&quot;)</b>
+<b class="nc">&nbsp;                        .append(whereFilter).append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;            } else if (entityFilter.isNegate()) {</b>
+<b class="nc">&nbsp;                whereFilter = new StringBuilder()</b>
+<b class="nc">&nbsp;                        .append(&quot; NOT (&quot;)</b>
+<b class="nc">&nbsp;                        .append(whereFilter).append(&quot;)&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (entityFilter.isFetchLastLevelOnly()) {</b>
+<b class="nc">&nbsp;            String toOrFrom = (entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? &quot;to&quot; : &quot;from&quot;);</b>
+<b class="nc">&nbsp;            String fromOrTo = (entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? &quot;from&quot; : &quot;to&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            StringBuilder notExistsPart = new StringBuilder();</b>
+<b class="nc">&nbsp;            notExistsPart.append(&quot; NOT EXISTS (SELECT 1 from relation nr WHERE &quot;);</b>
+<b class="nc">&nbsp;            notExistsPart</b>
+<b class="nc">&nbsp;                    .append(&quot;nr.&quot;).append(fromOrTo).append(&quot;_id&quot;).append(&quot; = re.&quot;).append(toOrFrom).append(&quot;_id&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot; and &quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;nr.&quot;).append(fromOrTo).append(&quot;_type&quot;).append(&quot; = re.&quot;).append(toOrFrom).append(&quot;_type&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot; and &quot;)</b>
+<b class="nc">&nbsp;                    .append(whereFilter.toString().replaceAll(&quot;re\\.&quot;, &quot;nr\\.&quot;));</b>
+<b class="nc">&nbsp;            notExistsPart.append(&quot; and nr.relation_type_group = &#39;COMMON&#39;&quot;); // hit the index, the same condition are on the recursive query</b>
+<b class="nc">&nbsp;            notExistsPart.append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;            whereFilter.append(&quot; and ( r_int.lvl = &quot;).append(entityFilter.getMaxLevel()).append(&quot; OR &quot;).append(notExistsPart.toString()).append(&quot;)&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        from = String.format(from, lvlFilter, &quot; WHERE &quot; + whereFilter);</b>
+<b class="nc">&nbsp;        return &quot;( &quot; + selectFields + from + &quot;)&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildEtfCondition(SqlQueryContext ctx, RelationEntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
+<b class="nc">&nbsp;        StringBuilder whereFilter = new StringBuilder();</b>
+<b class="nc">&nbsp;        String relationType = etf.getRelationType();</b>
+<b class="nc">&nbsp;        List&lt;EntityType&gt; entityTypes = etf.getEntityTypes();</b>
+&nbsp;        List&lt;String&gt; whereEntityTypes;
+<b class="nc">&nbsp;        if (entityTypes == null || entityTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;            whereEntityTypes = Collections.emptyList();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            whereEntityTypes = etf.getEntityTypes().stream().map(EntityType::name).collect(Collectors.toList());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        boolean hasRelationType = !StringUtils.isEmpty(relationType);</b>
+<b class="nc">&nbsp;        if (hasRelationType) {</b>
+<b class="nc">&nbsp;            ctx.addStringParameter(&quot;where_relation_type&quot; + entityTypeFilterIdx, relationType);</b>
+<b class="nc">&nbsp;            if (etf.isNegate()) {</b>
+<b class="nc">&nbsp;                whereFilter.append(&quot;re.relation_type != :where_relation_type&quot;).append(entityTypeFilterIdx);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                whereFilter.append(&quot;re.relation_type = :where_relation_type&quot;).append(entityTypeFilterIdx);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (!whereEntityTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;            if (hasRelationType) {</b>
+<b class="nc">&nbsp;                whereFilter.append(&quot; and &quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            whereFilter.append(&quot;re.&quot;)</b>
+<b class="nc">&nbsp;                    .append(direction.equals(EntitySearchDirection.FROM) ? &quot;to&quot; : &quot;from&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;_type in (:where_entity_types&quot;).append(entityTypeFilterIdx).append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;            ctx.addStringListParameter(&quot;where_entity_types&quot; + entityTypeFilterIdx, whereEntityTypes);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return whereFilter.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    String getLvlFilter(int maxLevel) {
+<b class="nc">&nbsp;        return &quot;and re.lvl &lt;= &quot; + (getMaxLevel(maxLevel) - 1);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    int getMaxLevel(int maxLevel) {
+<b class="nc">&nbsp;        return (maxLevel &lt;= 0 || maxLevel &gt; this.maxLevelAllowed) ? this.maxLevelAllowed : maxLevel;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getQueryTemplate(EntitySearchDirection direction, boolean isMultiRoot) {
+&nbsp;        String from;
+<b class="nc">&nbsp;        if (direction.equals(EntitySearchDirection.FROM)) {</b>
+<b class="nc">&nbsp;            from = isMultiRoot ? HIERARCHICAL_FROM_MR_QUERY_TEMPLATE : HIERARCHICAL_FROM_QUERY_TEMPLATE;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            from = isMultiRoot ? HIERARCHICAL_TO_MR_QUERY_TEMPLATE : HIERARCHICAL_TO_QUERY_TEMPLATE;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return from;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildAliasWhereQuery(SqlQueryContext ctx, EntityFilter entityFilter, List&lt;EntityKeyMapping&gt; selectionMapping, String searchText) {
+<b class="nc">&nbsp;        List&lt;EntityKeyMapping&gt; aliasFiltersMapping = selectionMapping.stream().filter(mapping -&gt; !mapping.isLatest() &amp;&amp; mapping.getEntityKeyColumn() == null)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        String entityFieldsQuery = EntityKeyMapping.buildQuery(ctx, aliasFiltersMapping, entityFilter.getType());</b>
+<b class="nc">&nbsp;        String searchTextQuery = buildTextSearchQuery(ctx, selectionMapping, searchText);</b>
+<b class="nc">&nbsp;        String result = &quot;&quot;;</b>
+<b class="nc">&nbsp;        if (!entityFieldsQuery.isEmpty()) {</b>
+<b class="nc">&nbsp;            result += &quot; where (&quot; + entityFieldsQuery + &quot;)&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!searchTextQuery.isEmpty()) {</b>
+<b class="nc">&nbsp;            result += (result.isEmpty() ? &quot; where &quot; : &quot; and &quot;) + &quot;(&quot; + searchTextQuery + &quot;) &quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildTextSearchQuery(SqlQueryContext ctx, List&lt;EntityKeyMapping&gt; selectionMapping, String searchText) {
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(searchText) &amp;&amp; !selectionMapping.isEmpty()) {</b>
+<b class="nc">&nbsp;            String sqlSearchText = &quot;%&quot; + searchText + &quot;%&quot;;</b>
+<b class="nc">&nbsp;            ctx.addStringParameter(&quot;lowerSearchTextParam&quot;, sqlSearchText);</b>
+<b class="nc">&nbsp;            List&lt;String&gt; searchAliases = selectionMapping.stream().filter(EntityKeyMapping::isSearchable).map(EntityKeyMapping::getValueAlias).collect(Collectors.toList());</b>
+&nbsp;            String searchAliasesExpression;
+<b class="nc">&nbsp;            if (searchAliases.size() &gt; 1) {</b>
+<b class="nc">&nbsp;                searchAliasesExpression = &quot;CONCAT(&quot; + String.join(&quot; , &quot;, searchAliases) + &quot;)&quot;;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                searchAliasesExpression = searchAliases.get(0);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return String.format(&quot; %s ILIKE :%s&quot;, searchAliasesExpression, &quot;lowerSearchTextParam&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return &quot;&quot;;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String singleEntityQuery(SqlQueryContext ctx, SingleEntityFilter filter) {
+<b class="nc">&nbsp;        ctx.addUuidParameter(&quot;entity_filter_single_entity_id&quot;, filter.getSingleEntity().getId());</b>
+<b class="nc">&nbsp;        return &quot;e.id=:entity_filter_single_entity_id&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String entityListQuery(SqlQueryContext ctx, EntityListFilter filter) {
+<b class="nc">&nbsp;        ctx.addUuidListParameter(&quot;entity_filter_entity_ids&quot;, filter.getEntityList().stream().map(UUID::fromString).collect(Collectors.toList()));</b>
+<b class="nc">&nbsp;        return &quot;e.id in (:entity_filter_entity_ids)&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String entityNameQuery(SqlQueryContext ctx, EntityNameFilter filter) {
+<b class="nc">&nbsp;        ctx.addStringParameter(&quot;entity_filter_name_filter&quot;, filter.getEntityNameFilter());</b>
+<b class="nc">&nbsp;        String nameColumn = getNameColumn(filter.getEntityType());</b>
+<b class="nc">&nbsp;        if (filter.getEntityNameFilter().startsWith(&quot;%&quot;) || filter.getEntityNameFilter().endsWith(&quot;%&quot;)) {</b>
+<b class="nc">&nbsp;            return String.format(&quot;e.%s ilike :entity_filter_name_filter&quot;, nameColumn);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return String.format(&quot;e.%s ilike concat(:entity_filter_name_filter, &#39;%%&#39;)&quot;, nameColumn);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String typeQuery(SqlQueryContext ctx, EntityFilter filter) {
+&nbsp;        List&lt;String&gt; types;
+&nbsp;        String name;
+&nbsp;        String nameColumn;
+<b class="nc">&nbsp;        switch (filter.getType()) {</b>
+&nbsp;            case ASSET_TYPE:
+<b class="nc">&nbsp;                types = ((AssetTypeFilter) filter).getAssetTypes();</b>
+<b class="nc">&nbsp;                name = ((AssetTypeFilter) filter).getAssetNameFilter();</b>
+<b class="nc">&nbsp;                nameColumn = getNameColumn(EntityType.ASSET);</b>
+&nbsp;                break;
+&nbsp;            case DEVICE_TYPE:
+<b class="nc">&nbsp;                types = ((DeviceTypeFilter) filter).getDeviceTypes();</b>
+<b class="nc">&nbsp;                name = ((DeviceTypeFilter) filter).getDeviceNameFilter();</b>
+<b class="nc">&nbsp;                nameColumn = getNameColumn(EntityType.DEVICE);</b>
+&nbsp;                break;
+&nbsp;            case ENTITY_VIEW_TYPE:
+<b class="nc">&nbsp;                types = ((EntityViewTypeFilter) filter).getEntityViewTypes();</b>
+<b class="nc">&nbsp;                name = ((EntityViewTypeFilter) filter).getEntityViewNameFilter();</b>
+<b class="nc">&nbsp;                nameColumn = getNameColumn(EntityType.ENTITY_VIEW);</b>
+&nbsp;                break;
+&nbsp;            case EDGE_TYPE:
+<b class="nc">&nbsp;                types = ((EdgeTypeFilter) filter).getEdgeTypes();</b>
+<b class="nc">&nbsp;                name = ((EdgeTypeFilter) filter).getEdgeNameFilter();</b>
+<b class="nc">&nbsp;                nameColumn = getNameColumn(EntityType.EDGE);</b>
+&nbsp;                break;
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Not supported!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String typesFilter = &quot;e.type in (:entity_filter_type_query_types)&quot;;</b>
+<b class="nc">&nbsp;        ctx.addStringListParameter(&quot;entity_filter_type_query_types&quot;, types);</b>
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(name)) {</b>
+<b class="nc">&nbsp;            ctx.addStringParameter(&quot;entity_filter_type_query_name&quot;, name);</b>
+<b class="nc">&nbsp;            if (name.startsWith(&quot;%&quot;) || name.endsWith(&quot;%&quot;)) {</b>
+<b class="nc">&nbsp;                return typesFilter + &quot; and e.&quot; + nameColumn + &quot; ilike :entity_filter_type_query_name&quot;;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return typesFilter + &quot; and e.&quot; + nameColumn + &quot; ilike concat(:entity_filter_type_query_name, &#39;%%&#39;)&quot;;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return typesFilter;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getNameColumn(EntityType entityType) {
+<b class="nc">&nbsp;        String nameColumn = entityNameColumns.get(entityType);</b>
+<b class="nc">&nbsp;        if (nameColumn == null) {</b>
+<b class="nc">&nbsp;            log.error(&quot;Name column is not defined in the entityNameColumns map for entity type {}.&quot;, entityType);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Name column is not defined for entity type: &quot; + entityType);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return nameColumn;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static EntityType resolveEntityType(EntityFilter entityFilter) {
+<b class="nc">&nbsp;        switch (entityFilter.getType()) {</b>
+&nbsp;            case SINGLE_ENTITY:
+<b class="nc">&nbsp;                return ((SingleEntityFilter) entityFilter).getSingleEntity().getEntityType();</b>
+&nbsp;            case ENTITY_LIST:
+<b class="nc">&nbsp;                return ((EntityListFilter) entityFilter).getEntityType();</b>
+&nbsp;            case ENTITY_NAME:
+<b class="nc">&nbsp;                return ((EntityNameFilter) entityFilter).getEntityType();</b>
+&nbsp;            case ENTITY_TYPE:
+<b class="nc">&nbsp;                return ((EntityTypeFilter) entityFilter).getEntityType();</b>
+&nbsp;            case ASSET_TYPE:
+&nbsp;            case ASSET_SEARCH_QUERY:
+<b class="nc">&nbsp;                return EntityType.ASSET;</b>
+&nbsp;            case DEVICE_TYPE:
+&nbsp;            case DEVICE_SEARCH_QUERY:
+<b class="nc">&nbsp;                return EntityType.DEVICE;</b>
+&nbsp;            case ENTITY_VIEW_TYPE:
+&nbsp;            case ENTITY_VIEW_SEARCH_QUERY:
+<b class="nc">&nbsp;                return EntityType.ENTITY_VIEW;</b>
+&nbsp;            case EDGE_TYPE:
+&nbsp;            case EDGE_SEARCH_QUERY:
+<b class="nc">&nbsp;                return EntityType.EDGE;</b>
+&nbsp;            case RELATIONS_QUERY:
+<b class="nc">&nbsp;                RelationsQueryFilter rgf = (RelationsQueryFilter) entityFilter;</b>
+<b class="nc">&nbsp;                return rgf.isMultiRoot() ? rgf.getMultiRootEntitiesType() : rgf.getRootEntity().getEntityType();</b>
+&nbsp;            case API_USAGE_STATE:
+<b class="nc">&nbsp;                return EntityType.API_USAGE_STATE;</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Not implemented!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

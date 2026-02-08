@@ -1,0 +1,661 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AssetController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: AssetController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AssetController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/126)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMethod;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.ResponseBody;
+&nbsp;import org.springframework.web.bind.annotation.ResponseStatus;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.NameConflictPolicy;
+&nbsp;import org.thingsboard.server.common.data.NameConflictStrategy;
+&nbsp;import org.thingsboard.server.common.data.UniquifyStrategy;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetInfo;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetSearchQuery;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.AssetId;
+&nbsp;import org.thingsboard.server.common.data.id.AssetProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.page.TimePageLink;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.asset.AssetBulkImportService;
+&nbsp;import org.thingsboard.server.service.entitiy.asset.TbAssetService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ASSET_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ASSET_INFO_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ASSET_NAME_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ASSET_TEXT_SEARCH_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ASSET_TYPE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.NAME_CONFLICT_POLICY_DESC;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UNIQUIFY_SEPARATOR_DESC;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UNIQUIFY_STRATEGY_DESC;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+&nbsp;import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class AssetController extends BaseController {
+&nbsp;    private final AssetBulkImportService assetBulkImportService;
+&nbsp;    private final TbAssetService tbAssetService;
+&nbsp;
+&nbsp;    public static final String ASSET_ID = &quot;assetId&quot;;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Asset (getAssetById)&quot;,
+&nbsp;            notes = &quot;Fetch the Asset object based on the provided Asset Id. &quot; +
+&nbsp;                    &quot;If the user has the authority of &#39;Tenant Administrator&#39;, the server checks that the asset is owned by the same tenant. &quot; +
+&nbsp;                    &quot;If the user has the authority of &#39;Customer User&#39;, the server checks that the asset is assigned to the same customer.&quot; + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH
+&nbsp;            )
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/asset/{assetId}&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset getAssetById(@Parameter(description = ASSET_ID_PARAM_DESCRIPTION)
+&nbsp;                              @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        return checkAssetId(assetId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Asset Info (getAssetInfoById)&quot;,
+&nbsp;            notes = &quot;Fetch the Asset Info object based on the provided Asset Id. &quot; +
+&nbsp;                    &quot;If the user has the authority of &#39;Tenant Administrator&#39;, the server checks that the asset is owned by the same tenant. &quot; +
+&nbsp;                    &quot;If the user has the authority of &#39;Customer User&#39;, the server checks that the asset is assigned to the same customer. &quot;
+&nbsp;                    + ASSET_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/asset/info/{assetId}&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public AssetInfo getAssetInfoById(@Parameter(description = ASSET_ID_PARAM_DESCRIPTION)
+&nbsp;                                      @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        return checkAssetInfoId(assetId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Or Update Asset (saveAsset)&quot;,
+&nbsp;            notes = &quot;Creates or Updates the Asset. When creating asset, platform generates Asset Id as &quot; + UUID_WIKI_LINK +
+&nbsp;                    &quot;The newly created Asset id will be present in the response. &quot; +
+&nbsp;                    &quot;Specify existing Asset id to update the asset. &quot; +
+&nbsp;                    &quot;Referencing non-existing Asset Id will cause &#39;Not Found&#39; error. &quot; +
+&nbsp;                    &quot;Remove &#39;id&#39;, &#39;tenantId&#39; and optionally &#39;customerId&#39; from the request body example (below) to create new Asset entity. &quot;
+&nbsp;                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/asset&quot;, method = RequestMethod.POST)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset saveAsset(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = &quot;A JSON value representing the asset.&quot;) @RequestBody Asset asset,
+&nbsp;                           @Parameter(description = NAME_CONFLICT_POLICY_DESC)
+&nbsp;                           @RequestParam(name = &quot;nameConflictPolicy&quot;, defaultValue = &quot;FAIL&quot;) NameConflictPolicy nameConflictPolicy,
+&nbsp;                           @Parameter(description = UNIQUIFY_SEPARATOR_DESC)
+&nbsp;                           @RequestParam(name = &quot;uniquifySeparator&quot;, defaultValue = &quot;_&quot;) String uniquifySeparator,
+&nbsp;                           @Parameter(description = UNIQUIFY_STRATEGY_DESC)
+&nbsp;                           @RequestParam(name = &quot;uniquifyStrategy&quot;, defaultValue = &quot;RANDOM&quot;) UniquifyStrategy uniquifyStrategy) throws Exception {
+<b class="nc">&nbsp;        asset.setTenantId(getTenantId());</b>
+<b class="nc">&nbsp;        checkEntity(asset.getId(), asset, Resource.ASSET);</b>
+<b class="nc">&nbsp;        return tbAssetService.save(asset, new NameConflictStrategy(nameConflictPolicy, uniquifySeparator, uniquifyStrategy), getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete asset (deleteAsset)&quot;,
+&nbsp;            notes = &quot;Deletes the asset and all the relations (from and to the asset). Referencing non-existing asset Id will cause an error.&quot; + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/asset/{assetId}&quot;, method = RequestMethod.DELETE)
+&nbsp;    @ResponseStatus(value = HttpStatus.OK)
+&nbsp;    public void deleteAsset(@Parameter(description = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws Exception {
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        Asset asset = checkAssetId(assetId, Operation.DELETE);</b>
+<b class="nc">&nbsp;        tbAssetService.delete(asset, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Assign asset to customer (assignAssetToCustomer)&quot;,
+&nbsp;            notes = &quot;Creates assignment of the asset to customer. Customer will be able to query asset afterwards.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/customer/{customerId}/asset/{assetId}&quot;, method = RequestMethod.POST)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset assignAssetToCustomer(@Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION) @PathVariable(&quot;customerId&quot;) String strCustomerId,
+&nbsp;                                       @Parameter(description = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;customerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+<b class="nc">&nbsp;        CustomerId customerId = new CustomerId(toUUID(strCustomerId));</b>
+<b class="nc">&nbsp;        Customer customer = checkCustomerId(customerId, Operation.READ);</b>
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        checkAssetId(assetId, Operation.ASSIGN_TO_CUSTOMER);</b>
+<b class="nc">&nbsp;        return tbAssetService.assignAssetToCustomer(getTenantId(), assetId, customer, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Unassign asset from customer (unassignAssetFromCustomer)&quot;,
+&nbsp;            notes = &quot;Clears assignment of the asset to customer. Customer will not be able to query asset afterwards.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/customer/asset/{assetId}&quot;, method = RequestMethod.DELETE)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset unassignAssetFromCustomer(@Parameter(description = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        Asset asset = checkAssetId(assetId, Operation.UNASSIGN_FROM_CUSTOMER);</b>
+<b class="nc">&nbsp;        if (asset.getCustomerId() == null || asset.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Asset isn&#39;t assigned to any customer!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Customer customer = checkCustomerId(asset.getCustomerId(), Operation.READ);</b>
+<b class="nc">&nbsp;        return tbAssetService.unassignAssetToCustomer(getTenantId(), assetId, customer, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Make asset publicly available (assignAssetToPublicCustomer)&quot;,
+&nbsp;            notes = &quot;Asset will be available for non-authorized (not logged-in) users. &quot; +
+&nbsp;                    &quot;This is useful to create dashboards that you plan to share/embed on a publicly available website. &quot; +
+&nbsp;                    &quot;However, users that are logged-in and belong to different tenant will not be able to access the asset.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/customer/public/asset/{assetId}&quot;, method = RequestMethod.POST)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset assignAssetToPublicCustomer(@Parameter(description = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        checkAssetId(assetId, Operation.ASSIGN_TO_CUSTOMER);</b>
+<b class="nc">&nbsp;        return tbAssetService.assignAssetToPublicCustomer(getTenantId(), assetId, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Tenant Assets (getTenantAssets)&quot;,
+&nbsp;            notes = &quot;Returns a page of assets owned by tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/tenant/assets&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;Asset&gt; getTenantAssets(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = ASSET_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = ASSET_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        if (type != null &amp;&amp; type.trim().length() &gt; 0) {</b>
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetsByTenantIdAndType(tenantId, type, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetsByTenantId(tenantId, pageLink));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Tenant Asset Infos (getTenantAssetInfos)&quot;,
+&nbsp;            notes = &quot;Returns a page of assets info objects owned by tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + ASSET_INFO_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/tenant/assetInfos&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;AssetInfo&gt; getTenantAssetInfos(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = ASSET_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String assetProfileId,
+&nbsp;            @Parameter(description = ASSET_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        if (type != null &amp;&amp; type.trim().length() &gt; 0) {</b>
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetInfosByTenantIdAndType(tenantId, type, pageLink));</b>
+<b class="nc">&nbsp;        } else if (assetProfileId != null &amp;&amp; assetProfileId.length() &gt; 0) {</b>
+<b class="nc">&nbsp;            AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));</b>
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, profileId, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetInfosByTenantId(tenantId, pageLink));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Tenant Asset (getTenantAsset)&quot;,
+&nbsp;            notes = &quot;Requested asset must be owned by tenant that the user belongs to. &quot; +
+&nbsp;                    &quot;Asset name is an unique property of asset. So it can be used to identify the asset.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/tenant/assets&quot;, params = {&quot;assetName&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset getTenantAsset(
+&nbsp;            @Parameter(description = ASSET_NAME_DESCRIPTION)
+&nbsp;            @RequestParam String assetName) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        return checkNotNull(assetService.findAssetByTenantIdAndName(tenantId, assetName));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Customer Assets (getCustomerAssets)&quot;,
+&nbsp;            notes = &quot;Returns a page of assets objects assigned to customer. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/customer/{customerId}/assets&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;Asset&gt; getCustomerAssets(
+&nbsp;            @Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(&quot;customerId&quot;) String strCustomerId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = ASSET_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = ASSET_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;customerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        CustomerId customerId = new CustomerId(toUUID(strCustomerId));</b>
+<b class="nc">&nbsp;        checkCustomerId(customerId, Operation.READ);</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        if (type != null &amp;&amp; type.trim().length() &gt; 0) {</b>
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetsByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetsByTenantIdAndCustomerId(tenantId, customerId, pageLink));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Customer Asset Infos (getCustomerAssetInfos)&quot;,
+&nbsp;            notes = &quot;Returns a page of assets info objects assigned to customer. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + ASSET_INFO_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/customer/{customerId}/assetInfos&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;AssetInfo&gt; getCustomerAssetInfos(
+&nbsp;            @Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(&quot;customerId&quot;) String strCustomerId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = ASSET_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String assetProfileId,
+&nbsp;            @Parameter(description = ASSET_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;customerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        CustomerId customerId = new CustomerId(toUUID(strCustomerId));</b>
+<b class="nc">&nbsp;        checkCustomerId(customerId, Operation.READ);</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        if (type != null &amp;&amp; type.trim().length() &gt; 0) {</b>
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));</b>
+<b class="nc">&nbsp;        } else if (assetProfileId != null &amp;&amp; assetProfileId.length() &gt; 0) {</b>
+<b class="nc">&nbsp;            AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));</b>
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId, customerId, profileId, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Assets By Ids (getAssetsByIds)&quot;,
+&nbsp;            notes = &quot;Requested assets must be owned by tenant or assigned to customer which user is performing the request. &quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/assets&quot;, params = {&quot;assetIds&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public List&lt;Asset&gt; getAssetsByIds(
+&nbsp;            @Parameter(description = &quot;A list of assets ids, separated by comma &#39;,&#39;&quot;, array = @ArraySchema(schema = @Schema(type = &quot;string&quot;)))
+&nbsp;            @RequestParam(&quot;assetIds&quot;) String[] strAssetIds) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkArrayParameter(&quot;assetIds&quot;, strAssetIds);</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        CustomerId customerId = user.getCustomerId();</b>
+<b class="nc">&nbsp;        List&lt;AssetId&gt; assetIds = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (String strAssetId : strAssetIds) {</b>
+<b class="nc">&nbsp;            assetIds.add(new AssetId(toUUID(strAssetId)));</b>
+&nbsp;        }
+&nbsp;        ListenableFuture&lt;List&lt;Asset&gt;&gt; assets;
+<b class="nc">&nbsp;        if (customerId == null || customerId.isNullUid()) {</b>
+<b class="nc">&nbsp;            assets = assetService.findAssetsByTenantIdAndIdsAsync(tenantId, assetIds);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            assets = assetService.findAssetsByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, assetIds);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return checkNotNull(assets.get());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Find related assets (findByQuery)&quot;,
+&nbsp;            notes = &quot;Returns all assets that are related to the specific entity. &quot; +
+&nbsp;                    &quot;The entity id, relation type, asset types, depth of the search, and other query parameters defined using complex &#39;AssetSearchQuery&#39; object. &quot; +
+&nbsp;                    &quot;See &#39;Model&#39; tab of the Parameters for more info.&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/assets&quot;, method = RequestMethod.POST)
+&nbsp;    @ResponseBody
+&nbsp;    public List&lt;Asset&gt; findByQuery(@RequestBody AssetSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkNotNull(query);</b>
+<b class="nc">&nbsp;        checkNotNull(query.getParameters());</b>
+<b class="nc">&nbsp;        checkNotNull(query.getAssetTypes());</b>
+<b class="nc">&nbsp;        checkEntityId(query.getParameters().getEntityId(), Operation.READ);</b>
+<b class="nc">&nbsp;        List&lt;Asset&gt; assets = checkNotNull(assetService.findAssetsByQuery(getTenantId(), query).get());</b>
+<b class="nc">&nbsp;        assets = assets.stream().filter(asset -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ, asset.getId(), asset);</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        return assets;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Asset Types (getAssetTypes)&quot;,
+&nbsp;            notes = &quot;Deprecated. See &#39;getAssetProfileNames&#39; API from Asset Profile Controller instead.&quot; + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/asset/types&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    @Deprecated(since = &quot;3.6.2&quot;)
+&nbsp;    public List&lt;EntitySubtype&gt; getAssetTypes() throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;List&lt;EntitySubtype&gt;&gt; assetTypes = assetService.findAssetTypesByTenantId(tenantId);</b>
+<b class="nc">&nbsp;        return checkNotNull(assetTypes.get());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Assign asset to edge (assignAssetToEdge)&quot;,
+&nbsp;            notes = &quot;Creates assignment of an existing asset to an instance of The Edge. &quot; +
+&nbsp;                    EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION +
+&nbsp;                    &quot;Second, remote edge service will receive a copy of assignment asset &quot; +
+&nbsp;                    EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
+&nbsp;                    &quot;Third, once asset will be delivered to edge service, it&#39;s going to be available for usage on remote edge instance.&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/edge/{edgeId}/asset/{assetId}&quot;, method = RequestMethod.POST)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset assignAssetToEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION) @PathVariable(EDGE_ID) String strEdgeId,
+&nbsp;                                   @Parameter(description = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+&nbsp;
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        Edge edge = checkEdgeId(edgeId, Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        checkAssetId(assetId, Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbAssetService.assignAssetToEdge(getTenantId(), assetId, edge, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Unassign asset from edge (unassignAssetFromEdge)&quot;,
+&nbsp;            notes = &quot;Clears assignment of the asset to the edge. &quot; +
+&nbsp;                    EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION +
+&nbsp;                    &quot;Second, remote edge service will receive an &#39;unassign&#39; command to remove asset &quot; +
+&nbsp;                    EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
+&nbsp;                    &quot;Third, once &#39;unassign&#39; command will be delivered to edge service, it&#39;s going to remove asset locally.&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/edge/{edgeId}/asset/{assetId}&quot;, method = RequestMethod.DELETE)
+&nbsp;    @ResponseBody
+&nbsp;    public Asset unassignAssetFromEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION) @PathVariable(EDGE_ID) String strEdgeId,
+&nbsp;                                       @Parameter(description = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        checkParameter(ASSET_ID, strAssetId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        Edge edge = checkEdgeId(edgeId, Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        AssetId assetId = new AssetId(toUUID(strAssetId));</b>
+<b class="nc">&nbsp;        Asset asset = checkAssetId(assetId, Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbAssetService.unassignAssetFromEdge(getTenantId(), asset, edge, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get assets assigned to edge (getEdgeAssets)&quot;,
+&nbsp;            notes = &quot;Returns a page of assets assigned to edge. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/edge/{edgeId}/assets&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public PageData&lt;Asset&gt; getEdgeAssets(
+&nbsp;            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(EDGE_ID) String strEdgeId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = ASSET_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = ASSET_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = &quot;Timestamp. Assets with creation time before it won&#39;t be queried&quot;)
+&nbsp;            @RequestParam(required = false) Long startTime,
+&nbsp;            @Parameter(description = &quot;Timestamp. Assets with creation time after it won&#39;t be queried&quot;)
+&nbsp;            @RequestParam(required = false) Long endTime) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        checkEdgeId(edgeId, Operation.READ);</b>
+<b class="nc">&nbsp;        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);</b>
+&nbsp;        PageData&lt;Asset&gt; nonFilteredResult;
+<b class="nc">&nbsp;        if (type != null &amp;&amp; type.trim().length() &gt; 0) {</b>
+<b class="nc">&nbsp;            nonFilteredResult = assetService.findAssetsByTenantIdAndEdgeIdAndType(tenantId, edgeId, type, pageLink);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            nonFilteredResult = assetService.findAssetsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;Asset&gt; filteredAssets = nonFilteredResult.getData().stream().filter(asset -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ, asset.getId(), asset);</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        PageData&lt;Asset&gt; filteredResult = new PageData&lt;&gt;(filteredAssets,</b>
+<b class="nc">&nbsp;                nonFilteredResult.getTotalPages(),</b>
+<b class="nc">&nbsp;                nonFilteredResult.getTotalElements(),</b>
+<b class="nc">&nbsp;                nonFilteredResult.hasNext());</b>
+<b class="nc">&nbsp;        return checkNotNull(filteredResult);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Import the bulk of assets (processAssetsBulkImport)&quot;,
+&nbsp;            notes = &quot;There&#39;s an ability to import the bulk of assets using the only .csv file.&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/asset/bulk_import&quot;)
+&nbsp;    public BulkImportResult&lt;Asset&gt; processAssetsBulkImport(@RequestBody BulkImportRequest request) throws Exception {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        return assetBulkImportService.processBulkImport(request, user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

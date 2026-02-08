@@ -1,0 +1,409 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SqlDaoCallsAspect</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.aspect</a>
+</div>
+
+<h1>Coverage Summary for Class: SqlDaoCallsAspect (org.thingsboard.server.dao.aspect)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SqlDaoCallsAspect</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/98)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SqlDaoCallsAspect$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/101)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.aspect;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.ArrayUtils;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.aspectj.lang.ProceedingJoinPoint;
+&nbsp;import org.aspectj.lang.annotation.Around;
+&nbsp;import org.aspectj.lang.annotation.Aspect;
+&nbsp;import org.aspectj.lang.reflect.MethodSignature;
+&nbsp;import org.checkerframework.checker.nullness.qual.Nullable;
+&nbsp;import org.hibernate.exception.JDBCConnectionException;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.function.Consumer;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.apache.commons.lang3.StringUtils.join;
+&nbsp;
+&nbsp;@Aspect
+&nbsp;@ConditionalOnProperty(prefix = &quot;sql&quot;, value = &quot;log_tenant_stats&quot;, havingValue = &quot;true&quot;)
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class SqlDaoCallsAspect {</b>
+&nbsp;
+<b class="nc">&nbsp;    private final Set&lt;String&gt; invalidTenantDbCallMethods = ConcurrentHashMap.newKeySet();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, DbCallStats&gt; statsMap = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    @Value(&quot;${sql.batch_sort:true}&quot;)
+&nbsp;    private boolean batchSortEnabled;
+&nbsp;
+&nbsp;    private static final String DEADLOCK_DETECTED_ERROR = &quot;deadlock detected&quot;;
+&nbsp;
+&nbsp;
+&nbsp;    @Scheduled(initialDelayString = &quot;${sql.log_tenant_stats_interval_ms:60000}&quot;,
+&nbsp;            fixedDelayString = &quot;${sql.log_tenant_stats_interval_ms:60000}&quot;)
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        List&lt;DbCallStatsSnapshot&gt; snapshots = snapshot();</b>
+<b class="nc">&nbsp;        if (snapshots.isEmpty()) return;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (log.isTraceEnabled()) {</b>
+<b class="nc">&nbsp;                logTopNTenants(snapshots, Comparator.comparing(DbCallStatsSnapshot::getTotalTiming).reversed(), 0, snapshot -&gt; {</b>
+<b class="nc">&nbsp;                    logSnapshot(snapshot, 0, Comparator.comparing(MethodCallStatsSnapshot::getTiming).reversed(), &quot;timing&quot;, log::trace);</b>
+&nbsp;                });
+&nbsp;
+<b class="nc">&nbsp;                Map&lt;String, Map&lt;TenantId, MethodCallStatsSnapshot&gt;&gt; byMethodStats = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;                for (DbCallStatsSnapshot snapshot : snapshots) {</b>
+<b class="nc">&nbsp;                    snapshot.getMethodStats().forEach((method, stats) -&gt; {</b>
+<b class="nc">&nbsp;                        byMethodStats.computeIfAbsent(method, m -&gt; new HashMap&lt;&gt;())</b>
+<b class="nc">&nbsp;                                .put(snapshot.getTenantId(), stats);</b>
+&nbsp;                    });
+&nbsp;                }
+<b class="nc">&nbsp;                byMethodStats.forEach((method, byTenantStats) -&gt; {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;Top tenants for method {} by calls:&quot;, method);</b>
+<b class="nc">&nbsp;                    byTenantStats.entrySet().stream()</b>
+<b class="nc">&nbsp;                            .sorted(Map.Entry.comparingByValue(Comparator.comparing(MethodCallStatsSnapshot::getExecutions).reversed()))</b>
+<b class="nc">&nbsp;                            .limit(10)</b>
+<b class="nc">&nbsp;                            .forEach(e -&gt; {</b>
+<b class="nc">&nbsp;                                TenantId tenantId = e.getKey();</b>
+<b class="nc">&nbsp;                                MethodCallStatsSnapshot methodStats = e.getValue();</b>
+<b class="nc">&nbsp;                                log.trace(&quot;[{}] calls: {}, failures: {}, timing: {}&quot;, tenantId,</b>
+<b class="nc">&nbsp;                                        methodStats.getExecutions(), methodStats.getFailures(), methodStats.getTiming());</b>
+&nbsp;                            });
+&nbsp;                });
+<b class="nc">&nbsp;            } else if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;Total calls statistics below:&quot;);</b>
+<b class="nc">&nbsp;                logTopNTenants(snapshots, Comparator.comparingInt(DbCallStatsSnapshot::getTotalCalls).reversed(), 10,</b>
+<b class="nc">&nbsp;                        s -&gt; logSnapshot(s, 10, Comparator.comparing(MethodCallStatsSnapshot::getExecutions).reversed(), &quot;executions&quot;, log::debug));</b>
+<b class="nc">&nbsp;                log.debug(&quot;Total timing statistics below:&quot;);</b>
+<b class="nc">&nbsp;                logTopNTenants(snapshots, Comparator.comparingLong(DbCallStatsSnapshot::getTotalTiming).reversed(), 10,</b>
+<b class="nc">&nbsp;                        s -&gt; logSnapshot(s, 10, Comparator.comparing(MethodCallStatsSnapshot::getTiming).reversed(), &quot;timing&quot;, log::debug));</b>
+<b class="nc">&nbsp;                log.debug(&quot;Total errors statistics below:&quot;);</b>
+<b class="nc">&nbsp;                logTopNTenants(snapshots, Comparator.comparingInt(DbCallStatsSnapshot::getTotalFailure).reversed(), 10,</b>
+<b class="nc">&nbsp;                        s -&gt; logSnapshot(s, 10, Comparator.comparing(MethodCallStatsSnapshot::getFailures).reversed(), &quot;failures&quot;, log::debug));</b>
+<b class="nc">&nbsp;            } else if (log.isInfoEnabled()) {</b>
+<b class="nc">&nbsp;                log.info(&quot;Total timing statistics below:&quot;);</b>
+<b class="nc">&nbsp;                logTopNTenants(snapshots, Comparator.comparingLong(DbCallStatsSnapshot::getTotalTiming).reversed(), 3,</b>
+<b class="nc">&nbsp;                        s -&gt; logSnapshot(s, 3, Comparator.comparing(MethodCallStatsSnapshot::getTiming).reversed(), &quot;timing&quot;, log::info));</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            statsMap.clear();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void logSnapshot(DbCallStatsSnapshot snapshot, int limit, Comparator&lt;MethodCallStatsSnapshot&gt; methodStatsComparator, String sortingKey, Consumer&lt;String&gt; logger) {
+<b class="nc">&nbsp;        logger.accept(String.format(&quot;[%s]: calls: %s, failures: %s, exec time: %s &quot;,</b>
+<b class="nc">&nbsp;                snapshot.getTenantId(), snapshot.getTotalCalls(), snapshot.getTotalFailure(), snapshot.getTotalTiming()));</b>
+<b class="nc">&nbsp;        var stream = snapshot.getMethodStats().entrySet().stream()</b>
+<b class="nc">&nbsp;                .sorted(Map.Entry.comparingByValue(methodStatsComparator));</b>
+<b class="nc">&nbsp;        if (limit &gt; 0) {</b>
+<b class="nc">&nbsp;            logger.accept(String.format(&quot;[%s] Top %s methods by %s:&quot;, snapshot.getTenantId(), limit, sortingKey));</b>
+<b class="nc">&nbsp;            stream = stream.limit(limit);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stream.forEach(e -&gt; {</b>
+<b class="nc">&nbsp;            MethodCallStatsSnapshot methodStats = e.getValue();</b>
+<b class="nc">&nbsp;            logger.accept(String.format(&quot;[%s]: method: %s, calls: %s, failures: %s, exec time: %s&quot;, snapshot.getTenantId(), e.getKey(),</b>
+<b class="nc">&nbsp;                    methodStats.getExecutions(), methodStats.getFailures(), methodStats.getTiming()));</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;DbCallStatsSnapshot&gt; snapshot() {
+<b class="nc">&nbsp;        return statsMap.values().stream().map(DbCallStats::snapshot).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void logTopNTenants(List&lt;DbCallStatsSnapshot&gt; snapshots, Comparator&lt;DbCallStatsSnapshot&gt; comparator,
+&nbsp;                                int n, Consumer&lt;DbCallStatsSnapshot&gt; logFunction) {
+<b class="nc">&nbsp;        var stream = snapshots.stream().sorted(comparator);</b>
+<b class="nc">&nbsp;        if (n &gt; 0) {</b>
+<b class="nc">&nbsp;            stream = stream.limit(n);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stream.forEach(logFunction);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
+&nbsp;    @Around(&quot;@within(org.thingsboard.server.dao.util.SqlDao)&quot;)
+&nbsp;    public Object handleSqlCall(ProceedingJoinPoint joinPoint) throws Throwable {
+<b class="nc">&nbsp;        MethodSignature signature = (MethodSignature) joinPoint.getSignature();</b>
+<b class="nc">&nbsp;        var methodName = signature.toShortString();</b>
+<b class="nc">&nbsp;        if (invalidTenantDbCallMethods.contains(methodName)) {</b>
+&nbsp;            //Simply call the method if tenant is not found
+<b class="nc">&nbsp;            return joinPoint.proceed();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var tenantId = getTenantId(signature, methodName, joinPoint.getArgs());</b>
+<b class="nc">&nbsp;        if (tenantId == null || tenantId.isNullUid()) {</b>
+&nbsp;            //Simply call the method if tenant is null
+<b class="nc">&nbsp;            return joinPoint.proceed();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var startTime = System.currentTimeMillis();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            var result = joinPoint.proceed();</b>
+<b class="nc">&nbsp;            if (result instanceof ListenableFuture) {</b>
+<b class="nc">&nbsp;                Futures.addCallback((ListenableFuture) result,</b>
+<b class="nc">&nbsp;                        new FutureCallback&lt;&gt;() {</b>
+&nbsp;                            @Override
+&nbsp;                            public void onSuccess(@Nullable Object result) {
+<b class="nc">&nbsp;                                reportSuccessfulMethodExecution(tenantId, methodName, startTime);</b>
+&nbsp;                            }
+&nbsp;
+&nbsp;                            @Override
+&nbsp;                            public void onFailure(Throwable t) {
+<b class="nc">&nbsp;                                reportFailedMethodExecution(tenantId, methodName, startTime, t, joinPoint);</b>
+&nbsp;                            }
+&nbsp;                        },
+<b class="nc">&nbsp;                        MoreExecutors.directExecutor());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                reportSuccessfulMethodExecution(tenantId, methodName, startTime);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        } catch (Throwable t) {
+<b class="nc">&nbsp;            reportFailedMethodExecution(tenantId, methodName, startTime, t, joinPoint);</b>
+&nbsp;            throw t;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportFailedMethodExecution(TenantId tenantId, String method, long startTime, Throwable t, ProceedingJoinPoint joinPoint) {
+<b class="nc">&nbsp;        if (t != null) {</b>
+<b class="nc">&nbsp;            if (ExceptionUtils.indexOfThrowable(t, JDBCConnectionException.class) &gt;= 0) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (StringUtils.containedByAny(DEADLOCK_DETECTED_ERROR, ExceptionUtils.getRootCauseMessage(t), ExceptionUtils.getMessage(t))) {</b>
+<b class="nc">&nbsp;                if (!batchSortEnabled) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;Deadlock was detected for method {} (tenant: {}). You might need to enable &#39;sql.batch_sort&#39; option.&quot;, method, tenantId);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.error(&quot;Deadlock was detected for method {} (tenant: {}). Arguments passed: \n{}\n The error: &quot;,</b>
+<b class="nc">&nbsp;                            method, tenantId, join(joinPoint.getArgs(), System.lineSeparator()), t);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        reportMethodExecution(tenantId, method, false, startTime);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportSuccessfulMethodExecution(TenantId tenantId, String method, long startTime) {
+<b class="nc">&nbsp;        reportMethodExecution(tenantId, method, true, startTime);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportMethodExecution(TenantId tenantId, String method, boolean success, long startTime) {
+<b class="nc">&nbsp;        statsMap.computeIfAbsent(tenantId, DbCallStats::new)</b>
+<b class="nc">&nbsp;                .onMethodCall(method, success, System.currentTimeMillis() - startTime);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    TenantId getTenantId(MethodSignature signature, String methodName, Object[] args) {
+<b class="nc">&nbsp;        if (args == null || args.length == 0) {</b>
+<b class="nc">&nbsp;            addAndLogInvalidMethods(methodName);</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (int i = 0; i &lt; args.length; i++) {</b>
+<b class="nc">&nbsp;            Object arg = args[i];</b>
+<b class="nc">&nbsp;            if (arg instanceof TenantId) {</b>
+<b class="nc">&nbsp;                return (TenantId) arg;</b>
+<b class="nc">&nbsp;            } else if (arg instanceof UUID) {</b>
+<b class="nc">&nbsp;                if (signature.getParameterNames() != null &amp;&amp; StringUtils.equals(signature.getParameterNames()[i], &quot;tenantId&quot;)) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;Method {} uses UUID for tenantId param instead of TenantId class&quot;, methodName);</b>
+<b class="nc">&nbsp;                    return TenantId.fromUUID((UUID) arg);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (ArrayUtils.contains(signature.getParameterTypes(), TenantId.class) ||</b>
+<b class="nc">&nbsp;                ArrayUtils.contains(signature.getParameterNames(), &quot;tenantId&quot;)) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Null was submitted as tenantId to method {}. Args: {}&quot;, methodName, Arrays.toString(args));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            addAndLogInvalidMethods(methodName);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addAndLogInvalidMethods(String methodName) {
+<b class="nc">&nbsp;        invalidTenantDbCallMethods.add(methodName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

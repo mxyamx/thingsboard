@@ -1,0 +1,242 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbTenantProfileService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.entitiy.tenant.profile</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbTenantProfileService (org.thingsboard.server.service.entitiy.tenant.profile)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbTenantProfileService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.entitiy.tenant.profile;
+&nbsp;
+&nbsp;import jakarta.validation.constraints.NotNull;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantProfileService;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+&nbsp;import org.thingsboard.server.service.entitiy.queue.TbQueueService;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.EntityType.TENANT_PROFILE;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@AllArgsConstructor
+&nbsp;public class DefaultTbTenantProfileService extends AbstractTbEntityService implements TbTenantProfileService {
+&nbsp;    private final TbQueueService tbQueueService;
+&nbsp;    private final TenantProfileService tenantProfileService;
+&nbsp;    private final TenantService tenantService;
+&nbsp;    private final TbTenantProfileCache tenantProfileCache;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile
+&nbsp;    save(TenantId tenantId, TenantProfile tenantProfile, TenantProfile oldTenantProfile, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = tenantProfile.getId() == null ? ActionType.ADDED : ActionType.UPDATED;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            TenantProfile savedTenantProfile = checkNotNull(tenantProfileService.saveTenantProfile(tenantId, tenantProfile));</b>
+<b class="nc">&nbsp;            tenantProfileCache.put(savedTenantProfile);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, savedTenantProfile.getId(), savedTenantProfile, null,</b>
+&nbsp;                    actionType, user);
+&nbsp;
+<b class="nc">&nbsp;            List&lt;TenantId&gt; tenantIds = tenantService.findTenantIdsByTenantProfileId(savedTenantProfile.getId());</b>
+<b class="nc">&nbsp;            tbQueueService.updateQueuesByTenants(tenantIds, savedTenantProfile, oldTenantProfile);</b>
+&nbsp;
+<b class="nc">&nbsp;            return savedTenantProfile;</b>
+&nbsp;        } catch (ThingsboardException e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to save tenant profile because ThingsboardException [{}]&quot;, tenantProfile, e);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, getOrEmptyId(tenantProfile.getId(), TENANT_PROFILE), tenantProfile, actionType, user, e);</b>
+&nbsp;            throw e;
+&nbsp;        } catch (DataValidationException e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to save tenant profile because data validation [{}]&quot;, tenantProfile, e);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, getOrEmptyId(tenantProfile.getId(), TENANT_PROFILE), tenantProfile, actionType, user, e);</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(e.getMessage(), e, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to save tenant profile because Exception [{}]&quot;, tenantProfile, e);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, getOrEmptyId(tenantProfile.getId(), TENANT_PROFILE), tenantProfile, actionType, user, e);</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(e.getMessage(), e, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void delete(TenantId tenantId, @NotNull TenantProfile tenantProfile, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = ActionType.DELETED;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            tenantProfileService.deleteTenantProfile(tenantId, tenantProfile.getId());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, tenantProfile.getId(), tenantProfile, null, actionType, user);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, tenantProfile.getId(), tenantProfile, null, actionType, user, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile setDefaultTenantProfile(TenantId tenantId, @NotNull TenantProfile tenantProfile, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = ActionType.UPDATED;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            TenantProfile savedTenantProfile = tenantProfileService.setDefaultTenantProfile(tenantId, tenantProfile.getId());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, tenantProfile.getId(), savedTenantProfile, null, actionType, user);</b>
+<b class="nc">&nbsp;            return savedTenantProfile;</b>
+&nbsp;        } catch (DataValidationException e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to set default tenant profile due to data validation [{}]&quot;, tenantProfile, e);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, tenantProfile.getId(), tenantProfile, actionType, user, e);</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(e.getMessage(), e, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to set default tenant profile [{}]&quot;, tenantProfile, e);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, tenantProfile.getId(), tenantProfile, actionType, user, e);</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(e.getMessage(), e, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

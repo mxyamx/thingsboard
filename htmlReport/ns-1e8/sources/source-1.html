@@ -1,0 +1,393 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultNotificationCommandsHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.ws.notification</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultNotificationCommandsHandler (org.thingsboard.server.service.ws.notification)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultNotificationCommandsHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/112)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.ws.notification;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.rule.engine.api.NotificationCenter;
+&nbsp;import org.thingsboard.server.common.data.id.IdBased;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.notification.Notification;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationStatus;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
+&nbsp;import org.thingsboard.server.service.subscription.TbSubscription;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketService;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketSessionRef;
+&nbsp;import org.thingsboard.server.service.ws.notification.cmd.MarkAllNotificationsAsReadCmd;
+&nbsp;import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationsAsReadCmd;
+&nbsp;import org.thingsboard.server.service.ws.notification.cmd.NotificationsCountSubCmd;
+&nbsp;import org.thingsboard.server.service.ws.notification.cmd.NotificationsSubCmd;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationsCountSubscription;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationsSubscription;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationsSubscriptionUpdate;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.CmdUpdate;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.UnsubscribeCmd;
+&nbsp;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.notification.NotificationDeliveryMethod.WEB;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultNotificationCommandsHandler implements NotificationCommandsHandler {
+&nbsp;
+&nbsp;    private final NotificationService notificationService;
+&nbsp;    private final TbLocalSubscriptionService localSubscriptionService;
+&nbsp;    private final NotificationCenter notificationCenter;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    @Autowired @Lazy
+&nbsp;    private WebSocketService wsService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleUnreadNotificationsSubCmd(WebSocketSessionRef sessionRef, NotificationsSubCmd cmd) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Handling unread notifications subscription cmd (cmdId: {})&quot;, sessionRef.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        SecurityUser securityCtx = sessionRef.getSecurityCtx();</b>
+<b class="nc">&nbsp;        NotificationsSubscription subscription = NotificationsSubscription.builder()</b>
+<b class="nc">&nbsp;                .serviceId(serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .sessionId(sessionRef.getSessionId())</b>
+<b class="nc">&nbsp;                .subscriptionId(cmd.getCmdId())</b>
+<b class="nc">&nbsp;                .tenantId(securityCtx.getTenantId())</b>
+<b class="nc">&nbsp;                .entityId(securityCtx.getId())</b>
+<b class="nc">&nbsp;                .updateProcessor(this::handleNotificationsSubscriptionUpdate)</b>
+<b class="nc">&nbsp;                .limit(cmd.getLimit())</b>
+<b class="nc">&nbsp;                .notificationTypes(cmd.getTypes())</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        localSubscriptionService.addSubscription(subscription, sessionRef);</b>
+&nbsp;
+<b class="nc">&nbsp;        fetchUnreadNotifications(subscription);</b>
+<b class="nc">&nbsp;        sendUpdate(sessionRef.getSessionId(), subscription.createFullUpdate());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleUnreadNotificationsCountSubCmd(WebSocketSessionRef sessionRef, NotificationsCountSubCmd cmd) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Handling unread notifications count subscription cmd (cmdId: {})&quot;, sessionRef.getSessionId(), cmd.getCmdId());</b>
+<b class="nc">&nbsp;        SecurityUser securityCtx = sessionRef.getSecurityCtx();</b>
+<b class="nc">&nbsp;        NotificationsCountSubscription subscription = NotificationsCountSubscription.builder()</b>
+<b class="nc">&nbsp;                .serviceId(serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .sessionId(sessionRef.getSessionId())</b>
+<b class="nc">&nbsp;                .subscriptionId(cmd.getCmdId())</b>
+<b class="nc">&nbsp;                .tenantId(securityCtx.getTenantId())</b>
+<b class="nc">&nbsp;                .entityId(securityCtx.getId())</b>
+<b class="nc">&nbsp;                .updateProcessor(this::handleNotificationsCountSubscriptionUpdate)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        localSubscriptionService.addSubscription(subscription, sessionRef);</b>
+&nbsp;
+<b class="nc">&nbsp;        fetchUnreadNotificationsCount(subscription);</b>
+<b class="nc">&nbsp;        sendUpdate(sessionRef.getSessionId(), subscription.createUpdate());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void fetchUnreadNotifications(NotificationsSubscription subscription) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}, subId: {}] Fetching unread notifications from DB&quot;, subscription.getSessionId(), subscription.getSubscriptionId());</b>
+<b class="nc">&nbsp;        PageData&lt;Notification&gt; notifications = notificationService.findLatestUnreadNotificationsByRecipientIdAndNotificationTypes(subscription.getTenantId(),</b>
+<b class="nc">&nbsp;                WEB, (UserId) subscription.getEntityId(), subscription.getNotificationTypes(), subscription.getLimit());</b>
+<b class="nc">&nbsp;        subscription.getLatestUnreadNotifications().clear();</b>
+<b class="nc">&nbsp;        notifications.getData().forEach(notification -&gt; {</b>
+<b class="nc">&nbsp;            subscription.getLatestUnreadNotifications().put(notification.getUuidId(), notification);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        subscription.getTotalUnreadCounter().set((int) notifications.getTotalElements());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void fetchUnreadNotificationsCount(NotificationsCountSubscription subscription) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}, subId: {}] Fetching unread notifications count from DB&quot;, subscription.getSessionId(), subscription.getSubscriptionId());</b>
+<b class="nc">&nbsp;        int unreadCount = notificationService.countUnreadNotificationsByRecipientId(subscription.getTenantId(), WEB, (UserId) subscription.getEntityId());</b>
+<b class="nc">&nbsp;        subscription.getTotalUnreadCounter().set(unreadCount);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    /* Notifications subscription update handling */
+&nbsp;    private void handleNotificationsSubscriptionUpdate(TbSubscription&lt;NotificationsSubscriptionUpdate&gt; sub, NotificationsSubscriptionUpdate subscriptionUpdate) {
+<b class="nc">&nbsp;        NotificationsSubscription subscription = (NotificationsSubscription) sub;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (subscriptionUpdate.getNotificationUpdate() != null) {</b>
+<b class="nc">&nbsp;                handleNotificationUpdate(subscription, subscriptionUpdate.getNotificationUpdate());</b>
+<b class="nc">&nbsp;            } else if (subscriptionUpdate.getNotificationRequestUpdate() != null) {</b>
+<b class="nc">&nbsp;                handleNotificationRequestUpdate(subscription, subscriptionUpdate.getNotificationRequestUpdate());</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}, subId: {}] Failed to handle update for notifications subscription: {}&quot;, subscription.getSessionId(), subscription.getSubscriptionId(), subscriptionUpdate, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleNotificationUpdate(NotificationsSubscription subscription, NotificationUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}, subId: {}] Handling notification update: {}&quot;, subscription.getSessionId(), subscription.getSubscriptionId(), update);</b>
+<b class="nc">&nbsp;        Notification notification = update.getNotification();</b>
+<b class="nc">&nbsp;        UUID notificationId = notification != null ? notification.getUuidId() : update.getNotificationId();</b>
+<b class="nc">&nbsp;        NotificationType notificationType = notification != null ? notification.getType() : update.getNotificationType();</b>
+<b class="nc">&nbsp;        if (notificationType != null &amp;&amp; !subscription.checkNotificationType(notificationType)) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (update.isCreated()) {</b>
+<b class="nc">&nbsp;            subscription.getLatestUnreadNotifications().put(notificationId, notification);</b>
+<b class="nc">&nbsp;            subscription.getTotalUnreadCounter().incrementAndGet();</b>
+<b class="nc">&nbsp;            if (subscription.getLatestUnreadNotifications().size() &gt; subscription.getLimit()) {</b>
+<b class="nc">&nbsp;                Set&lt;UUID&gt; beyondLimit = subscription.getSortedNotifications().stream().skip(subscription.getLimit())</b>
+<b class="nc">&nbsp;                        .map(IdBased::getUuidId).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;                beyondLimit.forEach(id -&gt; subscription.getLatestUnreadNotifications().remove(id));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            sendUpdate(subscription.getSessionId(), subscription.createPartialUpdate(notification));</b>
+<b class="nc">&nbsp;        } else if (update.isUpdated()) {</b>
+<b class="nc">&nbsp;            if (update.getNewStatus() == NotificationStatus.READ) {</b>
+<b class="nc">&nbsp;                if (update.isAllNotifications() || subscription.getLatestUnreadNotifications().containsKey(notificationId)) {</b>
+<b class="nc">&nbsp;                    fetchUnreadNotifications(subscription);</b>
+<b class="nc">&nbsp;                    sendUpdate(subscription.getSessionId(), subscription.createFullUpdate());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    subscription.getTotalUnreadCounter().decrementAndGet();</b>
+<b class="nc">&nbsp;                    sendUpdate(subscription.getSessionId(), subscription.createCountUpdate());</b>
+&nbsp;                }
+<b class="nc">&nbsp;            } else if (notification.getStatus() != NotificationStatus.READ) {</b>
+<b class="nc">&nbsp;                if (subscription.getLatestUnreadNotifications().containsKey(notificationId)) {</b>
+<b class="nc">&nbsp;                    subscription.getLatestUnreadNotifications().put(notificationId, notification);</b>
+<b class="nc">&nbsp;                    sendUpdate(subscription.getSessionId(), subscription.createPartialUpdate(notification));</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (update.isDeleted()) {</b>
+<b class="nc">&nbsp;            if (subscription.getLatestUnreadNotifications().containsKey(notificationId)) {</b>
+<b class="nc">&nbsp;                fetchUnreadNotifications(subscription);</b>
+<b class="nc">&nbsp;                sendUpdate(subscription.getSessionId(), subscription.createFullUpdate());</b>
+<b class="nc">&nbsp;            } else if (notification.getStatus() != NotificationStatus.READ) {</b>
+<b class="nc">&nbsp;                subscription.getTotalUnreadCounter().decrementAndGet();</b>
+<b class="nc">&nbsp;                sendUpdate(subscription.getSessionId(), subscription.createCountUpdate());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleNotificationRequestUpdate(NotificationsSubscription subscription, NotificationRequestUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}, subId: {}] Handling notification request update: {}&quot;, subscription.getSessionId(), subscription.getSubscriptionId(), update);</b>
+<b class="nc">&nbsp;        fetchUnreadNotifications(subscription);</b>
+<b class="nc">&nbsp;        sendUpdate(subscription.getSessionId(), subscription.createFullUpdate());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    /* Notifications count subscription update handling */
+&nbsp;    private void handleNotificationsCountSubscriptionUpdate(TbSubscription&lt;NotificationsSubscriptionUpdate&gt; sub, NotificationsSubscriptionUpdate subscriptionUpdate) {
+<b class="nc">&nbsp;        NotificationsCountSubscription subscription = (NotificationsCountSubscription) sub;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (subscriptionUpdate.getNotificationUpdate() != null) {</b>
+<b class="nc">&nbsp;                handleNotificationUpdate(subscription, subscriptionUpdate.getNotificationUpdate());</b>
+<b class="nc">&nbsp;            } else if (subscriptionUpdate.getNotificationRequestUpdate() != null) {</b>
+<b class="nc">&nbsp;                handleNotificationRequestUpdate(subscription, subscriptionUpdate.getNotificationRequestUpdate());</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}, subId: {}] Failed to handle update for notifications count subscription: {}&quot;, subscription.getSessionId(), subscription.getSubscriptionId(), subscriptionUpdate, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleNotificationUpdate(NotificationsCountSubscription subscription, NotificationUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}, subId: {}] Handling notification update for count sub: {}&quot;, subscription.getSessionId(), subscription.getSubscriptionId(), update);</b>
+<b class="nc">&nbsp;        if (update.isCreated()) {</b>
+<b class="nc">&nbsp;            subscription.getTotalUnreadCounter().incrementAndGet();</b>
+<b class="nc">&nbsp;            sendUpdate(subscription.getSessionId(), subscription.createUpdate());</b>
+<b class="nc">&nbsp;        } else if (update.isUpdated()) {</b>
+<b class="nc">&nbsp;            if (update.getNewStatus() == NotificationStatus.READ) {</b>
+<b class="nc">&nbsp;                if (update.isAllNotifications()) {</b>
+<b class="nc">&nbsp;                    fetchUnreadNotificationsCount(subscription);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    subscription.getTotalUnreadCounter().decrementAndGet();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                sendUpdate(subscription.getSessionId(), subscription.createUpdate());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (update.isDeleted()) {</b>
+<b class="nc">&nbsp;            if (update.getNotification().getStatus() != NotificationStatus.READ) {</b>
+<b class="nc">&nbsp;                subscription.getTotalUnreadCounter().decrementAndGet();</b>
+<b class="nc">&nbsp;                sendUpdate(subscription.getSessionId(), subscription.createUpdate());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleNotificationRequestUpdate(NotificationsCountSubscription subscription, NotificationRequestUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}, subId: {}] Handling notification request update for count sub: {}&quot;, subscription.getSessionId(), subscription.getSubscriptionId(), update);</b>
+<b class="nc">&nbsp;        fetchUnreadNotificationsCount(subscription);</b>
+<b class="nc">&nbsp;        sendUpdate(subscription.getSessionId(), subscription.createUpdate());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleMarkAsReadCmd(WebSocketSessionRef sessionRef, MarkNotificationsAsReadCmd cmd) {
+<b class="nc">&nbsp;        SecurityUser securityCtx = sessionRef.getSecurityCtx();</b>
+<b class="nc">&nbsp;        cmd.getNotifications().stream()</b>
+<b class="nc">&nbsp;                .map(NotificationId::new)</b>
+<b class="nc">&nbsp;                .forEach(notificationId -&gt; {</b>
+<b class="nc">&nbsp;                    notificationCenter.markNotificationAsRead(securityCtx.getTenantId(), securityCtx.getId(), notificationId);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleMarkAllAsReadCmd(WebSocketSessionRef sessionRef, MarkAllNotificationsAsReadCmd cmd) {
+<b class="nc">&nbsp;        SecurityUser securityCtx = sessionRef.getSecurityCtx();</b>
+<b class="nc">&nbsp;        notificationCenter.markAllNotificationsAsRead(securityCtx.getTenantId(), WEB, securityCtx.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleUnsubCmd(WebSocketSessionRef sessionRef, UnsubscribeCmd cmd) {
+<b class="nc">&nbsp;        localSubscriptionService.cancelSubscription(sessionRef.getTenantId(), sessionRef.getSessionId(), cmd.getCmdId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendUpdate(String sessionId, CmdUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}, cmdId: {}] Sending WS update: {}&quot;, sessionId, update.getCmdId(), update);</b>
+<b class="nc">&nbsp;        wsService.sendUpdate(sessionId, update);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

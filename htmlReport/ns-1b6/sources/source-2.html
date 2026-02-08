@@ -1,0 +1,326 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbResourceService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.resource</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbResourceService (org.thingsboard.server.service.resource)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbResourceService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/61)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.resource;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.Dashboard;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.ResourceExportData;
+&nbsp;import org.thingsboard.server.common.data.ResourceType;
+&nbsp;import org.thingsboard.server.common.data.TbResource;
+&nbsp;import org.thingsboard.server.common.data.TbResourceDeleteResult;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfo;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TbResourceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+&nbsp;import org.thingsboard.server.dao.resource.ImageService;
+&nbsp;import org.thingsboard.server.dao.resource.ResourceService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.AccessControlService;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.function.Supplier;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;import static org.thingsboard.server.dao.device.DeviceServiceImpl.INCORRECT_TENANT_ID;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwM2mObject;
+&nbsp;import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultTbResourceService extends AbstractTbEntityService implements TbResourceService {
+&nbsp;
+&nbsp;    private final ResourceService resourceService;
+&nbsp;    private final ImageService imageService;
+&nbsp;    private final TbImageService tbImageService;
+&nbsp;    private final AccessControlService accessControlService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo save(TbResource resource, SecurityUser user) throws ThingsboardException {
+<b class="nc">&nbsp;        if (resource.getResourceType() == ResourceType.IMAGE) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Image resource type is not supported&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ActionType actionType = resource.getId() == null ? ActionType.ADDED : ActionType.UPDATED;</b>
+<b class="nc">&nbsp;        TenantId tenantId = resource.getTenantId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (ResourceType.LWM2M_MODEL.equals(resource.getResourceType()) &amp;&amp; resource.getId() == null) {</b>
+<b class="nc">&nbsp;                toLwm2mResource(resource);</b>
+<b class="nc">&nbsp;            } else if (resource.getResourceKey() == null) {</b>
+<b class="nc">&nbsp;                resource.setResourceKey(resource.getFileName());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            TbResourceInfo savedResource = new TbResourceInfo(resourceService.saveResource(resource));</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, savedResource.getId(), savedResource, actionType, user);</b>
+<b class="nc">&nbsp;            return savedResource;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.TB_RESOURCE), new TbResourceInfo(resource), actionType, user, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceDeleteResult delete(TbResourceInfo tbResource, boolean force, User user) {
+<b class="nc">&nbsp;        if (tbResource.getResourceType() == ResourceType.IMAGE) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Image resource type is not supported&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ActionType actionType = ActionType.DELETED;</b>
+<b class="nc">&nbsp;        TbResourceId resourceId = tbResource.getId();</b>
+<b class="nc">&nbsp;        TenantId tenantId = tbResource.getTenantId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            TbResourceDeleteResult result = resourceService.deleteResource(tenantId, resourceId, force);</b>
+<b class="nc">&nbsp;            if (result.isSuccess()) {</b>
+<b class="nc">&nbsp;                logEntityActionService.logEntityAction(tenantId, resourceId, tbResource, actionType, user, resourceId.toString());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.TB_RESOURCE),</b>
+<b class="nc">&nbsp;                    actionType, user, e, resourceId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;LwM2mObject&gt; findLwM2mObject(TenantId tenantId, String sortOrder, String sortProperty, String[] objectIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        List&lt;TbResource&gt; resources = resourceService.findTenantResourcesByResourceTypeAndObjectIds(tenantId, ResourceType.LWM2M_MODEL,</b>
+&nbsp;                objectIds);
+<b class="nc">&nbsp;        return resources.stream()</b>
+<b class="nc">&nbsp;                .flatMap(s -&gt; Stream.ofNullable(toLwM2mObject(s, false)))</b>
+<b class="nc">&nbsp;                .sorted(getComparator(sortProperty, sortOrder))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;LwM2mObject&gt; findLwM2mObjectPage(TenantId tenantId, String sortProperty, String sortOrder, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        PageData&lt;TbResource&gt; resourcePageData = resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, ResourceType.LWM2M_MODEL, pageLink);</b>
+<b class="nc">&nbsp;        return resourcePageData.getData().stream()</b>
+<b class="nc">&nbsp;                .flatMap(s -&gt; Stream.ofNullable(toLwM2mObject(s, false)))</b>
+<b class="nc">&nbsp;                .sorted(getComparator(sortProperty, sortOrder))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;ResourceExportData&gt; exportResources(Dashboard dashboard, SecurityUser user) throws ThingsboardException {
+<b class="nc">&nbsp;        return exportResources(() -&gt; imageService.getUsedImages(dashboard), () -&gt; resourceService.getUsedResources(user.getTenantId(), dashboard), user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;ResourceExportData&gt; exportResources(WidgetTypeDetails widgetTypeDetails, SecurityUser user) throws ThingsboardException {
+<b class="nc">&nbsp;        return exportResources(() -&gt; imageService.getUsedImages(widgetTypeDetails), () -&gt; resourceService.getUsedResources(user.getTenantId(), widgetTypeDetails), user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void importResources(List&lt;ResourceExportData&gt; resources, SecurityUser user) throws Exception {
+<b class="nc">&nbsp;        for (ResourceExportData resourceData : resources) {</b>
+&nbsp;            TbResourceInfo resourceInfo;
+<b class="nc">&nbsp;            if (resourceData.getType() == ResourceType.IMAGE) {</b>
+<b class="nc">&nbsp;                resourceInfo = tbImageService.importImage(resourceData, true, user);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                resourceInfo = importResource(resourceData, user);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            resourceData.setNewLink(resourceInfo.getLink());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; List&lt;ResourceExportData&gt; exportResources(Supplier&lt;Collection&lt;TbResourceInfo&gt;&gt; imagesProcessor,
+&nbsp;                                                         Supplier&lt;Collection&lt;TbResourceInfo&gt;&gt; resourcesProcessor,
+&nbsp;                                                         SecurityUser user) throws ThingsboardException {
+<b class="nc">&nbsp;        List&lt;TbResourceInfo&gt; resources = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        resources.addAll(imagesProcessor.get());</b>
+<b class="nc">&nbsp;        resources.addAll(resourcesProcessor.get());</b>
+<b class="nc">&nbsp;        for (TbResourceInfo resourceInfo : resources) {</b>
+<b class="nc">&nbsp;            accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.READ, resourceInfo.getId(), resourceInfo);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return resourceService.exportResources(user.getTenantId(), resources);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbResourceInfo importResource(ResourceExportData resourceData, SecurityUser user) throws ThingsboardException {
+<b class="nc">&nbsp;        TbResource resource = resourceService.toResource(user.getTenantId(), resourceData);</b>
+<b class="nc">&nbsp;        if (resource.getData() != null) {</b>
+<b class="nc">&nbsp;            accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.CREATE, null, resource);</b>
+<b class="nc">&nbsp;            return save(resource, user);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.READ, resource.getId(), resource);</b>
+<b class="nc">&nbsp;            return resource;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Comparator&lt;? super LwM2mObject&gt; getComparator(String sortProperty, String sortOrder) {
+&nbsp;        Comparator&lt;LwM2mObject&gt; comparator;
+<b class="nc">&nbsp;        if (&quot;name&quot;.equals(sortProperty)) {</b>
+<b class="nc">&nbsp;            comparator = Comparator.comparing(LwM2mObject::getName);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            comparator = Comparator.comparingLong(LwM2mObject::getId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return &quot;DESC&quot;.equals(sortOrder) ? comparator.reversed() : comparator;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

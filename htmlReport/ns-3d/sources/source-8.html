@@ -1,0 +1,301 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SemaphoreWithTbMsgQueue</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.util</a>
+</div>
+
+<h1>Coverage Summary for Class: SemaphoreWithTbMsgQueue (org.thingsboard.rule.engine.util)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SemaphoreWithTbMsgQueue</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SemaphoreWithTbMsgQueue$TbMsgTbContextBiFunction</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.util;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.DonAsynchron;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.util.Queue;
+&nbsp;import java.util.concurrent.ConcurrentLinkedQueue;
+&nbsp;import java.util.concurrent.Semaphore;
+&nbsp;import java.util.function.BiFunction;
+&nbsp;
+&nbsp;/**
+&nbsp; * A utility class designed to manage a queue of messages for a specific entity, ensuring that
+&nbsp; * message processing is synchronized on a per-entity basis. This is achieved through the use of a semaphore,
+&nbsp; * allowing only one message at a time to be processed for each entity ID, thus preventing race conditions
+&nbsp; * and ensuring thread-safe operations.
+&nbsp; * &lt;p&gt;
+&nbsp; * This class is especially useful in scenarios where the order of message processing and
+&nbsp; * resource access synchronization are crucial, such as updating caches or databases in a concurrent environment.
+&nbsp; */
+&nbsp;@Data
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class SemaphoreWithTbMsgQueue {
+&nbsp;
+&nbsp;    private final EntityId entityId;
+&nbsp;    private final Semaphore semaphore = new Semaphore(1);
+&nbsp;    private final Queue&lt;TbMsgTbContextBiFunction&gt; queue = new ConcurrentLinkedQueue&lt;&gt;();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Adds a message to the queue for asynchronous processing and attempts to process the queue if possible.
+&nbsp;     * This method is thread-safe and ensures that messages are processed in the order they were added,
+&nbsp;     * with each message for a specific entity being processed one at a time due to the semaphore control.
+&nbsp;     *
+&nbsp;     * @param msg                   The message to be processed.
+&nbsp;     * @param ctx                   The context in which the message should be processed.
+&nbsp;     * @param msgProcessingFunction The function that defines how the message will be processed.
+&nbsp;     */
+&nbsp;    public void addToQueueAndTryProcess(TbMsg msg, TbContext ctx, BiFunction&lt;TbContext, TbMsg, ListenableFuture&lt;TbMsg&gt;&gt; msgProcessingFunction) {
+<b class="nc">&nbsp;        queue.add(new TbMsgTbContextBiFunction(msg, ctx, msgProcessingFunction));</b>
+<b class="nc">&nbsp;        tryProcessQueue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Attempts to process the next message in the queue. If the semaphore is available (indicating
+&nbsp;     * that no other message for the same entity is currently being processed), this method will
+&nbsp;     * acquire the semaphore and start processing the message. If the semaphore is not available,
+&nbsp;     * this method will return immediately, ensuring that messages are processed sequentially
+&nbsp;     * for each entity.
+&nbsp;     * &lt;p&gt;
+&nbsp;     * This method is automatically called after adding a message to the queue to ensure
+&nbsp;     * that the queue is processed promptly.
+&nbsp;     */
+&nbsp;    private void tryProcessQueue() {
+<b class="nc">&nbsp;        while (!queue.isEmpty()) {</b>
+&nbsp;            // The semaphore have to be acquired before EACH poll and released before NEXT poll.
+&nbsp;            // Otherwise, some message will remain unprocessed in queue
+<b class="nc">&nbsp;            if (!semaphore.tryAcquire()) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            TbMsgTbContextBiFunction tbMsgTbContext = null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                tbMsgTbContext = queue.poll();</b>
+<b class="nc">&nbsp;                if (tbMsgTbContext == null) {</b>
+<b class="nc">&nbsp;                    semaphore.release();</b>
+&nbsp;                    continue;
+&nbsp;                }
+<b class="nc">&nbsp;                final TbMsg msg = tbMsgTbContext.msg();</b>
+<b class="nc">&nbsp;                if (!msg.getCallback().isMsgValid()) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;[{}] Skipping non-valid message [{}]&quot;, entityId, msg);</b>
+<b class="nc">&nbsp;                    semaphore.release();</b>
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;                //DO PROCESSING
+<b class="nc">&nbsp;                final TbContext ctx = tbMsgTbContext.ctx();</b>
+<b class="nc">&nbsp;                final ListenableFuture&lt;TbMsg&gt; resultMsgFuture = tbMsgTbContext.biFunction().apply(ctx, msg);</b>
+<b class="nc">&nbsp;                DonAsynchron.withCallback(resultMsgFuture, resultMsg -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        ctx.tellSuccess(resultMsg);</b>
+&nbsp;                    } finally {
+<b class="nc">&nbsp;                        semaphore.release();</b>
+<b class="nc">&nbsp;                        tryProcessQueue();</b>
+&nbsp;                    }
+&nbsp;                }, t -&gt; {
+&nbsp;                    try {
+<b class="nc">&nbsp;                        ctx.tellFailure(msg, t);</b>
+&nbsp;                    } finally {
+<b class="nc">&nbsp;                        semaphore.release();</b>
+<b class="nc">&nbsp;                        tryProcessQueue();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }, ctx.getDbCallbackExecutor());</b>
+&nbsp;            } catch (Throwable t) {
+<b class="nc">&nbsp;                semaphore.release();</b>
+<b class="nc">&nbsp;                if (tbMsgTbContext == null) { // if no message polled, the loop become infinite, will throw exception</b>
+<b class="nc">&nbsp;                    log.error(&quot;[{}] Failed to process TbMsgTbContext queue&quot;, entityId, t);</b>
+&nbsp;                    throw t;
+&nbsp;                }
+<b class="nc">&nbsp;                TbMsg msg = tbMsgTbContext.msg();</b>
+<b class="nc">&nbsp;                TbContext ctx = tbMsgTbContext.ctx();</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Failed to process message: {}&quot;, entityId, msg, t);</b>
+<b class="nc">&nbsp;                ctx.tellFailure(msg, t); // you are not allowed to throw here, because queue will remain unprocessed</b>
+&nbsp;                continue; // We are probably the last who process the queue. We have to continue poll until get successful callback or queue is empty
+&nbsp;            }
+&nbsp;            break; //submitted async exact one task. next poll will try on callback
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * A utility record to hold the tuple of a {@link TbMsg}, {@link TbContext}, and the message processing function.
+&nbsp;     * This facilitates passing these three elements as a single object within the queue.
+&nbsp;     */
+<b class="nc">&nbsp;    private record TbMsgTbContextBiFunction(TbMsg msg, TbContext ctx,</b>
+&nbsp;                                            BiFunction&lt;TbContext, TbMsg, ListenableFuture&lt;TbMsg&gt;&gt; biFunction) {
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

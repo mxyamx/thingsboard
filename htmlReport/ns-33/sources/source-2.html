@@ -1,0 +1,767 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlarmRuleState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.profile</a>
+</div>
+
+<h1>Coverage Summary for Class: AlarmRuleState (org.thingsboard.rule.engine.profile)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AlarmRuleState</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/234)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/262)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AlarmRuleState$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/234)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/272)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.profile;
+&nbsp;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.profile.state.PersistedAlarmRuleState;
+&nbsp;import org.thingsboard.server.common.adaptor.JsonConverter;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmCondition;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionSpec;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionSpecType;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmRule;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmSchedule;
+&nbsp;import org.thingsboard.server.common.data.device.profile.CustomTimeSchedule;
+&nbsp;import org.thingsboard.server.common.data.device.profile.CustomTimeScheduleItem;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DurationAlarmConditionSpec;
+&nbsp;import org.thingsboard.server.common.data.device.profile.RepeatingAlarmConditionSpec;
+&nbsp;import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
+&nbsp;import org.thingsboard.server.common.data.device.profile.SpecificTimeSchedule;
+&nbsp;import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
+&nbsp;import org.thingsboard.server.common.data.query.ComplexFilterPredicate;
+&nbsp;import org.thingsboard.server.common.data.query.DynamicValue;
+&nbsp;import org.thingsboard.server.common.data.query.FilterPredicateValue;
+&nbsp;import org.thingsboard.server.common.data.query.KeyFilterPredicate;
+&nbsp;import org.thingsboard.server.common.data.query.NumericFilterPredicate;
+&nbsp;import org.thingsboard.server.common.data.query.StringFilterPredicate;
+&nbsp;import org.thingsboard.server.common.msg.tools.SchedulerUtils;
+&nbsp;
+&nbsp;import java.time.Instant;
+&nbsp;import java.time.ZoneId;
+&nbsp;import java.time.ZonedDateTime;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.Function;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.StringUtils.equalsAny;
+&nbsp;import static org.thingsboard.server.common.data.StringUtils.splitByCommaWithoutQuotes;
+&nbsp;
+&nbsp;@Data
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;class AlarmRuleState {
+&nbsp;
+&nbsp;    private final AlarmSeverity severity;
+&nbsp;    private final AlarmRule alarmRule;
+&nbsp;    private final AlarmConditionSpec spec;
+&nbsp;    private final Set&lt;AlarmConditionFilterKey&gt; entityKeys;
+&nbsp;    private PersistedAlarmRuleState state;
+&nbsp;    private boolean updateFlag;
+&nbsp;    private final DynamicPredicateValueCtx dynamicPredicateValueCtx;
+&nbsp;
+<b class="nc">&nbsp;    AlarmRuleState(AlarmSeverity severity, AlarmRule alarmRule, Set&lt;AlarmConditionFilterKey&gt; entityKeys, PersistedAlarmRuleState state, DynamicPredicateValueCtx dynamicPredicateValueCtx) {</b>
+<b class="nc">&nbsp;        this.severity = severity;</b>
+<b class="nc">&nbsp;        this.alarmRule = alarmRule;</b>
+<b class="nc">&nbsp;        this.entityKeys = entityKeys;</b>
+<b class="nc">&nbsp;        if (state != null) {</b>
+<b class="nc">&nbsp;            this.state = state;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.state = new PersistedAlarmRuleState(0L, 0L, 0L);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        this.spec = getSpec(alarmRule);</b>
+<b class="nc">&nbsp;        this.dynamicPredicateValueCtx = dynamicPredicateValueCtx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean validateTsUpdate(Set&lt;AlarmConditionFilterKey&gt; changedKeys) {
+<b class="nc">&nbsp;        for (AlarmConditionFilterKey key : changedKeys) {</b>
+<b class="nc">&nbsp;            if (entityKeys.contains(key)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean validateAttrUpdate(Set&lt;AlarmConditionFilterKey&gt; changedKeys) {
+<b class="nc">&nbsp;        for (AlarmConditionFilterKey key : changedKeys) {</b>
+<b class="nc">&nbsp;            if (entityKeys.contains(key)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public AlarmConditionSpec getSpec(AlarmRule alarmRule) {
+<b class="nc">&nbsp;        AlarmConditionSpec spec = alarmRule.getCondition().getSpec();</b>
+<b class="nc">&nbsp;        if (spec == null) {</b>
+<b class="nc">&nbsp;            spec = new SimpleAlarmConditionSpec();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return spec;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean checkUpdate() {
+<b class="nc">&nbsp;        if (updateFlag) {</b>
+<b class="nc">&nbsp;            updateFlag = false;</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public AlarmEvalResult eval(DataSnapshot data) {
+<b class="nc">&nbsp;        boolean active = isActive(data, data.getTs());</b>
+<b class="nc">&nbsp;        return switch (spec.getType()) {</b>
+<b class="nc">&nbsp;            case SIMPLE -&gt; (active &amp;&amp; eval(alarmRule.getCondition(), data)) ?</b>
+<b class="nc">&nbsp;                    AlarmEvalResult.TRUE : AlarmEvalResult.FALSE;</b>
+<b class="nc">&nbsp;            case DURATION -&gt; evalDuration(data, active);</b>
+<b class="nc">&nbsp;            case REPEATING -&gt; evalRepeating(data, active);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isActive(DataSnapshot data, long eventTs) {
+<b class="nc">&nbsp;        if (eventTs == 0L) {</b>
+<b class="nc">&nbsp;            eventTs = System.currentTimeMillis();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarmRule.getSchedule() == null) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        switch (alarmRule.getSchedule().getType()) {</b>
+&nbsp;            case ANY_TIME:
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            case SPECIFIC_TIME:
+<b class="nc">&nbsp;                return isActiveSpecific((SpecificTimeSchedule) getSchedule(data, alarmRule), eventTs);</b>
+&nbsp;            case CUSTOM:
+<b class="nc">&nbsp;                return isActiveCustom((CustomTimeSchedule) getSchedule(data, alarmRule), eventTs);</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Unsupported schedule type: &quot; + alarmRule.getSchedule().getType());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmSchedule getSchedule(DataSnapshot data, AlarmRule alarmRule) {
+<b class="nc">&nbsp;        AlarmSchedule schedule = alarmRule.getSchedule();</b>
+<b class="nc">&nbsp;        EntityKeyValue dynamicValue = getDynamicPredicateValue(data, schedule.getDynamicValue());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (dynamicValue != null) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                return JsonConverter.parse(dynamicValue.getJsonValue(), alarmRule.getSchedule().getClass());</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.trace(&quot;Failed to parse AlarmSchedule from dynamicValue: {}&quot;, dynamicValue.getJsonValue(), e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return schedule;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isActiveSpecific(SpecificTimeSchedule schedule, long eventTs) {
+<b class="nc">&nbsp;        ZoneId zoneId = SchedulerUtils.getZoneId(schedule.getTimezone());</b>
+<b class="nc">&nbsp;        ZonedDateTime zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(eventTs), zoneId);</b>
+<b class="nc">&nbsp;        if (schedule.getDaysOfWeek().size() != 7) {</b>
+<b class="nc">&nbsp;            int dayOfWeek = zdt.getDayOfWeek().getValue();</b>
+<b class="nc">&nbsp;            if (!schedule.getDaysOfWeek().contains(dayOfWeek)) {</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        long endsOn = schedule.getEndsOn();</b>
+<b class="nc">&nbsp;        if (endsOn == 0) {</b>
+&nbsp;            // 24 hours in milliseconds
+<b class="nc">&nbsp;            endsOn = 86400000;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return isActive(eventTs, zoneId, zdt, schedule.getStartsOn(), endsOn);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isActiveCustom(CustomTimeSchedule schedule, long eventTs) {
+<b class="nc">&nbsp;        ZoneId zoneId = SchedulerUtils.getZoneId(schedule.getTimezone());</b>
+<b class="nc">&nbsp;        ZonedDateTime zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(eventTs), zoneId);</b>
+<b class="nc">&nbsp;        int dayOfWeek = zdt.toLocalDate().getDayOfWeek().getValue();</b>
+<b class="nc">&nbsp;        for (CustomTimeScheduleItem item : schedule.getItems()) {</b>
+<b class="nc">&nbsp;            if (item.getDayOfWeek() == dayOfWeek) {</b>
+<b class="nc">&nbsp;                if (item.isEnabled()) {</b>
+<b class="nc">&nbsp;                    long endsOn = item.getEndsOn();</b>
+<b class="nc">&nbsp;                    if (endsOn == 0) {</b>
+&nbsp;                        // 24 hours in milliseconds
+<b class="nc">&nbsp;                        endsOn = 86400000;</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return isActive(eventTs, zoneId, zdt, item.getStartsOn(), endsOn);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return false;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isActive(long eventTs, ZoneId zoneId, ZonedDateTime zdt, long startsOn, long endsOn) {
+<b class="nc">&nbsp;        long startOfDay = zdt.toLocalDate().atStartOfDay(zoneId).toInstant().toEpochMilli();</b>
+<b class="nc">&nbsp;        long msFromStartOfDay = eventTs - startOfDay;</b>
+<b class="nc">&nbsp;        if (startsOn &lt;= endsOn) {</b>
+<b class="nc">&nbsp;            return startsOn &lt;= msFromStartOfDay &amp;&amp; endsOn &gt; msFromStartOfDay;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return startsOn &lt; msFromStartOfDay || (0 &lt; msFromStartOfDay &amp;&amp; msFromStartOfDay &lt; endsOn);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void clear() {
+<b class="nc">&nbsp;        if (state.getEventCount() &gt; 0 || state.getLastEventTs() &gt; 0 || state.getDuration() &gt; 0) {</b>
+<b class="nc">&nbsp;            state.setEventCount(0L);</b>
+<b class="nc">&nbsp;            state.setLastEventTs(0L);</b>
+<b class="nc">&nbsp;            state.setDuration(0L);</b>
+<b class="nc">&nbsp;            updateFlag = true;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmEvalResult evalRepeating(DataSnapshot data, boolean active) {
+<b class="nc">&nbsp;        if (active &amp;&amp; eval(alarmRule.getCondition(), data)) {</b>
+<b class="nc">&nbsp;            state.setEventCount(state.getEventCount() + 1);</b>
+<b class="nc">&nbsp;            updateFlag = true;</b>
+<b class="nc">&nbsp;            long requiredRepeats = resolveRequiredRepeats(data);</b>
+<b class="nc">&nbsp;            return state.getEventCount() &gt;= requiredRepeats ? AlarmEvalResult.TRUE : AlarmEvalResult.NOT_YET_TRUE;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return AlarmEvalResult.FALSE;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmEvalResult evalDuration(DataSnapshot data, boolean active) {
+<b class="nc">&nbsp;        if (active &amp;&amp; eval(alarmRule.getCondition(), data)) {</b>
+<b class="nc">&nbsp;            if (state.getLastEventTs() &gt; 0) {</b>
+<b class="nc">&nbsp;                if (data.getTs() &gt; state.getLastEventTs()) {</b>
+<b class="nc">&nbsp;                    state.setDuration(state.getDuration() + (data.getTs() - state.getLastEventTs()));</b>
+<b class="nc">&nbsp;                    state.setLastEventTs(data.getTs());</b>
+<b class="nc">&nbsp;                    updateFlag = true;</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                state.setLastEventTs(data.getTs());</b>
+<b class="nc">&nbsp;                state.setDuration(0L);</b>
+<b class="nc">&nbsp;                updateFlag = true;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            long requiredDurationInMs = resolveRequiredDurationInMs(data);</b>
+<b class="nc">&nbsp;            return state.getDuration() &gt; requiredDurationInMs ? AlarmEvalResult.TRUE : AlarmEvalResult.NOT_YET_TRUE;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return AlarmEvalResult.FALSE;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private long resolveRequiredRepeats(DataSnapshot data) {
+<b class="nc">&nbsp;        long repeatingTimes = 0;</b>
+<b class="nc">&nbsp;        AlarmConditionSpec alarmConditionSpec = getSpec();</b>
+<b class="nc">&nbsp;        AlarmConditionSpecType specType = alarmConditionSpec.getType();</b>
+<b class="nc">&nbsp;        if (specType.equals(AlarmConditionSpecType.REPEATING)) {</b>
+<b class="nc">&nbsp;            RepeatingAlarmConditionSpec repeating = (RepeatingAlarmConditionSpec) spec;</b>
+&nbsp;
+<b class="nc">&nbsp;            repeatingTimes = resolveDynamicValue(data, repeating.getPredicate());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return repeatingTimes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private long resolveRequiredDurationInMs(DataSnapshot data) {
+<b class="nc">&nbsp;        long durationTimeInMs = 0;</b>
+<b class="nc">&nbsp;        AlarmConditionSpec alarmConditionSpec = getSpec();</b>
+<b class="nc">&nbsp;        AlarmConditionSpecType specType = alarmConditionSpec.getType();</b>
+<b class="nc">&nbsp;        if (specType.equals(AlarmConditionSpecType.DURATION)) {</b>
+<b class="nc">&nbsp;            DurationAlarmConditionSpec duration = (DurationAlarmConditionSpec) spec;</b>
+<b class="nc">&nbsp;            TimeUnit timeUnit = duration.getUnit();</b>
+&nbsp;
+<b class="nc">&nbsp;            durationTimeInMs = timeUnit.toMillis(resolveDynamicValue(data, duration.getPredicate()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return durationTimeInMs;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Long resolveDynamicValue(DataSnapshot data, FilterPredicateValue&lt;? extends Number&gt; predicate) {
+<b class="nc">&nbsp;        DynamicValue&lt;?&gt; dynamicValue = predicate.getDynamicValue();</b>
+<b class="nc">&nbsp;        Long defaultValue = predicate.getDefaultValue().longValue();</b>
+<b class="nc">&nbsp;        if (dynamicValue == null || dynamicValue.getSourceAttribute() == null) {</b>
+<b class="nc">&nbsp;            return defaultValue;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        EntityKeyValue keyValue = getDynamicPredicateValue(data, dynamicValue);</b>
+<b class="nc">&nbsp;        if (keyValue == null) {</b>
+<b class="nc">&nbsp;            return defaultValue;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        var longValue = getLongValue(keyValue);</b>
+<b class="nc">&nbsp;        if (longValue == null) {</b>
+<b class="nc">&nbsp;            String sourceAttribute = dynamicValue.getSourceAttribute();</b>
+<b class="nc">&nbsp;            throw new NumericParseException(String.format(&quot;Could not convert attribute &#39;%s&#39; with value &#39;%s&#39; to numeric value!&quot;, sourceAttribute, getStrValue(keyValue)));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return longValue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public AlarmEvalResult eval(long ts, DataSnapshot dataSnapshot) {
+<b class="nc">&nbsp;        switch (spec.getType()) {</b>
+&nbsp;            case SIMPLE:
+&nbsp;            case REPEATING:
+<b class="nc">&nbsp;                return AlarmEvalResult.NOT_YET_TRUE;</b>
+&nbsp;            case DURATION:
+<b class="nc">&nbsp;                long requiredDurationInMs = resolveRequiredDurationInMs(dataSnapshot);</b>
+<b class="nc">&nbsp;                if (requiredDurationInMs &gt; 0 &amp;&amp; state.getLastEventTs() &gt; 0 &amp;&amp; ts &gt; state.getLastEventTs()) {</b>
+<b class="nc">&nbsp;                    long duration = state.getDuration() + (ts - state.getLastEventTs());</b>
+<b class="nc">&nbsp;                    if (isActive(dataSnapshot, ts)) {</b>
+<b class="nc">&nbsp;                        return duration &gt; requiredDurationInMs ? AlarmEvalResult.TRUE : AlarmEvalResult.NOT_YET_TRUE;</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        return AlarmEvalResult.FALSE;</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            default:
+<b class="nc">&nbsp;                return AlarmEvalResult.FALSE;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean eval(AlarmCondition condition, DataSnapshot data) {
+<b class="nc">&nbsp;        boolean eval = true;</b>
+<b class="nc">&nbsp;        for (var filter : condition.getCondition()) {</b>
+&nbsp;            EntityKeyValue value;
+<b class="nc">&nbsp;            if (filter.getKey().getType().equals(AlarmConditionKeyType.CONSTANT)) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    value = getConstantValue(filter);</b>
+&nbsp;                } catch (RuntimeException e) {
+<b class="nc">&nbsp;                    log.warn(&quot;Failed to parse constant value from filter: {}&quot;, filter, e);</b>
+<b class="nc">&nbsp;                    value = null;</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                value = data.getValue(filter.getKey());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (value == null) {</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            eval = eval &amp;&amp; eval(data, value, filter.getPredicate(), filter);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return eval;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityKeyValue getConstantValue(AlarmConditionFilter filter) {
+<b class="nc">&nbsp;        EntityKeyValue value = new EntityKeyValue();</b>
+<b class="nc">&nbsp;        String valueStr = filter.getValue().toString();</b>
+<b class="nc">&nbsp;        switch (filter.getValueType()) {</b>
+&nbsp;            case STRING:
+<b class="nc">&nbsp;                value.setStrValue(valueStr);</b>
+&nbsp;                break;
+&nbsp;            case DATE_TIME:
+<b class="nc">&nbsp;                value.setLngValue(Long.valueOf(valueStr));</b>
+&nbsp;                break;
+&nbsp;            case NUMERIC:
+<b class="nc">&nbsp;                value.setDblValue(Double.valueOf(valueStr));</b>
+&nbsp;                break;
+&nbsp;            case BOOLEAN:
+<b class="nc">&nbsp;                value.setBoolValue(Boolean.valueOf(valueStr));</b>
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        return value;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean eval(DataSnapshot data, EntityKeyValue value, KeyFilterPredicate predicate, AlarmConditionFilter filter) {
+<b class="nc">&nbsp;        switch (predicate.getType()) {</b>
+&nbsp;            case STRING:
+<b class="nc">&nbsp;                return evalStrPredicate(data, value, (StringFilterPredicate) predicate, filter);</b>
+&nbsp;            case NUMERIC:
+<b class="nc">&nbsp;                return evalNumPredicate(data, value, (NumericFilterPredicate) predicate, filter);</b>
+&nbsp;            case BOOLEAN:
+<b class="nc">&nbsp;                return evalBoolPredicate(data, value, (BooleanFilterPredicate) predicate, filter);</b>
+&nbsp;            case COMPLEX:
+<b class="nc">&nbsp;                return evalComplexPredicate(data, value, (ComplexFilterPredicate) predicate, filter);</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean evalComplexPredicate(DataSnapshot data, EntityKeyValue ekv, ComplexFilterPredicate predicate, AlarmConditionFilter filter) {
+<b class="nc">&nbsp;        switch (predicate.getOperation()) {</b>
+&nbsp;            case OR:
+<b class="nc">&nbsp;                for (KeyFilterPredicate kfp : predicate.getPredicates()) {</b>
+<b class="nc">&nbsp;                    if (eval(data, ekv, kfp, filter)) {</b>
+<b class="nc">&nbsp;                        return true;</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            case AND:
+<b class="nc">&nbsp;                for (KeyFilterPredicate kfp : predicate.getPredicates()) {</b>
+<b class="nc">&nbsp;                    if (!eval(data, ekv, kfp, filter)) {</b>
+<b class="nc">&nbsp;                        return false;</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Operation not supported: &quot; + predicate.getOperation());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean evalBoolPredicate(DataSnapshot data, EntityKeyValue ekv, BooleanFilterPredicate predicate, AlarmConditionFilter filter) {
+<b class="nc">&nbsp;        Boolean val = getBoolValue(ekv);</b>
+<b class="nc">&nbsp;        if (val == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Boolean predicateValue = getPredicateValue(data, predicate.getValue(), filter, AlarmRuleState::getBoolValue);</b>
+<b class="nc">&nbsp;        if (predicateValue == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        switch (predicate.getOperation()) {</b>
+&nbsp;            case EQUAL:
+<b class="nc">&nbsp;                return val.equals(predicateValue);</b>
+&nbsp;            case NOT_EQUAL:
+<b class="nc">&nbsp;                return !val.equals(predicateValue);</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Operation not supported: &quot; + predicate.getOperation());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean evalNumPredicate(DataSnapshot data, EntityKeyValue ekv, NumericFilterPredicate predicate, AlarmConditionFilter filter) {
+<b class="nc">&nbsp;        Double val = getDblValue(ekv);</b>
+<b class="nc">&nbsp;        if (val == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Double predicateValue = getPredicateValue(data, predicate.getValue(), filter, AlarmRuleState::getDblValue);</b>
+<b class="nc">&nbsp;        if (predicateValue == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        switch (predicate.getOperation()) {</b>
+&nbsp;            case NOT_EQUAL:
+<b class="nc">&nbsp;                return !val.equals(predicateValue);</b>
+&nbsp;            case EQUAL:
+<b class="nc">&nbsp;                return val.equals(predicateValue);</b>
+&nbsp;            case GREATER:
+<b class="nc">&nbsp;                return val &gt; predicateValue;</b>
+&nbsp;            case GREATER_OR_EQUAL:
+<b class="nc">&nbsp;                return val &gt;= predicateValue;</b>
+&nbsp;            case LESS:
+<b class="nc">&nbsp;                return val &lt; predicateValue;</b>
+&nbsp;            case LESS_OR_EQUAL:
+<b class="nc">&nbsp;                return val &lt;= predicateValue;</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Operation not supported: &quot; + predicate.getOperation());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean evalStrPredicate(DataSnapshot data, EntityKeyValue ekv, StringFilterPredicate predicate, AlarmConditionFilter filter) {
+<b class="nc">&nbsp;        String val = getStrValue(ekv);</b>
+<b class="nc">&nbsp;        if (val == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String predicateValue = getPredicateValue(data, predicate.getValue(), filter, AlarmRuleState::getStrValue);</b>
+<b class="nc">&nbsp;        if (predicateValue == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (predicate.isIgnoreCase()) {</b>
+<b class="nc">&nbsp;            val = val.toLowerCase();</b>
+<b class="nc">&nbsp;            predicateValue = predicateValue.toLowerCase();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        switch (predicate.getOperation()) {</b>
+&nbsp;            case CONTAINS:
+<b class="nc">&nbsp;                return val.contains(predicateValue);</b>
+&nbsp;            case EQUAL:
+<b class="nc">&nbsp;                return val.equals(predicateValue);</b>
+&nbsp;            case STARTS_WITH:
+<b class="nc">&nbsp;                return val.startsWith(predicateValue);</b>
+&nbsp;            case ENDS_WITH:
+<b class="nc">&nbsp;                return val.endsWith(predicateValue);</b>
+&nbsp;            case NOT_EQUAL:
+<b class="nc">&nbsp;                return !val.equals(predicateValue);</b>
+&nbsp;            case NOT_CONTAINS:
+<b class="nc">&nbsp;                return !val.contains(predicateValue);</b>
+&nbsp;            case IN:
+<b class="nc">&nbsp;                return equalsAny(val, splitByCommaWithoutQuotes(predicateValue));</b>
+&nbsp;            case NOT_IN:
+<b class="nc">&nbsp;                return !equalsAny(val, splitByCommaWithoutQuotes(predicateValue));</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Operation not supported: &quot; + predicate.getOperation());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; T getPredicateValue(DataSnapshot data, FilterPredicateValue&lt;T&gt; value, AlarmConditionFilter filter, Function&lt;EntityKeyValue, T&gt; transformFunction) {
+<b class="nc">&nbsp;        EntityKeyValue ekv = getDynamicPredicateValue(data, value.getDynamicValue());</b>
+<b class="nc">&nbsp;        if (ekv != null) {</b>
+<b class="nc">&nbsp;            T result = transformFunction.apply(ekv);</b>
+<b class="nc">&nbsp;            if (result != null) {</b>
+<b class="nc">&nbsp;                return result;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (filter.getKey().getType() != AlarmConditionKeyType.CONSTANT) {</b>
+<b class="nc">&nbsp;            return value.getDefaultValue();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; EntityKeyValue getDynamicPredicateValue(DataSnapshot data, DynamicValue&lt;T&gt; value) {
+<b class="nc">&nbsp;        EntityKeyValue ekv = null;</b>
+<b class="nc">&nbsp;        if (value != null) {</b>
+<b class="nc">&nbsp;            switch (value.getSourceType()) {</b>
+&nbsp;                case CURRENT_DEVICE:
+<b class="nc">&nbsp;                    ekv = data.getValue(new AlarmConditionFilterKey(AlarmConditionKeyType.ATTRIBUTE, value.getSourceAttribute()));</b>
+<b class="nc">&nbsp;                    if (ekv != null || !value.isInherit()) {</b>
+&nbsp;                        break;
+&nbsp;                    }
+&nbsp;                case CURRENT_CUSTOMER:
+<b class="nc">&nbsp;                    ekv = dynamicPredicateValueCtx.getCustomerValue(value.getSourceAttribute());</b>
+<b class="nc">&nbsp;                    if (ekv != null || !value.isInherit()) {</b>
+&nbsp;                        break;
+&nbsp;                    }
+&nbsp;                case CURRENT_TENANT:
+<b class="nc">&nbsp;                    ekv = dynamicPredicateValueCtx.getTenantValue(value.getSourceAttribute());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return ekv;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String getStrValue(EntityKeyValue ekv) {
+<b class="nc">&nbsp;        switch (ekv.getDataType()) {</b>
+&nbsp;            case LONG:
+<b class="nc">&nbsp;                return ekv.getLngValue() != null ? ekv.getLngValue().toString() : null;</b>
+&nbsp;            case DOUBLE:
+<b class="nc">&nbsp;                return ekv.getDblValue() != null ? ekv.getDblValue().toString() : null;</b>
+&nbsp;            case BOOLEAN:
+<b class="nc">&nbsp;                return ekv.getBoolValue() != null ? ekv.getBoolValue().toString() : null;</b>
+&nbsp;            case STRING:
+<b class="nc">&nbsp;                return ekv.getStrValue();</b>
+&nbsp;            case JSON:
+<b class="nc">&nbsp;                return ekv.getJsonValue();</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Double getDblValue(EntityKeyValue ekv) {
+<b class="nc">&nbsp;        switch (ekv.getDataType()) {</b>
+&nbsp;            case LONG:
+<b class="nc">&nbsp;                return ekv.getLngValue() != null ? ekv.getLngValue().doubleValue() : null;</b>
+&nbsp;            case DOUBLE:
+<b class="nc">&nbsp;                return ekv.getDblValue() != null ? ekv.getDblValue() : null;</b>
+&nbsp;            case BOOLEAN:
+<b class="nc">&nbsp;                return ekv.getBoolValue() != null ? (ekv.getBoolValue() ? 1.0 : 0.0) : null;</b>
+&nbsp;            case STRING:
+&nbsp;                try {
+<b class="nc">&nbsp;                    return Double.parseDouble(ekv.getStrValue());</b>
+&nbsp;                } catch (RuntimeException e) {
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            case JSON:
+&nbsp;                try {
+<b class="nc">&nbsp;                    return Double.parseDouble(ekv.getJsonValue());</b>
+&nbsp;                } catch (RuntimeException e) {
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            default:
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Boolean getBoolValue(EntityKeyValue ekv) {
+<b class="nc">&nbsp;        switch (ekv.getDataType()) {</b>
+&nbsp;            case LONG:
+<b class="nc">&nbsp;                return ekv.getLngValue() != null ? ekv.getLngValue() &gt; 0 : null;</b>
+&nbsp;            case DOUBLE:
+<b class="nc">&nbsp;                return ekv.getDblValue() != null ? ekv.getDblValue() &gt; 0 : null;</b>
+&nbsp;            case BOOLEAN:
+<b class="nc">&nbsp;                return ekv.getBoolValue();</b>
+&nbsp;            case STRING:
+&nbsp;                try {
+<b class="nc">&nbsp;                    return Boolean.parseBoolean(ekv.getStrValue());</b>
+&nbsp;                } catch (RuntimeException e) {
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            case JSON:
+&nbsp;                try {
+<b class="nc">&nbsp;                    return Boolean.parseBoolean(ekv.getJsonValue());</b>
+&nbsp;                } catch (RuntimeException e) {
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            default:
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Long getLongValue(EntityKeyValue ekv) {
+<b class="nc">&nbsp;        switch (ekv.getDataType()) {</b>
+&nbsp;            case LONG:
+<b class="nc">&nbsp;                return ekv.getLngValue();</b>
+&nbsp;            case DOUBLE:
+<b class="nc">&nbsp;                return ekv.getDblValue() != null ? ekv.getDblValue().longValue() : null;</b>
+&nbsp;            case BOOLEAN:
+<b class="nc">&nbsp;                return ekv.getBoolValue() != null ? (ekv.getBoolValue() ? 1 : 0L) : null;</b>
+&nbsp;            case STRING:
+&nbsp;                try {
+<b class="nc">&nbsp;                    return Long.parseLong(ekv.getStrValue());</b>
+&nbsp;                } catch (RuntimeException e) {
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            case JSON:
+&nbsp;                try {
+<b class="nc">&nbsp;                    return Long.parseLong(ekv.getJsonValue());</b>
+&nbsp;                } catch (RuntimeException e) {
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            default:
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

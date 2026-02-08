@@ -1,0 +1,313 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultDeviceStateManager</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.state</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultDeviceStateManager (org.thingsboard.server.service.state)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultDeviceStateManager</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/79)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.state;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.rule.engine.api.DeviceStateManager;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.common.SimpleTbQueueCallback;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.function.Consumer;
+&nbsp;import java.util.function.Supplier;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultDeviceStateManager implements DeviceStateManager {
+&nbsp;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final PartitionService partitionService;
+&nbsp;
+&nbsp;    private final Optional&lt;DeviceStateService&gt; deviceStateService;
+&nbsp;    private final TbClusterService clusterService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDeviceConnect(TenantId tenantId, DeviceId deviceId, long connectTime, TbCallback callback) {
+<b class="nc">&nbsp;        forwardToDeviceStateService(tenantId, deviceId,</b>
+&nbsp;                deviceStateService -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Forwarding device connect event to local service. Connect time: [{}].&quot;, tenantId.getId(), deviceId.getId(), connectTime);</b>
+<b class="nc">&nbsp;                    deviceStateService.onDeviceConnect(tenantId, deviceId, connectTime);</b>
+&nbsp;                },
+&nbsp;                () -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Sending device connect message to core. Connect time: [{}].&quot;, tenantId.getId(), deviceId.getId(), connectTime);</b>
+<b class="nc">&nbsp;                    var deviceConnectMsg = TransportProtos.DeviceConnectProto.newBuilder()</b>
+<b class="nc">&nbsp;                            .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setLastConnectTime(connectTime)</b>
+<b class="nc">&nbsp;                            .build();</b>
+<b class="nc">&nbsp;                    return TransportProtos.ToCoreMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setDeviceConnectMsg(deviceConnectMsg)</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                }, callback);
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDeviceActivity(TenantId tenantId, DeviceId deviceId, long activityTime, TbCallback callback) {
+<b class="nc">&nbsp;        forwardToDeviceStateService(tenantId, deviceId,</b>
+&nbsp;                deviceStateService -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Forwarding device activity event to local service. Activity time: [{}].&quot;, tenantId.getId(), deviceId.getId(), activityTime);</b>
+<b class="nc">&nbsp;                    deviceStateService.onDeviceActivity(tenantId, deviceId, activityTime);</b>
+&nbsp;                },
+&nbsp;                () -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Sending device activity message to core. Activity time: [{}].&quot;, tenantId.getId(), deviceId.getId(), activityTime);</b>
+<b class="nc">&nbsp;                    var deviceActivityMsg = TransportProtos.DeviceActivityProto.newBuilder()</b>
+<b class="nc">&nbsp;                            .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setLastActivityTime(activityTime)</b>
+<b class="nc">&nbsp;                            .build();</b>
+<b class="nc">&nbsp;                    return TransportProtos.ToCoreMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setDeviceActivityMsg(deviceActivityMsg)</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                }, callback);
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId, long disconnectTime, TbCallback callback) {
+<b class="nc">&nbsp;        forwardToDeviceStateService(tenantId, deviceId,</b>
+&nbsp;                deviceStateService -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Forwarding device disconnect event to local service. Disconnect time: [{}].&quot;, tenantId.getId(), deviceId.getId(), disconnectTime);</b>
+<b class="nc">&nbsp;                    deviceStateService.onDeviceDisconnect(tenantId, deviceId, disconnectTime);</b>
+&nbsp;                },
+&nbsp;                () -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Sending device disconnect message to core. Disconnect time: [{}].&quot;, tenantId.getId(), deviceId.getId(), disconnectTime);</b>
+<b class="nc">&nbsp;                    var deviceDisconnectMsg = TransportProtos.DeviceDisconnectProto.newBuilder()</b>
+<b class="nc">&nbsp;                            .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setLastDisconnectTime(disconnectTime)</b>
+<b class="nc">&nbsp;                            .build();</b>
+<b class="nc">&nbsp;                    return TransportProtos.ToCoreMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setDeviceDisconnectMsg(deviceDisconnectMsg)</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                }, callback);
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDeviceInactivity(TenantId tenantId, DeviceId deviceId, long inactivityTime, TbCallback callback) {
+<b class="nc">&nbsp;        forwardToDeviceStateService(tenantId, deviceId,</b>
+&nbsp;                deviceStateService -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Forwarding device inactivity event to local service. Inactivity time: [{}].&quot;, tenantId.getId(), deviceId.getId(), inactivityTime);</b>
+<b class="nc">&nbsp;                    deviceStateService.onDeviceInactivity(tenantId, deviceId, inactivityTime);</b>
+&nbsp;                },
+&nbsp;                () -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Sending device inactivity message to core. Inactivity time: [{}].&quot;, tenantId.getId(), deviceId.getId(), inactivityTime);</b>
+<b class="nc">&nbsp;                    var deviceInactivityMsg = TransportProtos.DeviceInactivityProto.newBuilder()</b>
+<b class="nc">&nbsp;                            .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setLastInactivityTime(inactivityTime)</b>
+<b class="nc">&nbsp;                            .build();</b>
+<b class="nc">&nbsp;                    return TransportProtos.ToCoreMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setDeviceInactivityMsg(deviceInactivityMsg)</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                }, callback);
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDeviceInactivityTimeoutUpdate(TenantId tenantId, DeviceId deviceId, long inactivityTimeout, TbCallback callback) {
+<b class="nc">&nbsp;        forwardToDeviceStateService(tenantId, deviceId,</b>
+&nbsp;                deviceStateService -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Forwarding device inactivity timeout update to local service. Updated inactivity timeout: [{}].&quot;, tenantId.getId(), deviceId.getId(), inactivityTimeout);</b>
+<b class="nc">&nbsp;                    deviceStateService.onDeviceInactivityTimeoutUpdate(tenantId, deviceId, inactivityTimeout);</b>
+&nbsp;                },
+&nbsp;                () -&gt; {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Sending device inactivity timeout update message to core. Updated inactivity timeout: [{}].&quot;, tenantId.getId(), deviceId.getId(), inactivityTimeout);</b>
+<b class="nc">&nbsp;                    var deviceInactivityTimeoutUpdateMsg = TransportProtos.DeviceInactivityTimeoutUpdateProto.newBuilder()</b>
+<b class="nc">&nbsp;                            .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setInactivityTimeout(inactivityTimeout)</b>
+<b class="nc">&nbsp;                            .build();</b>
+<b class="nc">&nbsp;                    return TransportProtos.ToCoreMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setDeviceInactivityTimeoutUpdateMsg(deviceInactivityTimeoutUpdateMsg)</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                }, callback);
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToDeviceStateService(
+&nbsp;            TenantId tenantId, DeviceId deviceId,
+&nbsp;            Consumer&lt;DeviceStateService&gt; toDeviceStateService,
+&nbsp;            Supplier&lt;TransportProtos.ToCoreMsg&gt; toCore,
+&nbsp;            TbCallback callback
+&nbsp;    ) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);</b>
+<b class="nc">&nbsp;        if (serviceInfoProvider.isService(ServiceType.TB_CORE) &amp;&amp; tpi.isMyPartition() &amp;&amp; deviceStateService.isPresent()) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                toDeviceStateService.accept(deviceStateService.get());</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;[{}][{}] Failed to process device connectivity event.&quot;, tenantId.getId(), deviceId.getId(), e);</b>
+<b class="nc">&nbsp;                callback.onFailure(e);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            TransportProtos.ToCoreMsg toCoreMsg = toCore.get();</b>
+<b class="nc">&nbsp;            clusterService.pushMsgToCore(tpi, deviceId.getId(), toCoreMsg, new SimpleTbQueueCallback(__ -&gt; callback.onSuccess(), callback::onFailure));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

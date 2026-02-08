@@ -1,0 +1,468 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MonitoringEntityService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.monitoring.service</a>
+</div>
+
+<h1>Coverage Summary for Class: MonitoringEntityService (org.thingsboard.monitoring.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MonitoringEntityService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/161)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.monitoring.service;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.RandomStringUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.RegexUtils;
+&nbsp;import org.thingsboard.monitoring.client.TbClient;
+&nbsp;import org.thingsboard.monitoring.config.transport.DeviceConfig;
+&nbsp;import org.thingsboard.monitoring.config.transport.TransportMonitoringConfig;
+&nbsp;import org.thingsboard.monitoring.config.transport.TransportMonitoringTarget;
+&nbsp;import org.thingsboard.monitoring.config.transport.TransportType;
+&nbsp;import org.thingsboard.monitoring.util.ResourceUtils;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.Dashboard;
+&nbsp;import org.thingsboard.server.common.data.DashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfileType;
+&nbsp;import org.thingsboard.server.common.data.DeviceTransportType;
+&nbsp;import org.thingsboard.server.common.data.ShortCustomerInfo;
+&nbsp;import org.thingsboard.server.common.data.TbResource;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.id.DashboardId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.Argument;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.ScriptCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.TimeSeriesOutput;
+&nbsp;import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MBootstrapClientCredentials;
+&nbsp;import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MDeviceCredentials;
+&nbsp;import org.thingsboard.server.common.data.device.credentials.lwm2m.NoSecBootstrapClientCredential;
+&nbsp;import org.thingsboard.server.common.data.device.credentials.lwm2m.NoSecClientCredential;
+&nbsp;import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.data.DeviceData;
+&nbsp;import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.kv.KvEntry;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.common.data.security.DeviceCredentials;
+&nbsp;import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.monitoring.service.BaseHealthChecker.TEST_CF_TELEMETRY_KEY;
+&nbsp;import static org.thingsboard.monitoring.service.BaseHealthChecker.TEST_TELEMETRY_KEY;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class MonitoringEntityService {
+&nbsp;
+&nbsp;    private static final String DASHBOARD_TITLE = &quot;[Monitoring] Cloud monitoring&quot;;
+&nbsp;    private static final String DASHBOARD_RESOURCE_PATH = &quot;dashboard_cloud_monitoring.json&quot;;
+&nbsp;
+&nbsp;    private final TbClient tbClient;
+&nbsp;
+&nbsp;    @Value(&quot;${monitoring.calculated_fields.enabled:true}&quot;)
+&nbsp;    private boolean calculatedFieldsMonitoringEnabled;
+&nbsp;
+&nbsp;    DashboardId dashboardId = null;
+&nbsp;
+&nbsp;    public void checkEntities() {
+<b class="nc">&nbsp;        RuleChain ruleChain = tbClient.getRuleChains(RuleChainType.CORE, new PageLink(10)).getData().stream()</b>
+<b class="nc">&nbsp;                .filter(RuleChain::isRoot)</b>
+<b class="nc">&nbsp;                .findFirst().orElseThrow();</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+&nbsp;
+<b class="nc">&nbsp;        JsonNode ruleChainDescriptor = ResourceUtils.getResource(&quot;rule_chain.json&quot;);</b>
+<b class="nc">&nbsp;        List&lt;String&gt; attributeKeys = tbClient.getAttributeKeys(ruleChainId);</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; attributes = tbClient.getAttributeKvEntries(ruleChainId, attributeKeys).stream()</b>
+<b class="nc">&nbsp;                .collect(Collectors.toMap(KvEntry::getKey, KvEntry::getValueAsString));</b>
+&nbsp;
+<b class="nc">&nbsp;        int currentVersion = Integer.parseInt(attributes.getOrDefault(&quot;version&quot;, &quot;0&quot;));</b>
+<b class="nc">&nbsp;        int newVersion = ruleChainDescriptor.get(&quot;version&quot;).asInt();</b>
+<b class="nc">&nbsp;        if (currentVersion == newVersion) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Not updating rule chain, version is the same ({})&quot;, currentVersion);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.info(&quot;Updating rule chain &#39;{}&#39; from version {} to {}&quot;, ruleChain.getName(), currentVersion, newVersion);</b>
+&nbsp;
+<b class="nc">&nbsp;            String metadataJson = RegexUtils.replace(ruleChainDescriptor.get(&quot;metadata&quot;).toString(),</b>
+&nbsp;                    &quot;\\$\\{MONITORING:(.+?)}&quot;, matchResult -&gt; {
+<b class="nc">&nbsp;                        String key = matchResult.group(1);</b>
+<b class="nc">&nbsp;                        String value = attributes.get(key);</b>
+<b class="nc">&nbsp;                        if (value == null) {</b>
+<b class="nc">&nbsp;                            throw new IllegalArgumentException(&quot;No attribute found for key &quot; + key);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        log.info(&quot;Using {}: {}&quot;, key, value);</b>
+<b class="nc">&nbsp;                        return value;</b>
+&nbsp;                    });
+<b class="nc">&nbsp;            RuleChainMetaData metaData = JacksonUtil.fromString(metadataJson, RuleChainMetaData.class);</b>
+<b class="nc">&nbsp;            metaData.setRuleChainId(ruleChainId);</b>
+<b class="nc">&nbsp;            tbClient.saveRuleChainMetaData(metaData);</b>
+<b class="nc">&nbsp;            tbClient.saveEntityAttributesV2(ruleChainId, DataConstants.SERVER_SCOPE, JacksonUtil.newObjectNode()</b>
+<b class="nc">&nbsp;                    .put(&quot;version&quot;, newVersion));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Asset asset = getOrCreateMonitoringAsset();</b>
+<b class="nc">&nbsp;        Dashboard dashboard = getOrCreateMonitoringDashboard();</b>
+&nbsp;
+<b class="nc">&nbsp;        tbClient.assignAssetToPublicCustomer(asset.getId());</b>
+<b class="nc">&nbsp;        tbClient.assignDashboardToPublicCustomer(dashboard.getId());</b>
+&nbsp;
+<b class="nc">&nbsp;        this.dashboardId = Optional.ofNullable(dashboard).map(Dashboard::getId).orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Asset getOrCreateMonitoringAsset() {
+<b class="nc">&nbsp;        String assetName = &quot;[Monitoring] Latencies&quot;;</b>
+<b class="nc">&nbsp;        return tbClient.findAsset(assetName).orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;            Asset asset = new Asset();</b>
+<b class="nc">&nbsp;            asset.setType(&quot;Monitoring&quot;);</b>
+<b class="nc">&nbsp;            asset.setName(assetName);</b>
+<b class="nc">&nbsp;            asset = tbClient.saveAsset(asset);</b>
+<b class="nc">&nbsp;            log.info(&quot;Created monitoring asset {}&quot;, asset.getId());</b>
+<b class="nc">&nbsp;            return asset;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    public void checkEntities(TransportMonitoringConfig config, TransportMonitoringTarget target) {
+<b class="nc">&nbsp;        Device device = getOrCreateDevice(config, target);</b>
+<b class="nc">&nbsp;        DeviceCredentials credentials = tbClient.getDeviceCredentialsByDeviceId(device.getId())</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;No credentials found for device &quot; + device.getId()));</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceConfig deviceConfig = new DeviceConfig();</b>
+<b class="nc">&nbsp;        deviceConfig.setId(device.getId().toString());</b>
+<b class="nc">&nbsp;        deviceConfig.setName(device.getName());</b>
+<b class="nc">&nbsp;        deviceConfig.setCredentials(credentials);</b>
+<b class="nc">&nbsp;        target.setDevice(deviceConfig);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Device getOrCreateDevice(TransportMonitoringConfig config, TransportMonitoringTarget target) {
+<b class="nc">&nbsp;        TransportType transportType = config.getTransportType();</b>
+<b class="nc">&nbsp;        String deviceName = String.format(&quot;%s %s (%s) - %s&quot;, target.getNamePrefix(), transportType.getName(), target.getQueue(), target.getBaseUrl()).trim();</b>
+<b class="nc">&nbsp;        Device device = tbClient.getTenantDevice(deviceName).orElse(null);</b>
+<b class="nc">&nbsp;        if (device != null) {</b>
+<b class="nc">&nbsp;            if (calculatedFieldsMonitoringEnabled) {</b>
+<b class="nc">&nbsp;                CalculatedField calculatedField = tbClient.getCalculatedFieldsByEntityId(device.getId(), new PageLink(1, 0, TEST_CF_TELEMETRY_KEY))</b>
+<b class="nc">&nbsp;                        .getData().stream().findFirst().orElse(null);</b>
+<b class="nc">&nbsp;                if (calculatedField == null) {</b>
+<b class="nc">&nbsp;                    createCalculatedField(device);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return device;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;Creating new device &#39;{}&#39;&quot;, deviceName);</b>
+<b class="nc">&nbsp;        device = new Device();</b>
+<b class="nc">&nbsp;        device.setName(deviceName);</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceCredentials credentials = new DeviceCredentials();</b>
+<b class="nc">&nbsp;        credentials.setCredentialsId(RandomStringUtils.randomAlphabetic(20));</b>
+<b class="nc">&nbsp;        DeviceData deviceData = new DeviceData();</b>
+<b class="nc">&nbsp;        deviceData.setConfiguration(new DefaultDeviceConfiguration());</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceProfile deviceProfile = getOrCreateDeviceProfile(config, target);</b>
+<b class="nc">&nbsp;        device.setType(deviceProfile.getName());</b>
+<b class="nc">&nbsp;        device.setDeviceProfileId(deviceProfile.getId());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (transportType != TransportType.LWM2M) {</b>
+<b class="nc">&nbsp;            deviceData.setTransportConfiguration(new DefaultDeviceTransportConfiguration());</b>
+<b class="nc">&nbsp;            credentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            deviceData.setTransportConfiguration(new Lwm2mDeviceTransportConfiguration());</b>
+<b class="nc">&nbsp;            credentials.setCredentialsType(DeviceCredentialsType.LWM2M_CREDENTIALS);</b>
+<b class="nc">&nbsp;            LwM2MDeviceCredentials lwm2mCreds = new LwM2MDeviceCredentials();</b>
+<b class="nc">&nbsp;            NoSecClientCredential client = new NoSecClientCredential();</b>
+<b class="nc">&nbsp;            client.setEndpoint(credentials.getCredentialsId());</b>
+<b class="nc">&nbsp;            lwm2mCreds.setClient(client);</b>
+<b class="nc">&nbsp;            LwM2MBootstrapClientCredentials bootstrap = new LwM2MBootstrapClientCredentials();</b>
+<b class="nc">&nbsp;            bootstrap.setBootstrapServer(new NoSecBootstrapClientCredential());</b>
+<b class="nc">&nbsp;            bootstrap.setLwm2mServer(new NoSecBootstrapClientCredential());</b>
+<b class="nc">&nbsp;            lwm2mCreds.setBootstrap(bootstrap);</b>
+<b class="nc">&nbsp;            credentials.setCredentialsValue(JacksonUtil.toString(lwm2mCreds));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        device = tbClient.saveDeviceWithCredentials(device, credentials).get();</b>
+<b class="nc">&nbsp;        if (calculatedFieldsMonitoringEnabled) {</b>
+<b class="nc">&nbsp;            createCalculatedField(device);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return device;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private DeviceProfile getOrCreateDeviceProfile(TransportMonitoringConfig config, TransportMonitoringTarget target) {
+<b class="nc">&nbsp;        TransportType transportType = config.getTransportType();</b>
+<b class="nc">&nbsp;        String profileName = String.format(&quot;%s %s (%s)&quot;, target.getNamePrefix(), transportType.getName(), target.getQueue()).trim();</b>
+<b class="nc">&nbsp;        DeviceProfile deviceProfile = tbClient.getDeviceProfiles(new PageLink(1, 0, profileName)).getData()</b>
+<b class="nc">&nbsp;                .stream().findFirst().orElse(null);</b>
+<b class="nc">&nbsp;        if (deviceProfile != null) {</b>
+<b class="nc">&nbsp;            return deviceProfile;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;Creating new device profile &#39;{}&#39;&quot;, profileName);</b>
+<b class="nc">&nbsp;        if (transportType != TransportType.LWM2M) {</b>
+<b class="nc">&nbsp;            deviceProfile = new DeviceProfile();</b>
+<b class="nc">&nbsp;            deviceProfile.setType(DeviceProfileType.DEFAULT);</b>
+<b class="nc">&nbsp;            deviceProfile.setTransportType(DeviceTransportType.DEFAULT);</b>
+<b class="nc">&nbsp;            DeviceProfileData profileData = new DeviceProfileData();</b>
+<b class="nc">&nbsp;            profileData.setConfiguration(new DefaultDeviceProfileConfiguration());</b>
+<b class="nc">&nbsp;            profileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());</b>
+<b class="nc">&nbsp;            deviceProfile.setProfileData(profileData);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            tbClient.getResources(new PageLink(1, 0, &quot;LwM2M Monitoring&quot;)).getData()</b>
+<b class="nc">&nbsp;                    .stream().findFirst()</b>
+<b class="nc">&nbsp;                    .orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;                        TbResource newResource = ResourceUtils.getResource(&quot;lwm2m/resource.json&quot;, TbResource.class);</b>
+<b class="nc">&nbsp;                        log.info(&quot;Creating LwM2M resource&quot;);</b>
+<b class="nc">&nbsp;                        return tbClient.saveResource(newResource);</b>
+&nbsp;                    });
+<b class="nc">&nbsp;            deviceProfile = ResourceUtils.getResource(&quot;lwm2m/device_profile.json&quot;, DeviceProfile.class);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        deviceProfile.setName(profileName);</b>
+<b class="nc">&nbsp;        deviceProfile.setDefaultQueueName(target.getQueue());</b>
+<b class="nc">&nbsp;        return tbClient.saveDeviceProfile(deviceProfile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createCalculatedField(Device device) {
+<b class="nc">&nbsp;        log.info(&quot;Creating calculated field for device &#39;{}&#39;&quot;, device.getName());</b>
+<b class="nc">&nbsp;        CalculatedField calculatedField = new CalculatedField();</b>
+<b class="nc">&nbsp;        calculatedField.setName(TEST_CF_TELEMETRY_KEY);</b>
+<b class="nc">&nbsp;        calculatedField.setEntityId(device.getId());</b>
+<b class="nc">&nbsp;        calculatedField.setType(CalculatedFieldType.SCRIPT);</b>
+<b class="nc">&nbsp;        ScriptCalculatedFieldConfiguration configuration = new ScriptCalculatedFieldConfiguration();</b>
+<b class="nc">&nbsp;        Argument testDataArgument = new Argument();</b>
+<b class="nc">&nbsp;        testDataArgument.setRefEntityKey(new ReferencedEntityKey(TEST_TELEMETRY_KEY, ArgumentType.TS_LATEST, null));</b>
+<b class="nc">&nbsp;        configuration.setArguments(Map.of(</b>
+&nbsp;                TEST_TELEMETRY_KEY, testDataArgument
+&nbsp;        ));
+<b class="nc">&nbsp;        configuration.setExpression(&quot;return { \&quot;&quot; + TEST_CF_TELEMETRY_KEY + &quot;\&quot;: &quot; + TEST_TELEMETRY_KEY + &quot; + \&quot;-cf\&quot; };&quot;);</b>
+<b class="nc">&nbsp;        configuration.setOutput(new TimeSeriesOutput());</b>
+<b class="nc">&nbsp;        calculatedField.setConfiguration(configuration);</b>
+<b class="nc">&nbsp;        calculatedField.setDebugMode(true);</b>
+<b class="nc">&nbsp;        tbClient.saveCalculatedField(calculatedField);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getDashboardPublicLink() {
+<b class="nc">&nbsp;        String link = &quot;&quot;;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            Optional&lt;DashboardInfo&gt; infoOpt = tbClient.getDashboardInfoById(dashboardId);</b>
+<b class="nc">&nbsp;            if (infoOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                String publicCustomerId = null;</b>
+<b class="nc">&nbsp;                Set&lt;ShortCustomerInfo&gt; customers = infoOpt.get().getAssignedCustomers();</b>
+<b class="nc">&nbsp;                if (customers != null) {</b>
+<b class="nc">&nbsp;                    publicCustomerId = customers.stream()</b>
+<b class="nc">&nbsp;                            .filter(ShortCustomerInfo::isPublic)</b>
+<b class="nc">&nbsp;                            .map(c -&gt; c.getCustomerId().getId().toString())</b>
+<b class="nc">&nbsp;                            .findFirst().orElse(null);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (publicCustomerId != null) {</b>
+<b class="nc">&nbsp;                    link = buildPublicDashboardLink(dashboardId, publicCustomerId);</b>
+<b class="nc">&nbsp;                    log.info(&quot;Public Monitoring dashboard link: {}&quot;, link);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.warn(&quot;Dashboard is not assigned to public customer. Public link can&#39;t be generated.&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to get a public link to Monitoring dashboard &quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return link;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Dashboard getOrCreateMonitoringDashboard() {
+<b class="nc">&nbsp;        Dashboard existing = findDashboardByTitle(DASHBOARD_TITLE).orElse(null);</b>
+<b class="nc">&nbsp;        if (existing != null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Found Monitoring dashboard &#39;{}&#39; with id {}&quot;, existing.getTitle(), existing.getId());</b>
+<b class="nc">&nbsp;            return existing;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Dashboard dashboardFromResource = ResourceUtils.getResource(DASHBOARD_RESOURCE_PATH, Dashboard.class);</b>
+<b class="nc">&nbsp;        dashboardFromResource.setTitle(DASHBOARD_TITLE);</b>
+&nbsp;        //Optional.ofNullable(existing).map(Dashboard::getId).ifPresent(dashboardFromResource::setId);
+<b class="nc">&nbsp;        Dashboard saved = tbClient.saveDashboard(dashboardFromResource);</b>
+<b class="nc">&nbsp;        log.info(&quot;Created Monitoring dashboard &#39;{}&#39; with id {}&quot;, saved.getTitle(), saved.getId());</b>
+<b class="nc">&nbsp;        return saved;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;Dashboard&gt; findDashboardByTitle(String title) {
+&nbsp;        // Use text search first and then filter by exact title
+<b class="nc">&nbsp;        PageData&lt;DashboardInfo&gt; page = tbClient.getTenantDashboards(new PageLink(10, 0, title));</b>
+<b class="nc">&nbsp;        return page.getData().stream()</b>
+<b class="nc">&nbsp;                .filter(info -&gt; title.equals(info.getTitle()))</b>
+<b class="nc">&nbsp;                .findFirst()</b>
+<b class="nc">&nbsp;                .flatMap(info -&gt; tbClient.getDashboardById(info.getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildPublicDashboardLink(DashboardId dashboardId, String publicCustomerId) {
+<b class="nc">&nbsp;        String base = getBaseUrl();</b>
+<b class="nc">&nbsp;        return String.format(&quot;%s/dashboard/%s?publicId=%s&quot;, base, dashboardId.getId().toString(), publicCustomerId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getBaseUrl() {
+&nbsp;        // TbClient.baseURL contains the root url, without trailing slash
+&nbsp;        try {
+<b class="nc">&nbsp;            var baseUrlField = tbClient.getClass().getSuperclass().getDeclaredField(&quot;baseURL&quot;);</b>
+<b class="nc">&nbsp;            baseUrlField.setAccessible(true);</b>
+<b class="nc">&nbsp;            return (String) baseUrlField.get(tbClient);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;Unable to access baseURL from RestClient. Falling back to http://localhost:8080&quot;);</b>
+<b class="nc">&nbsp;            return &quot;http://localhost:8080&quot;;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultFirebaseService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.notification.provider</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultFirebaseService (org.thingsboard.server.service.notification.provider)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultFirebaseService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultFirebaseService$FirebaseContext</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/58)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.notification.provider;
+&nbsp;
+&nbsp;import com.github.benmanes.caffeine.cache.Cache;
+&nbsp;import com.github.benmanes.caffeine.cache.Caffeine;
+&nbsp;import com.github.benmanes.caffeine.cache.RemovalCause;
+&nbsp;import com.google.auth.oauth2.GoogleCredentials;
+&nbsp;import com.google.firebase.FirebaseApp;
+&nbsp;import com.google.firebase.FirebaseOptions;
+&nbsp;import com.google.firebase.messaging.AndroidConfig;
+&nbsp;import com.google.firebase.messaging.ApnsConfig;
+&nbsp;import com.google.firebase.messaging.Aps;
+&nbsp;import com.google.firebase.messaging.FirebaseMessaging;
+&nbsp;import com.google.firebase.messaging.FirebaseMessagingException;
+&nbsp;import com.google.firebase.messaging.Message;
+&nbsp;import com.google.firebase.messaging.Notification;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.io.IOUtils;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.rule.engine.api.notification.FirebaseService;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class DefaultFirebaseService implements FirebaseService {</b>
+&nbsp;
+<b class="nc">&nbsp;    private final Cache&lt;String, FirebaseContext&gt; contexts = Caffeine.newBuilder()</b>
+<b class="nc">&nbsp;            .expireAfterAccess(1, TimeUnit.DAYS)</b>
+<b class="nc">&nbsp;            .&lt;String, FirebaseContext&gt;removalListener((key, context, cause) -&gt; {</b>
+<b class="nc">&nbsp;                if (cause == RemovalCause.EXPIRED &amp;&amp; context != null) {</b>
+<b class="nc">&nbsp;                    context.destroy();</b>
+&nbsp;                }
+&nbsp;            })
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendMessage(TenantId tenantId, String credentials, String fcmToken, String title, String body,
+&nbsp;                            Map&lt;String, String&gt; data, Integer badge) throws FirebaseMessagingException {
+<b class="nc">&nbsp;        FirebaseContext firebaseContext = contexts.asMap().compute(tenantId.toString(), (key, context) -&gt; {</b>
+<b class="nc">&nbsp;            if (context == null) {</b>
+<b class="nc">&nbsp;                return new FirebaseContext(key, credentials);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                context.check(credentials);</b>
+<b class="nc">&nbsp;                return context;</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        Aps.Builder apsConfig = Aps.builder()</b>
+<b class="nc">&nbsp;                .setSound(&quot;default&quot;);</b>
+<b class="nc">&nbsp;        if (badge != null) {</b>
+<b class="nc">&nbsp;            apsConfig.setBadge(badge);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Message message = Message.builder()</b>
+<b class="nc">&nbsp;                .setToken(fcmToken)</b>
+<b class="nc">&nbsp;                .setNotification(Notification.builder()</b>
+<b class="nc">&nbsp;                        .setTitle(title)</b>
+<b class="nc">&nbsp;                        .setBody(body)</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .setAndroidConfig(AndroidConfig.builder()</b>
+<b class="nc">&nbsp;                        .setPriority(AndroidConfig.Priority.HIGH)</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .setApnsConfig(ApnsConfig.builder()</b>
+<b class="nc">&nbsp;                        .setAps(apsConfig.build())</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .putAllData(data)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            firebaseContext.getMessaging().send(message);</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Sent message for FCM token {}&quot;, tenantId, fcmToken);</b>
+&nbsp;        } catch (Throwable t) {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Failed to send message for FCM token {}&quot;, tenantId, fcmToken, t);</b>
+&nbsp;            throw t;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static class FirebaseContext {
+&nbsp;        private final String key;
+&nbsp;        private String credentials;
+&nbsp;        private FirebaseApp app;
+&nbsp;        @Getter
+&nbsp;        private FirebaseMessaging messaging;
+&nbsp;
+<b class="nc">&nbsp;        public FirebaseContext(String key, String credentials) {</b>
+<b class="nc">&nbsp;            this.key = key;</b>
+<b class="nc">&nbsp;            this.credentials = credentials;</b>
+<b class="nc">&nbsp;            init();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private void init() {
+&nbsp;            FirebaseOptions options;
+&nbsp;            try {
+<b class="nc">&nbsp;                options = FirebaseOptions.builder()</b>
+<b class="nc">&nbsp;                        .setCredentials(GoogleCredentials.fromStream(IOUtils.toInputStream(credentials, StandardCharsets.UTF_8)))</b>
+<b class="nc">&nbsp;                        .build();</b>
+&nbsp;            } catch (IOException e) {
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Failed to process service account credentials: &quot; + e.getMessage(), e);</b>
+&nbsp;            }
+&nbsp;            try {
+<b class="nc">&nbsp;                app = FirebaseApp.initializeApp(options, key);</b>
+&nbsp;            } catch (IllegalStateException alreadyExists) { // should never normally happen
+<b class="nc">&nbsp;                app = FirebaseApp.getInstance(key);</b>
+&nbsp;            }
+&nbsp;            try {
+<b class="nc">&nbsp;                messaging = FirebaseMessaging.getInstance(app);</b>
+&nbsp;            } catch (IllegalStateException alreadyExists) { // should never normally happen
+<b class="nc">&nbsp;                messaging = FirebaseMessaging.getInstance(app);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Initialized new FirebaseContext&quot;, key);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void check(String credentials) {
+<b class="nc">&nbsp;            if (!this.credentials.equals(credentials)) {</b>
+<b class="nc">&nbsp;                destroy();</b>
+<b class="nc">&nbsp;                this.credentials = credentials;</b>
+<b class="nc">&nbsp;                init();</b>
+<b class="nc">&nbsp;            } else if (app == null || messaging == null) {</b>
+<b class="nc">&nbsp;                throw new IllegalStateException(&quot;Firebase app couldn&#39;t be initialized&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        public void destroy() {
+<b class="nc">&nbsp;            if (app != null) {</b>
+<b class="nc">&nbsp;                app.delete();</b>
+<b class="nc">&nbsp;                app = null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            messaging = null;</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Destroyed FirebaseContext&quot;, key);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

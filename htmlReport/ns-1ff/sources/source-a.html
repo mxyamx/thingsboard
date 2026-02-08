@@ -1,0 +1,336 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LwM2mVersionedModelProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.server</a>
+</div>
+
+<h1>Coverage Summary for Class: LwM2mVersionedModelProvider (org.thingsboard.server.transport.lwm2m.server)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LwM2mVersionedModelProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LwM2mVersionedModelProvider$DynamicModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.server;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.core.LwM2m;
+&nbsp;import org.eclipse.leshan.core.model.LwM2mModel;
+&nbsp;import org.eclipse.leshan.core.model.ObjectModel;
+&nbsp;import org.eclipse.leshan.core.model.ResourceModel;
+&nbsp;import org.eclipse.leshan.server.model.LwM2mModelProvider;
+&nbsp;import org.eclipse.leshan.server.registration.Registration;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.TbResource;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.queue.util.TbLwM2mTransportComponent;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.ResourceType.LWM2M_MODEL;
+&nbsp;import static org.thingsboard.server.common.data.lwm2m.LwM2mConstants.LWM2M_SEPARATOR_KEY;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@TbLwM2mTransportComponent
+&nbsp;public class LwM2mVersionedModelProvider implements LwM2mModelProvider {
+&nbsp;
+&nbsp;    private final LwM2mClientContext lwM2mClientContext;
+&nbsp;    private final LwM2mTransportServerHelper helper;
+&nbsp;    private final LwM2mTransportContext context;
+&nbsp;    private final ConcurrentMap&lt;TenantId, ConcurrentMap&lt;String, ObjectModel&gt;&gt; models;
+&nbsp;
+<b class="nc">&nbsp;    public LwM2mVersionedModelProvider(@Lazy LwM2mClientContext lwM2mClientContext, LwM2mTransportServerHelper helper, LwM2mTransportContext context) {</b>
+<b class="nc">&nbsp;        this.lwM2mClientContext = lwM2mClientContext;</b>
+<b class="nc">&nbsp;        this.helper = helper;</b>
+<b class="nc">&nbsp;        this.context = context;</b>
+<b class="nc">&nbsp;        this.models = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getKeyIdVer(Integer objectId, String version) {
+<b class="nc">&nbsp;        return objectId != null ? objectId + LWM2M_SEPARATOR_KEY + ((version == null || version.isEmpty()) ? ObjectModel.DEFAULT_VERSION : version) : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public LwM2mModel getObjectModel(Registration registration) {
+<b class="nc">&nbsp;        return new DynamicModel(registration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void evict(TenantId tenantId, String key) {
+<b class="nc">&nbsp;        if (tenantId.isNullUid()) {</b>
+<b class="nc">&nbsp;            models.values().forEach(m -&gt; m.remove(key));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            models.get(tenantId).remove(key);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private class DynamicModel implements LwM2mModel {
+&nbsp;        private final Registration registration;
+&nbsp;        private final TenantId tenantId;
+&nbsp;        private final Lock modelsLock;
+&nbsp;
+<b class="nc">&nbsp;        public DynamicModel(Registration registration) {</b>
+<b class="nc">&nbsp;            this.registration = registration;</b>
+<b class="nc">&nbsp;            this.tenantId = lwM2mClientContext.getClientByEndpoint(registration.getEndpoint()).getTenantId();</b>
+<b class="nc">&nbsp;            this.modelsLock = new ReentrantLock();</b>
+<b class="nc">&nbsp;            if (tenantId != null) {</b>
+<b class="nc">&nbsp;                models.computeIfAbsent(tenantId, t -&gt; new ConcurrentHashMap&lt;&gt;());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public ResourceModel getResourceModel(int objectId, int resourceId) {
+&nbsp;            try {
+<b class="nc">&nbsp;                ObjectModel objectModel = getObjectModel(objectId);</b>
+<b class="nc">&nbsp;                if (objectModel != null)</b>
+<b class="nc">&nbsp;                    return objectModel.resources.get(resourceId);</b>
+&nbsp;                else
+<b class="nc">&nbsp;                    log.trace(&quot;Tenant hasn&#39;t such the TbResources: Object model with id [{}/0/{}].&quot;, objectId, resourceId);</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;&quot;, e);</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public ObjectModel getObjectModel(int objectId) {
+<b class="nc">&nbsp;            LwM2mClient lwM2mClient = lwM2mClientContext.getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;            var version = lwM2mClient.getSupportedObjectVersion(objectId);</b>
+<b class="nc">&nbsp;            if (version != null) {</b>
+<b class="nc">&nbsp;                return this.getObjectModelDynamic(objectId, version.toString());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public Collection&lt;ObjectModel&gt; getObjectModels() {
+<b class="nc">&nbsp;            LwM2mClient lwM2mClient = lwM2mClientContext.getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;            Map&lt;Integer, LwM2m.Version&gt; supportedObjects = lwM2mClient.getSupportedClientObjects();</b>
+<b class="nc">&nbsp;            Collection&lt;ObjectModel&gt; result = new ArrayList&lt;&gt;(supportedObjects.size());</b>
+<b class="nc">&nbsp;            for (Map.Entry&lt;Integer, LwM2m.Version&gt; supportedObject : supportedObjects.entrySet()) {</b>
+<b class="nc">&nbsp;                ObjectModel objectModel = this.getObjectModelDynamic(supportedObject.getKey(), String.valueOf(supportedObject.getValue()));</b>
+<b class="nc">&nbsp;                if (objectModel != null) {</b>
+<b class="nc">&nbsp;                    result.add(objectModel);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private ObjectModel getObjectModelDynamic(Integer objectId, String version) {
+<b class="nc">&nbsp;            String key = getKeyIdVer(objectId, version);</b>
+<b class="nc">&nbsp;            ObjectModel objectModel = tenantId != null ? models.get(tenantId).get(key) : null;</b>
+<b class="nc">&nbsp;            if (tenantId != null &amp;&amp; objectModel == null) {</b>
+<b class="nc">&nbsp;                modelsLock.lock();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    objectModel = models.get(tenantId).get(key);</b>
+<b class="nc">&nbsp;                    if (objectModel == null) {</b>
+<b class="nc">&nbsp;                        objectModel = getObjectModel(key);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (objectModel != null) {</b>
+<b class="nc">&nbsp;                        models.get(tenantId).put(key, objectModel);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.error(&quot;Tenant hasn&#39;t such the resource: Object model with id [{}] version [{}].&quot;, objectId, version);</b>
+&nbsp;                    }
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    modelsLock.unlock();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            return objectModel;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private ObjectModel getObjectModel(String key) {
+<b class="nc">&nbsp;            Optional&lt;TbResource&gt; tbResource = context.getTransportResourceCache().get(this.tenantId, LWM2M_MODEL, key);</b>
+<b class="nc">&nbsp;            return tbResource.map(resource -&gt; helper.parseFromXmlToObjectModel(resource.getData(),</b>
+<b class="nc">&nbsp;                    key + &quot;.xml&quot;)).orElse(null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

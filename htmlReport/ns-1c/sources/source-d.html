@@ -1,0 +1,529 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbContext</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.api</a>
+</div>
+
+<h1>Coverage Summary for Class: TbContext (org.thingsboard.rule.engine.api)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">TbContext</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.api;
+&nbsp;
+&nbsp;import io.netty.channel.EventLoopGroup;
+&nbsp;import org.thingsboard.common.util.ExecutorProvider;
+&nbsp;import org.thingsboard.common.util.ListeningExecutor;
+&nbsp;import org.thingsboard.rule.engine.api.notification.SlackService;
+&nbsp;import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.HasTenantId;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetProfile;
+&nbsp;import org.thingsboard.server.common.data.id.AssetId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNode;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNodeState;
+&nbsp;import org.thingsboard.server.common.data.script.ScriptLanguage;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;import org.thingsboard.server.dao.ai.AiModelService;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmCommentService;
+&nbsp;import org.thingsboard.server.dao.asset.AssetProfileService;
+&nbsp;import org.thingsboard.server.dao.asset.AssetService;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.dao.audit.AuditLogService;
+&nbsp;import org.thingsboard.server.dao.cassandra.CassandraCluster;
+&nbsp;import org.thingsboard.server.dao.cf.CalculatedFieldService;
+&nbsp;import org.thingsboard.server.dao.customer.CustomerService;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceCredentialsService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceProfileService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceService;
+&nbsp;import org.thingsboard.server.dao.domain.DomainService;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeEventService;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.entityview.EntityViewService;
+&nbsp;import org.thingsboard.server.dao.event.EventService;
+&nbsp;import org.thingsboard.server.dao.job.JobService;
+&nbsp;import org.thingsboard.server.dao.mobile.MobileAppBundleService;
+&nbsp;import org.thingsboard.server.dao.mobile.MobileAppService;
+&nbsp;import org.thingsboard.server.dao.nosql.CassandraStatementTask;
+&nbsp;import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRequestService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRuleService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationTargetService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationTemplateService;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
+&nbsp;import org.thingsboard.server.dao.ota.OtaPackageService;
+&nbsp;import org.thingsboard.server.dao.pat.ApiKeyService;
+&nbsp;import org.thingsboard.server.dao.queue.QueueService;
+&nbsp;import org.thingsboard.server.dao.queue.QueueStatsService;
+&nbsp;import org.thingsboard.server.dao.relation.RelationService;
+&nbsp;import org.thingsboard.server.dao.resource.ResourceService;
+&nbsp;import org.thingsboard.server.dao.resource.TbResourceDataCache;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainService;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;import org.thingsboard.server.dao.timeseries.TimeseriesService;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetTypeService;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetsBundleService;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 13.01.18.
+&nbsp; */
+&nbsp;public interface TbContext {
+&nbsp;
+&nbsp;    /*
+&nbsp;     *
+&nbsp;     *  METHODS TO CONTROL THE MESSAGE FLOW
+&nbsp;     *
+&nbsp;     */
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Indicates that message was successfully processed by the rule node.
+&nbsp;     * Sends message to all Rule Nodes in the Rule Chain
+&nbsp;     * that are connected to the current Rule Node using &quot;Success&quot; relationType.
+&nbsp;     *
+&nbsp;     * @param msg
+&nbsp;     */
+&nbsp;    void tellSuccess(TbMsg msg);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sends message to all Rule Nodes in the Rule Chain
+&nbsp;     * that are connected to the current Rule Node using specified relationType.
+&nbsp;     *
+&nbsp;     * @param msg
+&nbsp;     * @param relationType
+&nbsp;     */
+&nbsp;    void tellNext(TbMsg msg, String relationType);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sends message to all Rule Nodes in the Rule Chain
+&nbsp;     * that are connected to the current Rule Node using one of specified relationTypes.
+&nbsp;     *
+&nbsp;     * @param msg
+&nbsp;     * @param relationTypes
+&nbsp;     */
+&nbsp;    void tellNext(TbMsg msg, Set&lt;String&gt; relationTypes);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sends message to the current Rule Node with specified delay in milliseconds.
+&nbsp;     * Note: this message is not queued and may be lost in case of a server restart.
+&nbsp;     *
+&nbsp;     * @param msg
+&nbsp;     */
+&nbsp;    void tellSelf(TbMsg msg, long delayMs);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Notifies Rule Engine about failure to process current message.
+&nbsp;     *
+&nbsp;     * @param msg - message
+&nbsp;     * @param th  - exception
+&nbsp;     */
+&nbsp;    void tellFailure(TbMsg msg, Throwable th);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Puts new message to queue from TbMsg for processing by the Root Rule Chain
+&nbsp;     *
+&nbsp;     * @param msg - message
+&nbsp;     */
+&nbsp;    void enqueue(TbMsg msg, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Puts new message to custom queue for processing
+&nbsp;     *
+&nbsp;     * @param msg - message
+&nbsp;     */
+&nbsp;    void enqueue(TbMsg msg, String queueName, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sends message to the nested rule chain.
+&nbsp;     * Fails processing of the message if the nested rule chain is not found.
+&nbsp;     *
+&nbsp;     * @param msg - the message
+&nbsp;     * @param ruleChainId - the id of a nested rule chain
+&nbsp;     */
+&nbsp;    void input(TbMsg msg, RuleChainId ruleChainId);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sends message to the caller rule chain.
+&nbsp;     * Acknowledge the message if no caller rule chain is present in processing stack
+&nbsp;     *
+&nbsp;     * @param msg - the message
+&nbsp;     * @param relationType - the relation type that will be used to route messages in the caller rule chain
+&nbsp;     */
+&nbsp;    void output(TbMsg msg, String relationType);
+&nbsp;
+&nbsp;    void enqueueForTellFailure(TbMsg msg, String failureMessage);
+&nbsp;
+&nbsp;    void enqueueForTellFailure(TbMsg tbMsg, Throwable t);
+&nbsp;
+&nbsp;    void enqueueForTellNext(TbMsg msg, String relationType);
+&nbsp;
+&nbsp;    void enqueueForTellNext(TbMsg msg, Set&lt;String&gt; relationTypes);
+&nbsp;
+&nbsp;    void enqueueForTellNext(TbMsg msg, String relationType, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure);
+&nbsp;
+&nbsp;    void enqueueForTellNext(TbMsg msg, Set&lt;String&gt; relationTypes, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure);
+&nbsp;
+&nbsp;    void enqueueForTellNext(TbMsg msg, String queueName, String relationType, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure);
+&nbsp;
+&nbsp;    void enqueueForTellNext(TbMsg msg, String queueName, Set&lt;String&gt; relationTypes, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure);
+&nbsp;
+&nbsp;    void ack(TbMsg tbMsg);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Creates a new TbMsg instance with the specified parameters.
+&nbsp;     *
+&nbsp;     * &lt;p&gt;&lt;strong&gt;Deprecated:&lt;/strong&gt; This method is deprecated since version 3.6.0 and should only be used when you need to
+&nbsp;     * specify a custom message type that doesn&#39;t exist in the {@link TbMsgType} enum. For standard message types,
+&nbsp;     * it is recommended to use the {@link #newMsg(String, TbMsgType, EntityId, CustomerId, TbMsgMetaData, String)}
+&nbsp;     * method instead.&lt;/p&gt;
+&nbsp;     *
+&nbsp;     * @param queueName   the name of the queue where the message will be sent
+&nbsp;     * @param type        the type of the message
+&nbsp;     * @param originator  the originator of the message
+&nbsp;     * @param customerId  the ID of the customer associated with the message
+&nbsp;     * @param metaData    the metadata of the message
+&nbsp;     * @param data        the data of the message
+&nbsp;     * @return new TbMsg instance
+&nbsp;     */
+&nbsp;    @Deprecated(since = &quot;3.6.0&quot;)
+&nbsp;    TbMsg newMsg(String queueName, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data);
+&nbsp;
+&nbsp;    @Deprecated(since = &quot;3.6.0&quot;, forRemoval = true)
+&nbsp;    TbMsg transformMsg(TbMsg origMsg, String type, EntityId originator, TbMsgMetaData metaData, String data);
+&nbsp;
+&nbsp;    TbMsg newMsg(String queueName, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data);
+&nbsp;
+&nbsp;    TbMsg newMsg(String queueName, TbMsgType type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data);
+&nbsp;
+&nbsp;    TbMsg transformMsg(TbMsg origMsg, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data);
+&nbsp;
+&nbsp;    TbMsg transformMsg(TbMsg origMsg, TbMsgMetaData metaData, String data);
+&nbsp;
+&nbsp;    TbMsg transformMsgOriginator(TbMsg origMsg, EntityId originator);
+&nbsp;
+&nbsp;    TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId);
+&nbsp;
+&nbsp;    TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId);
+&nbsp;
+&nbsp;    TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId);
+&nbsp;
+&nbsp;    @Deprecated(since = &quot;3.6.0&quot;, forRemoval = true)
+&nbsp;    TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action);
+&nbsp;
+&nbsp;    TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, TbMsgType actionMsgType);
+&nbsp;
+&nbsp;    TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List&lt;AttributeKvEntry&gt; attributes);
+&nbsp;
+&nbsp;    TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List&lt;String&gt; keys);
+&nbsp;
+&nbsp;    /*
+&nbsp;     *
+&nbsp;     *  METHODS TO PROCESS THE MESSAGES
+&nbsp;     *
+&nbsp;     */
+&nbsp;
+&nbsp;    void schedule(Runnable runnable, long delay, TimeUnit timeUnit);
+&nbsp;
+&nbsp;    void checkTenantEntity(EntityId entityId) throws TbNodeException;
+&nbsp;
+&nbsp;    &lt;E extends HasId&lt;I&gt; &amp; HasTenantId, I extends EntityId&gt; void checkTenantOrSystemEntity(E entity) throws TbNodeException;
+&nbsp;
+&nbsp;    boolean isLocalEntity(EntityId entityId);
+&nbsp;
+&nbsp;    RuleNodeId getSelfId();
+&nbsp;
+&nbsp;    RuleNode getSelf();
+&nbsp;
+&nbsp;    String getRuleChainName();
+&nbsp;
+&nbsp;    String getQueueName();
+&nbsp;
+&nbsp;    TenantId getTenantId();
+&nbsp;
+&nbsp;    AttributesService getAttributesService();
+&nbsp;
+&nbsp;    CustomerService getCustomerService();
+&nbsp;
+&nbsp;    TenantService getTenantService();
+&nbsp;
+&nbsp;    UserService getUserService();
+&nbsp;
+&nbsp;    AssetService getAssetService();
+&nbsp;
+&nbsp;    DeviceService getDeviceService();
+&nbsp;
+&nbsp;    DeviceProfileService getDeviceProfileService();
+&nbsp;
+&nbsp;    AssetProfileService getAssetProfileService();
+&nbsp;
+&nbsp;    DeviceCredentialsService getDeviceCredentialsService();
+&nbsp;
+&nbsp;    DeviceStateManager getDeviceStateManager();
+&nbsp;
+&nbsp;    String getDeviceStateNodeRateLimitConfig();
+&nbsp;
+&nbsp;    TbClusterService getClusterService();
+&nbsp;
+&nbsp;    DashboardService getDashboardService();
+&nbsp;
+&nbsp;    RuleEngineAlarmService getAlarmService();
+&nbsp;
+&nbsp;    AlarmCommentService getAlarmCommentService();
+&nbsp;
+&nbsp;    RuleChainService getRuleChainService();
+&nbsp;
+&nbsp;    RuleEngineRpcService getRpcService();
+&nbsp;
+&nbsp;    RuleEngineTelemetryService getTelemetryService();
+&nbsp;
+&nbsp;    TimeseriesService getTimeseriesService();
+&nbsp;
+&nbsp;    RelationService getRelationService();
+&nbsp;
+&nbsp;    EntityViewService getEntityViewService();
+&nbsp;
+&nbsp;    ResourceService getResourceService();
+&nbsp;
+&nbsp;    TbResourceDataCache getTbResourceDataCache();
+&nbsp;
+&nbsp;    OtaPackageService getOtaPackageService();
+&nbsp;
+&nbsp;    RuleEngineDeviceProfileCache getDeviceProfileCache();
+&nbsp;
+&nbsp;    RuleEngineAssetProfileCache getAssetProfileCache();
+&nbsp;
+&nbsp;    EdgeService getEdgeService();
+&nbsp;
+&nbsp;    EdgeEventService getEdgeEventService();
+&nbsp;
+&nbsp;    QueueService getQueueService();
+&nbsp;
+&nbsp;    QueueStatsService getQueueStatsService();
+&nbsp;
+&nbsp;    ListeningExecutor getMailExecutor();
+&nbsp;
+&nbsp;    ListeningExecutor getSmsExecutor();
+&nbsp;
+&nbsp;    ListeningExecutor getDbCallbackExecutor();
+&nbsp;
+&nbsp;    ListeningExecutor getExternalCallExecutor();
+&nbsp;
+&nbsp;    ListeningExecutor getNotificationExecutor();
+&nbsp;
+&nbsp;    ExecutorProvider getPubSubRuleNodeExecutorProvider();
+&nbsp;
+&nbsp;    MailService getMailService(boolean isSystem);
+&nbsp;
+&nbsp;    SmsService getSmsService();
+&nbsp;
+&nbsp;    SmsSenderFactory getSmsSenderFactory();
+&nbsp;
+&nbsp;    NotificationCenter getNotificationCenter();
+&nbsp;
+&nbsp;    NotificationTargetService getNotificationTargetService();
+&nbsp;
+&nbsp;    NotificationTemplateService getNotificationTemplateService();
+&nbsp;
+&nbsp;    NotificationRequestService getNotificationRequestService();
+&nbsp;
+&nbsp;    NotificationRuleService getNotificationRuleService();
+&nbsp;
+&nbsp;    OAuth2ClientService getOAuth2ClientService();
+&nbsp;
+&nbsp;    DomainService getDomainService();
+&nbsp;
+&nbsp;    MobileAppService getMobileAppService();
+&nbsp;
+&nbsp;    MobileAppBundleService getMobileAppBundleService();
+&nbsp;
+&nbsp;    SlackService getSlackService();
+&nbsp;
+&nbsp;    CalculatedFieldService getCalculatedFieldService();
+&nbsp;
+&nbsp;    RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService();
+&nbsp;
+&nbsp;    JobService getJobService();
+&nbsp;
+&nbsp;    JobManager getJobManager();
+&nbsp;
+&nbsp;    ApiKeyService getApiKeyService();
+&nbsp;
+&nbsp;    boolean isExternalNodeForceAck();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Creates JS Script Engine
+&nbsp;     * @deprecated
+&nbsp;     * &lt;p&gt; Use {@link #createScriptEngine} instead.
+&nbsp;     *
+&nbsp;     */
+&nbsp;    @Deprecated
+&nbsp;    ScriptEngine createJsScriptEngine(String script, String... argNames);
+&nbsp;
+&nbsp;    ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames);
+&nbsp;
+&nbsp;    String getServiceId();
+&nbsp;
+&nbsp;    EventLoopGroup getSharedEventLoop();
+&nbsp;
+&nbsp;    CassandraCluster getCassandraCluster();
+&nbsp;
+&nbsp;    TbResultSetFuture submitCassandraReadTask(CassandraStatementTask task);
+&nbsp;
+&nbsp;    TbResultSetFuture submitCassandraWriteTask(CassandraStatementTask task);
+&nbsp;
+&nbsp;    PageData&lt;RuleNodeState&gt; findRuleNodeStates(PageLink pageLink);
+&nbsp;
+&nbsp;    RuleNodeState findRuleNodeStateForEntity(EntityId entityId);
+&nbsp;
+&nbsp;    void removeRuleNodeStateForEntity(EntityId entityId);
+&nbsp;
+&nbsp;    RuleNodeState saveRuleNodeState(RuleNodeState state);
+&nbsp;
+&nbsp;    void clearRuleNodeStates();
+&nbsp;
+&nbsp;    void addTenantProfileListener(Consumer&lt;TenantProfile&gt; listener);
+&nbsp;
+&nbsp;    void addDeviceProfileListeners(Consumer&lt;DeviceProfile&gt; listener, BiConsumer&lt;DeviceId, DeviceProfile&gt; deviceListener);
+&nbsp;
+&nbsp;    void addAssetProfileListeners(Consumer&lt;AssetProfile&gt; listener, BiConsumer&lt;AssetId, AssetProfile&gt; assetListener);
+&nbsp;
+&nbsp;    void removeListeners();
+&nbsp;
+&nbsp;    TenantProfile getTenantProfile();
+&nbsp;
+&nbsp;    WidgetsBundleService getWidgetBundleService();
+&nbsp;
+&nbsp;    WidgetTypeService getWidgetTypeService();
+&nbsp;
+&nbsp;    RuleEngineApiUsageStateService getRuleEngineApiUsageStateService();
+&nbsp;
+&nbsp;    EntityService getEntityService();
+&nbsp;
+&nbsp;    EventService getEventService();
+&nbsp;
+&nbsp;    AuditLogService getAuditLogService();
+&nbsp;
+&nbsp;    RuleEngineAiChatModelService getAiChatModelService();
+&nbsp;
+&nbsp;    AiModelService getAiModelService();
+&nbsp;
+&nbsp;    // Configuration parameters for the MQTT client that is used in the MQTT node and Azure IoT hub node
+&nbsp;
+&nbsp;    MqttClientSettings getMqttClientSettings();
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

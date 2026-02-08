@@ -1,0 +1,409 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbelInvokeService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api.tbel</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbelInvokeService (org.thingsboard.script.api.tbel)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbelInvokeService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/73)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api.tbel;
+&nbsp;
+&nbsp;import com.github.benmanes.caffeine.cache.Cache;
+&nbsp;import com.github.benmanes.caffeine.cache.Caffeine;
+&nbsp;import com.google.common.hash.Hasher;
+&nbsp;import com.google.common.hash.Hashing;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.ListeningExecutorService;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.mvel2.CompileException;
+&nbsp;import org.mvel2.ExecutionContext;
+&nbsp;import org.mvel2.MVEL;
+&nbsp;import org.mvel2.ParserContext;
+&nbsp;import org.mvel2.SandboxedParserConfiguration;
+&nbsp;import org.mvel2.ScriptMemoryOverflowException;
+&nbsp;import org.mvel2.optimizers.OptimizerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.script.api.AbstractScriptInvokeService;
+&nbsp;import org.thingsboard.script.api.ScriptType;
+&nbsp;import org.thingsboard.script.api.TbScriptException;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageRecordKey;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.stats.StatsType;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+&nbsp;
+&nbsp;import java.io.Serializable;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.Calendar;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Random;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.Executor;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@ConditionalOnProperty(prefix = &quot;tbel&quot;, value = &quot;enabled&quot;, havingValue = &quot;true&quot;, matchIfMissing = true)
+&nbsp;@Service
+&nbsp;public class DefaultTbelInvokeService extends AbstractScriptInvokeService implements TbelInvokeService {
+&nbsp;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;UUID, String&gt; scriptIdToHash = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, TbelScript&gt; scriptMap = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;    private Cache&lt;String, Serializable&gt; compiledScriptsCache;
+&nbsp;
+&nbsp;    private SandboxedParserConfiguration parserConfig;
+&nbsp;    private final Optional&lt;TbApiUsageStateClient&gt; apiUsageStateClient;
+&nbsp;    private final Optional&lt;TbApiUsageReportClient&gt; apiUsageReportClient;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${tbel.max_total_args_size:100000}&quot;)
+&nbsp;    private long maxTotalArgsSize;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${tbel.max_result_size:300000}&quot;)
+&nbsp;    private long maxResultSize;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${tbel.max_script_body_size:50000}&quot;)
+&nbsp;    private long maxScriptBodySize;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${tbel.max_errors:3}&quot;)
+&nbsp;    private int maxErrors;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${tbel.max_black_list_duration_sec:60}&quot;)
+&nbsp;    private int maxBlackListDurationSec;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${tbel.max_requests_timeout:0}&quot;)
+&nbsp;    private long maxInvokeRequestsTimeout;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${tbel.stats.enabled:false}&quot;)
+&nbsp;    private boolean statsEnabled;
+&nbsp;
+&nbsp;    @Value(&quot;${tbel.thread_pool_size:50}&quot;)
+&nbsp;    private int threadPoolSize;
+&nbsp;
+&nbsp;    @Value(&quot;${tbel.max_memory_limit_mb:8}&quot;)
+&nbsp;    private long maxMemoryLimitMb;
+&nbsp;
+&nbsp;    @Value(&quot;${tbel.compiled_scripts_cache_size:1000}&quot;)
+&nbsp;    private int compiledScriptsCacheSize;
+&nbsp;
+&nbsp;    private ListeningExecutorService executor;
+&nbsp;
+<b class="nc">&nbsp;    private final Lock lock = new ReentrantLock();</b>
+&nbsp;
+<b class="nc">&nbsp;    protected DefaultTbelInvokeService(Optional&lt;TbApiUsageStateClient&gt; apiUsageStateClient, Optional&lt;TbApiUsageReportClient&gt; apiUsageReportClient) {</b>
+<b class="nc">&nbsp;        this.apiUsageStateClient = apiUsageStateClient;</b>
+<b class="nc">&nbsp;        this.apiUsageReportClient = apiUsageReportClient;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(fixedDelayString = &quot;${tbel.stats.print_interval_ms:10000}&quot;)
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        super.printStats();</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    @PostConstruct
+&nbsp;    @Override
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        super.init();</b>
+<b class="nc">&nbsp;        OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);</b>
+<b class="nc">&nbsp;        parserConfig = ParserContext.enableSandboxedMode();</b>
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;JSON&quot;, TbJson.class);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;Date&quot;, TbDate.class, val -&gt; 8L);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;Random&quot;, Random.class, val -&gt; 8L);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;Calendar&quot;, Calendar.class, val -&gt; 8L);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;TbelCfSingleValueArg&quot;, TbelCfSingleValueArg.class, TbelCfSingleValueArg::memorySize);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;TbelCfTsRollingArg&quot;, TbelCfTsRollingArg.class, TbelCfTsRollingArg::memorySize);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;TbelCfTsDoubleVal&quot;, TbelCfTsDoubleVal.class, TbelCfTsDoubleVal::memorySize);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;TbelCfTsRollingData&quot;, TbelCfTsRollingData.class, TbelCfTsRollingData::memorySize);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;TbTimeWindow&quot;, TbTimeWindow.class, TbTimeWindow::memorySize);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;TbelCfTsDoubleVal&quot;, TbelCfTsMultiDoubleVal.class, TbelCfTsMultiDoubleVal::memorySize);</b>
+<b class="nc">&nbsp;        parserConfig.registerDataType(&quot;TbelCfCtx&quot;, TbelCfCtx.class, TbelCfCtx::memorySize);</b>
+&nbsp;
+<b class="nc">&nbsp;        TbUtils.register(parserConfig);</b>
+<b class="nc">&nbsp;        executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(threadPoolSize, &quot;tbel-executor&quot;));</b>
+&nbsp;        try {
+&nbsp;            // Special command to warm up TBEL engine
+<b class="nc">&nbsp;            Serializable script = compileScript(&quot;var warmUp = {}; warmUp&quot;);</b>
+<b class="nc">&nbsp;            MVEL.executeTbExpression(script, new ExecutionContext(parserConfig), Collections.emptyMap());</b>
+&nbsp;        } catch (Exception e) {
+&nbsp;            // do nothing
+&nbsp;        }
+<b class="nc">&nbsp;        compiledScriptsCache = Caffeine.newBuilder()</b>
+<b class="nc">&nbsp;                .maximumSize(compiledScriptsCacheSize)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    @Override
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        super.stop();</b>
+<b class="nc">&nbsp;        if (executor != null) {</b>
+<b class="nc">&nbsp;            executor.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getStatsName() {
+<b class="nc">&nbsp;        return &quot;TBEL Scripts Stats&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Executor getCallbackExecutor() {
+<b class="nc">&nbsp;        return MoreExecutors.directExecutor();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected boolean isScriptPresent(UUID scriptId) {
+<b class="nc">&nbsp;        return scriptIdToHash.containsKey(scriptId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected boolean isExecEnabled(TenantId tenantId) {
+<b class="nc">&nbsp;        return !apiUsageStateClient.isPresent() || apiUsageStateClient.get().getApiUsageState(tenantId).isTbelExecEnabled();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void reportExecution(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        apiUsageReportClient.ifPresent(client -&gt; client.report(tenantId, customerId, ApiUsageRecordKey.TBEL_EXEC_COUNT, 1));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ListenableFuture&lt;UUID&gt; doEvalScript(TenantId tenantId, ScriptType scriptType, String scriptBody, UUID scriptId, String[] argNames) {
+<b class="nc">&nbsp;        return executor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                String scriptHash = hash(scriptBody, argNames);</b>
+<b class="nc">&nbsp;                compiledScriptsCache.get(scriptHash, k -&gt; compileScript(scriptBody));</b>
+<b class="nc">&nbsp;                lock.lock();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    scriptIdToHash.put(scriptId, scriptHash);</b>
+<b class="nc">&nbsp;                    scriptMap.computeIfAbsent(scriptHash, k -&gt; new TbelScript(scriptBody, argNames));</b>
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    lock.unlock();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return scriptId;</b>
+&nbsp;            } catch (CompileException e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.COMPILATION, scriptBody, e);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.OTHER, scriptBody, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbelScriptExecutionTask doInvokeFunction(UUID scriptId, Object[] args) {
+<b class="nc">&nbsp;        ExecutionContext executionContext = new ExecutionContext(this.parserConfig, maxMemoryLimitMb * 1024 * 1024);</b>
+<b class="nc">&nbsp;        return new TbelScriptExecutionTask(executionContext, executor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            String scriptHash = scriptIdToHash.get(scriptId);</b>
+<b class="nc">&nbsp;            if (scriptHash == null) {</b>
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.OTHER, null, new RuntimeException(&quot;Script not found!&quot;));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            TbelScript script = scriptMap.get(scriptHash);</b>
+<b class="nc">&nbsp;            Serializable compiledScript = compiledScriptsCache.get(scriptHash, k -&gt; compileScript(script.getScriptBody()));</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                return MVEL.executeTbExpression(compiledScript, executionContext, script.createVars(args));</b>
+&nbsp;            } catch (ScriptMemoryOverflowException e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.OTHER, script.getScriptBody(), new RuntimeException(&quot;Script memory overflow!&quot;));</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.RUNTIME, script.getScriptBody(), e);</b>
+&nbsp;            }
+&nbsp;        }));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void doRelease(UUID scriptId) {
+<b class="nc">&nbsp;        String scriptHash = scriptIdToHash.remove(scriptId);</b>
+<b class="nc">&nbsp;        if (scriptHash != null) {</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (!scriptIdToHash.containsValue(scriptHash)) {</b>
+<b class="nc">&nbsp;                    scriptMap.remove(scriptHash);</b>
+<b class="nc">&nbsp;                    compiledScriptsCache.invalidate(scriptHash);</b>
+&nbsp;                }
+&nbsp;            } finally {
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Serializable compileScript(String scriptBody) throws CompileException {
+<b class="nc">&nbsp;        return MVEL.compileExpression(scriptBody, new ParserContext());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;UnstableApiUsage&quot;)
+&nbsp;    protected String hash(String scriptBody, String[] argNames) {
+<b class="nc">&nbsp;        Hasher hasher = Hashing.murmur3_128().newHasher();</b>
+<b class="nc">&nbsp;        hasher.putUnencodedChars(scriptBody);</b>
+<b class="nc">&nbsp;        for (String argName : argNames) {</b>
+<b class="nc">&nbsp;            hasher.putString(argName, StandardCharsets.UTF_8);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return hasher.hash().toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getMaxEvalRequestsTimeout() {
+<b class="nc">&nbsp;        return maxInvokeRequestsTimeout * 2;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected StatsType getStatsType() {
+<b class="nc">&nbsp;        return StatsType.TBEL_INVOKE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

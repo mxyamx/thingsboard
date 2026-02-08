@@ -1,0 +1,279 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SqlLatestInsertTsRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sqlts.insert.latest.sql</a>
+</div>
+
+<h1>Coverage Summary for Class: SqlLatestInsertTsRepository (org.thingsboard.server.dao.sqlts.insert.latest.sql)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SqlLatestInsertTsRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sqlts.insert.latest.sql;
+&nbsp;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.thingsboard.server.dao.AbstractVersionedInsertRepository;
+&nbsp;import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
+&nbsp;import org.thingsboard.server.dao.sqlts.insert.latest.InsertLatestTsRepository;
+&nbsp;import org.thingsboard.server.dao.util.SqlTsLatestAnyDao;
+&nbsp;
+&nbsp;import java.sql.PreparedStatement;
+&nbsp;import java.sql.SQLException;
+&nbsp;import java.sql.Types;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@SqlTsLatestAnyDao
+&nbsp;@Repository
+<b class="nc">&nbsp;public class SqlLatestInsertTsRepository extends AbstractVersionedInsertRepository&lt;TsKvLatestEntity&gt; implements InsertLatestTsRepository {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${sql.ts_latest.update_by_latest_ts:true}&quot;)
+&nbsp;    private Boolean updateByLatestTs;
+&nbsp;
+&nbsp;    private static final String BATCH_UPDATE =
+&nbsp;            &quot;UPDATE ts_kv_latest SET ts = ?, bool_v = ?, str_v = ?, long_v = ?, dbl_v = ?, json_v = cast(? AS json), version = nextval(&#39;ts_kv_latest_version_seq&#39;) WHERE entity_id = ? AND key = ?&quot;;
+&nbsp;
+&nbsp;    private static final String INSERT_OR_UPDATE =
+&nbsp;            &quot;INSERT INTO ts_kv_latest (entity_id, key, ts, bool_v, str_v, long_v, dbl_v,  json_v, version) VALUES(?, ?, ?, ?, ?, ?, ?, cast(? AS json), nextval(&#39;ts_kv_latest_version_seq&#39;)) &quot; +
+&nbsp;                    &quot;ON CONFLICT (entity_id, key) DO UPDATE SET ts = ?, bool_v = ?, str_v = ?, long_v = ?, dbl_v = ?, json_v = cast(? AS json), version = nextval(&#39;ts_kv_latest_version_seq&#39;)&quot;;
+&nbsp;
+&nbsp;    private static final String BATCH_UPDATE_BY_LATEST_TS = BATCH_UPDATE + &quot; AND ts_kv_latest.ts &lt;= ?&quot;;
+&nbsp;
+&nbsp;    private static final String INSERT_OR_UPDATE_BY_LATEST_TS = INSERT_OR_UPDATE + &quot; WHERE ts_kv_latest.ts &lt;= ?&quot;;
+&nbsp;
+&nbsp;    private static final String RETURNING = &quot; RETURNING version&quot;;
+&nbsp;
+&nbsp;    private String batchUpdateQuery;
+&nbsp;    private String insertOrUpdateQuery;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    private void init() {
+<b class="nc">&nbsp;        this.batchUpdateQuery = (updateByLatestTs ? BATCH_UPDATE_BY_LATEST_TS : BATCH_UPDATE) + RETURNING;</b>
+<b class="nc">&nbsp;        this.insertOrUpdateQuery = (updateByLatestTs ? INSERT_OR_UPDATE_BY_LATEST_TS : INSERT_OR_UPDATE) + RETURNING;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void setOnBatchUpdateValues(PreparedStatement ps, int i, List&lt;TsKvLatestEntity&gt; entities) throws SQLException {
+<b class="nc">&nbsp;        TsKvLatestEntity tsKvLatestEntity = entities.get(i);</b>
+<b class="nc">&nbsp;        ps.setLong(1, tsKvLatestEntity.getTs());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (tsKvLatestEntity.getBooleanValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setBoolean(2, tsKvLatestEntity.getBooleanValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(2, Types.BOOLEAN);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ps.setString(3, replaceNullChars(tsKvLatestEntity.getStrValue()));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (tsKvLatestEntity.getLongValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setLong(4, tsKvLatestEntity.getLongValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(4, Types.BIGINT);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (tsKvLatestEntity.getDoubleValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setDouble(5, tsKvLatestEntity.getDoubleValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(5, Types.DOUBLE);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ps.setString(6, replaceNullChars(tsKvLatestEntity.getJsonValue()));</b>
+&nbsp;
+<b class="nc">&nbsp;        ps.setObject(7, tsKvLatestEntity.getEntityId());</b>
+<b class="nc">&nbsp;        ps.setInt(8, tsKvLatestEntity.getKey());</b>
+<b class="nc">&nbsp;        if (updateByLatestTs) {</b>
+<b class="nc">&nbsp;            ps.setLong(9, tsKvLatestEntity.getTs());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void setOnInsertOrUpdateValues(PreparedStatement ps, int i, List&lt;TsKvLatestEntity&gt; insertEntities) throws SQLException {
+<b class="nc">&nbsp;        TsKvLatestEntity tsKvLatestEntity = insertEntities.get(i);</b>
+<b class="nc">&nbsp;        ps.setObject(1, tsKvLatestEntity.getEntityId());</b>
+<b class="nc">&nbsp;        ps.setInt(2, tsKvLatestEntity.getKey());</b>
+&nbsp;
+<b class="nc">&nbsp;        ps.setLong(3, tsKvLatestEntity.getTs());</b>
+<b class="nc">&nbsp;        ps.setLong(9, tsKvLatestEntity.getTs());</b>
+<b class="nc">&nbsp;        if (updateByLatestTs) {</b>
+<b class="nc">&nbsp;            ps.setLong(15, tsKvLatestEntity.getTs());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (tsKvLatestEntity.getBooleanValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setBoolean(4, tsKvLatestEntity.getBooleanValue());</b>
+<b class="nc">&nbsp;            ps.setBoolean(10, tsKvLatestEntity.getBooleanValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(4, Types.BOOLEAN);</b>
+<b class="nc">&nbsp;            ps.setNull(10, Types.BOOLEAN);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ps.setString(5, replaceNullChars(tsKvLatestEntity.getStrValue()));</b>
+<b class="nc">&nbsp;        ps.setString(11, replaceNullChars(tsKvLatestEntity.getStrValue()));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (tsKvLatestEntity.getLongValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setLong(6, tsKvLatestEntity.getLongValue());</b>
+<b class="nc">&nbsp;            ps.setLong(12, tsKvLatestEntity.getLongValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(6, Types.BIGINT);</b>
+<b class="nc">&nbsp;            ps.setNull(12, Types.BIGINT);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (tsKvLatestEntity.getDoubleValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setDouble(7, tsKvLatestEntity.getDoubleValue());</b>
+<b class="nc">&nbsp;            ps.setDouble(13, tsKvLatestEntity.getDoubleValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(7, Types.DOUBLE);</b>
+<b class="nc">&nbsp;            ps.setNull(13, Types.DOUBLE);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ps.setString(8, replaceNullChars(tsKvLatestEntity.getJsonValue()));</b>
+<b class="nc">&nbsp;        ps.setString(14, replaceNullChars(tsKvLatestEntity.getJsonValue()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getBatchUpdateQuery() {
+<b class="nc">&nbsp;        return batchUpdateQuery;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getInsertOrUpdateQuery() {
+<b class="nc">&nbsp;        return insertOrUpdateQuery;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

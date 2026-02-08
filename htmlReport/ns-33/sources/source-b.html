@@ -1,0 +1,419 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbDeviceProfileNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.profile</a>
+</div>
+
+<h1>Coverage Summary for Class: TbDeviceProfileNode (org.thingsboard.rule.engine.profile)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbDeviceProfileNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/69)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/121)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.profile;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNodeState;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.ACTION,
+&nbsp;        name = &quot;device profile (deprecated)&quot;,
+&nbsp;        customRelations = true,
+&nbsp;        relationTypes = {&quot;Alarm Created&quot;, &quot;Alarm Updated&quot;, &quot;Alarm Severity Updated&quot;, &quot;Alarm Cleared&quot;, &quot;Success&quot;, &quot;Failure&quot;},
+&nbsp;        version = 1,
+&nbsp;        configClazz = TbDeviceProfileNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Process device messages based on device profile settings (deprecated)&quot;,
+&nbsp;        nodeDetails = &quot;Create and clear alarms based on alarm rules defined in device profile. The output relation type is either &quot; +
+&nbsp;                      &quot;&#39;Alarm Created&#39;, &#39;Alarm Updated&#39;, &#39;Alarm Severity Updated&#39; and &#39;Alarm Cleared&#39; or simply &#39;Success&#39; if no alarms were affected.&quot;,
+&nbsp;        configDirective = &quot;tbActionNodeDeviceProfileConfig&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/action/device-profile/&quot;
+&nbsp;)
+&nbsp;@Deprecated
+<b class="nc">&nbsp;public class TbDeviceProfileNode implements TbNode {</b>
+&nbsp;
+&nbsp;    private TbDeviceProfileNodeConfiguration config;
+&nbsp;    private RuleEngineDeviceProfileCache cache;
+&nbsp;    private TbContext ctx;
+<b class="nc">&nbsp;    private final Map&lt;DeviceId, DeviceState&gt; deviceStates = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, TbDeviceProfileNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        this.cache = ctx.getDeviceProfileCache();</b>
+<b class="nc">&nbsp;        this.ctx = ctx;</b>
+<b class="nc">&nbsp;        scheduleAlarmHarvesting(ctx, null);</b>
+<b class="nc">&nbsp;        ctx.addDeviceProfileListeners(this::onProfileUpdate, this::onDeviceUpdate);</b>
+<b class="nc">&nbsp;        initAlarmRuleState(false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void initAlarmRuleState(boolean printNewlyAddedDeviceStates) {
+<b class="nc">&nbsp;        if (config.isFetchAlarmRulesStateOnStart()) {</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}] Fetching alarm rule state&quot;, ctx.getSelfId());</b>
+<b class="nc">&nbsp;            int fetchCount = 0;</b>
+<b class="nc">&nbsp;            PageLink pageLink = new PageLink(1024);</b>
+&nbsp;            while (true) {
+<b class="nc">&nbsp;                PageData&lt;RuleNodeState&gt; states = ctx.findRuleNodeStates(pageLink);</b>
+<b class="nc">&nbsp;                if (!states.getData().isEmpty()) {</b>
+<b class="nc">&nbsp;                    for (RuleNodeState rns : states.getData()) {</b>
+<b class="nc">&nbsp;                        fetchCount++;</b>
+<b class="nc">&nbsp;                        if (rns.getEntityId().getEntityType().equals(EntityType.DEVICE) &amp;&amp; ctx.isLocalEntity(rns.getEntityId())) {</b>
+<b class="nc">&nbsp;                            getOrCreateDeviceState(ctx, new DeviceId(rns.getEntityId().getId()), rns, printNewlyAddedDeviceStates);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                if (!states.hasNext()) {</b>
+&nbsp;                    break;
+&nbsp;                } else {
+<b class="nc">&nbsp;                    pageLink = pageLink.nextPageLink();</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            log.info(&quot;[{}] Fetched alarm rule state for {} entities&quot;, ctx.getSelfId(), fetchCount);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!config.isPersistAlarmRulesState() &amp;&amp; ctx.isLocalEntity(ctx.getSelfId())) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Going to cleanup rule node states&quot;, ctx.getSelfId());</b>
+<b class="nc">&nbsp;            ctx.clearRuleNodeStates();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        EntityType originatorType = msg.getOriginator().getEntityType();</b>
+<b class="nc">&nbsp;        if (msg.isTypeOf(TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG)) {</b>
+<b class="nc">&nbsp;            scheduleAlarmHarvesting(ctx, msg);</b>
+<b class="nc">&nbsp;            harvestAlarms(ctx, System.currentTimeMillis());</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG)) {</b>
+<b class="nc">&nbsp;            updateProfile(ctx, new DeviceProfileId(UUID.fromString(msg.getData())));</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(TbMsgType.DEVICE_UPDATE_SELF_MSG)) {</b>
+<b class="nc">&nbsp;            JsonNode data = JacksonUtil.toJsonNode(msg.getData());</b>
+<b class="nc">&nbsp;            DeviceId deviceId = new DeviceId(UUID.fromString(data.get(&quot;deviceId&quot;).asText()));</b>
+<b class="nc">&nbsp;            if (data.has(&quot;profileId&quot;)) {</b>
+<b class="nc">&nbsp;                invalidateDeviceProfileCache(deviceId, new DeviceProfileId(UUID.fromString(data.get(&quot;deviceProfileId&quot;).asText())));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                removeDeviceState(deviceId);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (EntityType.DEVICE.equals(originatorType)) {</b>
+<b class="nc">&nbsp;                DeviceId deviceId = new DeviceId(msg.getOriginator().getId());</b>
+<b class="nc">&nbsp;                if (msg.isTypeOf(TbMsgType.ENTITY_UPDATED)) {</b>
+<b class="nc">&nbsp;                    invalidateDeviceProfileCache(deviceId, msg.getData());</b>
+<b class="nc">&nbsp;                    ctx.tellSuccess(msg);</b>
+<b class="nc">&nbsp;                } else if (msg.isTypeOf(TbMsgType.ENTITY_DELETED)) {</b>
+<b class="nc">&nbsp;                    removeDeviceState(deviceId);</b>
+<b class="nc">&nbsp;                    ctx.tellSuccess(msg);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    DeviceState deviceState = getOrCreateDeviceState(ctx, deviceId, null, false);</b>
+<b class="nc">&nbsp;                    if (deviceState != null) {</b>
+<b class="nc">&nbsp;                        deviceState.process(ctx, msg);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.info(&quot;Device was not found! Most probably device [{}] has been removed from the database. Acknowledging msg.&quot;, deviceId);</b>
+<b class="nc">&nbsp;                        ctx.ack(msg);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                ctx.tellSuccess(msg);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onPartitionChangeMsg(TbContext ctx, PartitionChangeMsg msg) {
+&nbsp;        // Cleanup the cache for all entities that are no longer assigned to current server partitions
+<b class="nc">&nbsp;        deviceStates.entrySet().removeIf(entry -&gt; !ctx.isLocalEntity(entry.getKey()));</b>
+<b class="nc">&nbsp;        initAlarmRuleState(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        ctx.removeListeners();</b>
+<b class="nc">&nbsp;        deviceStates.clear();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private DeviceState getOrCreateDeviceState(TbContext ctx, DeviceId deviceId, RuleNodeState rns, boolean printNewlyAddedDeviceStates) {
+<b class="nc">&nbsp;        DeviceState deviceState = deviceStates.get(deviceId);</b>
+<b class="nc">&nbsp;        if (deviceState == null) {</b>
+<b class="nc">&nbsp;            DeviceProfile deviceProfile = cache.get(ctx.getTenantId(), deviceId);</b>
+<b class="nc">&nbsp;            if (deviceProfile != null) {</b>
+<b class="nc">&nbsp;                deviceState = new DeviceState(ctx, config, deviceId, new ProfileState(deviceProfile), rns);</b>
+<b class="nc">&nbsp;                deviceStates.put(deviceId, deviceState);</b>
+<b class="nc">&nbsp;                if (printNewlyAddedDeviceStates) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;[{}][{}] Device [{}] was added during PartitionChangeMsg&quot;, ctx.getTenantId(), ctx.getSelfId(), deviceId);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return deviceState;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void scheduleAlarmHarvesting(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        CustomerId customerId = msg != null ? msg.getCustomerId() : null;</b>
+<b class="nc">&nbsp;        TbMsg periodicCheck = TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                .type(TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG)</b>
+<b class="nc">&nbsp;                .originator(ctx.getTenantId())</b>
+<b class="nc">&nbsp;                .customerId(customerId)</b>
+<b class="nc">&nbsp;                .copyMetaData(TbMsgMetaData.EMPTY)</b>
+<b class="nc">&nbsp;                .data(TbMsg.EMPTY_JSON_OBJECT)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        ctx.tellSelf(periodicCheck, TimeUnit.MINUTES.toMillis(1));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void harvestAlarms(TbContext ctx, long ts) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        for (DeviceState state : deviceStates.values()) {</b>
+<b class="nc">&nbsp;            state.harvestAlarms(ctx, ts);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void updateProfile(TbContext ctx, DeviceProfileId deviceProfileId) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        DeviceProfile deviceProfile = cache.get(ctx.getTenantId(), deviceProfileId);</b>
+<b class="nc">&nbsp;        if (deviceProfile != null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Received device profile update notification: {}&quot;, ctx.getSelfId(), deviceProfile);</b>
+<b class="nc">&nbsp;            for (DeviceState state : deviceStates.values()) {</b>
+<b class="nc">&nbsp;                if (deviceProfile.getId().equals(state.getProfileId())) {</b>
+<b class="nc">&nbsp;                    state.updateProfile(ctx, deviceProfile);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Received stale profile update notification: [{}]&quot;, ctx.getSelfId(), deviceProfileId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void onProfileUpdate(DeviceProfile profile) {
+<b class="nc">&nbsp;        ctx.tellSelf(TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                .type(TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG)</b>
+<b class="nc">&nbsp;                .originator(ctx.getTenantId())</b>
+<b class="nc">&nbsp;                .copyMetaData(TbMsgMetaData.EMPTY)</b>
+<b class="nc">&nbsp;                .data(profile.getId().getId().toString())</b>
+<b class="nc">&nbsp;                .build(), 0L);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onDeviceUpdate(DeviceId deviceId, DeviceProfile deviceProfile) {
+<b class="nc">&nbsp;        ObjectNode msgData = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;        msgData.put(&quot;deviceId&quot;, deviceId.getId().toString());</b>
+<b class="nc">&nbsp;        if (deviceProfile != null) {</b>
+<b class="nc">&nbsp;            msgData.put(&quot;deviceProfileId&quot;, deviceProfile.getId().getId().toString());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.tellSelf(TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                .type(TbMsgType.DEVICE_UPDATE_SELF_MSG)</b>
+<b class="nc">&nbsp;                .originator(ctx.getTenantId())</b>
+<b class="nc">&nbsp;                .copyMetaData(TbMsgMetaData.EMPTY)</b>
+<b class="nc">&nbsp;                .data(JacksonUtil.toString(msgData))</b>
+<b class="nc">&nbsp;                .build(), 0L);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void invalidateDeviceProfileCache(DeviceId deviceId, String deviceJson) {
+<b class="nc">&nbsp;        DeviceState deviceState = deviceStates.get(deviceId);</b>
+<b class="nc">&nbsp;        if (deviceState != null) {</b>
+<b class="nc">&nbsp;            DeviceProfileId currentProfileId = deviceState.getProfileId();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                Device device = JacksonUtil.fromString(deviceJson, Device.class);</b>
+<b class="nc">&nbsp;                if (!currentProfileId.equals(device.getDeviceProfileId())) {</b>
+<b class="nc">&nbsp;                    removeDeviceState(deviceId);</b>
+&nbsp;                }
+&nbsp;            } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Received device update notification with non-device msg body: [{}]&quot;, ctx.getSelfId(), deviceId, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void invalidateDeviceProfileCache(DeviceId deviceId, DeviceProfileId deviceProfileId) {
+<b class="nc">&nbsp;        DeviceState deviceState = deviceStates.get(deviceId);</b>
+<b class="nc">&nbsp;        if (deviceState != null) {</b>
+<b class="nc">&nbsp;            if (!deviceState.getProfileId().equals(deviceProfileId)) {</b>
+<b class="nc">&nbsp;                removeDeviceState(deviceId);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeDeviceState(DeviceId deviceId) {
+<b class="nc">&nbsp;        DeviceState state = deviceStates.remove(deviceId);</b>
+<b class="nc">&nbsp;        if (config.isPersistAlarmRulesState() &amp;&amp; (state != null || !config.isFetchAlarmRulesStateOnStart())) {</b>
+<b class="nc">&nbsp;            ctx.removeRuleNodeStateForEntity(deviceId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        switch (fromVersion) {</b>
+&nbsp;            case 0:
+<b class="nc">&nbsp;                String persistAlarmRulesState = &quot;persistAlarmRulesState&quot;;</b>
+<b class="nc">&nbsp;                String fetchAlarmRulesStateOnStart = &quot;fetchAlarmRulesStateOnStart&quot;;</b>
+<b class="nc">&nbsp;                if (oldConfiguration.has(persistAlarmRulesState)) {</b>
+<b class="nc">&nbsp;                    if (!oldConfiguration.get(persistAlarmRulesState).asBoolean()) {</b>
+<b class="nc">&nbsp;                        hasChanges = true;</b>
+<b class="nc">&nbsp;                        ((ObjectNode) oldConfiguration).put(fetchAlarmRulesStateOnStart, false);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            default:
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

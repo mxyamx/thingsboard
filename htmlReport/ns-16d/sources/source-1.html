@@ -1,0 +1,212 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseCalculatedFieldProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge.rpc.processor.cf</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseCalculatedFieldProcessor (org.thingsboard.server.service.edge.rpc.processor.cf)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseCalculatedFieldProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge.rpc.processor.cf;
+&nbsp;
+&nbsp;import com.datastax.oss.driver.api.core.uuid.Uuids;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.data.util.Pair;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.id.CalculatedFieldId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
+&nbsp;import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class BaseCalculatedFieldProcessor extends BaseEdgeProcessor {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;CalculatedField&gt; calculatedFieldValidator;
+&nbsp;
+&nbsp;    protected Pair&lt;Boolean, Boolean&gt; saveOrUpdateCalculatedField(TenantId tenantId, CalculatedFieldId calculatedFieldId, CalculatedFieldUpdateMsg calculatedFieldUpdateMsg) {
+<b class="nc">&nbsp;        boolean isCreated = false;</b>
+<b class="nc">&nbsp;        boolean isNameUpdated = false;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            CalculatedField calculatedField = JacksonUtil.fromString(calculatedFieldUpdateMsg.getEntity(), CalculatedField.class, true);</b>
+<b class="nc">&nbsp;            if (calculatedField == null) {</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;[{&quot; + tenantId + &quot;}] calculatedFieldUpdateMsg {&quot; + calculatedFieldUpdateMsg + &quot; } cannot be converted to calculatedField&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            CalculatedField calculatedFieldById = edgeCtx.getCalculatedFieldService().findById(tenantId, calculatedFieldId);</b>
+<b class="nc">&nbsp;            if (calculatedFieldById == null) {</b>
+<b class="nc">&nbsp;                calculatedField.setCreatedTime(Uuids.unixTimestamp(calculatedFieldId.getId()));</b>
+<b class="nc">&nbsp;                isCreated = true;</b>
+<b class="nc">&nbsp;                calculatedField.setId(null);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                calculatedField.setId(calculatedFieldId);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String calculatedFieldName = calculatedField.getName();</b>
+<b class="nc">&nbsp;            CalculatedField calculatedFieldByName = edgeCtx.getCalculatedFieldService().findByEntityIdAndTypeAndName(calculatedField.getEntityId(), calculatedField.getType(), calculatedFieldName);</b>
+<b class="nc">&nbsp;            if (calculatedFieldByName != null &amp;&amp; !calculatedFieldByName.getId().equals(calculatedFieldId)) {</b>
+<b class="nc">&nbsp;                calculatedFieldName = calculatedFieldName + &quot;_&quot; + StringUtils.randomAlphabetic(15);</b>
+<b class="nc">&nbsp;                log.warn(&quot;[{}] calculatedField with name {} already exists. Renaming calculatedField name to {}&quot;,</b>
+<b class="nc">&nbsp;                        tenantId, calculatedField.getName(), calculatedFieldByName.getName());</b>
+<b class="nc">&nbsp;                isNameUpdated = true;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            calculatedField.setName(calculatedFieldName);</b>
+&nbsp;
+<b class="nc">&nbsp;            calculatedFieldValidator.validate(calculatedField, CalculatedField::getTenantId);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (isCreated) {</b>
+<b class="nc">&nbsp;                calculatedField.setId(calculatedFieldId);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            edgeCtx.getCalculatedFieldService().save(calculatedField, false);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to process calculatedField update msg [{}]&quot;, tenantId, calculatedFieldUpdateMsg, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+<b class="nc">&nbsp;        return Pair.of(isCreated, isNameUpdated);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,930 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseResourceService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.resource</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseResourceService (org.thingsboard.server.dao.resource)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseResourceService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/58)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/136)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/319)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseResourceService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/61)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/136)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/322)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.resource;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.TextNode;
+&nbsp;import com.google.common.hash.Hashing;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.collections4.CollectionUtils;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.hibernate.exception.ConstraintViolationException;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.context.annotation.Primary;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.cache.resourceInfo.ResourceInfoCacheKey;
+&nbsp;import org.thingsboard.server.cache.resourceInfo.ResourceInfoEvictEvent;
+&nbsp;import org.thingsboard.server.common.data.Dashboard;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.ResourceExportData;
+&nbsp;import org.thingsboard.server.common.data.ResourceSubType;
+&nbsp;import org.thingsboard.server.common.data.ResourceType;
+&nbsp;import org.thingsboard.server.common.data.TbResource;
+&nbsp;import org.thingsboard.server.common.data.TbResourceDataInfo;
+&nbsp;import org.thingsboard.server.common.data.TbResourceDeleteResult;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfo;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfoFilter;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TbResourceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+&nbsp;import org.thingsboard.server.dao.ResourceContainerDao;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainDao;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetTypeDao;
+&nbsp;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;import java.util.function.UnaryOperator;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
+&nbsp;import static org.thingsboard.server.dao.device.DeviceServiceImpl.INCORRECT_TENANT_ID;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;TbResourceDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;@Primary
+&nbsp;public class BaseResourceService extends AbstractCachedEntityService&lt;ResourceInfoCacheKey, TbResourceInfo, ResourceInfoEvictEvent&gt; implements ResourceService {
+&nbsp;
+&nbsp;    protected static final String INCORRECT_RESOURCE_ID = &quot;Incorrect resourceId &quot;;
+&nbsp;    protected static final int MAX_ENTITIES_TO_FIND = 10;
+&nbsp;
+&nbsp;    protected final TbResourceDao resourceDao;
+&nbsp;    protected final TbResourceInfoDao resourceInfoDao;
+&nbsp;    protected final ResourceDataValidator resourceValidator;
+&nbsp;    protected final WidgetTypeDao widgetTypeDao;
+&nbsp;    protected final DashboardInfoDao dashboardInfoDao;
+&nbsp;    protected final RuleChainDao ruleChainDao;
+&nbsp;    private final Map&lt;EntityType, ResourceContainerDao&lt;?&gt;&gt; resourceLinkContainerDaoMap = new HashMap&lt;&gt;();
+&nbsp;    private final Map&lt;EntityType, ResourceContainerDao&lt;?&gt;&gt; generalResourceContainerDaoMap = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        resourceLinkContainerDaoMap.put(EntityType.WIDGET_TYPE, widgetTypeDao);</b>
+<b class="nc">&nbsp;        resourceLinkContainerDaoMap.put(EntityType.DASHBOARD, dashboardInfoDao);</b>
+<b class="nc">&nbsp;        generalResourceContainerDaoMap.put(EntityType.RULE_CHAIN, ruleChainDao);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private ImageService imageService;
+&nbsp;
+<b class="nc">&nbsp;    private static final Map&lt;String, String&gt; DASHBOARD_RESOURCES_MAPPING = Map.of(</b>
+&nbsp;            &quot;widgets.*.config.actions.*.*.customResources.*.url&quot;, &quot;&quot;
+&nbsp;    );
+<b class="nc">&nbsp;    private static final Map&lt;String, String&gt; WIDGET_RESOURCES_MAPPING = Map.of(</b>
+&nbsp;            &quot;resources.*.url&quot;, &quot;&quot;
+&nbsp;    );
+<b class="nc">&nbsp;    private static final Map&lt;String, String&gt; WIDGET_DEFAULT_CONFIG_RESOURCES_MAPPING = Map.of(</b>
+&nbsp;            &quot;actions.*.*.customResources.*.url&quot;, &quot;&quot;
+&nbsp;    );
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResource saveResource(TbResource resource, boolean doValidate) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveResource [{}]&quot;, resource);</b>
+<b class="nc">&nbsp;        if (resource.getTenantId() == null) {</b>
+<b class="nc">&nbsp;            resource.setTenantId(TenantId.SYS_TENANT_ID);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (resource.getId() == null) {</b>
+<b class="nc">&nbsp;            resource.setResourceKey(getUniqueKey(resource.getTenantId(), resource.getResourceType(), StringUtils.defaultIfEmpty(resource.getResourceKey(), resource.getFileName())));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (doValidate) {</b>
+<b class="nc">&nbsp;            resourceValidator.validate(resource, TbResourceInfo::getTenantId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (resource.getData() != null) {</b>
+<b class="nc">&nbsp;            resource.setEtag(calculateEtag(resource.getData()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return doSaveResource(resource);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResource saveResource(TbResource resource) {
+<b class="nc">&nbsp;        return saveResource(resource, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected TbResource doSaveResource(TbResource resource) {
+<b class="nc">&nbsp;        TenantId tenantId = resource.getTenantId();</b>
+&nbsp;        try {
+&nbsp;            TbResource saved;
+<b class="nc">&nbsp;            if (resource.getData() != null) {</b>
+<b class="nc">&nbsp;                saved = resourceDao.save(tenantId, resource);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                TbResourceInfo resourceInfo = saveResourceInfo(resource);</b>
+<b class="nc">&nbsp;                saved = new TbResource(resourceInfo);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            publishEvictEvent(new ResourceInfoEvictEvent(tenantId, resource.getId()));</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId()).entityId(saved.getId())</b>
+<b class="nc">&nbsp;                    .entity(saved).created(resource.getId() == null).build());</b>
+<b class="nc">&nbsp;            return saved;</b>
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            publishEvictEvent(new ResourceInfoEvictEvent(tenantId, resource.getId()));</b>
+<b class="nc">&nbsp;            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);</b>
+<b class="nc">&nbsp;            if (e != null &amp;&amp; e.getConstraintName() != null &amp;&amp; e.getConstraintName().equalsIgnoreCase(&quot;resource_unq_key&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Resource with such key already exists!&quot;);</b>
+&nbsp;            } else {
+&nbsp;                throw t;
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbResourceInfo saveResourceInfo(TbResource resource) {
+<b class="nc">&nbsp;        return resourceInfoDao.save(resource.getTenantId(), new TbResourceInfo(resource));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected String getUniqueKey(TenantId tenantId, ResourceType resourceType, String filename) {
+<b class="nc">&nbsp;        if (!resourceInfoDao.existsByTenantIdAndResourceTypeAndResourceKey(tenantId, resourceType, filename)) {</b>
+<b class="nc">&nbsp;            return filename;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String basename = StringUtils.substringBeforeLast(filename, &quot;.&quot;);</b>
+<b class="nc">&nbsp;        String extension = StringUtils.substringAfterLast(filename, &quot;.&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;String&gt; existing = resourceInfoDao.findKeysByTenantIdAndResourceTypeAndResourceKeyPrefix(</b>
+&nbsp;                tenantId, resourceType, basename
+&nbsp;        );
+<b class="nc">&nbsp;        String resourceKey = filename;</b>
+<b class="nc">&nbsp;        int idx = 1;</b>
+<b class="nc">&nbsp;        while (existing.contains(resourceKey)) {</b>
+<b class="nc">&nbsp;            resourceKey = basename + &quot;_(&quot; + idx + &quot;)&quot; + (!extension.isEmpty() ? &quot;.&quot; + extension : &quot;&quot;);</b>
+<b class="nc">&nbsp;            idx++;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Generated unique key {} for {} {}&quot;, tenantId, resourceKey, resourceType, filename);</b>
+<b class="nc">&nbsp;        return resourceKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResource findResourceByTenantIdAndKey(TenantId tenantId, ResourceType resourceType, String resourceKey) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findResourceByTenantIdAndKey [{}] [{}] [{}]&quot;, tenantId, resourceType, resourceKey);</b>
+<b class="nc">&nbsp;        return resourceDao.findResourceByTenantIdAndKey(tenantId, resourceType, resourceKey);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResource findResourceById(TenantId tenantId, TbResourceId resourceId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findResourceById [{}] [{}]&quot;, tenantId, resourceId);</b>
+<b class="nc">&nbsp;        Validator.validateId(resourceId, id -&gt; INCORRECT_RESOURCE_ID + id);</b>
+<b class="nc">&nbsp;        return resourceDao.findById(tenantId, resourceId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public byte[] getResourceData(TenantId tenantId, TbResourceId resourceId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getResourceData [{}] [{}]&quot;, tenantId, resourceId);</b>
+<b class="nc">&nbsp;        return resourceDao.getResourceData(tenantId, resourceId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceDataInfo getResourceDataInfo(TenantId tenantId, TbResourceId resourceId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getResourceDataInfo [{}] [{}]&quot;, tenantId, resourceId);</b>
+<b class="nc">&nbsp;        return resourceDao.getResourceDataInfo(tenantId, resourceId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResourceExportData exportResource(TbResourceInfo resourceInfo) {
+<b class="nc">&nbsp;        byte[] data = getResourceData(resourceInfo.getTenantId(), resourceInfo.getId());</b>
+<b class="nc">&nbsp;        return ResourceExportData.builder()</b>
+<b class="nc">&nbsp;                .link(resourceInfo.getLink())</b>
+<b class="nc">&nbsp;                .mediaType(resourceInfo.getResourceType().getMediaType())</b>
+<b class="nc">&nbsp;                .fileName(resourceInfo.getFileName())</b>
+<b class="nc">&nbsp;                .title(resourceInfo.getTitle())</b>
+<b class="nc">&nbsp;                .type(resourceInfo.getResourceType())</b>
+<b class="nc">&nbsp;                .subType(resourceInfo.getResourceSubType())</b>
+<b class="nc">&nbsp;                .resourceKey(resourceInfo.getResourceKey())</b>
+<b class="nc">&nbsp;                .data(Base64.getEncoder().encodeToString(data))</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;ResourceExportData&gt; exportResources(TenantId tenantId, Collection&lt;TbResourceInfo&gt; resources) {
+<b class="nc">&nbsp;        return resources.stream()</b>
+<b class="nc">&nbsp;                .sorted(Comparator.comparing(TbResourceInfo::getResourceType).thenComparing(TbResourceInfo::getResourceKey))</b>
+<b class="nc">&nbsp;                .map(resourceInfo -&gt; {</b>
+<b class="nc">&nbsp;                    if (resourceInfo.getResourceType() == ResourceType.IMAGE) {</b>
+<b class="nc">&nbsp;                        ResourceExportData imageExportData = imageService.exportImage(resourceInfo);</b>
+<b class="nc">&nbsp;                        imageExportData.setResourceKey(null); // so that the image is not updated by resource key on import</b>
+<b class="nc">&nbsp;                        return imageExportData;</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        return exportResource(resourceInfo);</b>
+&nbsp;                    }
+&nbsp;                })
+<b class="nc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void importResources(TenantId tenantId, List&lt;ResourceExportData&gt; resources) {
+<b class="nc">&nbsp;        for (ResourceExportData resourceData : resources) {</b>
+<b class="nc">&nbsp;            if (resourceData.getNewLink() != null) {</b>
+&nbsp;                continue; // already imported
+&nbsp;            }
+&nbsp;
+&nbsp;            TbResource resource;
+<b class="nc">&nbsp;            if (resourceData.getType() == ResourceType.IMAGE) {</b>
+<b class="nc">&nbsp;                resource = imageService.toImage(tenantId, resourceData, true);</b>
+<b class="nc">&nbsp;                if (resource.getData() != null) {</b>
+<b class="nc">&nbsp;                    imageService.saveImage(resource);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                resource = toResource(tenantId, resourceData);</b>
+<b class="nc">&nbsp;                if (resource.getData() != null) {</b>
+<b class="nc">&nbsp;                    saveResource(resource);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            resourceData.setNewLink(resource.getLink());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResource toResource(TenantId tenantId, ResourceExportData exportData) {
+<b class="nc">&nbsp;        if (exportData.getType() == ResourceType.IMAGE || exportData.getSubType() == ResourceSubType.IMAGE</b>
+<b class="nc">&nbsp;                || exportData.getSubType() == ResourceSubType.SCADA_SYMBOL) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Image import not supported&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        byte[] data = Base64.getDecoder().decode(exportData.getData());</b>
+<b class="nc">&nbsp;        String etag = calculateEtag(data);</b>
+&nbsp;
+&nbsp;        TbResourceInfo existingResource;
+<b class="nc">&nbsp;        boolean update = false;</b>
+<b class="nc">&nbsp;        if (!tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            existingResource = findSystemOrTenantResourceByEtag(tenantId, exportData.getType(), etag);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            existingResource = findResourceInfoByTenantIdAndKey(tenantId, exportData.getType(), exportData.getResourceKey());</b>
+<b class="nc">&nbsp;            update = true; // we overwrite system resource instead of creating new</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (existingResource != null) {</b>
+<b class="nc">&nbsp;            TbResource resource = new TbResource(existingResource);</b>
+<b class="nc">&nbsp;            if (update &amp;&amp; !etag.equals(resource.getEtag())) {</b>
+<b class="nc">&nbsp;                resource.setData(data);</b>
+<b class="nc">&nbsp;                resource.setTitle(exportData.getTitle());</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Updating existing resource {}&quot;, tenantId, existingResource.getLink());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Using existing resource {}&quot;, tenantId, existingResource.getLink());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return resource;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TbResource resource = new TbResource();</b>
+<b class="nc">&nbsp;        resource.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        resource.setFileName(exportData.getFileName());</b>
+<b class="nc">&nbsp;        if (isNotEmpty(exportData.getTitle())) {</b>
+<b class="nc">&nbsp;            resource.setTitle(exportData.getTitle());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            resource.setTitle(exportData.getFileName());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        resource.setResourceSubType(exportData.getSubType());</b>
+<b class="nc">&nbsp;        resource.setResourceType(exportData.getType());</b>
+<b class="nc">&nbsp;        resource.setResourceKey(exportData.getResourceKey());</b>
+<b class="nc">&nbsp;        resource.setData(data);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Creating resource {}&quot;, tenantId, resource.getResourceKey());</b>
+<b class="nc">&nbsp;        return resource;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo findResourceInfoById(TenantId tenantId, TbResourceId resourceId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findResourceInfoById [{}] [{}]&quot;, tenantId, resourceId);</b>
+<b class="nc">&nbsp;        Validator.validateId(resourceId, id -&gt; INCORRECT_RESOURCE_ID + id);</b>
+&nbsp;
+<b class="nc">&nbsp;        return cache.getAndPutInTransaction(new ResourceInfoCacheKey(resourceId),</b>
+<b class="nc">&nbsp;                () -&gt; resourceInfoDao.findById(tenantId, resourceId.getId()), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo findResourceInfoByTenantIdAndKey(TenantId tenantId, ResourceType resourceType, String resourceKey) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findResourceInfoByTenantIdAndKey [{}] [{}] [{}]&quot;, tenantId, resourceType, resourceKey);</b>
+<b class="nc">&nbsp;        return resourceInfoDao.findByTenantIdAndKey(tenantId, resourceType, resourceKey);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TbResourceInfo&gt; findResourceInfoByIdAsync(TenantId tenantId, TbResourceId resourceId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findResourceInfoById [{}] [{}]&quot;, tenantId, resourceId);</b>
+<b class="nc">&nbsp;        Validator.validateId(resourceId, id -&gt; INCORRECT_RESOURCE_ID + id);</b>
+<b class="nc">&nbsp;        return resourceInfoDao.findByIdAsync(tenantId, resourceId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceDeleteResult deleteResource(TenantId tenantId, TbResourceId resourceId, boolean force) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteResource [{}] [{}]&quot;, tenantId, resourceId);</b>
+<b class="nc">&nbsp;        Validator.validateId(resourceId, id -&gt; INCORRECT_RESOURCE_ID + id);</b>
+<b class="nc">&nbsp;        TbResourceInfo resource = findResourceInfoById(tenantId, resourceId);</b>
+<b class="nc">&nbsp;        boolean success = true;</b>
+<b class="nc">&nbsp;        var result = TbResourceDeleteResult.builder();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (resource == null) {</b>
+<b class="nc">&nbsp;            if (!force) {</b>
+<b class="nc">&nbsp;                success = false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return result.success(success).build();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!force) {</b>
+<b class="nc">&nbsp;            Map&lt;String, List&lt;EntityInfo&gt;&gt; references = findResourceReferences(tenantId, resource);</b>
+<b class="nc">&nbsp;            if (!references.isEmpty()) {</b>
+<b class="nc">&nbsp;                success = false;</b>
+<b class="nc">&nbsp;                result.references(references);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (success) {</b>
+<b class="nc">&nbsp;            resourceDao.removeById(tenantId, resourceId.getId());</b>
+<b class="nc">&nbsp;            publishEvictEvent(new ResourceInfoEvictEvent(tenantId, resourceId));</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(resource).entityId(resourceId).build());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return result.success(success).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, List&lt;EntityInfo&gt;&gt; findResourceReferences(TenantId tenantId, TbResourceInfo resource) {
+<b class="nc">&nbsp;        Map&lt;String, List&lt;EntityInfo&gt;&gt; references = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (resource.getResourceType() == ResourceType.JS_MODULE) {</b>
+<b class="nc">&nbsp;            var ref = resource.getLink();</b>
+<b class="nc">&nbsp;            findReferences(tenantId, references, ref, resourceLinkContainerDaoMap);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (resource.getResourceType() == ResourceType.GENERAL) {</b>
+<b class="nc">&nbsp;            var ref = resource.getId().getId().toString();</b>
+<b class="nc">&nbsp;            findReferences(tenantId, references, ref, generalResourceContainerDaoMap);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return references;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void findReferences(TenantId tenantId, Map&lt;String, List&lt;EntityInfo&gt;&gt; references, String ref, Map&lt;EntityType, ResourceContainerDao&lt;?&gt;&gt; resourceLinkContainerDaoMap) {
+<b class="nc">&nbsp;        resourceLinkContainerDaoMap.forEach((entityType, dao) -&gt; {</b>
+<b class="nc">&nbsp;            List&lt;EntityInfo&gt; entities = tenantId.isSysTenantId()</b>
+<b class="nc">&nbsp;                    ? dao.findByResource(ref, MAX_ENTITIES_TO_FIND)</b>
+<b class="nc">&nbsp;                    : dao.findByTenantIdAndResource(tenantId, ref, MAX_ENTITIES_TO_FIND);</b>
+<b class="nc">&nbsp;            if (!entities.isEmpty()) {</b>
+<b class="nc">&nbsp;                references.put(entityType.name(), entities);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        deleteResource(tenantId, (TbResourceId) id, force);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbResourceInfo&gt; findAllTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink) {
+<b class="nc">&nbsp;        TenantId tenantId = filter.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllTenantResourcesByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return resourceInfoDao.findAllTenantResourcesByTenantId(filter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbResourceInfo&gt; findTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink) {
+<b class="nc">&nbsp;        TenantId tenantId = filter.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantResourcesByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return resourceInfoDao.findTenantResourcesByTenantId(filter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TbResource&gt; findTenantResourcesByResourceTypeAndObjectIds(TenantId tenantId, ResourceType resourceType, String[] objectIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantResourcesByResourceTypeAndObjectIds [{}][{}][{}]&quot;, tenantId, resourceType, objectIds);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return resourceDao.findResourcesByTenantIdAndResourceType(tenantId, resourceType, null, objectIds, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbResource&gt; findAllTenantResources(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllTenantResources [{}][{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return resourceDao.findAllByTenantId(tenantId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbResource&gt; findTenantResourcesByResourceTypeAndPageLink(TenantId tenantId, ResourceType resourceType, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantResourcesByResourceTypeAndPageLink [{}][{}][{}]&quot;, tenantId, resourceType, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return resourceDao.findResourcesByTenantIdAndResourceType(tenantId, resourceType, null, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteResourcesByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteResourcesByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        tenantResourcesRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteResourcesByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findResourceInfoById(tenantId, new TbResourceId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(findResourceInfoByIdAsync(tenantId, new TbResourceId(entityId.getId())))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.TB_RESOURCE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long sumDataSizeByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        return resourceDao.sumDataSizeByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean updateResourcesUsage(TenantId tenantId, Dashboard dashboard) {
+<b class="nc">&nbsp;        if (dashboard.getConfiguration() == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Map&lt;String, String&gt; links = getResourcesLinks(dashboard.getResources());</b>
+<b class="nc">&nbsp;        return updateResourcesUsage(tenantId, List.of(dashboard.getConfiguration()), List.of(DASHBOARD_RESOURCES_MAPPING), links);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean updateResourcesUsage(TenantId tenantId, WidgetTypeDetails widgetTypeDetails) {
+<b class="nc">&nbsp;        Map&lt;String, String&gt; links = getResourcesLinks(widgetTypeDetails.getResources());</b>
+<b class="nc">&nbsp;        List&lt;JsonNode&gt; jsonNodes = new ArrayList&lt;&gt;(2);</b>
+<b class="nc">&nbsp;        List&lt;Map&lt;String, String&gt;&gt; mappings = new ArrayList&lt;&gt;(2);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (widgetTypeDetails.getDescriptor() != null) {</b>
+<b class="nc">&nbsp;            jsonNodes.add(widgetTypeDetails.getDescriptor());</b>
+<b class="nc">&nbsp;            mappings.add(WIDGET_RESOURCES_MAPPING);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        JsonNode defaultConfig = widgetTypeDetails.getDefaultConfig();</b>
+<b class="nc">&nbsp;        if (defaultConfig != null) {</b>
+<b class="nc">&nbsp;            jsonNodes.add(defaultConfig);</b>
+<b class="nc">&nbsp;            mappings.add(WIDGET_DEFAULT_CONFIG_RESOURCES_MAPPING);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean updated = updateResourcesUsage(tenantId, jsonNodes, mappings, links);</b>
+<b class="nc">&nbsp;        if (defaultConfig != null) {</b>
+<b class="nc">&nbsp;            widgetTypeDetails.setDefaultConfig(defaultConfig);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return updated;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Map&lt;String, String&gt; getResourcesLinks(List&lt;ResourceExportData&gt; resources) {
+&nbsp;        Map&lt;String, String&gt; links;
+<b class="nc">&nbsp;        if (CollectionUtils.isNotEmpty(resources)) {</b>
+<b class="nc">&nbsp;            links = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            resources.forEach(resource -&gt; {</b>
+<b class="nc">&nbsp;                if (resource.getNewLink() != null) {</b>
+<b class="nc">&nbsp;                    links.put(resource.getLink(), resource.getNewLink());</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        } else {
+<b class="nc">&nbsp;            links = Collections.emptyMap();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return links;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean updateResourcesUsage(TenantId tenantId, List&lt;JsonNode&gt; jsonNodes, List&lt;Map&lt;String, String&gt;&gt; mappings, Map&lt;String, String&gt; links) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] updateResourcesUsage (new links: {}) for {}&quot;, tenantId, links, jsonNodes);</b>
+<b class="nc">&nbsp;        return processResources(jsonNodes, mappings, value -&gt; {</b>
+<b class="nc">&nbsp;            String link = getResourceLink(value);</b>
+<b class="nc">&nbsp;            if (link != null) {</b>
+<b class="nc">&nbsp;                String newLink = links.get(link);</b>
+<b class="nc">&nbsp;                if (newLink == null || newLink.equals(link)) {</b>
+<b class="nc">&nbsp;                    return value; // leaving link as is</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return DataConstants.TB_RESOURCE_PREFIX + newLink;</b>
+&nbsp;                }
+&nbsp;            } else { // probably importing an old dashboard json where resources are referenced by ids
+&nbsp;                TbResourceId resourceId;
+&nbsp;                try {
+<b class="nc">&nbsp;                    resourceId = new TbResourceId(UUID.fromString(value));</b>
+&nbsp;                } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                    return value;</b>
+&nbsp;                }
+<b class="nc">&nbsp;                TbResourceInfo resourceInfo = findResourceInfoById(tenantId, resourceId);</b>
+<b class="nc">&nbsp;                if (resourceInfo != null) {</b>
+<b class="nc">&nbsp;                    return DataConstants.TB_RESOURCE_PREFIX + resourceInfo.getLink();</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Couldn&#39;t find resource referenced as &#39;{}&#39;&quot;, tenantId, value);</b>
+<b class="nc">&nbsp;                    return &quot;&quot;;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;TbResourceInfo&gt; getUsedResources(TenantId tenantId, Dashboard dashboard) {
+<b class="nc">&nbsp;        return getUsedResources(tenantId, List.of(dashboard.getConfiguration()), List.of(DASHBOARD_RESOURCES_MAPPING)).values();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;TbResourceInfo&gt; getUsedResources(TenantId tenantId, WidgetTypeDetails widgetTypeDetails) {
+<b class="nc">&nbsp;        List&lt;JsonNode&gt; jsonNodes = new ArrayList&lt;&gt;(2);</b>
+<b class="nc">&nbsp;        List&lt;Map&lt;String, String&gt;&gt; mappings = new ArrayList&lt;&gt;(2);</b>
+&nbsp;
+<b class="nc">&nbsp;        jsonNodes.add(widgetTypeDetails.getDescriptor());</b>
+<b class="nc">&nbsp;        mappings.add(WIDGET_RESOURCES_MAPPING);</b>
+&nbsp;
+<b class="nc">&nbsp;        JsonNode defaultConfig = widgetTypeDetails.getDefaultConfig();</b>
+<b class="nc">&nbsp;        if (defaultConfig != null) {</b>
+<b class="nc">&nbsp;            jsonNodes.add(defaultConfig);</b>
+<b class="nc">&nbsp;            mappings.add(WIDGET_DEFAULT_CONFIG_RESOURCES_MAPPING);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return getUsedResources(tenantId, jsonNodes, mappings).values();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;TbResourceId, TbResourceInfo&gt; getUsedResources(TenantId tenantId, List&lt;JsonNode&gt; jsonNodes, List&lt;Map&lt;String, String&gt;&gt; mappings) {
+<b class="nc">&nbsp;        Map&lt;TbResourceId, TbResourceInfo&gt; resources = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}] getUsedResources for {}&quot;, tenantId, jsonNodes);</b>
+<b class="nc">&nbsp;        processResources(jsonNodes, mappings, value -&gt; {</b>
+<b class="nc">&nbsp;            String link = getResourceLink(value);</b>
+<b class="nc">&nbsp;            if (link == null) {</b>
+<b class="nc">&nbsp;                return value;</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            ResourceType resourceType;
+&nbsp;            String resourceKey;
+&nbsp;            TenantId resourceTenantId;
+&nbsp;            try {
+<b class="nc">&nbsp;                String[] parts = StringUtils.removeStart(link, &quot;/api/resource/&quot;).split(&quot;/&quot;);</b>
+<b class="nc">&nbsp;                resourceType = ResourceType.valueOf(parts[0].toUpperCase());</b>
+<b class="nc">&nbsp;                String scope = parts[1];</b>
+<b class="nc">&nbsp;                resourceKey = parts[2];</b>
+<b class="nc">&nbsp;                resourceTenantId = scope.equals(&quot;system&quot;) ? TenantId.SYS_TENANT_ID : tenantId;</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Invalid resource link &#39;{}&#39;&quot;, tenantId, value);</b>
+<b class="nc">&nbsp;                return value;</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            TbResourceInfo resourceInfo = findResourceInfoByTenantIdAndKey(resourceTenantId, resourceType, resourceKey);</b>
+<b class="nc">&nbsp;            if (resourceInfo != null) {</b>
+<b class="nc">&nbsp;                resources.putIfAbsent(resourceInfo.getId(), resourceInfo);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Unknown resource referenced with &#39;{}&#39;&quot;, tenantId, value);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return value;</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return resources;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getResourceLink(String value) {
+<b class="nc">&nbsp;        if (StringUtils.startsWith(value, DataConstants.TB_RESOURCE_PREFIX + &quot;/api/resource/&quot;)) {</b>
+<b class="nc">&nbsp;            return StringUtils.removeStart(value, DataConstants.TB_RESOURCE_PREFIX);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean processResources(List&lt;JsonNode&gt; jsonNodes, List&lt;Map&lt;String, String&gt;&gt; mappings, UnaryOperator&lt;String&gt; processor) {
+<b class="nc">&nbsp;        AtomicBoolean updated = new AtomicBoolean(false);</b>
+&nbsp;
+<b class="nc">&nbsp;        for (int i = 0; i &lt; jsonNodes.size(); i++) {</b>
+<b class="nc">&nbsp;            JsonNode jsonNode = jsonNodes.get(i);</b>
+&nbsp;            // processing by mappings first
+<b class="nc">&nbsp;            if (i &lt;= mappings.size() - 1) {</b>
+<b class="nc">&nbsp;                JacksonUtil.replaceByMapping(jsonNode, mappings.get(i), Collections.emptyMap(), (name, urlNode) -&gt; {</b>
+<b class="nc">&nbsp;                    String value = null;</b>
+<b class="nc">&nbsp;                    if (urlNode.isTextual()) { // link is in the right place</b>
+<b class="nc">&nbsp;                        value = urlNode.asText();</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        JsonNode id = urlNode.get(&quot;id&quot;); // old structure is used</b>
+<b class="nc">&nbsp;                        if (id != null &amp;&amp; id.isTextual()) {</b>
+<b class="nc">&nbsp;                            value = id.asText();</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    if (StringUtils.isNotBlank(value)) {</b>
+<b class="nc">&nbsp;                        value = processor.apply(value);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        value = &quot;&quot;;</b>
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    JsonNode newValue = new TextNode(value);</b>
+<b class="nc">&nbsp;                    if (!newValue.toString().equals(urlNode.toString())) {</b>
+<b class="nc">&nbsp;                        updated.set(true);</b>
+<b class="nc">&nbsp;                        log.trace(&quot;Replaced by mapping &#39;{}&#39; ({}) with &#39;{}&#39;&quot;, value, name, newValue);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return newValue;</b>
+&nbsp;                });
+&nbsp;            }
+&nbsp;
+&nbsp;
+&nbsp;            // processing all
+<b class="nc">&nbsp;            JacksonUtil.replaceAll(jsonNode, &quot;&quot;, (name, value) -&gt; {</b>
+<b class="nc">&nbsp;                if (!StringUtils.startsWith(value, DataConstants.TB_RESOURCE_PREFIX + &quot;/api/resource/&quot;)) {</b>
+<b class="nc">&nbsp;                    return value;</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                String newValue = processor.apply(value);</b>
+<b class="nc">&nbsp;                if (StringUtils.equals(value, newValue)) {</b>
+<b class="nc">&nbsp;                    return value;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    updated.set(true);</b>
+<b class="nc">&nbsp;                    log.trace(&quot;Replaced &#39;{}&#39; ({}) with &#39;{}&#39;&quot;, value, name, newValue);</b>
+<b class="nc">&nbsp;                    return newValue;</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return updated.get();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResource createOrUpdateSystemResource(ResourceType resourceType, ResourceSubType resourceSubType, String resourceKey, byte[] data) {
+<b class="nc">&nbsp;        if (resourceType == ResourceType.DASHBOARD) {</b>
+<b class="nc">&nbsp;            Dashboard dashboard = JacksonUtil.fromBytes(data, Dashboard.class);</b>
+<b class="nc">&nbsp;            dashboard.setTenantId(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;            if (CollectionUtils.isNotEmpty(dashboard.getResources())) {</b>
+<b class="nc">&nbsp;                importResources(dashboard.getTenantId(), dashboard.getResources());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            imageService.updateImagesUsage(dashboard);</b>
+<b class="nc">&nbsp;            updateResourcesUsage(dashboard.getTenantId(), dashboard);</b>
+&nbsp;
+<b class="nc">&nbsp;            data = JacksonUtil.writeValueAsBytes(dashboard);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TbResource resource = findResourceByTenantIdAndKey(TenantId.SYS_TENANT_ID, resourceType, resourceKey);</b>
+<b class="nc">&nbsp;        if (resource == null) {</b>
+<b class="nc">&nbsp;            resource = new TbResource();</b>
+<b class="nc">&nbsp;            resource.setTenantId(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;            resource.setResourceType(resourceType);</b>
+<b class="nc">&nbsp;            resource.setResourceSubType(resourceSubType);</b>
+<b class="nc">&nbsp;            resource.setResourceKey(resourceKey);</b>
+<b class="nc">&nbsp;            resource.setFileName(resourceKey);</b>
+<b class="nc">&nbsp;            resource.setTitle(resourceKey);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        resource.setData(data);</b>
+<b class="nc">&nbsp;        log.info(&quot;{} system resource {}&quot;, (resource.getId() == null ? &quot;Creating&quot; : &quot;Updating&quot;), resourceKey);</b>
+<b class="nc">&nbsp;        return saveResource(resource);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TbResourceInfo&gt; findSystemOrTenantResourcesByIds(TenantId tenantId, List&lt;TbResourceId&gt; resourceIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findSystemOrTenantResourcesByIds, tenantId [{}], resourceIds [{}]&quot;, tenantId, resourceIds);</b>
+<b class="nc">&nbsp;        return resourceInfoDao.findSystemOrTenantResourcesByIds(tenantId, resourceIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String calculateEtag(byte[] data) {
+<b class="nc">&nbsp;        return Hashing.sha256().hashBytes(data).toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo findSystemOrTenantResourceByEtag(TenantId tenantId, ResourceType resourceType, String etag) {
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(etag)) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.trace(&quot;Executing findSystemOrTenantResourceByEtag [{}] [{}] [{}]&quot;, tenantId, resourceType, etag);</b>
+<b class="nc">&nbsp;        return resourceInfoDao.findSystemOrTenantResourceByEtag(tenantId, resourceType, etag);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected String encode(String data) {
+<b class="nc">&nbsp;        return encode(data.getBytes(StandardCharsets.UTF_8));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected String encode(byte[] data) {
+<b class="nc">&nbsp;        if (data == null || data.length == 0) {</b>
+<b class="nc">&nbsp;            return &quot;&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Base64.getEncoder().encodeToString(data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected String decode(String value) {
+<b class="nc">&nbsp;        if (value == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, TbResourceId&gt; tenantResourcesRemover = new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;TbResourceId&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;            return resourceDao.findIdsByTenantId(id.getId(), pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, TbResourceId resourceId) {
+<b class="nc">&nbsp;            deleteResource(tenantId, resourceId, true);</b>
+&nbsp;        }
+&nbsp;    };
+&nbsp;
+&nbsp;    @TransactionalEventListener(classes = ResourceInfoEvictEvent.class)
+&nbsp;    @Override
+&nbsp;    public void handleEvictEvent(ResourceInfoEvictEvent event) {
+<b class="nc">&nbsp;        if (event.getResourceId() != null) {</b>
+<b class="nc">&nbsp;            cache.evict(new ResourceInfoCacheKey(event.getResourceId()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

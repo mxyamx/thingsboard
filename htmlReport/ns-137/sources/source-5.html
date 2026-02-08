@@ -1,0 +1,340 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractRelationQueryProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.edqs.query.processor</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractRelationQueryProcessor (org.thingsboard.server.edqs.query.processor)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractRelationQueryProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/58)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AbstractRelationQueryProcessor$RelationSearchTask</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/59)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.edqs.query.processor;
+&nbsp;
+&nbsp;import lombok.EqualsAndHashCode;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.thingsboard.server.common.data.permission.QueryContext;
+&nbsp;import org.thingsboard.server.common.data.query.EntityFilter;
+&nbsp;import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.edqs.data.EntityData;
+&nbsp;import org.thingsboard.server.edqs.data.RelationInfo;
+&nbsp;import org.thingsboard.server.edqs.data.RelationsRepo;
+&nbsp;import org.thingsboard.server.edqs.query.EdqsQuery;
+&nbsp;import org.thingsboard.server.edqs.query.SortableEntityData;
+&nbsp;import org.thingsboard.server.edqs.repo.TenantRepo;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.LinkedList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Queue;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;
+&nbsp;public abstract class AbstractRelationQueryProcessor&lt;T extends EntityFilter&gt; extends AbstractQueryProcessor&lt;T&gt; {
+&nbsp;
+&nbsp;    public static final int MAXIMUM_QUERY_LEVEL = 100;
+&nbsp;
+&nbsp;    public AbstractRelationQueryProcessor(TenantRepo repo, QueryContext ctx, EdqsQuery query, T filter) {
+<b class="nc">&nbsp;        super(repo, ctx, query, filter);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract Set&lt;UUID&gt; getRootEntities();
+&nbsp;
+&nbsp;    protected abstract EntitySearchDirection getDirection();
+&nbsp;
+&nbsp;    protected abstract int getMaxLevel();
+&nbsp;
+&nbsp;    protected abstract boolean isFetchLastLevelOnly();
+&nbsp;
+&nbsp;    protected boolean isMultiRoot() {
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;SortableEntityData&gt; processQuery() {
+<b class="nc">&nbsp;        var relations = repository.getRelations(RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        var entities = getEntitiesSet(relations);</b>
+<b class="nc">&nbsp;        if (ctx.isTenantUser()) {</b>
+<b class="nc">&nbsp;            return processTenantQuery(entities);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return processCustomerQuery(entities);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long count() {
+<b class="nc">&nbsp;        var relations = repository.getRelations(RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        var entities = getEntitiesSet(relations);</b>
+<b class="nc">&nbsp;        long result = 0;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (ctx.isTenantUser()) {</b>
+<b class="nc">&nbsp;            return entities.size();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            var customerId = ctx.getCustomerId().getId();</b>
+<b class="nc">&nbsp;            for (EntityData&lt;?&gt; ed : entities) {</b>
+<b class="nc">&nbsp;                if (checkCustomerId(customerId, ed)) {</b>
+<b class="nc">&nbsp;                    result++;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;SortableEntityData&gt; processTenantQuery(Set&lt;EntityData&lt;?&gt;&gt; entities) {
+<b class="nc">&nbsp;        return entities.stream()</b>
+<b class="nc">&nbsp;                .map(this::toSortData)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;SortableEntityData&gt; processCustomerQuery(Set&lt;EntityData&lt;?&gt;&gt; entities) {
+<b class="nc">&nbsp;        var customerId = ctx.getCustomerId().getId();</b>
+<b class="nc">&nbsp;        List&lt;SortableEntityData&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (EntityData&lt;?&gt; ed : entities) {</b>
+<b class="nc">&nbsp;            if (checkCustomerId(customerId, ed)) {</b>
+<b class="nc">&nbsp;                result.add(toSortData(ed));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;EntityData&lt;?&gt;&gt; getEntitiesSet(RelationsRepo relations) {
+<b class="nc">&nbsp;        Set&lt;EntityData&lt;?&gt;&gt; result = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Set&lt;RelationSearchTask&gt; processed = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Queue&lt;RelationSearchTask&gt; tasks = new LinkedList&lt;&gt;();</b>
+<b class="nc">&nbsp;        int maxLvl = getMaxLevel() == 0 ? MAXIMUM_QUERY_LEVEL : Math.max(1, getMaxLevel());</b>
+<b class="nc">&nbsp;        for (UUID uuid : getRootEntities()) {</b>
+<b class="nc">&nbsp;            tasks.add(new RelationSearchTask(uuid, 0));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        while (!tasks.isEmpty()) {</b>
+<b class="nc">&nbsp;            RelationSearchTask task = tasks.poll();</b>
+<b class="nc">&nbsp;            if (processed.add(task)) {</b>
+<b class="nc">&nbsp;                var entityLvl = task.lvl + 1;</b>
+<b class="nc">&nbsp;                Set&lt;RelationInfo&gt; entities = EntitySearchDirection.FROM.equals(getDirection()) ? relations.getFrom(task.entityId) : relations.getTo(task.entityId);</b>
+<b class="nc">&nbsp;                if (isFetchLastLevelOnly() &amp;&amp; entities.isEmpty() &amp;&amp; task.previous != null &amp;&amp; check(task.previous)) {</b>
+<b class="nc">&nbsp;                    result.add(task.previous.getTarget());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                for (RelationInfo relationInfo : entities) {</b>
+<b class="nc">&nbsp;                    var entity = relationInfo.getTarget();</b>
+<b class="nc">&nbsp;                    if (entity.isEmpty()) {</b>
+&nbsp;                        continue;
+&nbsp;                    }
+<b class="nc">&nbsp;                    var entityId = entity.getId();</b>
+<b class="nc">&nbsp;                    if (isFetchLastLevelOnly()) {</b>
+<b class="nc">&nbsp;                        if (entityLvl &lt; maxLvl) {</b>
+<b class="nc">&nbsp;                            tasks.add(new RelationSearchTask(entityId, entityLvl, relationInfo));</b>
+<b class="nc">&nbsp;                        } else if (entityLvl == maxLvl) {</b>
+<b class="nc">&nbsp;                            if (check(relationInfo)) {</b>
+<b class="nc">&nbsp;                                if (isMultiRoot()) {</b>
+<b class="nc">&nbsp;                                    ctx.getRelatedParentIdMap().put(entity.getId(), task.entityId);</b>
+&nbsp;                                }
+<b class="nc">&nbsp;                                result.add(entity);</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        if (check(relationInfo)) {</b>
+<b class="nc">&nbsp;                            if (isMultiRoot()) {</b>
+<b class="nc">&nbsp;                                ctx.getRelatedParentIdMap().put(entity.getId(), task.entityId);</b>
+&nbsp;                            }
+<b class="nc">&nbsp;                            result.add(entity);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        if (entityLvl &lt; maxLvl) {</b>
+<b class="nc">&nbsp;                            tasks.add(new RelationSearchTask(entityId, entityLvl));</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract boolean check(RelationInfo relationInfo);
+&nbsp;
+&nbsp;    @RequiredArgsConstructor
+&nbsp;    @EqualsAndHashCode
+&nbsp;    private static class RelationSearchTask {
+&nbsp;        private final UUID entityId;
+&nbsp;        private final int lvl;
+&nbsp;        private final RelationInfo previous;
+&nbsp;
+&nbsp;        public RelationSearchTask(UUID entityId, int lvl) {
+<b class="nc">&nbsp;            this(entityId, lvl, null);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

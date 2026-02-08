@@ -1,0 +1,494 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultNotificationSettingsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.notification</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultNotificationSettingsService (org.thingsboard.server.dao.notification)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultNotificationSettingsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/146)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultNotificationSettingsService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/147)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.notification;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.cache.annotation.CacheEvict;
+&nbsp;import org.springframework.cache.annotation.Cacheable;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.AdminSettings;
+&nbsp;import org.thingsboard.server.common.data.CacheConstants;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationType;
+&nbsp;import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
+&nbsp;import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
+&nbsp;import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings.NotificationPref;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.AffectedTenantAdministratorsFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.AffectedUserFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.AllUsersFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.OriginatorEntityOwnerUsersFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.SystemAdministratorsFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.TenantAdministratorsFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
+&nbsp;import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.NotificationTemplateConfig;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.settings.UserSettings;
+&nbsp;import org.thingsboard.server.common.data.settings.UserSettingsType;
+&nbsp;import org.thingsboard.server.dao.settings.AdminSettingsService;
+&nbsp;import org.thingsboard.server.dao.user.UserSettingsService;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.EnumMap;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultNotificationSettingsService implements NotificationSettingsService {
+&nbsp;
+&nbsp;    private final AdminSettingsService adminSettingsService;
+&nbsp;    private final NotificationTargetService notificationTargetService;
+&nbsp;    private final NotificationTemplateService notificationTemplateService;
+&nbsp;    private final DefaultNotifications defaultNotifications;
+&nbsp;    private final UserSettingsService userSettingsService;
+&nbsp;
+&nbsp;    private static final String SETTINGS_KEY = &quot;notifications&quot;;
+&nbsp;
+&nbsp;    @CacheEvict(cacheNames = CacheConstants.NOTIFICATION_SETTINGS_CACHE, key = &quot;#tenantId&quot;)
+&nbsp;    @Override
+&nbsp;    public void saveNotificationSettings(TenantId tenantId, NotificationSettings settings) {
+<b class="nc">&nbsp;        if (!tenantId.isSysTenantId() &amp;&amp; settings.getDeliveryMethodsConfigs().containsKey(NotificationDeliveryMethod.MOBILE_APP)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Mobile settings can only be configured by system administrator&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AdminSettings adminSettings = Optional.ofNullable(adminSettingsService.findAdminSettingsByTenantIdAndKey(tenantId, SETTINGS_KEY))</b>
+<b class="nc">&nbsp;                .orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;                    AdminSettings newAdminSettings = new AdminSettings();</b>
+<b class="nc">&nbsp;                    newAdminSettings.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;                    newAdminSettings.setKey(SETTINGS_KEY);</b>
+<b class="nc">&nbsp;                    return newAdminSettings;</b>
+&nbsp;                });
+<b class="nc">&nbsp;        adminSettings.setJsonValue(JacksonUtil.valueToTree(settings));</b>
+<b class="nc">&nbsp;        adminSettingsService.saveAdminSettings(tenantId, adminSettings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Cacheable(cacheNames = CacheConstants.NOTIFICATION_SETTINGS_CACHE, key = &quot;#tenantId&quot;)
+&nbsp;    @Override
+&nbsp;    public NotificationSettings findNotificationSettings(TenantId tenantId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(adminSettingsService.findAdminSettingsByTenantIdAndKey(tenantId, SETTINGS_KEY))</b>
+<b class="nc">&nbsp;                .map(adminSettings -&gt; JacksonUtil.treeToValue(adminSettings.getJsonValue(), NotificationSettings.class))</b>
+<b class="nc">&nbsp;                .orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;                    NotificationSettings settings = new NotificationSettings();</b>
+<b class="nc">&nbsp;                    settings.setDeliveryMethodsConfigs(Collections.emptyMap());</b>
+<b class="nc">&nbsp;                    return settings;</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    @CacheEvict(cacheNames = CacheConstants.NOTIFICATION_SETTINGS_CACHE, key = &quot;#tenantId&quot;)
+&nbsp;    @Override
+&nbsp;    public void deleteNotificationSettings(TenantId tenantId) {
+<b class="nc">&nbsp;        adminSettingsService.deleteAdminSettingsByTenantIdAndKey(tenantId, SETTINGS_KEY);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserNotificationSettings saveUserNotificationSettings(TenantId tenantId, UserId userId, UserNotificationSettings settings) {
+<b class="nc">&nbsp;        UserSettings userSettings = new UserSettings();</b>
+<b class="nc">&nbsp;        userSettings.setUserId(userId);</b>
+<b class="nc">&nbsp;        userSettings.setType(UserSettingsType.NOTIFICATIONS);</b>
+<b class="nc">&nbsp;        userSettings.setSettings(JacksonUtil.valueToTree(settings));</b>
+<b class="nc">&nbsp;        userSettingsService.saveUserSettings(tenantId, userSettings);</b>
+<b class="nc">&nbsp;        return formatUserNotificationSettings(settings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserNotificationSettings getUserNotificationSettings(TenantId tenantId, UserId userId, boolean format) {
+<b class="nc">&nbsp;        UserSettings userSettings = userSettingsService.findUserSettings(tenantId, userId, UserSettingsType.NOTIFICATIONS);</b>
+<b class="nc">&nbsp;        UserNotificationSettings settings = null;</b>
+<b class="nc">&nbsp;        if (userSettings != null) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                settings = JacksonUtil.treeToValue(userSettings.getSettings(), UserNotificationSettings.class);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to parse notification settings for user {}&quot;, userId, e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (settings == null) {</b>
+<b class="nc">&nbsp;            settings = UserNotificationSettings.DEFAULT;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (format) {</b>
+<b class="nc">&nbsp;            settings = formatUserNotificationSettings(settings);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return settings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private UserNotificationSettings formatUserNotificationSettings(UserNotificationSettings settings) {
+<b class="nc">&nbsp;        Map&lt;NotificationType, NotificationPref&gt; prefs = new EnumMap&lt;&gt;(NotificationType.class);</b>
+<b class="nc">&nbsp;        if (settings != null) {</b>
+<b class="nc">&nbsp;            prefs.putAll(settings.getPrefs());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        NotificationPref defaultPref = NotificationPref.createDefault();</b>
+<b class="nc">&nbsp;        for (NotificationType notificationType : NotificationType.values()) {</b>
+<b class="nc">&nbsp;            NotificationPref pref = prefs.get(notificationType);</b>
+<b class="nc">&nbsp;            if (pref == null) {</b>
+<b class="nc">&nbsp;                prefs.put(notificationType, defaultPref);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                var enabledDeliveryMethods = new LinkedHashMap&lt;&gt;(pref.getEnabledDeliveryMethods());</b>
+&nbsp;                // in case a new delivery method was added to the platform
+<b class="nc">&nbsp;                UserNotificationSettings.deliveryMethods.forEach(deliveryMethod -&gt; {</b>
+<b class="nc">&nbsp;                    enabledDeliveryMethods.putIfAbsent(deliveryMethod, true);</b>
+&nbsp;                });
+<b class="nc">&nbsp;                pref.setEnabledDeliveryMethods(enabledDeliveryMethods);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return new UserNotificationSettings(prefs);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void createDefaultNotificationConfigs(TenantId tenantId) {
+<b class="nc">&nbsp;        NotificationTarget allUsers = createTarget(tenantId, &quot;All users&quot;, new AllUsersFilter(),</b>
+<b class="nc">&nbsp;                tenantId.isSysTenantId() ? &quot;All platform users&quot; : &quot;All users in scope of the tenant&quot;);</b>
+<b class="nc">&nbsp;        NotificationTarget tenantAdmins = createTarget(tenantId, &quot;Tenant administrators&quot;, new TenantAdministratorsFilter(),</b>
+<b class="nc">&nbsp;                tenantId.isSysTenantId() ? &quot;All tenant administrators&quot; : &quot;Tenant administrators&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.maintenanceWork);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            NotificationTarget sysAdmins = createTarget(tenantId, &quot;System administrators&quot;, new SystemAdministratorsFilter(), &quot;All system administrators&quot;);</b>
+<b class="nc">&nbsp;            NotificationTarget affectedTenantAdmins = createTarget(tenantId, &quot;Affected tenant&#39;s administrators&quot;, new AffectedTenantAdministratorsFilter(), &quot;&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.entitiesLimitForSysadmin, sysAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.entitiesLimitForTenant, affectedTenantAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.entitiesLimitIncreaseRequest, sysAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.apiFeatureWarningForSysadmin, sysAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.apiFeatureWarningForTenant, affectedTenantAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.apiFeatureDisabledForSysadmin, sysAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.apiFeatureDisabledForTenant, affectedTenantAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.exceededRateLimits, affectedTenantAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.exceededPerEntityRateLimits, affectedTenantAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.exceededRateLimitsForSysadmin, sysAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.newPlatformVersion, sysAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.taskProcessingFailure, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;            defaultNotifications.create(tenantId, DefaultNotifications.resourcesShortage, sysAdmins.getId());</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        NotificationTarget originatorEntityOwnerUsers = createTarget(tenantId, &quot;Users of the entity owner&quot;, new OriginatorEntityOwnerUsersFilter(),</b>
+&nbsp;                &quot;In case trigger entity (e.g. created device or alarm) is owned by customer, then recipients are this customer&#39;s users, otherwise tenant admins&quot;);
+<b class="nc">&nbsp;        NotificationTarget affectedUser = createTarget(tenantId, &quot;Affected user&quot;, new AffectedUserFilter(),</b>
+&nbsp;                &quot;If rule trigger is an action that affects some user (e.g. alarm assigned to user) - this user&quot;);
+&nbsp;
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.newAlarm, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.alarmUpdate, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.entityAction, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.deviceActivity, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.alarmComment, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.alarmAssignment, affectedUser.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.ruleEngineComponentLifecycleFailure, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.edgeConnection, tenantAdmins.getId());</b>
+<b class="nc">&nbsp;        defaultNotifications.create(tenantId, DefaultNotifications.edgeCommunicationFailures, tenantAdmins.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateDefaultNotificationConfigs(TenantId tenantId) {
+<b class="nc">&nbsp;        if (tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            NotificationTarget sysAdmins = notificationTargetService.findNotificationTargetsByTenantIdAndUsersFilterType(tenantId, UsersFilterType.SYSTEM_ADMINISTRATORS).stream()</b>
+<b class="nc">&nbsp;                    .findFirst().orElseGet(() -&gt; createTarget(tenantId, &quot;System administrators&quot;, new SystemAdministratorsFilter(), &quot;All system administrators&quot;));</b>
+<b class="nc">&nbsp;            NotificationTarget affectedTenantAdmins = notificationTargetService.findNotificationTargetsByTenantIdAndUsersFilterType(tenantId, UsersFilterType.AFFECTED_TENANT_ADMINISTRATORS).stream()</b>
+<b class="nc">&nbsp;                    .findFirst().orElseGet(() -&gt; createTarget(tenantId, &quot;Affected tenant&#39;s administrators&quot;, new AffectedTenantAdministratorsFilter(), &quot;&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;            if (!isNotificationConfigured(tenantId, NotificationType.RATE_LIMITS)) {</b>
+<b class="nc">&nbsp;                defaultNotifications.create(tenantId, DefaultNotifications.exceededRateLimits, affectedTenantAdmins.getId());</b>
+<b class="nc">&nbsp;                defaultNotifications.create(tenantId, DefaultNotifications.exceededPerEntityRateLimits, affectedTenantAdmins.getId());</b>
+<b class="nc">&nbsp;                defaultNotifications.create(tenantId, DefaultNotifications.exceededRateLimitsForSysadmin, sysAdmins.getId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!isNotificationConfigured(tenantId, NotificationType.TASK_PROCESSING_FAILURE)) {</b>
+<b class="nc">&nbsp;                defaultNotifications.create(tenantId, DefaultNotifications.taskProcessingFailure, sysAdmins.getId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!isNotificationConfigured(tenantId, NotificationType.RESOURCES_SHORTAGE)) {</b>
+<b class="nc">&nbsp;                defaultNotifications.create(tenantId, DefaultNotifications.resourcesShortage, sysAdmins.getId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!isNotificationConfigured(tenantId, NotificationType.ENTITIES_LIMIT_INCREASE_REQUEST)) {</b>
+<b class="nc">&nbsp;                defaultNotifications.create(tenantId, DefaultNotifications.entitiesLimitIncreaseRequest, sysAdmins.getId());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            var requiredNotificationTypes = List.of(NotificationType.EDGE_CONNECTION, NotificationType.EDGE_COMMUNICATION_FAILURE);</b>
+<b class="nc">&nbsp;            var existingNotificationTypes = notificationTemplateService.findNotificationTemplatesByTenantIdAndNotificationTypes(</b>
+&nbsp;                            tenantId, requiredNotificationTypes, new PageLink(2))
+<b class="nc">&nbsp;                    .getData()</b>
+<b class="nc">&nbsp;                    .stream()</b>
+<b class="nc">&nbsp;                    .map(NotificationTemplate::getNotificationType)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toSet());</b>
+&nbsp;
+<b class="nc">&nbsp;            if (existingNotificationTypes.containsAll(requiredNotificationTypes)) {</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            NotificationTarget tenantAdmins = notificationTargetService.findNotificationTargetsByTenantIdAndUsersFilterType(tenantId, UsersFilterType.TENANT_ADMINISTRATORS)</b>
+<b class="nc">&nbsp;                    .stream()</b>
+<b class="nc">&nbsp;                    .findFirst()</b>
+<b class="nc">&nbsp;                    .orElseGet(() -&gt; createTarget(tenantId, &quot;Tenant administrators&quot;, new TenantAdministratorsFilter(), &quot;Tenant administrators&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;            for (NotificationType type : requiredNotificationTypes) {</b>
+<b class="nc">&nbsp;                if (!existingNotificationTypes.contains(type)) {</b>
+<b class="nc">&nbsp;                    switch (type) {</b>
+&nbsp;                        case EDGE_CONNECTION:
+<b class="nc">&nbsp;                            defaultNotifications.create(tenantId, DefaultNotifications.edgeConnection, tenantAdmins.getId());</b>
+&nbsp;                            break;
+&nbsp;                        case EDGE_COMMUNICATION_FAILURE:
+<b class="nc">&nbsp;                            defaultNotifications.create(tenantId, DefaultNotifications.edgeCommunicationFailures, tenantAdmins.getId());</b>
+&nbsp;                            break;
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void moveMailTemplatesToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, Map&lt;String, NotificationType&gt; mailTemplatesNames) {
+<b class="nc">&nbsp;        mailTemplatesNames.forEach((mailTemplateName, notificationType) -&gt; {</b>
+<b class="nc">&nbsp;            moveMailTemplateToNotificationCenter(tenantId, mailTemplates, mailTemplateName, notificationType);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void moveMailTemplateToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, String mailTemplateName, NotificationType notificationType) {
+<b class="nc">&nbsp;        JsonNode mailTemplate = mailTemplates.get(mailTemplateName);</b>
+<b class="nc">&nbsp;        if (mailTemplate == null || mailTemplate.isNull() || !mailTemplate.has(&quot;subject&quot;) || !mailTemplate.has(&quot;body&quot;)) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String subject = mailTemplate.get(&quot;subject&quot;).asText();</b>
+<b class="nc">&nbsp;        String body = mailTemplate.get(&quot;body&quot;).asText();</b>
+<b class="nc">&nbsp;        body = body.replace(&quot;targetEmail&quot;, &quot;recipientEmail&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        NotificationTemplate notificationTemplate = null;</b>
+<b class="nc">&nbsp;        if (tenantId.isSysTenantId()) {</b>
+&nbsp;            // updating system notification template, not touching tenants&#39; templates
+<b class="nc">&nbsp;            notificationTemplate = notificationTemplateService.findNotificationTemplateByTenantIdAndType(tenantId, notificationType).orElse(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (notificationTemplate == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Creating {} template&quot;, tenantId, notificationType);</b>
+<b class="nc">&nbsp;            notificationTemplate = new NotificationTemplate();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Updating {} template&quot;, tenantId, notificationType);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String name = StringUtils.capitalize(notificationType.name().toLowerCase().replaceAll(&quot;_&quot;, &quot; &quot;)) + &quot; notification&quot;;</b>
+<b class="nc">&nbsp;        notificationTemplate.setName(name);</b>
+<b class="nc">&nbsp;        notificationTemplate.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        notificationTemplate.setNotificationType(notificationType);</b>
+<b class="nc">&nbsp;        NotificationTemplateConfig notificationTemplateConfig = new NotificationTemplateConfig();</b>
+&nbsp;
+<b class="nc">&nbsp;        EmailDeliveryMethodNotificationTemplate emailNotificationTemplate = new EmailDeliveryMethodNotificationTemplate();</b>
+<b class="nc">&nbsp;        emailNotificationTemplate.setEnabled(true);</b>
+<b class="nc">&nbsp;        emailNotificationTemplate.setSubject(subject);</b>
+<b class="nc">&nbsp;        emailNotificationTemplate.setBody(body);</b>
+&nbsp;
+<b class="nc">&nbsp;        notificationTemplateConfig.setDeliveryMethodsTemplates(Map.of(NotificationDeliveryMethod.EMAIL, emailNotificationTemplate));</b>
+<b class="nc">&nbsp;        notificationTemplate.setConfiguration(notificationTemplateConfig);</b>
+<b class="nc">&nbsp;        notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);</b>
+&nbsp;
+<b class="nc">&nbsp;        ((ObjectNode) mailTemplates).remove(mailTemplateName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isNotificationConfigured(TenantId tenantId, NotificationType... notificationTypes) {
+<b class="nc">&nbsp;        return notificationTemplateService.countNotificationTemplatesByTenantIdAndNotificationTypes(tenantId, List.of(notificationTypes)) &gt; 0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private NotificationTarget createTarget(TenantId tenantId, String name, UsersFilter filter, String description) {
+<b class="nc">&nbsp;        NotificationTarget target = new NotificationTarget();</b>
+<b class="nc">&nbsp;        target.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        target.setName(name);</b>
+&nbsp;
+<b class="nc">&nbsp;        PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();</b>
+<b class="nc">&nbsp;        targetConfig.setUsersFilter(filter);</b>
+<b class="nc">&nbsp;        targetConfig.setDescription(description);</b>
+<b class="nc">&nbsp;        target.setConfiguration(targetConfig);</b>
+<b class="nc">&nbsp;        return notificationTargetService.saveNotificationTarget(tenantId, target);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

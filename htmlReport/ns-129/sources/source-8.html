@@ -1,0 +1,423 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TenantProfileServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.tenant</a>
+</div>
+
+<h1>Coverage Summary for Class: TenantProfileServiceImpl (org.thingsboard.server.dao.tenant)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TenantProfileServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/92)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TenantProfileServiceImpl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/95)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.tenant;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.hibernate.exception.ConstraintViolationException;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantProfileId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.common.util.DebugModeUtil.DEBUG_MODE_DEFAULT_DURATION_MINUTES;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;TenantProfileDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class TenantProfileServiceImpl extends AbstractCachedEntityService&lt;TenantProfileCacheKey, TenantProfile, TenantProfileEvictEvent&gt; implements TenantProfileService {</b>
+&nbsp;
+&nbsp;    private static final String INCORRECT_TENANT_PROFILE_ID = &quot;Incorrect tenantProfileId &quot;;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TenantProfileDao tenantProfileDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;TenantProfile&gt; tenantProfileValidator;
+&nbsp;
+&nbsp;    @TransactionalEventListener(classes = TenantProfileEvictEvent.class)
+&nbsp;    @Override
+&nbsp;    public void handleEvictEvent(TenantProfileEvictEvent event) {
+<b class="nc">&nbsp;        List&lt;TenantProfileCacheKey&gt; keys = new ArrayList&lt;&gt;(2);</b>
+<b class="nc">&nbsp;        if (event.getTenantProfileId() != null) {</b>
+<b class="nc">&nbsp;            keys.add(TenantProfileCacheKey.fromId(event.getTenantProfileId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (event.isDefaultProfile()) {</b>
+<b class="nc">&nbsp;            keys.add(TenantProfileCacheKey.defaultProfile());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        cache.evict(keys);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile findTenantProfileById(TenantId tenantId, TenantProfileId tenantProfileId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantProfileById [{}]&quot;, tenantProfileId);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantProfileId, id -&gt; INCORRECT_TENANT_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        return cache.getAndPutInTransaction(TenantProfileCacheKey.fromId(tenantProfileId),</b>
+<b class="nc">&nbsp;                () -&gt; tenantProfileDao.findById(tenantId, tenantProfileId.getId()), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityInfo findTenantProfileInfoById(TenantId tenantId, TenantProfileId tenantProfileId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantProfileInfoById [{}]&quot;, tenantProfileId);</b>
+<b class="nc">&nbsp;        TenantProfile profile = findTenantProfileById(tenantId, tenantProfileId);</b>
+<b class="nc">&nbsp;        return profile == null ? null : new EntityInfo(profile.getId(), profile.getName());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveTenantProfile [{}]&quot;, tenantProfile);</b>
+<b class="nc">&nbsp;        tenantProfileValidator.validate(tenantProfile, (tenantProfile1) -&gt; TenantId.SYS_TENANT_ID);</b>
+&nbsp;        TenantProfile savedTenantProfile;
+&nbsp;        try {
+<b class="nc">&nbsp;            savedTenantProfile = tenantProfileDao.save(tenantId, tenantProfile);</b>
+<b class="nc">&nbsp;            publishEvictEvent(new TenantProfileEvictEvent(savedTenantProfile.getId(), savedTenantProfile.isDefault()));</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(savedTenantProfile)</b>
+<b class="nc">&nbsp;                    .entityId(savedTenantProfile.getId()).created(tenantProfile.getId() == null).build());</b>
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            handleEvictEvent(new TenantProfileEvictEvent(null, tenantProfile.isDefault()));</b>
+<b class="nc">&nbsp;            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);</b>
+<b class="nc">&nbsp;            if (e != null &amp;&amp; e.getConstraintName() != null &amp;&amp; e.getConstraintName().equalsIgnoreCase(&quot;tenant_profile_name_unq_key&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Tenant profile with such name already exists!&quot;);</b>
+&nbsp;            } else {
+&nbsp;                throw t;
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return savedTenantProfile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteTenantProfile [{}]&quot;, tenantProfileId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(tenantProfileId, id -&gt; INCORRECT_TENANT_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        TenantProfile tenantProfile = tenantProfileDao.findById(tenantId, tenantProfileId.getId());</b>
+<b class="nc">&nbsp;        if (tenantProfile != null &amp;&amp; tenantProfile.isDefault()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Deletion of Default Tenant Profile is prohibited!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        this.removeTenantProfile(tenantId, tenantProfile, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeTenantProfile(TenantId tenantId, TenantProfile tenantProfile, boolean isDefault) {
+<b class="nc">&nbsp;        TenantProfileId tenantProfileId = tenantProfile.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            tenantProfileDao.removeById(tenantId, tenantProfileId.getId());</b>
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);</b>
+<b class="nc">&nbsp;            if (e != null &amp;&amp; e.getConstraintName() != null &amp;&amp; e.getConstraintName().equalsIgnoreCase(&quot;fk_tenant_profile&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;The tenant profile referenced by the tenants cannot be deleted!&quot;);</b>
+&nbsp;            } else {
+&nbsp;                throw t;
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        publishEvictEvent(new TenantProfileEvictEvent(tenantProfileId, isDefault));</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(tenantProfile).entityId(tenantProfileId).build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TenantProfile&gt; findTenantProfiles(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantProfiles pageLink [{}]&quot;, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return tenantProfileDao.findTenantProfiles(tenantId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntityInfo&gt; findTenantProfileInfos(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantProfileInfos pageLink [{}]&quot;, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return tenantProfileDao.findTenantProfileInfos(tenantId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile findOrCreateDefaultTenantProfile(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOrCreateDefaultTenantProfile&quot;);</b>
+<b class="nc">&nbsp;        TenantProfile defaultTenantProfile = findDefaultTenantProfile(tenantId);</b>
+<b class="nc">&nbsp;        if (defaultTenantProfile == null) {</b>
+<b class="nc">&nbsp;            defaultTenantProfile = new TenantProfile();</b>
+<b class="nc">&nbsp;            defaultTenantProfile.setDefault(true);</b>
+<b class="nc">&nbsp;            defaultTenantProfile.setName(&quot;Default&quot;);</b>
+<b class="nc">&nbsp;            TenantProfileData profileData = new TenantProfileData();</b>
+<b class="nc">&nbsp;            DefaultTenantProfileConfiguration configuration = new DefaultTenantProfileConfiguration();</b>
+<b class="nc">&nbsp;            configuration.setMaxDebugModeDurationMinutes(DEBUG_MODE_DEFAULT_DURATION_MINUTES);</b>
+<b class="nc">&nbsp;            profileData.setConfiguration(configuration);</b>
+<b class="nc">&nbsp;            defaultTenantProfile.setProfileData(profileData);</b>
+<b class="nc">&nbsp;            defaultTenantProfile.setDescription(&quot;Default tenant profile&quot;);</b>
+<b class="nc">&nbsp;            defaultTenantProfile.setIsolatedTbRuleEngine(false);</b>
+<b class="nc">&nbsp;            defaultTenantProfile = saveTenantProfile(tenantId, defaultTenantProfile);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return defaultTenantProfile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile findDefaultTenantProfile(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDefaultTenantProfile&quot;);</b>
+<b class="nc">&nbsp;        return cache.getAndPutInTransaction(TenantProfileCacheKey.defaultProfile(),</b>
+<b class="nc">&nbsp;                () -&gt; tenantProfileDao.findDefaultTenantProfile(tenantId), true);</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityInfo findDefaultTenantProfileInfo(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDefaultTenantProfileInfo&quot;);</b>
+<b class="nc">&nbsp;        var tenantProfile = findDefaultTenantProfile(tenantId);</b>
+<b class="nc">&nbsp;        return tenantProfile == null ? null : new EntityInfo(tenantProfile.getId(), tenantProfile.getName());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile setDefaultTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing setDefaultTenantProfile [{}]&quot;, tenantProfileId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(tenantProfileId, id -&gt; INCORRECT_TENANT_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        TenantProfile tenantProfile = tenantProfileDao.findById(tenantId, tenantProfileId.getId());</b>
+<b class="nc">&nbsp;        if (!tenantProfile.isDefault()) {</b>
+<b class="nc">&nbsp;            tenantProfile.setDefault(true);</b>
+<b class="nc">&nbsp;            TenantProfile previousDefaultTenantProfile = findDefaultTenantProfile(tenantId);</b>
+<b class="nc">&nbsp;            if (previousDefaultTenantProfile == null) {</b>
+<b class="nc">&nbsp;                tenantProfile = tenantProfileDao.save(tenantId, tenantProfile);</b>
+<b class="nc">&nbsp;                publishEvictEvent(new TenantProfileEvictEvent(tenantProfileId, true));</b>
+<b class="nc">&nbsp;            } else if (!previousDefaultTenantProfile.getId().equals(tenantProfile.getId())) {</b>
+<b class="nc">&nbsp;                previousDefaultTenantProfile.setDefault(false);</b>
+<b class="nc">&nbsp;                tenantProfileDao.save(tenantId, previousDefaultTenantProfile);</b>
+<b class="nc">&nbsp;                tenantProfile = tenantProfileDao.save(tenantId, tenantProfile);</b>
+<b class="nc">&nbsp;                publishEvictEvent(new TenantProfileEvictEvent(previousDefaultTenantProfile.getId(), false));</b>
+<b class="nc">&nbsp;                publishEvictEvent(new TenantProfileEvictEvent(tenantProfileId, true));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return tenantProfile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TenantProfile&gt; findTenantProfilesByIds(TenantId tenantId, UUID[] ids) {
+<b class="nc">&nbsp;        return tenantProfileDao.findTenantProfilesByIds(tenantId, ids);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteTenantProfiles(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteTenantProfiles&quot;);</b>
+<b class="nc">&nbsp;        tenantProfilesRemover.removeEntities(tenantId, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findTenantProfileById(tenantId, new TenantProfileId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(tenantProfileDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.TENANT_PROFILE;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;String, TenantProfile&gt; tenantProfilesRemover = new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;TenantProfile&gt; findEntities(TenantId tenantId, String id, PageLink pageLink) {
+<b class="nc">&nbsp;            return tenantProfileDao.findTenantProfiles(tenantId, pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, TenantProfile entity) {
+<b class="nc">&nbsp;            removeTenantProfile(tenantId, entity, entity.isDefault());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    };
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

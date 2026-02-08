@@ -1,0 +1,564 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbRuleChainService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.rule</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbRuleChainService (org.thingsboard.server.service.rule)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbRuleChainService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/60)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/185)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.rule;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
+&nbsp;import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.flow.TbRuleChainOutputNode;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.rule.DefaultRuleChainCreateRequest;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainOutputLabelsUsage;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNode;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNodeUpdateResult;
+&nbsp;import org.thingsboard.server.dao.relation.RelationService;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.component.ComponentDiscoveryService;
+&nbsp;import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+&nbsp;import org.thingsboard.server.service.install.InstallScripts;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.utils.TbNodeUpgradeUtils;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.TreeSet;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@RequiredArgsConstructor
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultTbRuleChainService extends AbstractTbEntityService implements TbRuleChainService {
+&nbsp;
+&nbsp;    private final RuleChainService ruleChainService;
+&nbsp;    private final RelationService relationService;
+&nbsp;    private final InstallScripts installScripts;
+&nbsp;    private final ComponentDiscoveryService componentDiscoveryService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;String&gt; getRuleChainOutputLabels(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        RuleChainMetaData metaData = ruleChainService.loadRuleChainMetaData(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; outputLabels = new TreeSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (RuleNode ruleNode : metaData.getNodes()) {</b>
+<b class="nc">&nbsp;            if (isOutputRuleNode(ruleNode)) {</b>
+<b class="nc">&nbsp;                outputLabels.add(ruleNode.getName());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return outputLabels;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleChainOutputLabelsUsage&gt; getOutputLabelUsage(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; ruleNodes = ruleChainService.findRuleNodesByTenantIdAndType(tenantId, TbRuleChainInputNode.class.getName(), ruleChainId.getId().toString());</b>
+<b class="nc">&nbsp;        Map&lt;RuleChainId, String&gt; ruleChainNamesCache = new HashMap&lt;&gt;();</b>
+&nbsp;        // Additional filter, &quot;just in case&quot; the structure of the JSON configuration will change.
+<b class="nc">&nbsp;        var filteredRuleNodes = ruleNodes.stream().filter(node -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                TbRuleChainInputNodeConfiguration configuration = JacksonUtil.treeToValue(node.getConfiguration(), TbRuleChainInputNodeConfiguration.class);</b>
+<b class="nc">&nbsp;                return ruleChainId.getId().toString().equals(configuration.getRuleChainId());</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}][{}] Failed to decode rule node configuration&quot;, tenantId, ruleChainId, e);</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }).collect(Collectors.toList());</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;        return filteredRuleNodes.stream()</b>
+<b class="nc">&nbsp;                .map(ruleNode -&gt; {</b>
+<b class="nc">&nbsp;                    RuleChainOutputLabelsUsage usage = new RuleChainOutputLabelsUsage();</b>
+<b class="nc">&nbsp;                    usage.setRuleNodeId(ruleNode.getId());</b>
+<b class="nc">&nbsp;                    usage.setRuleNodeName(ruleNode.getName());</b>
+<b class="nc">&nbsp;                    usage.setRuleChainId(ruleNode.getRuleChainId());</b>
+<b class="nc">&nbsp;                    List&lt;EntityRelation&gt; relations = ruleChainService.getRuleNodeRelations(tenantId, ruleNode.getId());</b>
+<b class="nc">&nbsp;                    if (relations != null &amp;&amp; !relations.isEmpty()) {</b>
+<b class="nc">&nbsp;                        usage.setLabels(relations.stream().map(EntityRelation::getType).collect(Collectors.toSet()));</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return usage;</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .filter(usage -&gt; usage.getLabels() != null)</b>
+<b class="nc">&nbsp;                .peek(usage -&gt; {</b>
+<b class="nc">&nbsp;                    String ruleChainName = ruleChainNamesCache.computeIfAbsent(usage.getRuleChainId(),</b>
+<b class="nc">&nbsp;                            id -&gt; ruleChainService.findRuleChainById(tenantId, id).getName());</b>
+<b class="nc">&nbsp;                    usage.setRuleChainName(ruleChainName);</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .sorted(Comparator</b>
+<b class="nc">&nbsp;                        .comparing(RuleChainOutputLabelsUsage::getRuleChainName)</b>
+<b class="nc">&nbsp;                        .thenComparing(RuleChainOutputLabelsUsage::getRuleNodeName))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleChain&gt; updateRelatedRuleChains(TenantId tenantId, RuleChainId ruleChainId, RuleChainUpdateResult result) {
+<b class="nc">&nbsp;        Set&lt;RuleChainId&gt; ruleChainIds = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] Going to update links in related rule chains&quot;, tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        if (result.getUpdatedRuleNodes() == null || result.getUpdatedRuleNodes().isEmpty()) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;String&gt; oldLabels = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; newLabels = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; confusedLabels = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; updatedLabels = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (RuleNodeUpdateResult update : result.getUpdatedRuleNodes()) {</b>
+<b class="nc">&nbsp;            var oldNode = update.getOldRuleNode();</b>
+<b class="nc">&nbsp;            var newNode = update.getNewRuleNode();</b>
+<b class="nc">&nbsp;            if (isOutputRuleNode(newNode)) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    oldLabels.add(oldNode.getName());</b>
+<b class="nc">&nbsp;                    newLabels.add(newNode.getName());</b>
+<b class="nc">&nbsp;                    if (!oldNode.getName().equals(newNode.getName())) {</b>
+<b class="nc">&nbsp;                        String oldLabel = oldNode.getName();</b>
+<b class="nc">&nbsp;                        String newLabel = newNode.getName();</b>
+<b class="nc">&nbsp;                        if (updatedLabels.containsKey(oldLabel) &amp;&amp; !updatedLabels.get(oldLabel).equals(newLabel)) {</b>
+<b class="nc">&nbsp;                            confusedLabels.add(oldLabel);</b>
+<b class="nc">&nbsp;                            log.warn(&quot;[{}][{}] Can&#39;t automatically rename the label from [{}] to [{}] due to conflict [{}]&quot;, tenantId, ruleChainId, oldLabel, newLabel, updatedLabels.get(oldLabel));</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            updatedLabels.put(oldLabel, newLabel);</b>
+&nbsp;                        }
+&nbsp;
+&nbsp;                    }
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}][{}][{}] Failed to decode rule node configuration&quot;, tenantId, ruleChainId, newNode.getId(), e);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;        // Remove all output labels that are renamed to two or more different labels, since we don&#39;t which new label to use;
+<b class="nc">&nbsp;        confusedLabels.forEach(updatedLabels::remove);</b>
+&nbsp;        // Remove all output labels that are renamed but still present in the rule chain;
+<b class="nc">&nbsp;        newLabels.forEach(updatedLabels::remove);</b>
+<b class="nc">&nbsp;        if (!oldLabels.equals(newLabels)) {</b>
+<b class="nc">&nbsp;            ruleChainIds.addAll(updateRelatedRuleChains(tenantId, ruleChainId, updatedLabels));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ruleChainIds.stream().map(id -&gt; ruleChainService.findRuleChainById(tenantId, id)).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain save(RuleChain ruleChain, SecurityUser user) throws Exception {
+<b class="nc">&nbsp;        ActionType actionType = ruleChain.getId() == null ? ActionType.ADDED : ActionType.UPDATED;</b>
+<b class="nc">&nbsp;        TenantId tenantId = ruleChain.getTenantId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            RuleChain savedRuleChain = checkNotNull(ruleChainService.saveRuleChain(ruleChain));</b>
+<b class="nc">&nbsp;            autoCommit(user, savedRuleChain.getId());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, savedRuleChain.getId(), savedRuleChain, null, actionType, user);</b>
+<b class="nc">&nbsp;            return savedRuleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ruleChain, actionType, user, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void delete(RuleChain ruleChain, User user) {
+<b class="nc">&nbsp;        TenantId tenantId = ruleChain.getTenantId();</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            ruleChainService.deleteRuleChainById(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, ruleChainId, ruleChain, null, ActionType.DELETED, user, ruleChainId.toString());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ActionType.DELETED,</b>
+<b class="nc">&nbsp;                    user, e, ruleChainId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain saveDefaultByName(TenantId tenantId, DefaultRuleChainCreateRequest request, User user) throws Exception {
+&nbsp;        try {
+<b class="nc">&nbsp;            RuleChain savedRuleChain = installScripts.createDefaultRuleChain(tenantId, request.getName());</b>
+<b class="nc">&nbsp;            autoCommit(user, savedRuleChain.getId());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, savedRuleChain.getId(), savedRuleChain, ActionType.ADDED, user);</b>
+<b class="nc">&nbsp;            return savedRuleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            RuleChain ruleChain = new RuleChain();</b>
+<b class="nc">&nbsp;            ruleChain.setName(request.getName());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ruleChain,</b>
+&nbsp;                    ActionType.ADDED, user, e);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain setRootRuleChain(TenantId tenantId, RuleChain ruleChain, User user) {
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            RuleChain previousRootRuleChain = ruleChainService.getRootTenantRuleChain(tenantId);</b>
+<b class="nc">&nbsp;            if (ruleChainService.setRootRuleChain(tenantId, ruleChainId)) {</b>
+<b class="nc">&nbsp;                if (previousRootRuleChain != null) {</b>
+<b class="nc">&nbsp;                    previousRootRuleChain = ruleChainService.findRuleChainById(tenantId, previousRootRuleChain.getId());</b>
+<b class="nc">&nbsp;                    logEntityActionService.logEntityAction(tenantId, previousRootRuleChain.getId(), previousRootRuleChain,</b>
+&nbsp;                            ActionType.UPDATED, user);
+&nbsp;                }
+<b class="nc">&nbsp;                ruleChain = ruleChainService.findRuleChainById(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;                logEntityActionService.logEntityAction(tenantId, ruleChainId, ruleChain, ActionType.UPDATED, user);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return ruleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ActionType.UPDATED,</b>
+<b class="nc">&nbsp;                    user, e, ruleChainId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChainMetaData saveRuleChainMetaData(TenantId tenantId, RuleChain ruleChain, RuleChainMetaData ruleChainMetaData,
+&nbsp;                                                   boolean updateRelated, User user) throws Exception {
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainMetaDataId = ruleChainMetaData.getRuleChainId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            RuleChainUpdateResult result = ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetaData, this::updateRuleNodeConfiguration);</b>
+<b class="nc">&nbsp;            checkNotNull(result.isSuccess() ? true : null);</b>
+&nbsp;
+&nbsp;            List&lt;RuleChain&gt; updatedRuleChains;
+<b class="nc">&nbsp;            if (updateRelated &amp;&amp; result.isSuccess()) {</b>
+<b class="nc">&nbsp;                updatedRuleChains = updateRelatedRuleChains(tenantId, ruleChainMetaDataId, result);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                updatedRuleChains = Collections.emptyList();</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (updatedRuleChains.isEmpty()) {</b>
+<b class="nc">&nbsp;                autoCommit(user, ruleChainMetaData.getRuleChainId());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                List&lt;UUID&gt; uuids = new ArrayList&lt;&gt;(updatedRuleChains.size() + 1);</b>
+<b class="nc">&nbsp;                uuids.add(ruleChainMetaData.getRuleChainId().getId());</b>
+<b class="nc">&nbsp;                updatedRuleChains.forEach(rc -&gt; uuids.add(rc.getId().getId()));</b>
+<b class="nc">&nbsp;                autoCommit(user, EntityType.RULE_CHAIN, uuids);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            RuleChainMetaData savedRuleChainMetaData = checkNotNull(ruleChainService.loadRuleChainMetaData(tenantId, ruleChainMetaDataId));</b>
+&nbsp;
+<b class="nc">&nbsp;            if (RuleChainType.CORE.equals(ruleChain.getType())) {</b>
+<b class="nc">&nbsp;                updatedRuleChains.forEach(updatedRuleChain -&gt;</b>
+<b class="nc">&nbsp;                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, updatedRuleChain.getId(), ComponentLifecycleEvent.UPDATED));</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, ruleChainId, ruleChain, ActionType.UPDATED, user, ruleChainMetaData);</b>
+&nbsp;
+<b class="nc">&nbsp;            for (RuleChain updatedRuleChain : updatedRuleChains) {</b>
+<b class="nc">&nbsp;                if (RuleChainType.CORE.equals(ruleChain.getType())) {</b>
+<b class="nc">&nbsp;                    RuleChainMetaData updatedRuleChainMetaData = checkNotNull(ruleChainService.loadRuleChainMetaData(tenantId, updatedRuleChain.getId()));</b>
+<b class="nc">&nbsp;                    logEntityActionService.logEntityAction(tenantId, updatedRuleChain.getId(), updatedRuleChain,</b>
+&nbsp;                            ActionType.UPDATED, user, updatedRuleChainMetaData);
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return savedRuleChainMetaData;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ActionType.ADDED,</b>
+&nbsp;                    user, e, ruleChainMetaData);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain assignRuleChainToEdge(TenantId tenantId, RuleChain ruleChain, Edge edge, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = ActionType.ASSIGNED_TO_EDGE;</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+<b class="nc">&nbsp;        EdgeId edgeId = edge.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            RuleChain savedRuleChain = checkNotNull(ruleChainService.assignRuleChainToEdge(tenantId, ruleChainId, edgeId));</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, ruleChainId, savedRuleChain, null, actionType,</b>
+<b class="nc">&nbsp;                    user, ruleChainId.toString(), edgeId.toString(), edge.getName());</b>
+<b class="nc">&nbsp;            return savedRuleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN),</b>
+<b class="nc">&nbsp;                    actionType, user, e, ruleChainId.toString(), edgeId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain unassignRuleChainFromEdge(TenantId tenantId, RuleChain ruleChain, Edge edge, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = ActionType.UNASSIGNED_FROM_EDGE;</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+<b class="nc">&nbsp;        EdgeId edgeId = edge.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            RuleChain savedRuleChain = checkNotNull(ruleChainService.unassignRuleChainFromEdge(tenantId, ruleChainId, edgeId, false));</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, ruleChainId, savedRuleChain, null, actionType,</b>
+<b class="nc">&nbsp;                    user, ruleChainId.toString(), edgeId.toString(), edge.getName());</b>
+<b class="nc">&nbsp;            return savedRuleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN),</b>
+&nbsp;                    actionType, user, e, ruleChainId, edgeId);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain setEdgeTemplateRootRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            ruleChainService.setEdgeTemplateRootRuleChain(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, ruleChainId, ruleChain, ActionType.UPDATED, user);</b>
+<b class="nc">&nbsp;            return ruleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ActionType.UPDATED,</b>
+<b class="nc">&nbsp;                    user, e, ruleChainId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain setAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            ruleChainService.setAutoAssignToEdgeRuleChain(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, ruleChainId, ruleChain, ActionType.UPDATED, user);</b>
+<b class="nc">&nbsp;            return ruleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ActionType.UPDATED,</b>
+<b class="nc">&nbsp;                    user, e, ruleChainId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain unsetAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            ruleChainService.unsetAutoAssignToEdgeRuleChain(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, ruleChainId, ruleChain, ActionType.UPDATED, user);</b>
+<b class="nc">&nbsp;            return ruleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ActionType.UPDATED,</b>
+<b class="nc">&nbsp;                    user, e, ruleChainId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleNode updateRuleNodeConfiguration(RuleNode node) {
+<b class="nc">&nbsp;        var ruleChainId = node.getRuleChainId();</b>
+<b class="nc">&nbsp;        var ruleNodeId = node.getId();</b>
+<b class="nc">&nbsp;        var ruleNodeType = node.getType();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            var ruleNodeClass = componentDiscoveryService.getRuleNodeInfo(ruleNodeType)</b>
+<b class="nc">&nbsp;                    .orElseThrow(() -&gt; new RuntimeException(&quot;Rule node &quot; + ruleNodeType + &quot; is not supported!&quot;));</b>
+<b class="nc">&nbsp;            if (ruleNodeClass.isVersioned()) {</b>
+<b class="nc">&nbsp;                int fromVersion = node.getConfigurationVersion();</b>
+<b class="nc">&nbsp;                int toVersion = ruleNodeClass.getCurrentVersion();</b>
+<b class="nc">&nbsp;                if (fromVersion &lt; toVersion) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;Going to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}&quot;,</b>
+<b class="nc">&nbsp;                            ruleNodeId, ruleNodeType, fromVersion, toVersion);</b>
+<b class="nc">&nbsp;                    TbNodeUpgradeUtils.upgradeConfigurationAndVersion(node, ruleNodeClass);</b>
+<b class="nc">&nbsp;                    log.debug(&quot;Successfully upgrade rule node with id: {} type: {}, rule chain id: {} fromVersion: {} toVersion: {}&quot;,</b>
+<b class="nc">&nbsp;                            ruleNodeId, ruleNodeType, ruleChainId, fromVersion, toVersion);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.debug(&quot;Rule node with id: {} type: {} ruleChainId: {} already set to latest version!&quot;,</b>
+&nbsp;                            ruleNodeId, ruleChainId, ruleNodeType);
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to upgrade rule node with id: {} type: {}, rule chain id: {}&quot;,</b>
+&nbsp;                    ruleNodeId, ruleNodeType, ruleChainId, e);
+&nbsp;        }
+<b class="nc">&nbsp;        return node;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;RuleChainId&gt; updateRelatedRuleChains(TenantId tenantId, RuleChainId ruleChainId, Map&lt;String, String&gt; labelsMap) {
+<b class="nc">&nbsp;        Set&lt;RuleChainId&gt; updatedRuleChains = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;RuleChainOutputLabelsUsage&gt; usageList = getOutputLabelUsage(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        for (RuleChainOutputLabelsUsage usage : usageList) {</b>
+<b class="nc">&nbsp;            labelsMap.forEach((oldLabel, newLabel) -&gt; {</b>
+<b class="nc">&nbsp;                if (usage.getLabels().contains(oldLabel)) {</b>
+<b class="nc">&nbsp;                    updatedRuleChains.add(usage.getRuleChainId());</b>
+<b class="nc">&nbsp;                    renameOutgoingLinks(tenantId, usage.getRuleNodeId(), oldLabel, newLabel);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+<b class="nc">&nbsp;        return updatedRuleChains;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void renameOutgoingLinks(TenantId tenantId, RuleNodeId ruleNodeId, String oldLabel, String newLabel) {
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; relations = ruleChainService.getRuleNodeRelations(tenantId, ruleNodeId);</b>
+<b class="nc">&nbsp;        for (EntityRelation relation : relations) {</b>
+<b class="nc">&nbsp;            if (relation.getType().equals(oldLabel)) {</b>
+<b class="nc">&nbsp;                relationService.deleteRelation(tenantId, relation);</b>
+<b class="nc">&nbsp;                relation.setType(newLabel);</b>
+<b class="nc">&nbsp;                relationService.saveRelation(tenantId, relation);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isOutputRuleNode(RuleNode ruleNode) {
+<b class="nc">&nbsp;        return isRuleNode(ruleNode, TbRuleChainOutputNode.class);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isInputRuleNode(RuleNode ruleNode) {
+<b class="nc">&nbsp;        return isRuleNode(ruleNode, TbRuleChainInputNode.class);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isRuleNode(RuleNode ruleNode, Class&lt;?&gt; clazz) {
+<b class="nc">&nbsp;        return ruleNode != null &amp;&amp; ruleNode.getType().equals(clazz.getName());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

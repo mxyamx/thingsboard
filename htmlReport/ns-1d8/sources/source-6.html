@@ -1,0 +1,363 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultEntityExportService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.sync.ie.exporting.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultEntityExportService (org.thingsboard.server.service.sync.ie.exporting.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultEntityExportService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/89)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.sync.ie.exporting.impl;
+&nbsp;
+&nbsp;import org.apache.commons.lang3.tuple.Pair;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.context.annotation.Primary;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.ExportableEntity;
+&nbsp;import org.thingsboard.server.common.data.HasVersion;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.AlarmCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.ArgumentsBasedCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.geofencing.GeofencingCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.AttributeExportData;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.dao.cf.CalculatedFieldService;
+&nbsp;import org.thingsboard.server.dao.relation.RelationDao;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.sync.ie.exporting.EntityExportService;
+&nbsp;import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@Primary
+<b class="nc">&nbsp;public class DefaultEntityExportService&lt;I extends EntityId, E extends ExportableEntity&lt;I&gt;, D extends EntityExportData&lt;E&gt;&gt; implements EntityExportService&lt;I, E, D&gt; {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    protected ExportableEntitiesService exportableEntitiesService;
+&nbsp;    @Autowired
+&nbsp;    private RelationDao relationDao;
+&nbsp;    @Autowired
+&nbsp;    private AttributesService attributesService;
+&nbsp;    @Autowired
+&nbsp;    private CalculatedFieldService calculatedFieldService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public final D getExportData(EntitiesExportCtx&lt;?&gt; ctx, I entityId) throws ThingsboardException {
+<b class="nc">&nbsp;        D exportData = newExportData();</b>
+&nbsp;
+<b class="nc">&nbsp;        E entity = exportableEntitiesService.findEntityByTenantIdAndId(ctx.getTenantId(), entityId);</b>
+<b class="nc">&nbsp;        if (entity == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(entityId.getEntityType() + &quot; [&quot; + entityId.getId() + &quot;] not found&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        exportData.setEntity(entity);</b>
+<b class="nc">&nbsp;        exportData.setEntityType(entityId.getEntityType());</b>
+<b class="nc">&nbsp;        setAdditionalExportData(ctx, entity, exportData);</b>
+<b class="nc">&nbsp;        if (entity instanceof HasVersion hasVersion) {</b>
+<b class="nc">&nbsp;            hasVersion.setVersion(null);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        var externalId = entity.getExternalId() != null ? entity.getExternalId() : entity.getId();</b>
+<b class="nc">&nbsp;        ctx.putExternalId(entityId, externalId);</b>
+<b class="nc">&nbsp;        entity.setId(externalId);</b>
+<b class="nc">&nbsp;        entity.setTenantId(null);</b>
+&nbsp;
+<b class="nc">&nbsp;        return exportData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void setAdditionalExportData(EntitiesExportCtx&lt;?&gt; ctx, E entity, D exportData) throws ThingsboardException {
+<b class="nc">&nbsp;        var exportSettings = ctx.getSettings();</b>
+<b class="nc">&nbsp;        if (exportSettings.isExportRelations()) {</b>
+<b class="nc">&nbsp;            List&lt;EntityRelation&gt; relations = exportRelations(ctx, entity);</b>
+<b class="nc">&nbsp;            relations.forEach(relation -&gt; {</b>
+<b class="nc">&nbsp;                relation.setFrom(getExternalIdOrElseInternal(ctx, relation.getFrom()));</b>
+<b class="nc">&nbsp;                relation.setTo(getExternalIdOrElseInternal(ctx, relation.getTo()));</b>
+&nbsp;            });
+<b class="nc">&nbsp;            exportData.setRelations(relations);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (exportSettings.isExportAttributes()) {</b>
+<b class="nc">&nbsp;            Map&lt;String, List&lt;AttributeExportData&gt;&gt; attributes = exportAttributes(ctx, entity);</b>
+<b class="nc">&nbsp;            exportData.setAttributes(attributes);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (ctx.getSettings().isExportCalculatedFields()) {</b>
+<b class="nc">&nbsp;            List&lt;CalculatedField&gt; calculatedFields = exportCalculatedFields(ctx, entity.getId());</b>
+<b class="nc">&nbsp;            exportData.setCalculatedFields(calculatedFields);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityRelation&gt; exportRelations(EntitiesExportCtx&lt;?&gt; ctx, E entity) throws ThingsboardException {
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; relations = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; inboundRelations = relationDao.findAllByTo(ctx.getTenantId(), entity.getId(), RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        relations.addAll(inboundRelations);</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; outboundRelations = relationDao.findAllByFrom(ctx.getTenantId(), entity.getId(), RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        relations.addAll(outboundRelations);</b>
+<b class="nc">&nbsp;        return relations;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, List&lt;AttributeExportData&gt;&gt; exportAttributes(EntitiesExportCtx&lt;?&gt; ctx, E entity) throws ThingsboardException {
+&nbsp;        List&lt;AttributeScope&gt; scopes;
+<b class="nc">&nbsp;        if (entity.getId().getEntityType() == EntityType.DEVICE) {</b>
+<b class="nc">&nbsp;            scopes = List.of(AttributeScope.SERVER_SCOPE, AttributeScope.SHARED_SCOPE);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            scopes = Collections.singletonList(AttributeScope.SERVER_SCOPE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Map&lt;String, List&lt;AttributeExportData&gt;&gt; attributes = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        scopes.forEach(scope -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                attributes.put(scope.name(), attributesService.findAll(ctx.getTenantId(), entity.getId(), scope).get().stream()</b>
+<b class="nc">&nbsp;                        .map(attribute -&gt; {</b>
+<b class="nc">&nbsp;                            AttributeExportData attributeExportData = new AttributeExportData();</b>
+<b class="nc">&nbsp;                            attributeExportData.setKey(attribute.getKey());</b>
+<b class="nc">&nbsp;                            attributeExportData.setLastUpdateTs(attribute.getLastUpdateTs());</b>
+<b class="nc">&nbsp;                            attributeExportData.setStrValue(attribute.getStrValue().orElse(null));</b>
+<b class="nc">&nbsp;                            attributeExportData.setDoubleValue(attribute.getDoubleValue().orElse(null));</b>
+<b class="nc">&nbsp;                            attributeExportData.setLongValue(attribute.getLongValue().orElse(null));</b>
+<b class="nc">&nbsp;                            attributeExportData.setBooleanValue(attribute.getBooleanValue().orElse(null));</b>
+<b class="nc">&nbsp;                            attributeExportData.setJsonValue(attribute.getJsonValue().orElse(null));</b>
+<b class="nc">&nbsp;                            return attributeExportData;</b>
+&nbsp;                        })
+<b class="nc">&nbsp;                        .collect(Collectors.toList()));</b>
+&nbsp;            } catch (InterruptedException | ExecutionException e) {
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        return attributes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;CalculatedField&gt; exportCalculatedFields(EntitiesExportCtx&lt;?&gt; ctx, EntityId entityId) {
+<b class="nc">&nbsp;        List&lt;CalculatedField&gt; calculatedFields = calculatedFieldService.findCalculatedFieldsByEntityId(ctx.getTenantId(), entityId);</b>
+<b class="nc">&nbsp;        calculatedFields.forEach(calculatedField -&gt; {</b>
+<b class="nc">&nbsp;            calculatedField.setEntityId(getExternalIdOrElseInternal(ctx, entityId));</b>
+<b class="nc">&nbsp;            if (calculatedField.getConfiguration() instanceof ArgumentsBasedCalculatedFieldConfiguration argBasedConfig) {</b>
+<b class="nc">&nbsp;                if (argBasedConfig instanceof GeofencingCalculatedFieldConfiguration geofencingCfg) {</b>
+<b class="nc">&nbsp;                    geofencingCfg.getZoneGroups().values().forEach(zoneGroupConfiguration -&gt; {</b>
+<b class="nc">&nbsp;                        if (zoneGroupConfiguration.getRefEntityId() != null) {</b>
+<b class="nc">&nbsp;                            zoneGroupConfiguration.setRefEntityId(getExternalIdOrElseInternal(ctx, zoneGroupConfiguration.getRefEntityId()));</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;                } else {
+<b class="nc">&nbsp;                    argBasedConfig.getArguments().values().forEach(argument -&gt; {</b>
+<b class="nc">&nbsp;                        if (argument.getRefEntityId() != null) {</b>
+<b class="nc">&nbsp;                            argument.setRefEntityId(getExternalIdOrElseInternal(ctx, argument.getRefEntityId()));</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (calculatedField.getConfiguration() instanceof AlarmCalculatedFieldConfiguration alarmCfConfig) {</b>
+<b class="nc">&nbsp;                alarmCfConfig.getAllRules().map(Pair::getValue).forEach(rule -&gt; {</b>
+<b class="nc">&nbsp;                    if (rule.getDashboardId() != null) {</b>
+<b class="nc">&nbsp;                        rule.setDashboardId(getExternalIdOrElseInternal(ctx, rule.getDashboardId()));</b>
+&nbsp;                    }
+&nbsp;                });
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        return calculatedFields;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;ID extends EntityId&gt; ID getExternalIdOrElseInternal(EntitiesExportCtx&lt;?&gt; ctx, ID internalId) {
+<b class="nc">&nbsp;        if (internalId == null || internalId.isNullUid()) return internalId;</b>
+<b class="nc">&nbsp;        var result = ctx.getExternalId(internalId);</b>
+<b class="nc">&nbsp;        if (result == null) {</b>
+<b class="nc">&nbsp;            result = Optional.ofNullable(exportableEntitiesService.getExternalIdByInternal(internalId))</b>
+<b class="nc">&nbsp;                    .orElse(internalId);</b>
+<b class="nc">&nbsp;            ctx.putExternalId(internalId, result);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected UUID getExternalIdOrElseInternalByUuid(EntitiesExportCtx&lt;?&gt; ctx, UUID internalUuid) {
+<b class="nc">&nbsp;        for (EntityType entityType : EntityType.values()) {</b>
+&nbsp;            EntityId internalId;
+&nbsp;            try {
+<b class="nc">&nbsp;                internalId = EntityIdFactory.getByTypeAndUuid(entityType, internalUuid);</b>
+&nbsp;            } catch (Exception e) {
+&nbsp;                continue;
+&nbsp;            }
+<b class="nc">&nbsp;            EntityId externalId = ctx.getExternalId(internalId);</b>
+<b class="nc">&nbsp;            if (externalId != null) {</b>
+<b class="nc">&nbsp;                return externalId.getId();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        for (EntityType entityType : EntityType.values()) {</b>
+&nbsp;            EntityId internalId;
+&nbsp;            try {
+<b class="nc">&nbsp;                internalId = EntityIdFactory.getByTypeAndUuid(entityType, internalUuid);</b>
+&nbsp;            } catch (Exception e) {
+&nbsp;                continue;
+&nbsp;            }
+<b class="nc">&nbsp;            EntityId externalId = exportableEntitiesService.getExternalIdByInternal(internalId);</b>
+<b class="nc">&nbsp;            if (externalId != null) {</b>
+<b class="nc">&nbsp;                ctx.putExternalId(internalId, externalId);</b>
+<b class="nc">&nbsp;                return externalId.getId();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return internalUuid;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected D newExportData() {
+<b class="nc">&nbsp;        return (D) new EntityExportData&lt;E&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

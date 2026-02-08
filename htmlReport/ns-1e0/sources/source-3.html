@@ -1,0 +1,441 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultAlarmSubscriptionService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.telemetry</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultAlarmSubscriptionService (org.thingsboard.server.service.telemetry)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultAlarmSubscriptionService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/69)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultAlarmSubscriptionService$AlarmUpdateCallback</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/72)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.telemetry;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.checkerframework.checker.nullness.qual.Nullable;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageRecordKey;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmComment;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCommentType;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmModificationRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQuery;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQueryV2;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmStatus;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.AlarmTrigger;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmDataQuery;
+&nbsp;import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmService;
+&nbsp;import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+&nbsp;import org.thingsboard.server.service.entitiy.alarm.TbAlarmCommentService;
+&nbsp;import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.alarm.AlarmCommentSubType.SEVERITY_CHANGED;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 27.03.18.
+&nbsp; */
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService implements AlarmSubscriptionService {
+&nbsp;
+&nbsp;    private final AlarmService alarmService;
+&nbsp;    private final TbAlarmCommentService alarmCommentService;
+&nbsp;    private final TbApiUsageReportClient apiUsageClient;
+&nbsp;    private final TbApiUsageStateService apiUsageStateService;
+&nbsp;    private final NotificationRuleProcessor notificationRuleProcessor;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getExecutorPrefix() {
+<b class="nc">&nbsp;        return &quot;alarm&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult createAlarm(AlarmCreateOrUpdateActiveRequest request) {
+<b class="nc">&nbsp;        boolean creationEnabled = apiUsageStateService.getApiUsageState(request.getTenantId()).isAlarmCreationEnabled();</b>
+<b class="nc">&nbsp;        var result = alarmService.createAlarm(request, creationEnabled);</b>
+<b class="nc">&nbsp;        if (result.isCreated()) {</b>
+<b class="nc">&nbsp;            apiUsageClient.report(request.getTenantId(), null, ApiUsageRecordKey.CREATED_ALARMS_COUNT);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return withWsCallback(request, result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult updateAlarm(AlarmUpdateRequest request) {
+<b class="nc">&nbsp;        return withWsCallback(alarmService.updateAlarm(request));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult acknowledgeAlarm(TenantId tenantId, AlarmId alarmId, long ackTs) {
+<b class="nc">&nbsp;        return withWsCallback(alarmService.acknowledgeAlarm(tenantId, alarmId, ackTs));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult clearAlarm(TenantId tenantId, AlarmId alarmId, long clearTs, JsonNode details) {
+<b class="nc">&nbsp;        return clearAlarm(tenantId, alarmId, clearTs, details, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult clearAlarm(TenantId tenantId, AlarmId alarmId, long clearTs, JsonNode details, boolean pushEvent) {
+<b class="nc">&nbsp;        return withWsCallback(alarmService.clearAlarm(tenantId, alarmId, clearTs, details, pushEvent));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult assignAlarm(TenantId tenantId, AlarmId alarmId, UserId assigneeId, long assignTs) {
+<b class="nc">&nbsp;        return withWsCallback(alarmService.assignAlarm(tenantId, alarmId, assigneeId, assignTs));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult unassignAlarm(TenantId tenantId, AlarmId alarmId, long assignTs) {
+<b class="nc">&nbsp;        return withWsCallback(alarmService.unassignAlarm(tenantId, alarmId, assignTs));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean deleteAlarm(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        AlarmApiCallResult result = alarmService.delAlarm(tenantId, alarmId);</b>
+<b class="nc">&nbsp;        onAlarmDeleted(result);</b>
+<b class="nc">&nbsp;        return result.isSuccessful();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Alarm&gt; findAlarmByIdAsync(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        return alarmService.findAlarmByIdAsync(tenantId, alarmId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findAlarmById(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        return alarmService.findAlarmById(tenantId, alarmId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo findAlarmInfoById(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        return alarmService.findAlarmInfoById(tenantId, alarmId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findAlarms(TenantId tenantId, AlarmQuery query) {
+<b class="nc">&nbsp;        return alarmService.findAlarms(tenantId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query) {
+<b class="nc">&nbsp;        return alarmService.findCustomerAlarms(tenantId, customerId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findAlarmsV2(TenantId tenantId, AlarmQueryV2 query) {
+<b class="nc">&nbsp;        return alarmService.findAlarmsV2(tenantId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findCustomerAlarmsV2(TenantId tenantId, CustomerId customerId, AlarmQueryV2 query) {
+<b class="nc">&nbsp;        return alarmService.findCustomerAlarmsV2(tenantId, customerId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus, AlarmStatus alarmStatus, String assigneeId) {
+<b class="nc">&nbsp;        return alarmService.findHighestAlarmSeverity(tenantId, entityId, alarmSearchStatus, alarmStatus, assigneeId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmData&gt; findAlarmDataByQueryForEntities(TenantId tenantId, AlarmDataQuery query, Collection&lt;EntityId&gt; orderedEntityIds) {
+<b class="nc">&nbsp;        return alarmService.findAlarmDataByQueryForEntities(tenantId, query, orderedEntityIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findLatestActiveByOriginatorAndType(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        return alarmService.findLatestActiveByOriginatorAndType(tenantId, originator, type);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Alarm&gt; findLatestActiveByOriginatorAndTypeAsync(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        return alarmService.findLatestActiveByOriginatorAndTypeAsync(tenantId, originator, type);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        return alarmService.findLatestActiveByOriginatorAndType(tenantId, originator, type);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntitySubtype&gt; findAlarmTypesByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        return alarmService.findAlarmTypesByTenantId(tenantId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onAlarmUpdated(AlarmApiCallResult result) {
+<b class="nc">&nbsp;        wsCallBackExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            AlarmInfo alarm = result.getAlarm();</b>
+<b class="nc">&nbsp;            TenantId tenantId = alarm.getTenantId();</b>
+<b class="nc">&nbsp;            for (EntityId entityId : result.getPropagatedEntitiesList()) {</b>
+<b class="nc">&nbsp;                forwardToSubscriptionManagerService(tenantId, entityId, subscriptionManagerService -&gt; {</b>
+<b class="nc">&nbsp;                            subscriptionManagerService.onAlarmUpdate(tenantId, entityId, alarm, TbCallback.EMPTY);</b>
+<b class="nc">&nbsp;                        }, () -&gt; TbSubscriptionUtils.toAlarmUpdateProto(tenantId, entityId, alarm)</b>
+&nbsp;                );
+&nbsp;            }
+<b class="nc">&nbsp;            notificationRuleProcessor.process(AlarmTrigger.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .alarmUpdate(result)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onAlarmDeleted(AlarmApiCallResult result) {
+<b class="nc">&nbsp;        wsCallBackExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            AlarmInfo alarm = result.getAlarm();</b>
+<b class="nc">&nbsp;            TenantId tenantId = alarm.getTenantId();</b>
+<b class="nc">&nbsp;            for (EntityId entityId : result.getPropagatedEntitiesList()) {</b>
+<b class="nc">&nbsp;                forwardToSubscriptionManagerService(tenantId, entityId, subscriptionManagerService -&gt; {</b>
+<b class="nc">&nbsp;                    subscriptionManagerService.onAlarmDeleted(tenantId, entityId, alarm, TbCallback.EMPTY);</b>
+&nbsp;                }, () -&gt; {
+<b class="nc">&nbsp;                    return TbSubscriptionUtils.toAlarmDeletedProto(tenantId, entityId, alarm);</b>
+&nbsp;                });
+&nbsp;            }
+<b class="nc">&nbsp;            notificationRuleProcessor.process(AlarmTrigger.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .alarmUpdate(result)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private class AlarmUpdateCallback implements FutureCallback&lt;AlarmApiCallResult&gt; {</b>
+&nbsp;        @Override
+&nbsp;        public void onSuccess(@Nullable AlarmApiCallResult result) {
+<b class="nc">&nbsp;            onAlarmUpdated(result);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onFailure(Throwable t) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to update alarm&quot;, t);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmApiCallResult withWsCallback(AlarmApiCallResult result) {
+<b class="nc">&nbsp;        return withWsCallback(null, result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmApiCallResult withWsCallback(AlarmModificationRequest request, AlarmApiCallResult result) {
+<b class="nc">&nbsp;        if (result.isSuccessful() &amp;&amp; result.isModified()) {</b>
+<b class="nc">&nbsp;            Futures.addCallback(Futures.immediateFuture(result), new AlarmUpdateCallback(), wsCallBackExecutor);</b>
+<b class="nc">&nbsp;            if (result.isSeverityChanged()) {</b>
+<b class="nc">&nbsp;                AlarmInfo alarm = result.getAlarm();</b>
+<b class="nc">&nbsp;                AlarmComment.AlarmCommentBuilder alarmComment = AlarmComment.builder()</b>
+<b class="nc">&nbsp;                        .alarmId(alarm.getId())</b>
+<b class="nc">&nbsp;                        .type(AlarmCommentType.SYSTEM)</b>
+<b class="nc">&nbsp;                        .comment(JacksonUtil.newObjectNode()</b>
+<b class="nc">&nbsp;                                .put(&quot;text&quot;, String.format(SEVERITY_CHANGED.getText(), result.getOldSeverity(), alarm.getSeverity()))</b>
+<b class="nc">&nbsp;                                .put(&quot;subtype&quot;, SEVERITY_CHANGED.name())</b>
+<b class="nc">&nbsp;                                .put(&quot;oldSeverity&quot;, result.getOldSeverity().name())</b>
+<b class="nc">&nbsp;                                .put(&quot;newSeverity&quot;, alarm.getSeverity().name()));</b>
+<b class="nc">&nbsp;                if (request != null &amp;&amp; request.getUserId() != null) {</b>
+<b class="nc">&nbsp;                    alarmComment.userId(request.getUserId());</b>
+&nbsp;                }
+&nbsp;                try {
+<b class="nc">&nbsp;                    alarmCommentService.saveAlarmComment(alarm, alarmComment.build(), null);</b>
+&nbsp;                } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                    log.error(&quot;Failed to save alarm comment&quot;, e);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

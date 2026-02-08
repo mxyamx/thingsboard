@@ -1,0 +1,248 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ConstraintValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.service</a>
+</div>
+
+<h1>Coverage Summary for Class: ConstraintValidator (org.thingsboard.server.dao.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConstraintValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.service;
+&nbsp;
+&nbsp;import com.google.common.collect.Iterators;
+&nbsp;import jakarta.validation.ConstraintViolation;
+&nbsp;import jakarta.validation.Validation;
+&nbsp;import jakarta.validation.Validator;
+&nbsp;import jakarta.validation.constraints.AssertTrue;
+&nbsp;import jakarta.validation.metadata.ConstraintDescriptor;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.hibernate.validator.HibernateValidator;
+&nbsp;import org.hibernate.validator.HibernateValidatorConfiguration;
+&nbsp;import org.hibernate.validator.cfg.ConstraintMapping;
+&nbsp;import org.hibernate.validator.internal.cfg.context.DefaultConstraintMapping;
+&nbsp;import org.hibernate.validator.internal.engine.ConfigurationImpl;
+&nbsp;import org.springframework.context.annotation.Bean;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+&nbsp;import org.thingsboard.server.common.data.validation.Length;
+&nbsp;import org.thingsboard.server.common.data.validation.NoNullChar;
+&nbsp;import org.thingsboard.server.common.data.validation.NoXss;
+&nbsp;import org.thingsboard.server.common.data.validation.RateLimit;
+&nbsp;import org.thingsboard.server.common.data.validation.ValidJsonSchema;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Configuration
+<b class="nc">&nbsp;public class ConstraintValidator {</b>
+&nbsp;
+&nbsp;    private static Validator fieldsValidator;
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        initializeValidators();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void validateFields(Object data) {
+<b class="nc">&nbsp;        validateFields(data, &quot;Validation error: &quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void validateFields(Object data, String errorPrefix) {
+<b class="nc">&nbsp;        Set&lt;ConstraintViolation&lt;Object&gt;&gt; constraintsViolations = fieldsValidator.validate(data);</b>
+<b class="nc">&nbsp;        if (!constraintsViolations.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(errorPrefix + getErrorMessage(constraintsViolations));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String getErrorMessage(Collection&lt;ConstraintViolation&lt;Object&gt;&gt; constraintsViolations) {
+<b class="nc">&nbsp;        return constraintsViolations.stream()</b>
+<b class="nc">&nbsp;                .map(ConstraintValidator::getErrorMessage)</b>
+<b class="nc">&nbsp;                .distinct().sorted().collect(Collectors.joining(&quot;, &quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String getErrorMessage(ConstraintViolation&lt;Object&gt; constraintViolation) {
+<b class="nc">&nbsp;        ConstraintDescriptor&lt;?&gt; constraintDescriptor = constraintViolation.getConstraintDescriptor();</b>
+<b class="nc">&nbsp;        String property = (String) constraintDescriptor.getAttributes().get(&quot;fieldName&quot;);</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(property) &amp;&amp; !(constraintDescriptor.getAnnotation() instanceof AssertTrue)) {</b>
+<b class="nc">&nbsp;            property = Iterators.getLast(constraintViolation.getPropertyPath().iterator()).toString();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String error = &quot;&quot;;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(property)) {</b>
+<b class="nc">&nbsp;            error += property + &quot; &quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        error += constraintViolation.getMessage();</b>
+<b class="nc">&nbsp;        return error;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void initializeValidators() {
+<b class="nc">&nbsp;        HibernateValidatorConfiguration validatorConfiguration = Validation.byProvider(HibernateValidator.class).configure();</b>
+&nbsp;
+<b class="nc">&nbsp;        ConstraintMapping constraintMapping = getCustomConstraintMapping();</b>
+<b class="nc">&nbsp;        validatorConfiguration.addMapping(constraintMapping);</b>
+&nbsp;
+<b class="nc">&nbsp;        try (var validatorFactory = validatorConfiguration.buildValidatorFactory()) {</b>
+<b class="nc">&nbsp;            fieldsValidator = validatorFactory.getValidator();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public LocalValidatorFactoryBean validatorFactoryBean() {
+<b class="nc">&nbsp;        LocalValidatorFactoryBean localValidatorFactoryBean = new LocalValidatorFactoryBean();</b>
+<b class="nc">&nbsp;        localValidatorFactoryBean.setConfigurationInitializer(configuration -&gt; {</b>
+<b class="nc">&nbsp;            ((ConfigurationImpl) configuration).addMapping(getCustomConstraintMapping());</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return localValidatorFactoryBean;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static ConstraintMapping getCustomConstraintMapping() {
+<b class="nc">&nbsp;        ConstraintMapping constraintMapping = new DefaultConstraintMapping(null);</b>
+<b class="nc">&nbsp;        constraintMapping.constraintDefinition(NoXss.class).validatedBy(NoXssValidator.class);</b>
+<b class="nc">&nbsp;        constraintMapping.constraintDefinition(Length.class).validatedBy(StringLengthValidator.class);</b>
+<b class="nc">&nbsp;        constraintMapping.constraintDefinition(RateLimit.class).validatedBy(RateLimitValidator.class);</b>
+<b class="nc">&nbsp;        constraintMapping.constraintDefinition(NoNullChar.class).validatedBy(NoNullCharValidator.class);</b>
+<b class="nc">&nbsp;        constraintMapping.constraintDefinition(ValidJsonSchema.class).validatedBy(JsonSchemaValidator.class);</b>
+<b class="nc">&nbsp;        return constraintMapping;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

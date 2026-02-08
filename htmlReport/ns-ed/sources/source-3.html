@@ -1,0 +1,267 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > QrCodeSettingServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.mobile</a>
+</div>
+
+<h1>Coverage Summary for Class: QrCodeSettingServiceImpl (org.thingsboard.server.dao.mobile)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QrCodeSettingServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/43)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.mobile;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.mobile.qrCodeSettings.BadgePosition;
+&nbsp;import org.thingsboard.server.common.data.mobile.app.MobileApp;
+&nbsp;import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
+&nbsp;import org.thingsboard.server.common.data.mobile.qrCodeSettings.QRCodeConfig;
+&nbsp;import org.thingsboard.server.common.data.oauth2.PlatformType;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.oauth2.PlatformType.ANDROID;
+&nbsp;import static org.thingsboard.server.common.data.oauth2.PlatformType.IOS;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class QrCodeSettingServiceImpl extends AbstractCachedEntityService&lt;TenantId, QrCodeSettings, QrCodeSettingsEvictEvent&gt; implements QrCodeSettingService {
+&nbsp;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;    private static final String DEFAULT_QR_CODE_LABEL = &quot;Scan to connect or download mobile app&quot;;
+&nbsp;
+&nbsp;    @Value(&quot;${mobileApp.googlePlayLink:https://play.google.com/store/apps/details?id=org.thingsboard.demo.app}&quot;)
+&nbsp;    private String googlePlayLink;
+&nbsp;    @Value(&quot;${mobileApp.appStoreLink:https://apps.apple.com/us/app/thingsboard-live/id1594355695}&quot;)
+&nbsp;    private String appStoreLink;
+&nbsp;
+&nbsp;    private final QrCodeSettingsDao qrCodeSettingsDao;
+&nbsp;    private final MobileAppService mobileAppService;
+&nbsp;    private final DataValidator&lt;QrCodeSettings&gt; mobileAppSettingsDataValidator;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public QrCodeSettings saveQrCodeSettings(TenantId tenantId, QrCodeSettings qrCodeSettings) {
+<b class="nc">&nbsp;        mobileAppSettingsDataValidator.validate(qrCodeSettings, s -&gt; tenantId);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            QrCodeSettings savedQrCodeSettings = qrCodeSettingsDao.save(tenantId, qrCodeSettings);</b>
+<b class="nc">&nbsp;            publishEvictEvent(new QrCodeSettingsEvictEvent(tenantId));</b>
+<b class="nc">&nbsp;            return constructMobileAppSettings(savedQrCodeSettings);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            handleEvictEvent(new QrCodeSettingsEvictEvent(tenantId));</b>
+<b class="nc">&nbsp;            checkConstraintViolation(e, Map.of(</b>
+&nbsp;                    &quot;qr_code_settings_tenant_id_unq_key&quot;, &quot;Mobile application for specified tenant already exists!&quot;
+&nbsp;            ));
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public QrCodeSettings findQrCodeSettings(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getMobileAppSettings for tenant [{}] &quot;, tenantId);</b>
+<b class="nc">&nbsp;        QrCodeSettings qrCodeSettings = cache.getAndPutInTransaction(tenantId,</b>
+<b class="nc">&nbsp;                () -&gt; qrCodeSettingsDao.findByTenantId(tenantId), true);</b>
+<b class="nc">&nbsp;        return constructMobileAppSettings(qrCodeSettings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public MobileApp findAppFromQrCodeSettings(TenantId tenantId, PlatformType platformType) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAppQrCodeConfig for tenant [{}] &quot;, tenantId);</b>
+<b class="nc">&nbsp;        QrCodeSettings qrCodeSettings = findQrCodeSettings(tenantId);</b>
+<b class="nc">&nbsp;        return qrCodeSettings.getMobileAppBundleId() != null ? mobileAppService.findByBundleIdAndPlatformType(tenantId, qrCodeSettings.getMobileAppBundleId(), platformType) : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        qrCodeSettingsDao.removeByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @TransactionalEventListener(classes = QrCodeSettingsEvictEvent.class)
+&nbsp;    @Override
+&nbsp;    public void handleEvictEvent(QrCodeSettingsEvictEvent event) {
+<b class="nc">&nbsp;        cache.evict(event.getTenantId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private QrCodeSettings constructMobileAppSettings(QrCodeSettings qrCodeSettings) {
+<b class="nc">&nbsp;        if (qrCodeSettings == null) {</b>
+<b class="nc">&nbsp;            qrCodeSettings = new QrCodeSettings();</b>
+<b class="nc">&nbsp;            qrCodeSettings.setUseDefaultApp(true);</b>
+<b class="nc">&nbsp;            qrCodeSettings.setAndroidEnabled(true);</b>
+<b class="nc">&nbsp;            qrCodeSettings.setIosEnabled(true);</b>
+&nbsp;
+<b class="nc">&nbsp;            QRCodeConfig qrCodeConfig = QRCodeConfig.builder()</b>
+<b class="nc">&nbsp;                    .showOnHomePage(true)</b>
+<b class="nc">&nbsp;                    .qrCodeLabelEnabled(true)</b>
+<b class="nc">&nbsp;                    .qrCodeLabel(DEFAULT_QR_CODE_LABEL)</b>
+<b class="nc">&nbsp;                    .badgeEnabled(true)</b>
+<b class="nc">&nbsp;                    .badgePosition(BadgePosition.RIGHT)</b>
+<b class="nc">&nbsp;                    .badgeEnabled(true)</b>
+<b class="nc">&nbsp;                    .build();</b>
+&nbsp;
+<b class="nc">&nbsp;            qrCodeSettings.setQrCodeConfig(qrCodeConfig);</b>
+<b class="nc">&nbsp;            qrCodeSettings.setMobileAppBundleId(qrCodeSettings.getMobileAppBundleId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (qrCodeSettings.isUseDefaultApp() || qrCodeSettings.getMobileAppBundleId() == null) {</b>
+<b class="nc">&nbsp;            qrCodeSettings.setGooglePlayLink(googlePlayLink);</b>
+<b class="nc">&nbsp;            qrCodeSettings.setAppStoreLink(appStoreLink);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            MobileApp androidApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), ANDROID);</b>
+<b class="nc">&nbsp;            MobileApp iosApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), IOS);</b>
+<b class="nc">&nbsp;            if (androidApp != null &amp;&amp; androidApp.getStoreInfo() != null) {</b>
+<b class="nc">&nbsp;                qrCodeSettings.setGooglePlayLink(androidApp.getStoreInfo().getStoreLink());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (iosApp != null &amp;&amp; iosApp.getStoreInfo() != null) {</b>
+<b class="nc">&nbsp;                qrCodeSettings.setAppStoreLink(iosApp.getStoreInfo().getStoreLink());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return qrCodeSettings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > KafkaTbCoreQueueFactory</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.provider</a>
+</div>
+
+<h1>Coverage Summary for Class: KafkaTbCoreQueueFactory (org.thingsboard.server.queue.provider)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KafkaTbCoreQueueFactory</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/302)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.provider;
+&nbsp;
+&nbsp;import com.google.protobuf.util.JsonFormat;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+&nbsp;import org.springframework.context.annotation.Bean;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.gen.js.JsInvokeProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
+&nbsp;import org.thingsboard.server.queue.TbEdgeQueueAdmin;
+&nbsp;import org.thingsboard.server.queue.TbQueueAdmin;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.TbQueueProducer;
+&nbsp;import org.thingsboard.server.queue.TbQueueRequestTemplate;
+&nbsp;import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.discovery.TopicService;
+&nbsp;import org.thingsboard.server.queue.edqs.EdqsConfig;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaConsumerStatsService;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaSettings;
+&nbsp;import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
+&nbsp;import org.thingsboard.server.queue.settings.TasksQueueConfig;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
+&nbsp;import org.thingsboard.server.queue.settings.TbQueueVersionControlSettings;
+&nbsp;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.concurrent.atomic.AtomicLong;
+&nbsp;
+&nbsp;@Component
+&nbsp;@ConditionalOnExpression(&quot;&#39;${queue.type:null}&#39;==&#39;kafka&#39; &amp;&amp; &#39;${service.type:null}&#39;==&#39;tb-core&#39;&quot;)
+&nbsp;public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
+&nbsp;
+&nbsp;    private final TopicService topicService;
+&nbsp;    private final TbKafkaSettings kafkaSettings;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final TbQueueCoreSettings coreSettings;
+&nbsp;    private final TbQueueRuleEngineSettings ruleEngineSettings;
+&nbsp;    private final TbQueueTransportApiSettings transportApiSettings;
+&nbsp;    private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
+&nbsp;    private final TbQueueVersionControlSettings vcSettings;
+&nbsp;    private final TbKafkaConsumerStatsService consumerStatsService;
+&nbsp;    private final TbQueueTransportNotificationSettings transportNotificationSettings;
+&nbsp;    private final TbQueueEdgeSettings edgeSettings;
+&nbsp;    private final TbQueueCalculatedFieldSettings calculatedFieldSettings;
+&nbsp;    private final EdqsConfig edqsConfig;
+&nbsp;    private final TasksQueueConfig tasksQueueConfig;
+&nbsp;
+&nbsp;    private final TbQueueAdmin coreAdmin;
+&nbsp;    private final TbQueueAdmin ruleEngineAdmin;
+&nbsp;    private final TbQueueAdmin jsExecutorRequestAdmin;
+&nbsp;    private final TbQueueAdmin jsExecutorResponseAdmin;
+&nbsp;    private final TbQueueAdmin transportApiRequestAdmin;
+&nbsp;    private final TbQueueAdmin transportApiResponseAdmin;
+&nbsp;    private final TbQueueAdmin notificationAdmin;
+&nbsp;    private final TbQueueAdmin fwUpdatesAdmin;
+&nbsp;    private final TbQueueAdmin vcAdmin;
+&nbsp;    private final TbQueueAdmin housekeeperAdmin;
+&nbsp;    private final TbQueueAdmin housekeeperReprocessingAdmin;
+&nbsp;    private final TbEdgeQueueAdmin edgeAdmin;
+&nbsp;    private final TbQueueAdmin edgeEventAdmin;
+&nbsp;    private final TbQueueAdmin cfAdmin;
+&nbsp;    private final TbQueueAdmin edqsEventsAdmin;
+&nbsp;    private final TbKafkaAdmin edqsRequestsAdmin;
+&nbsp;    private final TbQueueAdmin tasksAdmin;
+&nbsp;
+<b class="nc">&nbsp;    private final AtomicLong consumerCount = new AtomicLong();</b>
+<b class="nc">&nbsp;    private final AtomicLong edgeConsumerCount = new AtomicLong();</b>
+&nbsp;
+&nbsp;    public KafkaTbCoreQueueFactory(TopicService topicService,
+&nbsp;                                   TbKafkaSettings kafkaSettings,
+&nbsp;                                   TbServiceInfoProvider serviceInfoProvider,
+&nbsp;                                   TbQueueCoreSettings coreSettings,
+&nbsp;                                   TbQueueRuleEngineSettings ruleEngineSettings,
+&nbsp;                                   TbQueueTransportApiSettings transportApiSettings,
+&nbsp;                                   TbQueueRemoteJsInvokeSettings jsInvokeSettings,
+&nbsp;                                   TbQueueVersionControlSettings vcSettings,
+&nbsp;                                   TbQueueEdgeSettings edgeSettings,
+&nbsp;                                   TbKafkaConsumerStatsService consumerStatsService,
+&nbsp;                                   TbQueueTransportNotificationSettings transportNotificationSettings,
+&nbsp;                                   TbQueueCalculatedFieldSettings calculatedFieldSettings,
+&nbsp;                                   EdqsConfig edqsConfig,
+&nbsp;                                   TasksQueueConfig tasksQueueConfig,
+<b class="nc">&nbsp;                                   TbKafkaTopicConfigs kafkaTopicConfigs) {</b>
+<b class="nc">&nbsp;        this.topicService = topicService;</b>
+<b class="nc">&nbsp;        this.kafkaSettings = kafkaSettings;</b>
+<b class="nc">&nbsp;        this.serviceInfoProvider = serviceInfoProvider;</b>
+<b class="nc">&nbsp;        this.coreSettings = coreSettings;</b>
+<b class="nc">&nbsp;        this.ruleEngineSettings = ruleEngineSettings;</b>
+<b class="nc">&nbsp;        this.transportApiSettings = transportApiSettings;</b>
+<b class="nc">&nbsp;        this.jsInvokeSettings = jsInvokeSettings;</b>
+<b class="nc">&nbsp;        this.vcSettings = vcSettings;</b>
+<b class="nc">&nbsp;        this.consumerStatsService = consumerStatsService;</b>
+<b class="nc">&nbsp;        this.transportNotificationSettings = transportNotificationSettings;</b>
+<b class="nc">&nbsp;        this.edgeSettings = edgeSettings;</b>
+<b class="nc">&nbsp;        this.calculatedFieldSettings = calculatedFieldSettings;</b>
+<b class="nc">&nbsp;        this.edqsConfig = edqsConfig;</b>
+<b class="nc">&nbsp;        this.tasksQueueConfig = tasksQueueConfig;</b>
+&nbsp;
+<b class="nc">&nbsp;        this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());</b>
+<b class="nc">&nbsp;        this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());</b>
+<b class="nc">&nbsp;        this.jsExecutorRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorRequestConfigs());</b>
+<b class="nc">&nbsp;        this.jsExecutorResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorResponseConfigs());</b>
+<b class="nc">&nbsp;        this.transportApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiRequestConfigs());</b>
+<b class="nc">&nbsp;        this.transportApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiResponseConfigs());</b>
+<b class="nc">&nbsp;        this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());</b>
+<b class="nc">&nbsp;        this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());</b>
+<b class="nc">&nbsp;        this.vcAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getVcConfigs());</b>
+<b class="nc">&nbsp;        this.housekeeperAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperConfigs());</b>
+<b class="nc">&nbsp;        this.housekeeperReprocessingAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperReprocessingConfigs());</b>
+<b class="nc">&nbsp;        this.edgeAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeConfigs());</b>
+<b class="nc">&nbsp;        this.edgeEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeEventConfigs());</b>
+<b class="nc">&nbsp;        this.cfAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCalculatedFieldConfigs());</b>
+<b class="nc">&nbsp;        this.edqsEventsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsEventsConfigs());</b>
+<b class="nc">&nbsp;        this.edqsRequestsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsRequestsConfigs());</b>
+<b class="nc">&nbsp;        this.tasksAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTasksConfigs());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToTransportMsg&gt;&gt; createTransportNotificationsMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToTransportMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-transport-notifications-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(transportNotificationSettings.getNotificationsTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToRuleEngineMsg&gt;&gt; createRuleEngineMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToRuleEngineMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-rule-engine-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(coreAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToRuleEngineNotificationMsg&gt;&gt; createRuleEngineNotificationsMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToRuleEngineNotificationMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-rule-engine-notifications-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(ruleEngineSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; createTbCoreMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-to-core-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(coreAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; createTbCoreNotificationsMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-to-core-notifications-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName());</b>
+<b class="nc">&nbsp;        requestBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; createToCoreMsgConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        consumerBuilder.topic(topicService.buildTopicName(coreSettings.getTopic()));</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-core-consumer-&quot; + serviceInfoProvider.getServiceId() + &quot;-&quot; + consumerCount.incrementAndGet());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topicService.buildTopicName(&quot;tb-core-node&quot;));</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToCoreMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(coreAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; createToCoreNotificationsMsgConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        consumerBuilder.topic(topicService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName());</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-core-notifications-consumer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topicService.buildTopicName(&quot;tb-core-notifications-node-&quot; + serviceInfoProvider.getServiceId()));</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToCoreNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;TransportApiRequestMsg&gt;&gt; createTransportApiRequestConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;TransportApiRequestMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        consumerBuilder.topic(topicService.buildTopicName(transportApiSettings.getRequestsTopic()));</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-core-transport-api-consumer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topicService.buildTopicName(&quot;tb-core-transport-api-consumer&quot;));</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), TransportApiRequestMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(transportApiRequestAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;TransportApiResponseMsg&gt;&gt; createTransportApiResponseProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;TransportApiResponseMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-transport-api-producer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(transportApiSettings.getResponsesTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(transportApiResponseAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Bean
+&nbsp;    public TbQueueRequestTemplate&lt;TbProtoJsQueueMsg&lt;JsInvokeProtos.RemoteJsRequest&gt;, TbProtoQueueMsg&lt;JsInvokeProtos.RemoteJsResponse&gt;&gt; createRemoteJsRequestTemplate() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoJsQueueMsg&lt;JsInvokeProtos.RemoteJsRequest&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;producer-js-invoke-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(jsInvokeSettings.getRequestTopic());</b>
+<b class="nc">&nbsp;        requestBuilder.admin(jsExecutorRequestAdmin);</b>
+&nbsp;
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;JsInvokeProtos.RemoteJsResponse&gt;&gt; responseBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        responseBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        responseBuilder.topic(jsInvokeSettings.getResponseTopic() + &quot;.&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        responseBuilder.clientId(&quot;js-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        responseBuilder.groupId(topicService.buildTopicName(&quot;rule-engine-node-&quot;) + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        responseBuilder.decoder(msg -&gt; {</b>
+<b class="nc">&nbsp;                    JsInvokeProtos.RemoteJsResponse.Builder builder = JsInvokeProtos.RemoteJsResponse.newBuilder();</b>
+<b class="nc">&nbsp;                    JsonFormat.parser().ignoringUnknownFields().merge(new String(msg.getData(), StandardCharsets.UTF_8), builder);</b>
+<b class="nc">&nbsp;                    return new TbProtoQueueMsg&lt;&gt;(msg.getKey(), builder.build(), msg.getHeaders());</b>
+&nbsp;                }
+&nbsp;        );
+<b class="nc">&nbsp;        responseBuilder.admin(jsExecutorResponseAdmin);</b>
+<b class="nc">&nbsp;        responseBuilder.statsService(consumerStatsService);</b>
+&nbsp;
+&nbsp;        DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
+<b class="nc">&nbsp;                &lt;TbProtoJsQueueMsg&lt;JsInvokeProtos.RemoteJsRequest&gt;, TbProtoQueueMsg&lt;JsInvokeProtos.RemoteJsResponse&gt;&gt; builder = DefaultTbQueueRequestTemplate.builder();</b>
+<b class="nc">&nbsp;        builder.queueAdmin(jsExecutorResponseAdmin);</b>
+<b class="nc">&nbsp;        builder.requestTemplate(requestBuilder.build());</b>
+<b class="nc">&nbsp;        builder.responseTemplate(responseBuilder.build());</b>
+<b class="nc">&nbsp;        builder.maxPendingRequests(jsInvokeSettings.getMaxPendingRequests());</b>
+<b class="nc">&nbsp;        builder.maxRequestTimeout(jsInvokeSettings.getMaxRequestsTimeout());</b>
+<b class="nc">&nbsp;        builder.pollInterval(jsInvokeSettings.getResponsePollInterval());</b>
+<b class="nc">&nbsp;        return builder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; createToUsageStatsServiceMsgConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        consumerBuilder.topic(topicService.buildTopicName(coreSettings.getUsageStatsTopic()));</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-core-us-consumer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topicService.buildTopicName(&quot;tb-core-us-consumer&quot;));</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToUsageStatsServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(coreAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt; createToOtaPackageStateServiceMsgConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        consumerBuilder.topic(topicService.buildTopicName(coreSettings.getOtaPackageTopic()));</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-core-ota-consumer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topicService.buildTopicName(&quot;tb-core-ota-consumer&quot;));</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToOtaPackageStateServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(fwUpdatesAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt; createToOtaPackageStateServiceMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-ota-producer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getOtaPackageTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(fwUpdatesAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; createToUsageStatsServiceMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-us-producer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getUsageStatsTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(coreAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToVersionControlServiceMsg&gt;&gt; createVersionControlMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToVersionControlServiceMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-vc-producer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(vcSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(vcAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; createHousekeeperMsgProducer() {
+<b class="nc">&nbsp;        return TbKafkaProducerTemplate.&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .clientId(&quot;tb-core-housekeeper-producer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .defaultTopic(topicService.buildTopicName(coreSettings.getHousekeeperTopic()))</b>
+<b class="nc">&nbsp;                .admin(housekeeperAdmin)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; createHousekeeperMsgConsumer() {
+<b class="nc">&nbsp;        return TbKafkaConsumerTemplate.&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .topic(topicService.buildTopicName(coreSettings.getHousekeeperTopic()))</b>
+<b class="nc">&nbsp;                .clientId(&quot;tb-core-housekeeper-consumer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .groupId(topicService.buildTopicName(&quot;tb-core-housekeeper-consumer&quot;))</b>
+<b class="nc">&nbsp;                .decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToHousekeeperServiceMsg.parseFrom(msg.getData()), msg.getHeaders()))</b>
+<b class="nc">&nbsp;                .admin(housekeeperAdmin)</b>
+<b class="nc">&nbsp;                .statsService(consumerStatsService)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; createHousekeeperReprocessingMsgProducer() {
+<b class="nc">&nbsp;        return TbKafkaProducerTemplate.&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .clientId(&quot;tb-core-housekeeper-reprocessing-producer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .defaultTopic(topicService.buildTopicName(coreSettings.getHousekeeperReprocessingTopic()))</b>
+<b class="nc">&nbsp;                .admin(housekeeperReprocessingAdmin)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; createHousekeeperReprocessingMsgConsumer() {
+<b class="nc">&nbsp;        return TbKafkaConsumerTemplate.&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .topic(topicService.buildTopicName(coreSettings.getHousekeeperReprocessingTopic()))</b>
+<b class="nc">&nbsp;                .clientId(&quot;tb-core-housekeeper-reprocessing-consumer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .groupId(topicService.buildTopicName(&quot;tb-core-housekeeper-reprocessing-consumer&quot;))</b>
+<b class="nc">&nbsp;                .decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToHousekeeperServiceMsg.parseFrom(msg.getData()), msg.getHeaders()))</b>
+<b class="nc">&nbsp;                .admin(housekeeperReprocessingAdmin)</b>
+<b class="nc">&nbsp;                .statsService(consumerStatsService)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; createEdgeMsgConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        consumerBuilder.topic(topicService.buildTopicName(edgeSettings.getTopic()));</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-core-edge-consumer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topicService.buildTopicName(&quot;tb-core-edge-consumer&quot;));</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToEdgeMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(edgeAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; createEdgeMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-to-edge-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(edgeSettings.getTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(edgeAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToEdgeNotificationMsg&gt;&gt; createToEdgeNotificationsMsgConsumer() {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToEdgeNotificationMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        consumerBuilder.topic(topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-edge-notifications-consumer-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topicService.buildTopicName(&quot;tb-edge-notifications-node-&quot; + serviceInfoProvider.getServiceId()));</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToEdgeNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToEdgeNotificationMsg&gt;&gt; createEdgeNotificationsMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToEdgeNotificationMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-to-edge-notifications-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());</b>
+<b class="nc">&nbsp;        requestBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt; createEdgeEventMsgConsumer(TenantId tenantId, EdgeId edgeId) {
+<b class="nc">&nbsp;        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt; consumerBuilder = TbKafkaConsumerTemplate.builder();</b>
+<b class="nc">&nbsp;        consumerBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        String topic = topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edgeId).getTopic();</b>
+&nbsp;
+<b class="nc">&nbsp;        edgeAdmin.syncEdgeNotificationsOffsets(topicService.buildTopicName(&quot;tb-core-edge-event-consumer&quot;), topic);</b>
+&nbsp;
+<b class="nc">&nbsp;        consumerBuilder.topic(topic);</b>
+<b class="nc">&nbsp;        consumerBuilder.clientId(&quot;tb-core-edge-event-consumer-&quot; + serviceInfoProvider.getServiceId() + &quot;-&quot; + edgeConsumerCount.incrementAndGet());</b>
+<b class="nc">&nbsp;        consumerBuilder.groupId(topic);</b>
+<b class="nc">&nbsp;        consumerBuilder.decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), ToEdgeEventNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));</b>
+<b class="nc">&nbsp;        consumerBuilder.admin(edgeEventAdmin);</b>
+<b class="nc">&nbsp;        consumerBuilder.statsService(consumerStatsService);</b>
+<b class="nc">&nbsp;        return consumerBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt; createEdgeEventMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-edge-event-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(&quot;edge-events&quot;));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(edgeEventAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt;&gt; createToCalculatedFieldMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-to-calculated-field-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(calculatedFieldSettings.getEventTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(cfAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCalculatedFieldNotificationMsg&gt;&gt; createToCalculatedFieldNotificationMsgProducer() {
+<b class="nc">&nbsp;        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder&lt;TbProtoQueueMsg&lt;ToCalculatedFieldNotificationMsg&gt;&gt; requestBuilder = TbKafkaProducerTemplate.builder();</b>
+<b class="nc">&nbsp;        requestBuilder.settings(kafkaSettings);</b>
+<b class="nc">&nbsp;        requestBuilder.clientId(&quot;tb-core-calculated-field-notifications-&quot; + serviceInfoProvider.getServiceId());</b>
+<b class="nc">&nbsp;        requestBuilder.defaultTopic(topicService.buildTopicName(calculatedFieldSettings.getEventTopic()));</b>
+<b class="nc">&nbsp;        requestBuilder.admin(notificationAdmin);</b>
+<b class="nc">&nbsp;        return requestBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueProducer&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt; createEdqsEventsProducer() {
+<b class="nc">&nbsp;        return TbKafkaProducerTemplate.&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .clientId(&quot;edqs-events-producer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .defaultTopic(topicService.buildTopicName(edqsConfig.getEventsTopic()))</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .admin(edqsEventsAdmin)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueRequestTemplate&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;, TbProtoQueueMsg&lt;FromEdqsMsg&gt;&gt; createEdqsRequestTemplate() {
+<b class="nc">&nbsp;        var requestProducer = TbKafkaProducerTemplate.&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .clientId(&quot;edqs-request-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .defaultTopic(topicService.buildTopicName(edqsConfig.getRequestsTopic()))</b>
+<b class="nc">&nbsp;                .admin(edqsRequestsAdmin);</b>
+&nbsp;
+<b class="nc">&nbsp;        var responseConsumer = TbKafkaConsumerTemplate.&lt;TbProtoQueueMsg&lt;FromEdqsMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .topic(topicService.buildTopicName(edqsConfig.getResponsesTopic() + &quot;.&quot; + serviceInfoProvider.getServiceId()))</b>
+<b class="nc">&nbsp;                .clientId(&quot;tb-core-edqs-response-consumer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .groupId(topicService.buildTopicName(&quot;tb-core-edqs-response-consumer-&quot; + serviceInfoProvider.getServiceId()))</b>
+<b class="nc">&nbsp;                .decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), FromEdqsMsg.parseFrom(msg.getData()), msg.getHeaders()))</b>
+<b class="nc">&nbsp;                .admin(edqsRequestsAdmin)</b>
+<b class="nc">&nbsp;                .statsService(consumerStatsService);</b>
+&nbsp;
+<b class="nc">&nbsp;        return DefaultTbQueueRequestTemplate.&lt;TbProtoQueueMsg&lt;ToEdqsMsg&gt;, TbProtoQueueMsg&lt;FromEdqsMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .queueAdmin(edqsRequestsAdmin)</b>
+<b class="nc">&nbsp;                .requestTemplate(requestProducer.build())</b>
+<b class="nc">&nbsp;                .responseTemplate(responseConsumer.build())</b>
+<b class="nc">&nbsp;                .maxPendingRequests(edqsConfig.getMaxPendingRequests())</b>
+<b class="nc">&nbsp;                .maxRequestTimeout(edqsConfig.getMaxRequestTimeout())</b>
+<b class="nc">&nbsp;                .pollInterval(edqsConfig.getPollInterval())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbQueueConsumer&lt;TbProtoQueueMsg&lt;JobStatsMsg&gt;&gt; createJobStatsConsumer() {
+<b class="nc">&nbsp;        return TbKafkaConsumerTemplate.&lt;TbProtoQueueMsg&lt;JobStatsMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .settings(kafkaSettings)</b>
+<b class="nc">&nbsp;                .topic(topicService.buildTopicName(tasksQueueConfig.getStatsTopic()))</b>
+<b class="nc">&nbsp;                .clientId(&quot;job-stats-consumer-&quot; + serviceInfoProvider.getServiceId())</b>
+<b class="nc">&nbsp;                .groupId(topicService.buildTopicName(&quot;job-stats-consumer-group&quot;))</b>
+<b class="nc">&nbsp;                .decoder(msg -&gt; new TbProtoQueueMsg&lt;&gt;(msg.getKey(), JobStatsMsg.parseFrom(msg.getData()), msg.getHeaders()))</b>
+<b class="nc">&nbsp;                .admin(tasksAdmin)</b>
+<b class="nc">&nbsp;                .statsService(consumerStatsService)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void destroy() {
+<b class="nc">&nbsp;        if (coreAdmin != null) {</b>
+<b class="nc">&nbsp;            coreAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (ruleEngineAdmin != null) {</b>
+<b class="nc">&nbsp;            ruleEngineAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (jsExecutorRequestAdmin != null) {</b>
+<b class="nc">&nbsp;            jsExecutorRequestAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (jsExecutorResponseAdmin != null) {</b>
+<b class="nc">&nbsp;            jsExecutorResponseAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (transportApiRequestAdmin != null) {</b>
+<b class="nc">&nbsp;            transportApiRequestAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (transportApiResponseAdmin != null) {</b>
+<b class="nc">&nbsp;            transportApiResponseAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (notificationAdmin != null) {</b>
+<b class="nc">&nbsp;            notificationAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (fwUpdatesAdmin != null) {</b>
+<b class="nc">&nbsp;            fwUpdatesAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (vcAdmin != null) {</b>
+<b class="nc">&nbsp;            vcAdmin.destroy();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (cfAdmin != null) {</b>
+<b class="nc">&nbsp;            cfAdmin.destroy();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

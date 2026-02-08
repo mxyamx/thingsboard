@@ -1,0 +1,456 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbAbstractRelationActionNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.action</a>
+</div>
+
+<h1>Coverage Summary for Class: TbAbstractRelationActionNode (org.thingsboard.rule.engine.action)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbAbstractRelationActionNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/151)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbAbstractRelationActionNode$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/152)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.action;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;
+&nbsp;import java.util.EnumSet;
+&nbsp;import java.util.NoSuchElementException;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.Executor;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class TbAbstractRelationActionNode&lt;C extends TbAbstractRelationActionNodeConfiguration&gt; implements TbNode {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final Set&lt;EntityType&gt; supportedEntityTypes = EnumSet.of(EntityType.TENANT, EntityType.DEVICE,</b>
+&nbsp;            EntityType.ASSET, EntityType.CUSTOMER, EntityType.ENTITY_VIEW, EntityType.DASHBOARD, EntityType.EDGE, EntityType.USER);
+&nbsp;
+<b class="nc">&nbsp;    private static final String supportedEntityTypesStr = supportedEntityTypes.stream().map(Enum::name).collect(Collectors.joining(&quot; ,&quot;));</b>
+&nbsp;
+&nbsp;    protected C config;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = loadEntityNodeActionConfig(configuration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract boolean createEntityIfNotExists();
+&nbsp;
+&nbsp;    protected abstract C loadEntityNodeActionConfig(TbNodeConfiguration configuration) throws TbNodeException;
+&nbsp;
+&nbsp;    protected String processPattern(TbMsg msg, String pattern) {
+<b class="nc">&nbsp;        return TbNodeUtils.processPattern(pattern, msg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;EntityId&gt; getTargetEntityId(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        var entityType = config.getEntityType();</b>
+<b class="nc">&nbsp;        var tenantId = ctx.getTenantId();</b>
+<b class="nc">&nbsp;        if (EntityType.TENANT.equals(entityType)) {</b>
+<b class="nc">&nbsp;            return ctx.getDbCallbackExecutor().executeAsync(() -&gt; tenantId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var targetEntityName = processPattern(msg, config.getEntityNamePattern());</b>
+<b class="nc">&nbsp;        boolean createEntityIfNotExists = createEntityIfNotExists();</b>
+<b class="nc">&nbsp;        switch (entityType) {</b>
+&nbsp;            case DEVICE -&gt; {
+<b class="nc">&nbsp;                var deviceService = ctx.getDeviceService();</b>
+<b class="nc">&nbsp;                var deviceByNameFuture = deviceService.findDeviceByTenantIdAndNameAsync(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                if (createEntityIfNotExists) {</b>
+<b class="nc">&nbsp;                    return Futures.transform(deviceByNameFuture, device -&gt; {</b>
+<b class="nc">&nbsp;                        if (device != null) {</b>
+<b class="nc">&nbsp;                            return device.getId();</b>
+&nbsp;                        }
+&nbsp;                        try {
+<b class="nc">&nbsp;                            var deviceProfileName = processPattern(msg, config.getEntityTypePattern());</b>
+<b class="nc">&nbsp;                            var newDevice = new Device();</b>
+<b class="nc">&nbsp;                            newDevice.setName(targetEntityName);</b>
+<b class="nc">&nbsp;                            newDevice.setType(deviceProfileName);</b>
+<b class="nc">&nbsp;                            newDevice.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;                            var savedDevice = deviceService.saveDevice(newDevice);</b>
+<b class="nc">&nbsp;                            ctx.getClusterService().onDeviceUpdated(savedDevice, null);</b>
+<b class="nc">&nbsp;                            ctx.enqueue(ctx.deviceCreatedMsg(savedDevice, ctx.getSelfId()),</b>
+<b class="nc">&nbsp;                                    () -&gt; log.trace(&quot;Pushed Device Created message: {}&quot;, savedDevice),</b>
+<b class="nc">&nbsp;                                    throwable -&gt; log.warn(&quot;Failed to push Device Created message: {}&quot;, savedDevice, throwable));</b>
+<b class="nc">&nbsp;                            return savedDevice.getId();</b>
+&nbsp;                        } catch (DataValidationException e) {
+<b class="nc">&nbsp;                            device = deviceService.findDeviceByTenantIdAndName(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                            if (device != null) {</b>
+<b class="nc">&nbsp;                                return device.getId();</b>
+&nbsp;                            }
+<b class="nc">&nbsp;                            throw new RuntimeException(&quot;Failed to create device with name &#39;&quot; + targetEntityName + &quot;&#39; due to: &quot;, e);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                    }, MoreExecutors.directExecutor());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return Futures.transform(deviceByNameFuture, device -&gt; {</b>
+<b class="nc">&nbsp;                    if (device == null) {</b>
+<b class="nc">&nbsp;                        throw new NoSuchElementException(&quot;Device with name &#39;&quot; + targetEntityName + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return device.getId();</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+&nbsp;            case ASSET -&gt; {
+<b class="nc">&nbsp;                var assetService = ctx.getAssetService();</b>
+<b class="nc">&nbsp;                var assetByNameFuture = assetService.findAssetByTenantIdAndNameAsync(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                if (createEntityIfNotExists) {</b>
+<b class="nc">&nbsp;                    return Futures.transform(assetByNameFuture, asset -&gt; {</b>
+<b class="nc">&nbsp;                        if (asset != null) {</b>
+<b class="nc">&nbsp;                            return asset.getId();</b>
+&nbsp;                        }
+&nbsp;                        try {
+<b class="nc">&nbsp;                            var assetProfileName = processPattern(msg, config.getEntityTypePattern());</b>
+<b class="nc">&nbsp;                            var newAsset = new Asset();</b>
+<b class="nc">&nbsp;                            newAsset.setName(targetEntityName);</b>
+<b class="nc">&nbsp;                            newAsset.setType(assetProfileName);</b>
+<b class="nc">&nbsp;                            newAsset.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;                            var savedAsset = assetService.saveAsset(newAsset);</b>
+<b class="nc">&nbsp;                            ctx.enqueue(ctx.assetCreatedMsg(savedAsset, ctx.getSelfId()),</b>
+<b class="nc">&nbsp;                                    () -&gt; log.trace(&quot;Pushed Asset Created message: {}&quot;, savedAsset),</b>
+<b class="nc">&nbsp;                                    throwable -&gt; log.warn(&quot;Failed to push Asset Created message: {}&quot;, savedAsset, throwable));</b>
+<b class="nc">&nbsp;                            return savedAsset.getId();</b>
+&nbsp;                        } catch (DataValidationException e) {
+<b class="nc">&nbsp;                            asset = assetService.findAssetByTenantIdAndName(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                            if (asset != null) {</b>
+<b class="nc">&nbsp;                                return asset.getId();</b>
+&nbsp;                            }
+<b class="nc">&nbsp;                            throw new RuntimeException(&quot;Failed to create asset with name &#39;&quot; + targetEntityName + &quot;&#39; due to: &quot;, e);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                    }, MoreExecutors.directExecutor());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return Futures.transform(assetByNameFuture, asset -&gt; {</b>
+<b class="nc">&nbsp;                    if (asset == null) {</b>
+<b class="nc">&nbsp;                        throw new NoSuchElementException(&quot;Asset with name &#39;&quot; + targetEntityName + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return asset.getId();</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+&nbsp;            case CUSTOMER -&gt; {
+<b class="nc">&nbsp;                var customerService = ctx.getCustomerService();</b>
+<b class="nc">&nbsp;                var customerByTitleOptFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                if (createEntityIfNotExists) {</b>
+<b class="nc">&nbsp;                    return Futures.transform(customerByTitleOptFuture, customerOpt -&gt; {</b>
+<b class="nc">&nbsp;                        if (customerOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                            return customerOpt.get().getId();</b>
+&nbsp;                        }
+&nbsp;                        try {
+<b class="nc">&nbsp;                            var newCustomer = new Customer();</b>
+<b class="nc">&nbsp;                            newCustomer.setTitle(targetEntityName);</b>
+<b class="nc">&nbsp;                            newCustomer.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;                            var savedCustomer = customerService.saveCustomer(newCustomer);</b>
+<b class="nc">&nbsp;                            ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),</b>
+<b class="nc">&nbsp;                                    () -&gt; log.trace(&quot;Pushed Customer Created message: {}&quot;, savedCustomer),</b>
+<b class="nc">&nbsp;                                    throwable -&gt; log.warn(&quot;Failed to push Customer Created message: {}&quot;, savedCustomer, throwable));</b>
+<b class="nc">&nbsp;                            return savedCustomer.getId();</b>
+&nbsp;                        } catch (DataValidationException e) {
+<b class="nc">&nbsp;                            customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                            if (customerOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                                return customerOpt.get().getId();</b>
+&nbsp;                            }
+<b class="nc">&nbsp;                            throw new RuntimeException(&quot;Failed to create customer with title &#39;&quot; + targetEntityName + &quot;&#39; due to: &quot;, e);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                    }, MoreExecutors.directExecutor());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return Futures.transform(customerByTitleOptFuture, customerOpt -&gt; {</b>
+<b class="nc">&nbsp;                    if (customerOpt.isEmpty()) {</b>
+<b class="nc">&nbsp;                        throw new NoSuchElementException(&quot;Customer with title &#39;&quot; + targetEntityName + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return customerOpt.get().getId();</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+&nbsp;            case ENTITY_VIEW -&gt; {
+<b class="nc">&nbsp;                var entityViewFuture = ctx.getEntityViewService().findEntityViewByTenantIdAndNameAsync(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                return Futures.transform(entityViewFuture, entityView -&gt; {</b>
+<b class="nc">&nbsp;                    if (entityView != null) {</b>
+<b class="nc">&nbsp;                        return entityView.getId();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    throw new NoSuchElementException(&quot;Entity View with name &#39;&quot; + targetEntityName + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+&nbsp;            case EDGE -&gt; {
+<b class="nc">&nbsp;                var edgeFuture = ctx.getEdgeService().findEdgeByTenantIdAndNameAsync(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                return Futures.transform(edgeFuture, edge -&gt; {</b>
+<b class="nc">&nbsp;                    if (edge != null) {</b>
+<b class="nc">&nbsp;                        return edge.getId();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    throw new NoSuchElementException(&quot;Edge with name &#39;&quot; + targetEntityName + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+&nbsp;            case DASHBOARD -&gt; {
+<b class="nc">&nbsp;                var dashboardInfoFuture = ctx.getDashboardService().findFirstDashboardInfoByTenantIdAndNameAsync(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                return Futures.transform(dashboardInfoFuture, dashboardInfo -&gt; {</b>
+<b class="nc">&nbsp;                    if (dashboardInfo != null) {</b>
+<b class="nc">&nbsp;                        return dashboardInfo.getId();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    throw new NoSuchElementException(&quot;Dashboard with title &#39;&quot; + targetEntityName + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+&nbsp;            case USER -&gt; {
+<b class="nc">&nbsp;                var userFuture = ctx.getUserService().findUserByTenantIdAndEmailAsync(tenantId, targetEntityName);</b>
+<b class="nc">&nbsp;                return Futures.transform(userFuture, user -&gt; {</b>
+<b class="nc">&nbsp;                    if (user != null) {</b>
+<b class="nc">&nbsp;                        return user.getId();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    throw new NoSuchElementException(&quot;User with email &#39;&quot; + targetEntityName + &quot;&#39; doesn&#39;t exist!&quot;);</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            default -&gt; throw new IllegalArgumentException(unsupportedEntityTypeErrorMessage(entityType));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;Boolean&gt; deleteRelationsByTypeAndDirection(TbContext ctx, TbMsg msg, Executor executor) {
+<b class="nc">&nbsp;        var relationType = processPattern(msg, config.getRelationType());</b>
+<b class="nc">&nbsp;        return deleteRelationsByTypeAndDirection(ctx, msg, relationType, executor);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;Boolean&gt; deleteRelationsByTypeAndDirection(TbContext ctx, TbMsg msg, String relationType, Executor executor) {
+<b class="nc">&nbsp;        var tenantId = ctx.getTenantId();</b>
+<b class="nc">&nbsp;        var originator = msg.getOriginator();</b>
+<b class="nc">&nbsp;        var relationService = ctx.getRelationService();</b>
+<b class="nc">&nbsp;        var originatorRelationsFuture = EntitySearchDirection.FROM.equals(config.getDirection()) ?</b>
+<b class="nc">&nbsp;                relationService.findByFromAndTypeAsync(tenantId, originator, relationType, RelationTypeGroup.COMMON) :</b>
+<b class="nc">&nbsp;                relationService.findByToAndTypeAsync(tenantId, originator, relationType, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return Futures.transformAsync(originatorRelationsFuture, originatorRelations -&gt; {</b>
+<b class="nc">&nbsp;            if (originatorRelations.isEmpty()) {</b>
+<b class="nc">&nbsp;                return Futures.immediateFuture(true);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            var deleteRelationFutures = originatorRelations.stream()</b>
+<b class="nc">&nbsp;                    .map(entityRelation -&gt; relationService.deleteRelationAsync(tenantId, entityRelation))</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            return Futures.transform(Futures.allAsList(deleteRelationFutures), deleteResults -&gt;</b>
+<b class="nc">&nbsp;                    deleteResults.stream().allMatch(Boolean::booleanValue), executor);</b>
+&nbsp;        }, executor);
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void checkIfConfigEntityTypeIsSupported(EntityType entityType) throws TbNodeException {
+<b class="nc">&nbsp;        if (!supportedEntityTypes.contains(entityType)) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(unsupportedEntityTypeErrorMessage(entityType), true);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String unsupportedEntityTypeErrorMessage(EntityType entityType) {
+<b class="nc">&nbsp;        return &quot;Unsupported entity type &#39;&quot; + entityType +</b>
+&nbsp;                &quot;&#39;! Only &quot; + supportedEntityTypesStr + &quot; types are allowed.&quot;;
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        var config = (ObjectNode) oldConfiguration;</b>
+<b class="nc">&nbsp;        switch (fromVersion) {</b>
+&nbsp;            case 0 -&gt; {
+<b class="nc">&nbsp;                if (!config.has(&quot;entityCacheExpiration&quot;)) {</b>
+&nbsp;                    break;
+&nbsp;                }
+<b class="nc">&nbsp;                config.remove(&quot;entityCacheExpiration&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                var directionPropertyName = &quot;direction&quot;;</b>
+<b class="nc">&nbsp;                if (!config.has(directionPropertyName)) {</b>
+<b class="nc">&nbsp;                    throw new TbNodeException(&quot;property to update: &#39;&quot; + directionPropertyName + &quot;&#39; doesn&#39;t exists in configuration!&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                String direction = config.get(directionPropertyName).asText();</b>
+<b class="nc">&nbsp;                if (EntitySearchDirection.TO.name().equals(direction)) {</b>
+<b class="nc">&nbsp;                    config.put(directionPropertyName, EntitySearchDirection.FROM.name());</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+&nbsp;                    break;
+&nbsp;                }
+<b class="nc">&nbsp;                if (EntitySearchDirection.FROM.name().equals(direction)) {</b>
+<b class="nc">&nbsp;                    config.put(directionPropertyName, EntitySearchDirection.TO.name());</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+&nbsp;                    break;
+&nbsp;                }
+<b class="nc">&nbsp;                throw new TbNodeException(&quot;property to update: &#39;&quot; + directionPropertyName + &quot;&#39; has invalid value!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, config);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

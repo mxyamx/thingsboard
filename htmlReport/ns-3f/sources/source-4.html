@@ -1,0 +1,253 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JsValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api.js</a>
+</div>
+
+<h1>Coverage Summary for Class: JsValidator (org.thingsboard.script.api.js)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JsValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api.js;
+&nbsp;
+&nbsp;import java.util.regex.Pattern;
+&nbsp;
+<b class="nc">&nbsp;public class JsValidator {</b>
+&nbsp;
+<b class="nc">&nbsp;    static final Pattern ASYNC_PATTERN = Pattern.compile(&quot;\\basync\\b&quot;);</b>
+<b class="nc">&nbsp;    static final Pattern AWAIT_PATTERN = Pattern.compile(&quot;\\bawait\\b&quot;);</b>
+<b class="nc">&nbsp;    static final Pattern PROMISE_PATTERN = Pattern.compile(&quot;\\bPromise\\b&quot;);</b>
+<b class="nc">&nbsp;    static final Pattern SET_TIMEOUT_PATTERN = Pattern.compile(&quot;\\bsetTimeout\\b&quot;);</b>
+&nbsp;
+&nbsp;    public static String validate(String scriptBody) {
+<b class="nc">&nbsp;        if (scriptBody == null || scriptBody.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;            return &quot;Script body is empty&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        //Quick check
+<b class="nc">&nbsp;        if (!ASYNC_PATTERN.matcher(scriptBody).find()</b>
+<b class="nc">&nbsp;                &amp;&amp; !AWAIT_PATTERN.matcher(scriptBody).find()</b>
+<b class="nc">&nbsp;                &amp;&amp; !PROMISE_PATTERN.matcher(scriptBody).find()</b>
+<b class="nc">&nbsp;                &amp;&amp; !SET_TIMEOUT_PATTERN.matcher(scriptBody).find()) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        //Recheck if quick check failed. Ignoring comments and strings
+<b class="nc">&nbsp;        String[] lines = scriptBody.split(&quot;\\r?\\n&quot;);</b>
+<b class="nc">&nbsp;        boolean insideMultilineComment = false;</b>
+&nbsp;
+<b class="nc">&nbsp;        for (String line : lines) {</b>
+<b class="nc">&nbsp;            String stripped = line;</b>
+&nbsp;
+&nbsp;            // Handle multiline comments
+<b class="nc">&nbsp;            if (insideMultilineComment) {</b>
+<b class="nc">&nbsp;                if (line.contains(&quot;*/&quot;)) {</b>
+<b class="nc">&nbsp;                    insideMultilineComment = false;</b>
+<b class="nc">&nbsp;                    stripped = line.substring(line.indexOf(&quot;*/&quot;) + 2); // continue after comment</b>
+&nbsp;                } else {
+&nbsp;                    continue; // skip line inside multiline comment
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            // Check for start of multiline comment
+<b class="nc">&nbsp;            if (stripped.contains(&quot;/*&quot;)) {</b>
+<b class="nc">&nbsp;                int start = stripped.indexOf(&quot;/*&quot;);</b>
+<b class="nc">&nbsp;                int end = stripped.indexOf(&quot;*/&quot;, start + 2);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (end != -1) {</b>
+&nbsp;                    // Inline multiline comment
+<b class="nc">&nbsp;                    stripped = stripped.substring(0, start) + stripped.substring(end + 2);</b>
+&nbsp;                } else {
+&nbsp;                    // Starts a block comment, continues on next lines
+<b class="nc">&nbsp;                    insideMultilineComment = true;</b>
+<b class="nc">&nbsp;                    stripped = stripped.substring(0, start);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            stripped = stripInlineComment(stripped);</b>
+<b class="nc">&nbsp;            stripped = stripStringLiterals(stripped);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (ASYNC_PATTERN.matcher(stripped).find()) {</b>
+<b class="nc">&nbsp;                return &quot;Script must not contain &#39;async&#39; keyword.&quot;;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (AWAIT_PATTERN.matcher(stripped).find()) {</b>
+<b class="nc">&nbsp;                return &quot;Script must not contain &#39;await&#39; keyword.&quot;;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (PROMISE_PATTERN.matcher(stripped).find()) {</b>
+<b class="nc">&nbsp;                return &quot;Script must not use &#39;Promise&#39;.&quot;;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (SET_TIMEOUT_PATTERN.matcher(stripped).find()) {</b>
+<b class="nc">&nbsp;                return &quot;Script must not use &#39;setTimeout&#39; method.&quot;;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String stripInlineComment(String line) {
+<b class="nc">&nbsp;        int index = line.indexOf(&quot;//&quot;);</b>
+<b class="nc">&nbsp;        return index &gt;= 0 ? line.substring(0, index) : line;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String stripStringLiterals(String line) {
+<b class="nc">&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="nc">&nbsp;        boolean inSingleQuote = false;</b>
+<b class="nc">&nbsp;        boolean inDoubleQuote = false;</b>
+&nbsp;
+<b class="nc">&nbsp;        for (int i = 0; i &lt; line.length(); i++) {</b>
+<b class="nc">&nbsp;            char c = line.charAt(i);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (c == &#39;&quot;&#39; &amp;&amp; !inSingleQuote) {</b>
+<b class="nc">&nbsp;                inDoubleQuote = !inDoubleQuote;</b>
+&nbsp;                continue;
+<b class="nc">&nbsp;            } else if (c == &#39;\&#39;&#39; &amp;&amp; !inDoubleQuote) {</b>
+<b class="nc">&nbsp;                inSingleQuote = !inSingleQuote;</b>
+&nbsp;                continue;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (!inSingleQuote &amp;&amp; !inDoubleQuote) {</b>
+<b class="nc">&nbsp;                sb.append(c);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return sb.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

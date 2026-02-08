@@ -1,0 +1,511 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SnmpTransportContext</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.snmp</a>
+</div>
+
+<h1>Coverage Summary for Class: SnmpTransportContext (org.thingsboard.server.transport.snmp)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SnmpTransportContext</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/132)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SnmpTransportContext$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/141)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.snmp;
+&nbsp;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.event.EventListener;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.DeviceTransportType;
+&nbsp;import org.thingsboard.server.common.data.device.data.DeviceTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.data.SnmpDeviceTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.SnmpDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.security.DeviceCredentials;
+&nbsp;import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+&nbsp;import org.thingsboard.server.common.transport.DeviceUpdatedEvent;
+&nbsp;import org.thingsboard.server.common.transport.TransportContext;
+&nbsp;import org.thingsboard.server.common.transport.TransportDeviceProfileCache;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.common.transport.TransportServiceCallback;
+&nbsp;import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
+&nbsp;import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.queue.util.TbSnmpTransportComponent;
+&nbsp;import org.thingsboard.server.transport.snmp.service.ProtoTransportEntityService;
+&nbsp;import org.thingsboard.server.transport.snmp.service.SnmpAuthService;
+&nbsp;import org.thingsboard.server.transport.snmp.service.SnmpTransportBalancingService;
+&nbsp;import org.thingsboard.server.transport.snmp.service.SnmpTransportService;
+&nbsp;import org.thingsboard.server.transport.snmp.session.DeviceSessionContext;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.LinkedList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;@TbSnmpTransportComponent
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class SnmpTransportContext extends TransportContext {
+&nbsp;    @Getter
+&nbsp;    private final SnmpTransportService snmpTransportService;
+&nbsp;    private final TransportDeviceProfileCache deviceProfileCache;
+&nbsp;    private final TransportService transportService;
+&nbsp;    private final ProtoTransportEntityService protoEntityService;
+&nbsp;    private final SnmpTransportBalancingService balancingService;
+&nbsp;    @Getter
+&nbsp;    private final SnmpAuthService snmpAuthService;
+&nbsp;
+&nbsp;    private final Map&lt;DeviceId, DeviceSessionContext&gt; sessions = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final Set&lt;DeviceId&gt; allSnmpDevicesIds = ConcurrentHashMap.newKeySet();
+&nbsp;    private final ExecutorService snmpExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;snmp-bootstrap&quot;));
+&nbsp;
+&nbsp;    @Value(&quot;${transport.snmp.batch_retries}&quot;)
+&nbsp;    private int snmpBootstrapBatchRetries;
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.AFTER_TRANSPORT_SERVICE)
+&nbsp;    public void fetchDevicesAndEstablishSessions() {
+<b class="nc">&nbsp;        snmpExecutor.execute(this::bootstrapWithRetries);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void bootstrapWithRetries() {
+<b class="nc">&nbsp;        log.info(&quot;Initializing SNMP devices sessions&quot;);</b>
+<b class="nc">&nbsp;        int batchIndex = 0;</b>
+<b class="nc">&nbsp;        int batchSize = 512;</b>
+<b class="nc">&nbsp;        boolean nextBatchExists = true;</b>
+&nbsp;
+<b class="nc">&nbsp;        while (nextBatchExists) {</b>
+<b class="nc">&nbsp;            for (int attempt = 1; attempt &lt;= snmpBootstrapBatchRetries; attempt++) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    TransportProtos.GetSnmpDevicesResponseMsg snmpDevicesResponse = protoEntityService.getSnmpDevicesIds(batchIndex, batchSize);</b>
+<b class="nc">&nbsp;                    snmpDevicesResponse.getIdsList().stream()</b>
+<b class="nc">&nbsp;                            .map(id -&gt; new DeviceId(UUID.fromString(id)))</b>
+<b class="nc">&nbsp;                            .peek(allSnmpDevicesIds::add)</b>
+<b class="nc">&nbsp;                            .filter(deviceId -&gt; balancingService.isManagedByCurrentTransport(deviceId.getId()))</b>
+<b class="nc">&nbsp;                            .map(protoEntityService::getDeviceById)</b>
+<b class="nc">&nbsp;                            .forEach(device -&gt; getExecutor().execute(() -&gt; establishDeviceSession(device)));</b>
+<b class="nc">&nbsp;                    nextBatchExists = snmpDevicesResponse.getHasNextPage();</b>
+<b class="nc">&nbsp;                    batchIndex++;</b>
+&nbsp;                    break;
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    if (attempt &gt;= snmpBootstrapBatchRetries) {</b>
+<b class="nc">&nbsp;                        log.error(&quot;SNMP bootstrap: batch {} failed after {} attempts.&quot;, batchIndex, attempt, e);</b>
+&nbsp;                        return;
+&nbsp;                    }
+<b class="nc">&nbsp;                    log.warn(&quot;SNMP bootstrap: batch {} attempt {}/{} failed.&quot;, batchIndex, attempt, snmpBootstrapBatchRetries, e);</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        TimeUnit.SECONDS.sleep(10);</b>
+&nbsp;                    } catch (InterruptedException ex) {
+<b class="nc">&nbsp;                        log.warn(&quot;SNMP bootstrap interrupted. Stopping bootstrap task.&quot;);</b>
+&nbsp;                        return;
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        log.debug(&quot;Found SNMP devices ids: {}&quot;, allSnmpDevicesIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void establishDeviceSession(Device device) {
+<b class="nc">&nbsp;        if (device == null) return;</b>
+<b class="nc">&nbsp;        log.info(&quot;Establishing SNMP session for device {}&quot;, device.getId());</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceProfileId deviceProfileId = device.getDeviceProfileId();</b>
+<b class="nc">&nbsp;        DeviceProfile deviceProfile = deviceProfileCache.get(deviceProfileId);</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceCredentials credentials = protoEntityService.getDeviceCredentialsByDeviceId(device.getId());</b>
+<b class="nc">&nbsp;        if (credentials.getCredentialsType() != DeviceCredentialsType.ACCESS_TOKEN) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Expected credentials type is {} but found {}&quot;, device.getId(), DeviceCredentialsType.ACCESS_TOKEN, credentials.getCredentialsType());</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        SnmpDeviceProfileTransportConfiguration profileTransportConfiguration = (SnmpDeviceProfileTransportConfiguration) deviceProfile.getProfileData().getTransportConfiguration();</b>
+<b class="nc">&nbsp;        SnmpDeviceTransportConfiguration deviceTransportConfiguration = (SnmpDeviceTransportConfiguration) device.getDeviceData().getTransportConfiguration();</b>
+&nbsp;
+&nbsp;        DeviceSessionContext sessionContext;
+&nbsp;        try {
+<b class="nc">&nbsp;            sessionContext = DeviceSessionContext.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(deviceProfile.getTenantId())</b>
+<b class="nc">&nbsp;                    .device(device)</b>
+<b class="nc">&nbsp;                    .deviceProfile(deviceProfile)</b>
+<b class="nc">&nbsp;                    .token(credentials.getCredentialsId())</b>
+<b class="nc">&nbsp;                    .profileTransportConfiguration(profileTransportConfiguration)</b>
+<b class="nc">&nbsp;                    .deviceTransportConfiguration(deviceTransportConfiguration)</b>
+<b class="nc">&nbsp;                    .snmpTransportContext(this)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            registerSessionMsgListener(sessionContext);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to establish session for SNMP device {}&quot;, device.getId(), e);</b>
+<b class="nc">&nbsp;            transportService.errorEvent(device.getTenantId(), device.getId(), &quot;sessionEstablishing&quot;, e);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        sessions.put(device.getId(), sessionContext);</b>
+<b class="nc">&nbsp;        snmpTransportService.createQueryingTasks(sessionContext);</b>
+<b class="nc">&nbsp;        log.info(&quot;Established SNMP device session for device {}&quot;, device.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateDeviceSession(DeviceSessionContext sessionContext, Device device, DeviceProfile deviceProfile) {
+<b class="nc">&nbsp;        log.info(&quot;Updating SNMP session for device {}&quot;, device.getId());</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceCredentials credentials = protoEntityService.getDeviceCredentialsByDeviceId(device.getId());</b>
+<b class="nc">&nbsp;        if (credentials.getCredentialsType() != DeviceCredentialsType.ACCESS_TOKEN) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Expected credentials type is {} but found {}&quot;, device.getId(), DeviceCredentialsType.ACCESS_TOKEN, credentials.getCredentialsType());</b>
+<b class="nc">&nbsp;            destroyDeviceSession(sessionContext);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        SnmpDeviceProfileTransportConfiguration newProfileTransportConfiguration = (SnmpDeviceProfileTransportConfiguration) deviceProfile.getProfileData().getTransportConfiguration();</b>
+<b class="nc">&nbsp;        SnmpDeviceTransportConfiguration newDeviceTransportConfiguration = (SnmpDeviceTransportConfiguration) device.getDeviceData().getTransportConfiguration();</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            if (!newProfileTransportConfiguration.equals(sessionContext.getProfileTransportConfiguration())) {</b>
+<b class="nc">&nbsp;                sessionContext.setProfileTransportConfiguration(newProfileTransportConfiguration);</b>
+<b class="nc">&nbsp;                sessionContext.setDevice(device);</b>
+<b class="nc">&nbsp;                sessionContext.initializeTarget(newProfileTransportConfiguration, newDeviceTransportConfiguration);</b>
+<b class="nc">&nbsp;                snmpTransportService.cancelQueryingTasks(sessionContext);</b>
+<b class="nc">&nbsp;                snmpTransportService.createQueryingTasks(sessionContext);</b>
+<b class="nc">&nbsp;                transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.UPDATED, true, null);</b>
+<b class="nc">&nbsp;            } else if (!newDeviceTransportConfiguration.equals(sessionContext.getDeviceTransportConfiguration())) {</b>
+<b class="nc">&nbsp;                sessionContext.setDeviceTransportConfiguration(newDeviceTransportConfiguration);</b>
+<b class="nc">&nbsp;                sessionContext.setDevice(device);</b>
+<b class="nc">&nbsp;                sessionContext.initializeTarget(newProfileTransportConfiguration, newDeviceTransportConfiguration);</b>
+<b class="nc">&nbsp;                transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.UPDATED, true, null);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;Configuration of the device {} was not updated&quot;, device);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to update session for SNMP device {}&quot;, sessionContext.getDeviceId(), e);</b>
+<b class="nc">&nbsp;            transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.UPDATED, false, e);</b>
+<b class="nc">&nbsp;            destroyDeviceSession(sessionContext);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void destroyDeviceSession(DeviceSessionContext sessionContext) {
+<b class="nc">&nbsp;        if (sessionContext == null) return;</b>
+<b class="nc">&nbsp;        log.info(&quot;Destroying SNMP device session for device {}&quot;, sessionContext.getDevice().getId());</b>
+&nbsp;        sessionContext.close();
+<b class="nc">&nbsp;        snmpAuthService.cleanUpSnmpAuthInfo(sessionContext);</b>
+<b class="nc">&nbsp;        transportService.deregisterSession(sessionContext.getSessionInfo());</b>
+<b class="nc">&nbsp;        snmpTransportService.cancelQueryingTasks(sessionContext);</b>
+<b class="nc">&nbsp;        sessions.remove(sessionContext.getDeviceId());</b>
+<b class="nc">&nbsp;        transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.STOPPED, true, null);</b>
+<b class="nc">&nbsp;        log.trace(&quot;Unregistered and removed session&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void registerSessionMsgListener(DeviceSessionContext sessionContext) {
+<b class="nc">&nbsp;        transportService.process(DeviceTransportType.SNMP,</b>
+<b class="nc">&nbsp;                TransportProtos.ValidateDeviceTokenRequestMsg.newBuilder().setToken(sessionContext.getToken()).build(),</b>
+<b class="nc">&nbsp;                new TransportServiceCallback&lt;&gt;() {</b>
+&nbsp;                    @Override
+&nbsp;                    public void onSuccess(ValidateDeviceCredentialsResponse msg) {
+<b class="nc">&nbsp;                        if (msg.hasDeviceInfo()) {</b>
+<b class="nc">&nbsp;                            registerTransportSession(sessionContext, msg);</b>
+<b class="nc">&nbsp;                            sessionContext.setSessionTimeoutHandler(() -&gt; {</b>
+<b class="nc">&nbsp;                                registerTransportSession(sessionContext, msg);</b>
+&nbsp;                            });
+<b class="nc">&nbsp;                            transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.STARTED, true, null);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            log.warn(&quot;[{}] Failed to process device auth&quot;, sessionContext.getDeviceId());</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+&nbsp;                    @Override
+&nbsp;                    public void onError(Throwable e) {
+<b class="nc">&nbsp;                        log.warn(&quot;[{}] Failed to process device auth: {}&quot;, sessionContext.getDeviceId(), e);</b>
+<b class="nc">&nbsp;                        transportService.lifecycleEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), ComponentLifecycleEvent.STARTED, false, e);</b>
+&nbsp;                    }
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void registerTransportSession(DeviceSessionContext deviceSessionContext, ValidateDeviceCredentialsResponse msg) {
+<b class="nc">&nbsp;        SessionInfoProto sessionInfo = SessionInfoCreator.create(</b>
+<b class="nc">&nbsp;                msg, SnmpTransportContext.this, UUID.randomUUID()</b>
+&nbsp;        );
+<b class="nc">&nbsp;        log.debug(&quot;Registering transport session: {}&quot;, sessionInfo);</b>
+&nbsp;
+<b class="nc">&nbsp;        transportService.registerAsyncSession(sessionInfo, deviceSessionContext);</b>
+<b class="nc">&nbsp;        transportService.process(sessionInfo, TransportProtos.SubscribeToAttributeUpdatesMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setSessionType(TransportProtos.SessionType.ASYNC)</b>
+<b class="nc">&nbsp;                .build(), TransportServiceCallback.EMPTY);</b>
+<b class="nc">&nbsp;        transportService.process(sessionInfo, TransportProtos.SubscribeToRPCMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setSessionType(TransportProtos.SessionType.ASYNC)</b>
+<b class="nc">&nbsp;                .build(), TransportServiceCallback.EMPTY);</b>
+&nbsp;
+<b class="nc">&nbsp;        deviceSessionContext.setSessionInfo(sessionInfo);</b>
+<b class="nc">&nbsp;        deviceSessionContext.setDeviceInfo(msg.getDeviceInfo());</b>
+<b class="nc">&nbsp;        deviceSessionContext.setConnected(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener(DeviceUpdatedEvent.class)
+&nbsp;    public void onDeviceUpdatedOrCreated(DeviceUpdatedEvent deviceUpdatedEvent) {
+<b class="nc">&nbsp;        Device device = deviceUpdatedEvent.getDevice();</b>
+<b class="nc">&nbsp;        log.debug(&quot;Got creating or updating device event for device {}&quot;, device);</b>
+<b class="nc">&nbsp;        DeviceTransportType transportType = Optional.ofNullable(device.getDeviceData().getTransportConfiguration())</b>
+<b class="nc">&nbsp;                .map(DeviceTransportConfiguration::getType)</b>
+<b class="nc">&nbsp;                .orElse(null);</b>
+<b class="nc">&nbsp;        if (!allSnmpDevicesIds.contains(device.getId())) {</b>
+<b class="nc">&nbsp;            if (transportType != DeviceTransportType.SNMP) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            allSnmpDevicesIds.add(device.getId());</b>
+<b class="nc">&nbsp;            if (balancingService.isManagedByCurrentTransport(device.getId().getId())) {</b>
+<b class="nc">&nbsp;                establishDeviceSession(device);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (balancingService.isManagedByCurrentTransport(device.getId().getId())) {</b>
+<b class="nc">&nbsp;                DeviceSessionContext sessionContext = sessions.get(device.getId());</b>
+<b class="nc">&nbsp;                if (transportType == DeviceTransportType.SNMP) {</b>
+<b class="nc">&nbsp;                    if (sessionContext != null) {</b>
+<b class="nc">&nbsp;                        updateDeviceSession(sessionContext, device, deviceProfileCache.get(device.getDeviceProfileId()));</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        establishDeviceSession(device);</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.trace(&quot;Transport type was changed to {}&quot;, transportType);</b>
+<b class="nc">&nbsp;                    destroyDeviceSession(sessionContext);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onDeviceDeleted(DeviceSessionContext sessionContext) {
+<b class="nc">&nbsp;        destroyDeviceSession(sessionContext);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onDeviceProfileUpdated(DeviceProfile deviceProfile, DeviceSessionContext sessionContext) {
+<b class="nc">&nbsp;        log.debug(&quot;Handling device profile {} update event for device {}&quot;, deviceProfile.getId(), sessionContext.getDeviceId());</b>
+<b class="nc">&nbsp;        updateDeviceSession(sessionContext, sessionContext.getDevice(), deviceProfile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onSnmpTransportListChanged() {
+<b class="nc">&nbsp;        log.trace(&quot;SNMP transport list changed. Updating sessions&quot;);</b>
+<b class="nc">&nbsp;        List&lt;DeviceId&gt; deleted = new LinkedList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (DeviceId deviceId : allSnmpDevicesIds) {</b>
+<b class="nc">&nbsp;            if (balancingService.isManagedByCurrentTransport(deviceId.getId())) {</b>
+<b class="nc">&nbsp;                if (!sessions.containsKey(deviceId)) {</b>
+<b class="nc">&nbsp;                    Device device = protoEntityService.getDeviceById(deviceId);</b>
+<b class="nc">&nbsp;                    if (device != null) {</b>
+<b class="nc">&nbsp;                        log.info(&quot;SNMP device {} is now managed by current transport node&quot;, deviceId);</b>
+<b class="nc">&nbsp;                        establishDeviceSession(device);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        deleted.add(deviceId);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                Optional.ofNullable(sessions.get(deviceId))</b>
+<b class="nc">&nbsp;                        .ifPresent(sessionContext -&gt; {</b>
+<b class="nc">&nbsp;                            log.info(&quot;SNMP session for device {} is not managed by current transport node anymore&quot;, deviceId);</b>
+<b class="nc">&nbsp;                            destroyDeviceSession(sessionContext);</b>
+&nbsp;                        });
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        log.trace(&quot;Removing deleted SNMP devices: {}&quot;, deleted);</b>
+<b class="nc">&nbsp;        allSnmpDevicesIds.removeAll(deleted);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public Collection&lt;DeviceSessionContext&gt; getSessions() {
+<b class="nc">&nbsp;        return sessions.values();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        snmpExecutor.shutdown();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbCoapDtlsSettings</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.coapserver</a>
+</div>
+
+<h1>Coverage Summary for Class: TbCoapDtlsSettings (org.thingsboard.server.coapserver)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbCoapDtlsSettings</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.coapserver;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.californium.elements.config.Configuration;
+&nbsp;import org.eclipse.californium.elements.util.SslContextUtil;
+&nbsp;import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+&nbsp;import org.eclipse.californium.scandium.dtls.CertificateType;
+&nbsp;import org.eclipse.californium.scandium.dtls.MaxFragmentLengthExtension.Length;
+&nbsp;import org.eclipse.californium.scandium.dtls.x509.SingleCertificateProvider;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Qualifier;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.boot.context.properties.ConfigurationProperties;
+&nbsp;import org.springframework.context.annotation.Bean;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.common.transport.config.ssl.SslCredentials;
+&nbsp;import org.thingsboard.server.common.transport.config.ssl.SslCredentialsConfig;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;
+&nbsp;import java.net.InetAddress;
+&nbsp;import java.net.InetSocketAddress;
+&nbsp;import java.net.UnknownHostException;
+&nbsp;import java.util.Collections;
+&nbsp;
+&nbsp;import static java.util.concurrent.TimeUnit.MILLISECONDS;
+&nbsp;import static org.eclipse.californium.elements.config.CertificateAuthenticationMode.WANTED;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CLIENT_AUTHENTICATION_MODE;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_LENGTH;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_NODE_ID;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_MAX_FRAGMENT_LENGTH;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_MAX_TRANSMISSION_UNIT;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RETRANSMISSION_TIMEOUT;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_ROLE;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DtlsRole.SERVER_ONLY;
+&nbsp;
+&nbsp;@Getter
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@ConditionalOnProperty(prefix = &quot;coap.dtls&quot;, value = &quot;enabled&quot;, havingValue = &quot;true&quot;)
+&nbsp;@Component
+<b class="nc">&nbsp;public class TbCoapDtlsSettings {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.bind_address}&quot;)
+&nbsp;    private String host;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.bind_port}&quot;)
+&nbsp;    private Integer port;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.retransmission_timeout:9000}&quot;)
+&nbsp;    private int dtlsRetransmissionTimeout;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.connection_id_length:8}&quot;)
+&nbsp;    private Integer cIdLength;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.max_transmission_unit:1024}&quot;)
+&nbsp;    private Integer maxTransmissionUnit;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.max_fragment_length:1024}&quot;)
+&nbsp;    private Integer maxFragmentLength;
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    @ConfigurationProperties(prefix = &quot;coap.dtls.credentials&quot;)
+&nbsp;    public SslCredentialsConfig coapDtlsCredentials() {
+<b class="nc">&nbsp;        return new SslCredentialsConfig(&quot;COAP DTLS Credentials&quot;, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Qualifier(&quot;coapDtlsCredentials&quot;)
+&nbsp;    private SslCredentialsConfig coapDtlsCredentialsConfig;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.x509.skip_validity_check_for_client_cert:false}&quot;)
+&nbsp;    private boolean skipValidityCheckForClientCert;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.x509.dtls_session_inactivity_timeout:86400000}&quot;)
+&nbsp;    private long dtlsSessionInactivityTimeout;
+&nbsp;
+&nbsp;    @Value(&quot;${coap.dtls.x509.dtls_session_report_timeout:1800000}&quot;)
+&nbsp;    private long dtlsSessionReportTimeout;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private TransportService transportService;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private TbServiceInfoProvider serviceInfoProvider;
+&nbsp;
+&nbsp;    public DtlsConnectorConfig dtlsConnectorConfig(Configuration configuration) throws UnknownHostException {
+<b class="nc">&nbsp;        DtlsConnectorConfig.Builder configBuilder = new DtlsConnectorConfig.Builder(configuration);</b>
+<b class="nc">&nbsp;        configBuilder.setAddress(getInetSocketAddress());</b>
+<b class="nc">&nbsp;        SslCredentials sslCredentials = this.coapDtlsCredentialsConfig.getCredentials();</b>
+<b class="nc">&nbsp;        SslContextUtil.Credentials serverCredentials =</b>
+<b class="nc">&nbsp;                new SslContextUtil.Credentials(sslCredentials.getPrivateKey(), null, sslCredentials.getCertificateChain());</b>
+<b class="nc">&nbsp;        configBuilder.set(DTLS_CLIENT_AUTHENTICATION_MODE, WANTED);</b>
+<b class="nc">&nbsp;        configBuilder.set(DTLS_RETRANSMISSION_TIMEOUT, dtlsRetransmissionTimeout, MILLISECONDS);</b>
+<b class="nc">&nbsp;        configBuilder.set(DTLS_ROLE, SERVER_ONLY);</b>
+<b class="nc">&nbsp;        if (cIdLength != null) {</b>
+<b class="nc">&nbsp;            configBuilder.set(DTLS_CONNECTION_ID_LENGTH, cIdLength);</b>
+<b class="nc">&nbsp;            if (cIdLength &gt; 4) {</b>
+<b class="nc">&nbsp;                configBuilder.set(DTLS_CONNECTION_ID_NODE_ID, 0);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                configBuilder.set(DTLS_CONNECTION_ID_NODE_ID, null);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (maxTransmissionUnit &gt; 0) {</b>
+<b class="nc">&nbsp;            configBuilder.set(DTLS_MAX_TRANSMISSION_UNIT, maxTransmissionUnit);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (maxFragmentLength &gt; 0) {</b>
+<b class="nc">&nbsp;            Length length = fromLength(maxFragmentLength);</b>
+<b class="nc">&nbsp;            if (length != null) {</b>
+<b class="nc">&nbsp;                configBuilder.set(DTLS_MAX_FRAGMENT_LENGTH, length);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        configBuilder.setAdvancedCertificateVerifier(</b>
+&nbsp;                new TbCoapDtlsCertificateVerifier(
+&nbsp;                        transportService,
+&nbsp;                        serviceInfoProvider,
+&nbsp;                        dtlsSessionInactivityTimeout,
+&nbsp;                        dtlsSessionReportTimeout,
+&nbsp;                        skipValidityCheckForClientCert
+&nbsp;                )
+&nbsp;        );
+<b class="nc">&nbsp;        configBuilder.setCertificateIdentityProvider(new SingleCertificateProvider(serverCredentials.getPrivateKey(), serverCredentials.getCertificateChain(),</b>
+<b class="nc">&nbsp;                Collections.singletonList(CertificateType.X_509)));</b>
+<b class="nc">&nbsp;        return configBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private InetSocketAddress getInetSocketAddress() throws UnknownHostException {
+<b class="nc">&nbsp;        InetAddress addr = InetAddress.getByName(host);</b>
+<b class="nc">&nbsp;        return new InetSocketAddress(addr, port);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private static Length fromLength(int length) {
+<b class="nc">&nbsp;        for (Length l : Length.values()) {</b>
+<b class="nc">&nbsp;            if (l.length() == length) {</b>
+<b class="nc">&nbsp;                return l;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

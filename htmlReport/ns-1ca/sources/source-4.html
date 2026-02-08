@@ -1,0 +1,203 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > OAuth2AppTokenFactory</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.security.model.token</a>
+</div>
+
+<h1>Coverage Summary for Class: OAuth2AppTokenFactory (org.thingsboard.server.service.security.model.token)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OAuth2AppTokenFactory</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.security.model.token;
+&nbsp;
+&nbsp;import io.jsonwebtoken.Claims;
+&nbsp;import io.jsonwebtoken.ExpiredJwtException;
+&nbsp;import io.jsonwebtoken.Jws;
+&nbsp;import io.jsonwebtoken.Jwts;
+&nbsp;import io.jsonwebtoken.MalformedJwtException;
+&nbsp;import io.jsonwebtoken.UnsupportedJwtException;
+&nbsp;import io.jsonwebtoken.security.Keys;
+&nbsp;import io.jsonwebtoken.security.SignatureException;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.Date;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class OAuth2AppTokenFactory {</b>
+&nbsp;
+&nbsp;    private static final String CALLBACK_URL_SCHEME = &quot;callbackUrlScheme&quot;;
+&nbsp;
+<b class="nc">&nbsp;    private static final long MAX_EXPIRATION_TIME_DIFF_MS = TimeUnit.MINUTES.toMillis(5);</b>
+&nbsp;
+&nbsp;    public String validateTokenAndGetCallbackUrlScheme(String appPackage, String appToken, String appSecret) {
+&nbsp;        Jws&lt;Claims&gt; jwsClaims;
+&nbsp;        try {
+<b class="nc">&nbsp;            jwsClaims = Jwts.parser().verifyWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(appSecret))).build().parseSignedClaims(appToken);</b>
+&nbsp;        } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid Application token: &quot;, ex);</b>
+&nbsp;        } catch (ExpiredJwtException expiredEx) {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Application token expired&quot;, expiredEx);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Claims claims = jwsClaims.getPayload();</b>
+<b class="nc">&nbsp;        Date expiration = claims.getExpiration();</b>
+<b class="nc">&nbsp;        if (expiration == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Application token must have expiration date&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        long timeDiff = expiration.getTime() - System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        if (timeDiff &gt; MAX_EXPIRATION_TIME_DIFF_MS) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Application token expiration time can&#39;t be longer than 5 minutes&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!claims.getIssuer().equals(appPackage)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Application token issuer doesn&#39;t match application package&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String callbackUrlScheme = claims.get(CALLBACK_URL_SCHEME, String.class);</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(callbackUrlScheme)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Application token doesn&#39;t have callbackUrlScheme&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return callbackUrlScheme;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CalculatedFieldDataValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.service.validator</a>
+</div>
+
+<h1>Coverage Summary for Class: CalculatedFieldDataValidator (org.thingsboard.server.dao.service.validator)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CalculatedFieldDataValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.service.validator;
+&nbsp;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.ArgumentsBasedCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.RelationPathQueryDynamicSourceConfiguration;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.ScheduledUpdateSupportedCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.aggregation.RelatedEntitiesAggregationCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.aggregation.single.EntityAggregationCalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+&nbsp;import org.thingsboard.server.dao.cf.CalculatedFieldDao;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.usagerecord.ApiLimitService;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;public class CalculatedFieldDataValidator extends DataValidator&lt;CalculatedField&gt; {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private CalculatedFieldDao calculatedFieldDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ApiLimitService apiLimitService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void validateDataImpl(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        validateNumberOfArgumentsPerCF(tenantId, calculatedField);</b>
+<b class="nc">&nbsp;        validateCalculatedFieldConfiguration(calculatedField);</b>
+<b class="nc">&nbsp;        validateSchedulingConfiguration(tenantId, calculatedField);</b>
+<b class="nc">&nbsp;        validateRelationQuerySourceArguments(tenantId, calculatedField);</b>
+<b class="nc">&nbsp;        validateRelatedAggregationConfiguration(tenantId, calculatedField);</b>
+<b class="nc">&nbsp;        validateEntityAggregationConfiguration(tenantId, calculatedField);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void validateCreate(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        if (calculatedField.getType() == CalculatedFieldType.ALARM) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        long maxCFsPerEntity = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxCalculatedFieldsPerEntity);</b>
+<b class="nc">&nbsp;        if (maxCFsPerEntity &lt;= 0) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (calculatedFieldDao.countByEntityIdAndTypeNot(tenantId, calculatedField.getEntityId(), CalculatedFieldType.ALARM) &gt;= maxCFsPerEntity) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Calculated fields per entity limit reached!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected CalculatedField validateUpdate(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        CalculatedField old = calculatedFieldDao.findById(calculatedField.getTenantId(), calculatedField.getId().getId());</b>
+<b class="nc">&nbsp;        if (old == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t update non existing calculated field!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return old;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateNumberOfArgumentsPerCF(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        if (!(calculatedField instanceof ArgumentsBasedCalculatedFieldConfiguration argumentsBasedCfg)) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        long maxArgumentsPerCF = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxArgumentsPerCF);</b>
+<b class="nc">&nbsp;        if (maxArgumentsPerCF &lt;= 0) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (argumentsBasedCfg.getArguments().size() &gt; maxArgumentsPerCF) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Calculated field arguments limit reached!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateCalculatedFieldConfiguration(CalculatedField calculatedField) {
+<b class="nc">&nbsp;        wrapAsDataValidation(calculatedField.getConfiguration()::validate);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateSchedulingConfiguration(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        if (!(calculatedField.getConfiguration() instanceof ScheduledUpdateSupportedCalculatedFieldConfiguration scheduledUpdateCfg)</b>
+<b class="nc">&nbsp;                || !scheduledUpdateCfg.isScheduledUpdateEnabled()) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        long minAllowedScheduledUpdateInterval = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMinAllowedScheduledUpdateIntervalInSecForCF);</b>
+<b class="nc">&nbsp;        wrapAsDataValidation(() -&gt; scheduledUpdateCfg.validate(minAllowedScheduledUpdateInterval));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateRelationQuerySourceArguments(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        if (!(calculatedField.getConfiguration() instanceof ArgumentsBasedCalculatedFieldConfiguration argumentsBasedCfg)) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        Map&lt;String, RelationPathQueryDynamicSourceConfiguration&gt; relationQueryBasedArguments = argumentsBasedCfg.getArguments().entrySet()</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .filter(entry -&gt; entry.getValue().hasRelationQuerySource())</b>
+<b class="nc">&nbsp;                .collect(Collectors.toMap(Map.Entry::getKey, entry -&gt; (RelationPathQueryDynamicSourceConfiguration) entry.getValue().getRefDynamicSourceConfiguration()));</b>
+<b class="nc">&nbsp;        if (relationQueryBasedArguments.isEmpty()) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        int maxRelationLevel = (int) apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxRelationLevelPerCfArgument);</b>
+<b class="nc">&nbsp;        relationQueryBasedArguments.forEach((argumentName, relationQueryDynamicSourceConfiguration) -&gt;</b>
+<b class="nc">&nbsp;                wrapAsDataValidation(() -&gt; relationQueryDynamicSourceConfiguration.validateMaxRelationLevel(argumentName, maxRelationLevel)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateRelatedAggregationConfiguration(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        if (!(calculatedField.getConfiguration() instanceof RelatedEntitiesAggregationCalculatedFieldConfiguration aggConfiguration)) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        long minDeduplicationInterval = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMinAllowedDeduplicationIntervalInSecForCF);</b>
+<b class="nc">&nbsp;        if (aggConfiguration.getDeduplicationIntervalInSec() &lt; minDeduplicationInterval) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Deduplication interval is less than configured &quot; +</b>
+&nbsp;                    &quot;minimum allowed interval in tenant profile: &quot; + minDeduplicationInterval);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateEntityAggregationConfiguration(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        if (!(calculatedField.getConfiguration() instanceof EntityAggregationCalculatedFieldConfiguration aggConfiguration)) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        long minAggregationIntervalInSec = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMinAllowedAggregationIntervalInSecForCF);</b>
+<b class="nc">&nbsp;        if (minAggregationIntervalInSec &lt;= 0) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (aggConfiguration.getInterval().getCurrentIntervalDurationMillis() &lt; TimeUnit.SECONDS.toMillis(minAggregationIntervalInSec)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Aggregation interval duration is less than configured &quot; +</b>
+&nbsp;                    &quot;minimum allowed aggregation interval in tenant profile: &quot; + minAggregationIntervalInSec + &quot; sec.&quot;);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void wrapAsDataValidation(Runnable validation) {
+&nbsp;        try {
+<b class="nc">&nbsp;            validation.run();</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            throw new DataValidationException(e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

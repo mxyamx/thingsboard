@@ -1,0 +1,886 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbCoreConsumerService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbCoreConsumerService (org.thingsboard.server.service.queue)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbCoreConsumerService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/53)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/138)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/380)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.ListeningExecutorService;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.DonAsynchron;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.common.data.JavaSerDesUtil;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.edqs.ToCoreEdqsMsg;
+&nbsp;import org.thingsboard.server.common.data.event.ErrorEvent;
+&nbsp;import org.thingsboard.server.common.data.event.Event;
+&nbsp;import org.thingsboard.server.common.data.event.LifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationRequestId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+&nbsp;import org.thingsboard.server.common.data.queue.QueueConfig;
+&nbsp;import org.thingsboard.server.common.data.rpc.RpcError;
+&nbsp;import org.thingsboard.server.common.msg.MsgType;
+&nbsp;import org.thingsboard.server.common.msg.TbActorMsg;
+&nbsp;import org.thingsboard.server.common.msg.edqs.EdqsService;
+&nbsp;import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+&nbsp;import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.common.util.KvProtoUtil;
+&nbsp;import org.thingsboard.server.common.util.ProtoUtils;
+&nbsp;import org.thingsboard.server.dao.resource.ImageCacheKey;
+&nbsp;import org.thingsboard.server.dao.resource.TbResourceDataCache;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ErrorEventProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.LifecycleEventProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAlarmDeleteProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAlarmUpdateProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAttributeDeleteProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAttributeUpdateProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbEntitySubEventProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbTimeSeriesDeleteProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbTimeSeriesUpdateProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.MainQueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+&nbsp;import org.thingsboard.server.service.cf.CalculatedFieldCache;
+&nbsp;import org.thingsboard.server.service.notification.NotificationSchedulerService;
+&nbsp;import org.thingsboard.server.service.ota.OtaPackageStateService;
+&nbsp;import org.thingsboard.server.service.profile.TbAssetProfileCache;
+&nbsp;import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+&nbsp;import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
+&nbsp;import org.thingsboard.server.service.queue.processing.IdMsgPair;
+&nbsp;import org.thingsboard.server.service.resource.TbImageService;
+&nbsp;import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
+&nbsp;import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+&nbsp;import org.thingsboard.server.service.state.DeviceStateService;
+&nbsp;import org.thingsboard.server.service.subscription.SubscriptionManagerService;
+&nbsp;import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
+&nbsp;import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
+&nbsp;import org.thingsboard.server.service.sync.vc.GitVersionControlQueueService;
+&nbsp;import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@TbCoreComponent
+&nbsp;public class DefaultTbCoreConsumerService extends AbstractConsumerService&lt;ToCoreNotificationMsg&gt; implements TbCoreConsumerService {
+&nbsp;
+&nbsp;    @Value(&quot;${queue.core.poll-interval}&quot;)
+&nbsp;    private long pollInterval;
+&nbsp;    @Value(&quot;${queue.core.pack-processing-timeout}&quot;)
+&nbsp;    private long packProcessingTimeout;
+&nbsp;    @Value(&quot;${queue.core.consumer-per-partition:true}&quot;)
+&nbsp;    private boolean consumerPerPartition;
+&nbsp;    @Value(&quot;${queue.core.stats.enabled:false}&quot;)
+&nbsp;    private boolean statsEnabled;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.core.ota.pack-interval-ms:60000}&quot;)
+&nbsp;    private long firmwarePackInterval;
+&nbsp;    @Value(&quot;${queue.core.ota.pack-size:100}&quot;)
+&nbsp;    private int firmwarePackSize;
+&nbsp;
+&nbsp;    private final DeviceStateService stateService;
+&nbsp;    private final TbApiUsageStateService statsService;
+&nbsp;    private final TbLocalSubscriptionService localSubscriptionService;
+&nbsp;    private final SubscriptionManagerService subscriptionManagerService;
+&nbsp;    private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
+&nbsp;    private final OtaPackageStateService firmwareStateService;
+&nbsp;    private final GitVersionControlQueueService vcQueueService;
+&nbsp;    private final NotificationSchedulerService notificationSchedulerService;
+&nbsp;    private final NotificationRuleProcessor notificationRuleProcessor;
+&nbsp;    private final TbCoreQueueFactory queueFactory;
+&nbsp;    private final TbImageService imageService;
+&nbsp;    private final RuleEngineCallService ruleEngineCallService;
+&nbsp;    private final EdqsService edqsService;
+&nbsp;    private final TbCoreConsumerStats stats;
+&nbsp;
+&nbsp;    private MainQueueConsumerManager&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;, QueueConfig&gt; mainConsumer;
+&nbsp;    private QueueConsumerManager&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; usageStatsConsumer;
+&nbsp;    private QueueConsumerManager&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt; firmwareStatesConsumer;
+&nbsp;
+&nbsp;    private volatile ListeningExecutorService deviceActivityEventsExecutor;
+&nbsp;
+&nbsp;    public DefaultTbCoreConsumerService(TbCoreQueueFactory tbCoreQueueFactory,
+&nbsp;                                        ActorSystemContext actorContext,
+&nbsp;                                        DeviceStateService stateService,
+&nbsp;                                        TbLocalSubscriptionService localSubscriptionService,
+&nbsp;                                        SubscriptionManagerService subscriptionManagerService,
+&nbsp;                                        TbCoreDeviceRpcService tbCoreDeviceRpcService,
+&nbsp;                                        StatsFactory statsFactory,
+&nbsp;                                        TbDeviceProfileCache deviceProfileCache,
+&nbsp;                                        TbAssetProfileCache assetProfileCache,
+&nbsp;                                        TbApiUsageStateService statsService,
+&nbsp;                                        TbTenantProfileCache tenantProfileCache,
+&nbsp;                                        TbApiUsageStateService apiUsageStateService,
+&nbsp;                                        OtaPackageStateService firmwareStateService,
+&nbsp;                                        GitVersionControlQueueService vcQueueService,
+&nbsp;                                        PartitionService partitionService,
+&nbsp;                                        ApplicationEventPublisher eventPublisher,
+&nbsp;                                        JwtSettingsService jwtSettingsService,
+&nbsp;                                        NotificationSchedulerService notificationSchedulerService,
+&nbsp;                                        NotificationRuleProcessor notificationRuleProcessor,
+&nbsp;                                        TbImageService imageService,
+&nbsp;                                        TbResourceDataCache tbResourceDataCache,
+&nbsp;                                        RuleEngineCallService ruleEngineCallService,
+&nbsp;                                        CalculatedFieldCache calculatedFieldCache,
+&nbsp;                                        EdqsService edqsService) {
+<b class="nc">&nbsp;        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, tbResourceDataCache, calculatedFieldCache, apiUsageStateService, partitionService,</b>
+&nbsp;                eventPublisher, jwtSettingsService);
+<b class="nc">&nbsp;        this.stateService = stateService;</b>
+<b class="nc">&nbsp;        this.localSubscriptionService = localSubscriptionService;</b>
+<b class="nc">&nbsp;        this.subscriptionManagerService = subscriptionManagerService;</b>
+<b class="nc">&nbsp;        this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;</b>
+<b class="nc">&nbsp;        this.stats = new TbCoreConsumerStats(statsFactory);</b>
+<b class="nc">&nbsp;        this.statsService = statsService;</b>
+<b class="nc">&nbsp;        this.firmwareStateService = firmwareStateService;</b>
+<b class="nc">&nbsp;        this.vcQueueService = vcQueueService;</b>
+<b class="nc">&nbsp;        this.notificationSchedulerService = notificationSchedulerService;</b>
+<b class="nc">&nbsp;        this.notificationRuleProcessor = notificationRuleProcessor;</b>
+<b class="nc">&nbsp;        this.imageService = imageService;</b>
+<b class="nc">&nbsp;        this.ruleEngineCallService = ruleEngineCallService;</b>
+<b class="nc">&nbsp;        this.queueFactory = tbCoreQueueFactory;</b>
+<b class="nc">&nbsp;        this.edqsService = edqsService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        super.init(&quot;tb-core&quot;);</b>
+<b class="nc">&nbsp;        this.deviceActivityEventsExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;tb-core-device-activity-events-executor&quot;)));</b>
+&nbsp;
+<b class="nc">&nbsp;        this.mainConsumer = MainQueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;, QueueConfig&gt;builder()</b>
+<b class="nc">&nbsp;                .queueKey(new QueueKey(ServiceType.TB_CORE))</b>
+<b class="nc">&nbsp;                .config(QueueConfig.of(consumerPerPartition, pollInterval))</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                .consumerCreator((config, tpi) -&gt; queueFactory.createToCoreMsgConsumer())</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumersExecutor)</b>
+<b class="nc">&nbsp;                .scheduler(scheduler)</b>
+<b class="nc">&nbsp;                .taskExecutor(mgmtExecutor)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        this.usageStatsConsumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .name(&quot;TB Usage Stats&quot;)</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processUsageStatsMsg)</b>
+<b class="nc">&nbsp;                .pollInterval(pollInterval)</b>
+<b class="nc">&nbsp;                .consumerCreator(queueFactory::createToUsageStatsServiceMsgConsumer)</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumersExecutor)</b>
+<b class="nc">&nbsp;                .threadPrefix(&quot;usage-stats&quot;)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        this.firmwareStatesConsumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .name(&quot;TB Ota Package States&quot;)</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processFirmwareMsgs)</b>
+<b class="nc">&nbsp;                .pollInterval(pollInterval)</b>
+<b class="nc">&nbsp;                .consumerCreator(queueFactory::createToOtaPackageStateServiceMsgConsumer)</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumersExecutor)</b>
+<b class="nc">&nbsp;                .threadPrefix(&quot;firmware&quot;)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        super.destroy();</b>
+<b class="nc">&nbsp;        if (deviceActivityEventsExecutor != null) {</b>
+<b class="nc">&nbsp;            deviceActivityEventsExecutor.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void startConsumers() {
+<b class="nc">&nbsp;        super.startConsumers();</b>
+<b class="nc">&nbsp;        firmwareStatesConsumer.subscribe();</b>
+<b class="nc">&nbsp;        firmwareStatesConsumer.launch();</b>
+<b class="nc">&nbsp;        usageStatsConsumer.launch();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+<b class="nc">&nbsp;        log.debug(&quot;Subscribing to partitions: {}&quot;, event.getCorePartitions());</b>
+<b class="nc">&nbsp;        mainConsumer.update(event.getCorePartitions());</b>
+<b class="nc">&nbsp;        usageStatsConsumer.subscribe(event.getCorePartitions()</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(tpi -&gt; tpi.withTopic(usageStatsConsumer.getConsumer().getTopic()))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toSet()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsgs(List&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; consumer, Object consumerKey, QueueConfig config) throws Exception {
+<b class="nc">&nbsp;        List&lt;IdMsgPair&lt;ToCoreMsg&gt;&gt; orderedMsgList = msgs.stream().map(msg -&gt; new IdMsgPair&lt;&gt;(UUID.randomUUID(), msg)).toList();</b>
+<b class="nc">&nbsp;        ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; pendingMap = orderedMsgList.stream().collect(</b>
+<b class="nc">&nbsp;                Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));</b>
+<b class="nc">&nbsp;        CountDownLatch processingTimeoutLatch = new CountDownLatch(1);</b>
+<b class="nc">&nbsp;        TbPackProcessingContext&lt;TbProtoQueueMsg&lt;ToCoreMsg&gt;&gt; ctx = new TbPackProcessingContext&lt;&gt;(</b>
+&nbsp;                processingTimeoutLatch, pendingMap, new ConcurrentHashMap&lt;&gt;());
+<b class="nc">&nbsp;        PendingMsgHolder&lt;ToCoreMsg&gt; pendingMsgHolder = new PendingMsgHolder&lt;&gt;();</b>
+<b class="nc">&nbsp;        Future&lt;?&gt; packSubmitFuture = consumersExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            orderedMsgList.forEach((element) -&gt; {</b>
+<b class="nc">&nbsp;                UUID id = element.getUuid();</b>
+<b class="nc">&nbsp;                TbProtoQueueMsg&lt;ToCoreMsg&gt; msg = element.getMsg();</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Creating main callback for message: {}&quot;, id, msg.getValue());</b>
+<b class="nc">&nbsp;                TbCallback callback = new TbPackCallback&lt;&gt;(id, ctx);</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    ToCoreMsg toCoreMsg = msg.getValue();</b>
+<b class="nc">&nbsp;                    pendingMsgHolder.setMsg(toCoreMsg);</b>
+<b class="nc">&nbsp;                    if (toCoreMsg.hasToSubscriptionMgrMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to subscription manager service {}&quot;, id, toCoreMsg.getToSubscriptionMgrMsg());</b>
+<b class="nc">&nbsp;                        forwardToSubMgrService(toCoreMsg.getToSubscriptionMgrMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasToDeviceActorMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to device actor {}&quot;, id, toCoreMsg.getToDeviceActorMsg());</b>
+<b class="nc">&nbsp;                        forwardToDeviceActor(toCoreMsg.getToDeviceActorMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasDeviceStateServiceMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to device state service {}&quot;, id, toCoreMsg.getDeviceStateServiceMsg());</b>
+<b class="nc">&nbsp;                        forwardToStateService(toCoreMsg.getDeviceStateServiceMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasDeviceConnectMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to device state service {}&quot;, id, toCoreMsg.getDeviceConnectMsg());</b>
+<b class="nc">&nbsp;                        forwardToStateService(toCoreMsg.getDeviceConnectMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasDeviceActivityMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to device state service {}&quot;, id, toCoreMsg.getDeviceActivityMsg());</b>
+<b class="nc">&nbsp;                        forwardToStateService(toCoreMsg.getDeviceActivityMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasDeviceDisconnectMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to device state service {}&quot;, id, toCoreMsg.getDeviceDisconnectMsg());</b>
+<b class="nc">&nbsp;                        forwardToStateService(toCoreMsg.getDeviceDisconnectMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasDeviceInactivityMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to device state service {}&quot;, id, toCoreMsg.getDeviceInactivityMsg());</b>
+<b class="nc">&nbsp;                        forwardToStateService(toCoreMsg.getDeviceInactivityMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasDeviceInactivityTimeoutUpdateMsg()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to device state service {}&quot;, id, toCoreMsg.getDeviceInactivityTimeoutUpdateMsg());</b>
+<b class="nc">&nbsp;                        forwardToStateService(toCoreMsg.getDeviceInactivityTimeoutUpdateMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasToDeviceActorNotification()) {</b>
+<b class="nc">&nbsp;                        TbActorMsg actorMsg = ProtoUtils.fromProto(toCoreMsg.getToDeviceActorNotification());</b>
+<b class="nc">&nbsp;                        if (actorMsg != null) {</b>
+<b class="nc">&nbsp;                            if (actorMsg.getMsgType().equals(MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG)) {</b>
+<b class="nc">&nbsp;                                tbCoreDeviceRpcService.forwardRpcRequestToDeviceActor((ToDeviceRpcRequestActorMsg) actorMsg);</b>
+&nbsp;                            } else {
+<b class="nc">&nbsp;                                log.trace(&quot;[{}] Forwarding message to App Actor {}&quot;, id, actorMsg);</b>
+<b class="nc">&nbsp;                                actorContext.tell(actorMsg);</b>
+&nbsp;                            }
+&nbsp;                        }
+<b class="nc">&nbsp;                        callback.onSuccess();</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasNotificationSchedulerServiceMsg()) {</b>
+<b class="nc">&nbsp;                        TransportProtos.NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = toCoreMsg.getNotificationSchedulerServiceMsg();</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Forwarding message to notification scheduler service {}&quot;, id, toCoreMsg.getNotificationSchedulerServiceMsg());</b>
+<b class="nc">&nbsp;                        forwardToNotificationSchedulerService(notificationSchedulerServiceMsg, callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasErrorEventMsg()) {</b>
+<b class="nc">&nbsp;                        forwardToEventService(toCoreMsg.getErrorEventMsg(), callback);</b>
+<b class="nc">&nbsp;                    } else if (toCoreMsg.hasLifecycleEventMsg()) {</b>
+<b class="nc">&nbsp;                        forwardToEventService(toCoreMsg.getLifecycleEventMsg(), callback);</b>
+&nbsp;                    }
+&nbsp;                } catch (Throwable e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process message: {}&quot;, id, msg, e);</b>
+<b class="nc">&nbsp;                    callback.onFailure(e);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        });
+<b class="nc">&nbsp;        if (!processingTimeoutLatch.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {</b>
+<b class="nc">&nbsp;            if (!packSubmitFuture.isDone()) {</b>
+<b class="nc">&nbsp;                packSubmitFuture.cancel(true);</b>
+<b class="nc">&nbsp;                log.info(&quot;Timeout to process message: {}&quot;, pendingMsgHolder.getMsg());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;                ctx.getAckMap().forEach((id, msg) -&gt; log.debug(&quot;[{}] Timeout to process message: {}&quot;, id, msg.getValue()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            ctx.getFailedMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Failed to process message: {}&quot;, id, msg.getValue()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ServiceType getServiceType() {
+<b class="nc">&nbsp;        return ServiceType.TB_CORE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPollDuration() {
+<b class="nc">&nbsp;        return pollInterval;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPackProcessingTimeout() {
+<b class="nc">&nbsp;        return packProcessingTimeout;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected int getMgmtThreadPoolSize() {
+<b class="nc">&nbsp;        return Math.max(Runtime.getRuntime().availableProcessors(), 4);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; createNotificationsConsumer() {
+<b class="nc">&nbsp;        return queueFactory.createToCoreNotificationsMsgConsumer();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void handleNotification(UUID id, TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt; msg, TbCallback callback) {
+<b class="nc">&nbsp;        ToCoreNotificationMsg toCoreNotification = msg.getValue();</b>
+<b class="nc">&nbsp;        if (toCoreNotification.hasToLocalSubscriptionServiceMsg()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding message to local subscription service {}&quot;, id, toCoreNotification.getToLocalSubscriptionServiceMsg());</b>
+<b class="nc">&nbsp;            forwardToLocalSubMgrService(toCoreNotification.getToLocalSubscriptionServiceMsg(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasCoreStartupMsg()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding message to local subscription service {}&quot;, id, toCoreNotification.getCoreStartupMsg());</b>
+<b class="nc">&nbsp;            forwardCoreStartupMsg(toCoreNotification.getCoreStartupMsg(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasFromDeviceRpcResponse()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding message to RPC service {}&quot;, id, toCoreNotification.getFromDeviceRpcResponse());</b>
+<b class="nc">&nbsp;            forwardToCoreRpcService(toCoreNotification.getFromDeviceRpcResponse(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasRestApiCallResponseMsg()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding message to RuleEngineCallService service {}&quot;, id, toCoreNotification.getRestApiCallResponseMsg());</b>
+<b class="nc">&nbsp;            forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasComponentLifecycle()) {</b>
+<b class="nc">&nbsp;            handleComponentLifecycleMsg(id, ProtoUtils.fromProto(toCoreNotification.getComponentLifecycle()));</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.getQueueUpdateMsgsCount() &gt; 0) {</b>
+<b class="nc">&nbsp;            partitionService.updateQueues(toCoreNotification.getQueueUpdateMsgsList());</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.getQueueDeleteMsgsCount() &gt; 0) {</b>
+<b class="nc">&nbsp;            partitionService.removeQueues(toCoreNotification.getQueueDeleteMsgsList());</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasVcResponseMsg()) {</b>
+<b class="nc">&nbsp;            vcQueueService.processResponse(toCoreNotification.getVcResponseMsg());</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasToSubscriptionMgrMsg()) {</b>
+<b class="nc">&nbsp;            forwardToSubMgrService(toCoreNotification.getToSubscriptionMgrMsg(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasNotificationRuleProcessorMsg()) {</b>
+<b class="nc">&nbsp;            NotificationRuleTrigger notificationRuleTrigger =</b>
+<b class="nc">&nbsp;                    JavaSerDesUtil.decode(toCoreNotification.getNotificationRuleProcessorMsg().getTrigger().toByteArray());</b>
+<b class="nc">&nbsp;            notificationRuleProcessor.process(notificationRuleTrigger);</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasResourceCacheInvalidateMsg()) {</b>
+<b class="nc">&nbsp;            forwardToResourceService(toCoreNotification.getResourceCacheInvalidateMsg(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCoreNotification.hasToEdqsCoreServiceMsg()) {</b>
+<b class="nc">&nbsp;            edqsService.processSystemMsg(JacksonUtil.fromBytes(toCoreNotification.getToEdqsCoreServiceMsg().getValue().toByteArray(), ToCoreEdqsMsg.class));</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(toCoreNotification);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processUsageStatsMsg(List&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; consumer) throws Exception {
+<b class="nc">&nbsp;        ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; pendingMap = msgs.stream().collect(</b>
+<b class="nc">&nbsp;                Collectors.toConcurrentMap(s -&gt; UUID.randomUUID(), Function.identity()));</b>
+<b class="nc">&nbsp;        CountDownLatch processingTimeoutLatch = new CountDownLatch(1);</b>
+<b class="nc">&nbsp;        TbPackProcessingContext&lt;TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt;&gt; ctx = new TbPackProcessingContext&lt;&gt;(</b>
+&nbsp;                processingTimeoutLatch, pendingMap, new ConcurrentHashMap&lt;&gt;());
+<b class="nc">&nbsp;        pendingMap.forEach((id, msg) -&gt; {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Creating usage stats callback for message: {}&quot;, id, msg.getValue());</b>
+<b class="nc">&nbsp;            TbCallback callback = new TbPackCallback&lt;&gt;(id, ctx);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                handleUsageStats(msg, callback);</b>
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Failed to process usage stats: {}&quot;, id, msg, e);</b>
+<b class="nc">&nbsp;                callback.onFailure(e);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        if (!processingTimeoutLatch.await(getNotificationPackProcessingTimeout(), TimeUnit.MILLISECONDS)) {</b>
+<b class="nc">&nbsp;            ctx.getAckMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Timeout to process usage stats: {}&quot;, id, msg.getValue()));</b>
+<b class="nc">&nbsp;            ctx.getFailedMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Failed to process usage stats: {}&quot;, id, msg.getValue()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processFirmwareMsgs(List&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt;&gt; consumer) {
+<b class="nc">&nbsp;        long maxProcessingTimeoutPerRecord = firmwarePackInterval / firmwarePackSize;</b>
+<b class="nc">&nbsp;        long timeToSleep = maxProcessingTimeoutPerRecord;</b>
+<b class="nc">&nbsp;        for (TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt; msg : msgs) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                long startTime = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;                boolean isSuccessUpdate = handleOtaPackageUpdates(msg);</b>
+<b class="nc">&nbsp;                long endTime = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;                long spentTime = endTime - startTime;</b>
+<b class="nc">&nbsp;                timeToSleep = timeToSleep - spentTime;</b>
+<b class="nc">&nbsp;                if (isSuccessUpdate) {</b>
+<b class="nc">&nbsp;                    if (timeToSleep &gt; 0) {</b>
+<b class="nc">&nbsp;                        log.debug(&quot;Spent time per record is: [{}]!&quot;, spentTime);</b>
+<b class="nc">&nbsp;                        Thread.sleep(timeToSleep);</b>
+<b class="nc">&nbsp;                        timeToSleep = 0;</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    timeToSleep += maxProcessingTimeoutPerRecord;</b>
+&nbsp;                }
+&nbsp;            } catch (InterruptedException e) {
+&nbsp;                return;
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to process firmware update msg: {}&quot;, msg, e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleUsageStats(TbProtoQueueMsg&lt;ToUsageStatsServiceMsg&gt; msg, TbCallback callback) {
+<b class="nc">&nbsp;        statsService.process(msg, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean handleOtaPackageUpdates(TbProtoQueueMsg&lt;ToOtaPackageStateServiceMsg&gt; msg) {
+<b class="nc">&nbsp;        return firmwareStateService.process(msg.getValue());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToCoreRpcService(FromDeviceRPCResponseProto proto, TbCallback callback) {
+<b class="nc">&nbsp;        RpcError error = proto.getError() &gt; 0 ? RpcError.values()[proto.getError()] : null;</b>
+<b class="nc">&nbsp;        FromDeviceRpcResponse response = new FromDeviceRpcResponse(new UUID(proto.getRequestIdMSB(), proto.getRequestIdLSB())</b>
+<b class="nc">&nbsp;                , proto.getResponse(), error);</b>
+<b class="nc">&nbsp;        tbCoreDeviceRpcService.processRpcResponseFromRuleEngine(response);</b>
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(fixedDelayString = &quot;${queue.core.stats.print-interval-ms}&quot;)
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.printStats();</b>
+<b class="nc">&nbsp;            stats.reset();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToLocalSubMgrService(LocalSubscriptionServiceMsgProto msg, TbCallback callback) {
+<b class="nc">&nbsp;        if (msg.hasSubEventCallback()) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onSubEventCallback(msg.getSubEventCallback(), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasTsUpdate()) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onTimeSeriesUpdate(msg.getTsUpdate(), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasAttrUpdate()) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onAttributesUpdate(msg.getAttrUpdate(), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasAlarmUpdate()) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onAlarmUpdate(msg.getAlarmUpdate(), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasNotificationsUpdate()) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onNotificationUpdate(msg.getNotificationsUpdate(), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasSubUpdate() || msg.hasAlarmSubUpdate() || msg.hasNotificationsSubUpdate()) {</b>
+&nbsp;            //OLD CODE -&gt; Do NOTHING.
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throwNotHandled(msg, callback);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardCoreStartupMsg(TransportProtos.CoreStartupMsg coreStartupMsg, TbCallback callback) {
+<b class="nc">&nbsp;        log.info(&quot;[{}] Processing core startup with partitions: {}&quot;, coreStartupMsg.getServiceId(), coreStartupMsg.getPartitionsList());</b>
+<b class="nc">&nbsp;        localSubscriptionService.onCoreStartupMsg(coreStartupMsg);</b>
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToResourceService(TransportProtos.ResourceCacheInvalidateMsg msg, TbCallback callback) {
+<b class="nc">&nbsp;        var tenantId = TenantId.fromUUID(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));</b>
+<b class="nc">&nbsp;        msg.getKeysList().stream().map(cacheKeyProto -&gt; {</b>
+<b class="nc">&nbsp;            if (cacheKeyProto.hasResourceKey()) {</b>
+<b class="nc">&nbsp;                return ImageCacheKey.forImage(tenantId, cacheKeyProto.getResourceKey());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return ImageCacheKey.forPublicImage(cacheKeyProto.getPublicResourceKey());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }).forEach(imageService::evictETags);</b>
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToSubMgrService(SubscriptionMgrMsgProto msg, TbCallback callback) {
+<b class="nc">&nbsp;        if (msg.hasSubEvent()) {</b>
+<b class="nc">&nbsp;            TbEntitySubEventProto subEvent = msg.getSubEvent();</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onSubEvent(subEvent.getServiceId(), TbSubscriptionUtils.fromProto(subEvent), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasTelemetrySub()) {</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;            // Deprecated, for removal; Left intentionally to avoid throwNotHandled
+<b class="nc">&nbsp;        } else if (msg.hasAlarmSub()) {</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;            // Deprecated, for removal; Left intentionally to avoid throwNotHandled
+<b class="nc">&nbsp;        } else if (msg.hasNotificationsSub()) {</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;            // Deprecated, for removal; Left intentionally to avoid throwNotHandled
+<b class="nc">&nbsp;        } else if (msg.hasNotificationsCountSub()) {</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;            // Deprecated, for removal; Left intentionally to avoid throwNotHandled
+<b class="nc">&nbsp;        } else if (msg.hasSubClose()) {</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;            // Deprecated, for removal; Left intentionally to avoid throwNotHandled
+<b class="nc">&nbsp;        } else if (msg.hasTsUpdate()) {</b>
+<b class="nc">&nbsp;            TbTimeSeriesUpdateProto proto = msg.getTsUpdate();</b>
+<b class="nc">&nbsp;            long tenantIdMSB = proto.getTenantIdMSB();</b>
+<b class="nc">&nbsp;            long tenantIdLSB = proto.getTenantIdLSB();</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onTimeSeriesUpdate(</b>
+<b class="nc">&nbsp;                    toTenantId(tenantIdMSB, tenantIdLSB),</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),</b>
+<b class="nc">&nbsp;                    KvProtoUtil.fromTsKvProtoList(proto.getDataList()), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasAttrUpdate()) {</b>
+<b class="nc">&nbsp;            TbAttributeUpdateProto proto = msg.getAttrUpdate();</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onAttributesUpdate(</b>
+<b class="nc">&nbsp;                    toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),</b>
+<b class="nc">&nbsp;                    proto.getScope(), KvProtoUtil.toAttributeKvList(proto.getDataList()), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasAttrDelete()) {</b>
+<b class="nc">&nbsp;            TbAttributeDeleteProto proto = msg.getAttrDelete();</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onAttributesDelete(</b>
+<b class="nc">&nbsp;                    toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),</b>
+<b class="nc">&nbsp;                    proto.getScope(), proto.getKeysList(), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasTsDelete()) {</b>
+<b class="nc">&nbsp;            TbTimeSeriesDeleteProto proto = msg.getTsDelete();</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onTimeSeriesDelete(</b>
+<b class="nc">&nbsp;                    toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),</b>
+<b class="nc">&nbsp;                    proto.getKeysList(), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasAlarmUpdate()) {</b>
+<b class="nc">&nbsp;            TbAlarmUpdateProto proto = msg.getAlarmUpdate();</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onAlarmUpdate(</b>
+<b class="nc">&nbsp;                    toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),</b>
+<b class="nc">&nbsp;                    JacksonUtil.fromString(proto.getAlarm(), AlarmInfo.class),</b>
+&nbsp;                    callback);
+<b class="nc">&nbsp;        } else if (msg.hasAlarmDelete()) {</b>
+<b class="nc">&nbsp;            TbAlarmDeleteProto proto = msg.getAlarmDelete();</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onAlarmDeleted(</b>
+<b class="nc">&nbsp;                    toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),</b>
+<b class="nc">&nbsp;                    JacksonUtil.fromString(proto.getAlarm(), AlarmInfo.class), callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasNotificationUpdate()) {</b>
+<b class="nc">&nbsp;            TransportProtos.NotificationUpdateProto updateProto = msg.getNotificationUpdate();</b>
+<b class="nc">&nbsp;            TenantId tenantId = toTenantId(updateProto.getTenantIdMSB(), updateProto.getTenantIdLSB());</b>
+<b class="nc">&nbsp;            UserId recipientId = new UserId(new UUID(updateProto.getRecipientIdMSB(), updateProto.getRecipientIdLSB()));</b>
+<b class="nc">&nbsp;            NotificationUpdate update = JacksonUtil.fromString(updateProto.getUpdate(), NotificationUpdate.class);</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onNotificationUpdate(tenantId, recipientId, update, callback);</b>
+<b class="nc">&nbsp;        } else if (msg.hasNotificationRequestUpdate()) {</b>
+<b class="nc">&nbsp;            TransportProtos.NotificationRequestUpdateProto updateProto = msg.getNotificationRequestUpdate();</b>
+<b class="nc">&nbsp;            TenantId tenantId = toTenantId(updateProto.getTenantIdMSB(), updateProto.getTenantIdLSB());</b>
+<b class="nc">&nbsp;            NotificationRequestUpdate update = JacksonUtil.fromString(updateProto.getUpdate(), NotificationRequestUpdate.class);</b>
+<b class="nc">&nbsp;            localSubscriptionService.onNotificationRequestUpdate(tenantId, update, callback);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throwNotHandled(msg, callback);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(msg);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    void forwardToStateService(DeviceStateServiceMsgProto deviceStateServiceMsg, TbCallback callback) {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(deviceStateServiceMsg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stateService.onQueueMsg(deviceStateServiceMsg, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void forwardToStateService(TransportProtos.DeviceConnectProto deviceConnectMsg, TbCallback callback) {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(deviceConnectMsg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var tenantId = toTenantId(deviceConnectMsg.getTenantIdMSB(), deviceConnectMsg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        var deviceId = new DeviceId(new UUID(deviceConnectMsg.getDeviceIdMSB(), deviceConnectMsg.getDeviceIdLSB()));</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;?&gt; future = deviceActivityEventsExecutor.submit(() -&gt; stateService.onDeviceConnect(tenantId, deviceId, deviceConnectMsg.getLastConnectTime()));</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future,</b>
+<b class="nc">&nbsp;                __ -&gt; callback.onSuccess(),</b>
+&nbsp;                t -&gt; {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process device connect message for device [{}]&quot;, tenantId.getId(), deviceId.getId(), t);</b>
+<b class="nc">&nbsp;                    callback.onFailure(t);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    void forwardToStateService(TransportProtos.DeviceActivityProto deviceActivityMsg, TbCallback callback) {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(deviceActivityMsg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var tenantId = toTenantId(deviceActivityMsg.getTenantIdMSB(), deviceActivityMsg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        var deviceId = new DeviceId(new UUID(deviceActivityMsg.getDeviceIdMSB(), deviceActivityMsg.getDeviceIdLSB()));</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;?&gt; future = deviceActivityEventsExecutor.submit(() -&gt; stateService.onDeviceActivity(tenantId, deviceId, deviceActivityMsg.getLastActivityTime()));</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future,</b>
+<b class="nc">&nbsp;                __ -&gt; callback.onSuccess(),</b>
+&nbsp;                t -&gt; {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process device activity message for device [{}]&quot;, tenantId.getId(), deviceId.getId(), t);</b>
+<b class="nc">&nbsp;                    callback.onFailure(new RuntimeException(&quot;Failed to update device activity for device [&quot; + deviceId.getId() + &quot;]!&quot;, t));</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    void forwardToStateService(TransportProtos.DeviceDisconnectProto deviceDisconnectMsg, TbCallback callback) {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(deviceDisconnectMsg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var tenantId = toTenantId(deviceDisconnectMsg.getTenantIdMSB(), deviceDisconnectMsg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        var deviceId = new DeviceId(new UUID(deviceDisconnectMsg.getDeviceIdMSB(), deviceDisconnectMsg.getDeviceIdLSB()));</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;?&gt; future = deviceActivityEventsExecutor.submit(() -&gt; stateService.onDeviceDisconnect(tenantId, deviceId, deviceDisconnectMsg.getLastDisconnectTime()));</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future,</b>
+<b class="nc">&nbsp;                __ -&gt; callback.onSuccess(),</b>
+&nbsp;                t -&gt; {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process device disconnect message for device [{}]&quot;, tenantId.getId(), deviceId.getId(), t);</b>
+<b class="nc">&nbsp;                    callback.onFailure(t);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    void forwardToStateService(TransportProtos.DeviceInactivityProto deviceInactivityMsg, TbCallback callback) {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(deviceInactivityMsg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var tenantId = toTenantId(deviceInactivityMsg.getTenantIdMSB(), deviceInactivityMsg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        var deviceId = new DeviceId(new UUID(deviceInactivityMsg.getDeviceIdMSB(), deviceInactivityMsg.getDeviceIdLSB()));</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;?&gt; future = deviceActivityEventsExecutor.submit(() -&gt; stateService.onDeviceInactivity(tenantId, deviceId, deviceInactivityMsg.getLastInactivityTime()));</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future,</b>
+<b class="nc">&nbsp;                __ -&gt; callback.onSuccess(),</b>
+&nbsp;                t -&gt; {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process device inactivity message for device [{}]&quot;, tenantId.getId(), deviceId.getId(), t);</b>
+<b class="nc">&nbsp;                    callback.onFailure(t);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    void forwardToStateService(TransportProtos.DeviceInactivityTimeoutUpdateProto deviceInactivityTimeoutUpdateMsg, TbCallback callback) {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(deviceInactivityTimeoutUpdateMsg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var tenantId = toTenantId(deviceInactivityTimeoutUpdateMsg.getTenantIdMSB(), deviceInactivityTimeoutUpdateMsg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        var deviceId = new DeviceId(new UUID(deviceInactivityTimeoutUpdateMsg.getDeviceIdMSB(), deviceInactivityTimeoutUpdateMsg.getDeviceIdLSB()));</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;?&gt; future = deviceActivityEventsExecutor.submit(() -&gt; stateService.onDeviceInactivityTimeoutUpdate(tenantId, deviceId, deviceInactivityTimeoutUpdateMsg.getInactivityTimeout()));</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future,</b>
+<b class="nc">&nbsp;                __ -&gt; callback.onSuccess(),</b>
+&nbsp;                t -&gt; {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process device inactivity timeout update message for device [{}]&quot;, tenantId.getId(), deviceId.getId(), t);</b>
+<b class="nc">&nbsp;                    callback.onFailure(t);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToNotificationSchedulerService(TransportProtos.NotificationSchedulerServiceMsg msg, TbCallback callback) {
+<b class="nc">&nbsp;        TenantId tenantId = toTenantId(msg.getTenantIdMSB(), msg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        NotificationRequestId notificationRequestId = new NotificationRequestId(new UUID(msg.getRequestIdMSB(), msg.getRequestIdLSB()));</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            notificationSchedulerService.scheduleNotificationRequest(tenantId, notificationRequestId, msg.getTs());</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            callback.onFailure(new RuntimeException(&quot;Failed to schedule notification request&quot;, e));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(toDeviceActorMsg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToEventService(ErrorEventProto eventProto, TbCallback callback) {
+<b class="nc">&nbsp;        Event event = ErrorEvent.builder()</b>
+<b class="nc">&nbsp;                .tenantId(toTenantId(eventProto.getTenantIdMSB(), eventProto.getTenantIdLSB()))</b>
+<b class="nc">&nbsp;                .entityId(new UUID(eventProto.getEntityIdMSB(), eventProto.getEntityIdLSB()))</b>
+<b class="nc">&nbsp;                .serviceId(eventProto.getServiceId())</b>
+<b class="nc">&nbsp;                .ts(System.currentTimeMillis())</b>
+<b class="nc">&nbsp;                .method(eventProto.getMethod())</b>
+<b class="nc">&nbsp;                .error(eventProto.getError())</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        forwardToEventService(event, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToEventService(LifecycleEventProto eventProto, TbCallback callback) {
+<b class="nc">&nbsp;        Event event = LifecycleEvent.builder()</b>
+<b class="nc">&nbsp;                .tenantId(toTenantId(eventProto.getTenantIdMSB(), eventProto.getTenantIdLSB()))</b>
+<b class="nc">&nbsp;                .entityId(new UUID(eventProto.getEntityIdMSB(), eventProto.getEntityIdLSB()))</b>
+<b class="nc">&nbsp;                .serviceId(eventProto.getServiceId())</b>
+<b class="nc">&nbsp;                .ts(System.currentTimeMillis())</b>
+<b class="nc">&nbsp;                .lcEventType(eventProto.getLcEventType())</b>
+<b class="nc">&nbsp;                .success(eventProto.getSuccess())</b>
+<b class="nc">&nbsp;                .error(StringUtils.isNotEmpty(eventProto.getError()) ? eventProto.getError() : null)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        forwardToEventService(event, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToEventService(Event event, TbCallback callback) {
+<b class="nc">&nbsp;        DonAsynchron.withCallback(actorContext.getEventService().saveAsync(event),</b>
+<b class="nc">&nbsp;                result -&gt; callback.onSuccess(),</b>
+<b class="nc">&nbsp;                callback::onFailure,</b>
+<b class="nc">&nbsp;                actorContext.getDbCallbackExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void forwardToRuleEngineCallService(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
+<b class="nc">&nbsp;        ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void throwNotHandled(Object msg, TbCallback callback) {
+<b class="nc">&nbsp;        log.warn(&quot;Message not handled: {}&quot;, msg);</b>
+<b class="nc">&nbsp;        callback.onFailure(new RuntimeException(&quot;Message not handled!&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TenantId toTenantId(long tenantIdMSB, long tenantIdLSB) {
+<b class="nc">&nbsp;        return TenantId.fromUUID(new UUID(tenantIdMSB, tenantIdLSB));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void stopConsumers() {
+<b class="nc">&nbsp;        super.stopConsumers();</b>
+<b class="nc">&nbsp;        mainConsumer.stop();</b>
+<b class="nc">&nbsp;        mainConsumer.awaitStop();</b>
+<b class="nc">&nbsp;        usageStatsConsumer.stop();</b>
+<b class="nc">&nbsp;        firmwareStatesConsumer.stop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DeviceConnectivityController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: DeviceConnectivityController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DeviceConnectivityController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.Content;
+&nbsp;import io.swagger.v3.oas.annotations.media.ExampleObject;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMethod;
+&nbsp;import org.springframework.web.bind.annotation.ResponseBody;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.device.DeviceConnectivityService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.system.SystemSecurityService;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.net.URISyntaxException;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PROTOCOL;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PROTOCOL_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.dao.util.DeviceConnectivityUtil.CA_ROOT_CERT_PEM;
+&nbsp;import static org.thingsboard.server.dao.util.DeviceConnectivityUtil.DOCKER_COMPOSE_YML;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DeviceConnectivityController extends BaseController {
+&nbsp;
+&nbsp;    private final DeviceConnectivityService deviceConnectivityService;
+&nbsp;    private final SystemSecurityService systemSecurityService;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get commands to publish device telemetry (getDevicePublishTelemetryCommands)&quot;,
+&nbsp;            notes = &quot;Fetch the list of commands to publish device telemetry based on device profile &quot; +
+&nbsp;                    &quot;If the user has the authority of &#39;Tenant Administrator&#39;, the server checks that the device is owned by the same tenant. &quot; +
+&nbsp;                    &quot;If the user has the authority of &#39;Customer User&#39;, the server checks that the device is assigned to the same customer. &quot; +
+&nbsp;                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(
+&nbsp;                            responseCode = &quot;200&quot;,
+&nbsp;                            description = &quot;OK&quot;,
+&nbsp;                            content = @Content(
+&nbsp;                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+&nbsp;                                    examples = {
+&nbsp;                                            @ExampleObject(
+&nbsp;                                                    name = &quot;http&quot;,
+&nbsp;                                                    value = &quot;curl -v -X POST http://localhost:8080/api/v1/0ySs4FTOn5WU15XLmal8/telemetry --header Content-Type:application/json --data {temperature:25}&quot;
+&nbsp;                                            ),
+&nbsp;                                            @ExampleObject(
+&nbsp;                                                    name = &quot;mqtt&quot;,
+&nbsp;                                                    value = &quot;mosquitto_pub -d -q 1 -h localhost -t v1/devices/me/telemetry -i myClient1 -u myUsername1 -P myPassword -m {temperature:25}&quot;
+&nbsp;                                            ),
+&nbsp;                                            @ExampleObject(
+&nbsp;                                                    name = &quot;coap&quot;,
+&nbsp;                                                    value = &quot;coap-client -m POST coap://localhost:5683/api/v1/0ySs4FTOn5WU15XLmal8/telemetry -t json -e {temperature:25}&quot;
+&nbsp;                                            )
+&nbsp;                                    }
+&nbsp;                            )
+&nbsp;                    )
+&nbsp;            })
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/device-connectivity/{deviceId}&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public JsonNode getDevicePublishTelemetryCommands(@Parameter(description = DEVICE_ID_PARAM_DESCRIPTION)
+&nbsp;                                                      @PathVariable(DEVICE_ID) String strDeviceId, HttpServletRequest request) throws ThingsboardException, URISyntaxException {
+<b class="nc">&nbsp;        checkParameter(DEVICE_ID, strDeviceId);</b>
+<b class="nc">&nbsp;        DeviceId deviceId = new DeviceId(toUUID(strDeviceId));</b>
+<b class="nc">&nbsp;        Device device = checkDeviceId(deviceId, org.thingsboard.server.service.security.permission.Operation.READ_CREDENTIALS);</b>
+&nbsp;
+<b class="nc">&nbsp;        String baseUrl = systemSecurityService.getBaseUrl(getTenantId(), getCurrentUser().getCustomerId(), request);</b>
+<b class="nc">&nbsp;        return deviceConnectivityService.findDevicePublishTelemetryCommands(baseUrl, device);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Download server certificate using file path defined in device.connectivity properties (downloadServerCertificate)&quot;, notes = &quot;Download server certificate.&quot;)
+&nbsp;    @RequestMapping(value = &quot;/device-connectivity/{protocol}/certificate/download&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public ResponseEntity&lt;org.springframework.core.io.Resource&gt; downloadServerCertificate(@Parameter(description = PROTOCOL_PARAM_DESCRIPTION)
+&nbsp;                                                                                          @PathVariable(PROTOCOL) String protocol) throws ThingsboardException, IOException {
+<b class="nc">&nbsp;        checkParameter(PROTOCOL, protocol);</b>
+<b class="nc">&nbsp;        var pemCert =</b>
+<b class="nc">&nbsp;                checkNotNull(deviceConnectivityService.getPemCertFile(protocol), protocol + &quot; pem cert file is not found!&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.ok()</b>
+<b class="nc">&nbsp;                .header(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment;filename=&quot; + CA_ROOT_CERT_PEM)</b>
+<b class="nc">&nbsp;                .header(&quot;x-filename&quot;, CA_ROOT_CERT_PEM)</b>
+<b class="nc">&nbsp;                .contentLength(pemCert.contentLength())</b>
+<b class="nc">&nbsp;                .contentType(MediaType.APPLICATION_OCTET_STREAM)</b>
+<b class="nc">&nbsp;                .body(pemCert);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Download generated docker-compose.yml file for gateway (downloadGatewayDockerCompose)&quot;, notes = &quot;Download generated docker-compose.yml for gateway.&quot;)
+&nbsp;    @RequestMapping(value = &quot;/device-connectivity/gateway-launch/{deviceId}/docker-compose/download&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public ResponseEntity&lt;org.springframework.core.io.Resource&gt; downloadGatewayDockerCompose(@Parameter(description = DEVICE_ID_PARAM_DESCRIPTION)
+&nbsp;                                                                                             @PathVariable(DEVICE_ID) String strDeviceId, HttpServletRequest request) throws ThingsboardException, URISyntaxException, IOException {
+<b class="nc">&nbsp;        checkParameter(DEVICE_ID, strDeviceId);</b>
+<b class="nc">&nbsp;        DeviceId deviceId = new DeviceId(toUUID(strDeviceId));</b>
+<b class="nc">&nbsp;        Device device = checkDeviceId(deviceId, Operation.READ_CREDENTIALS);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!checkIsGateway(device)) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;The device must be a gateway!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String baseUrl = systemSecurityService.getBaseUrl(getTenantId(), getCurrentUser().getCustomerId(), request);</b>
+<b class="nc">&nbsp;        var dockerCompose = checkNotNull(deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device), &quot;Failed to create docker-compose.yml file!&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.ok()</b>
+<b class="nc">&nbsp;                .header(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment;filename=&quot; + DOCKER_COMPOSE_YML)</b>
+<b class="nc">&nbsp;                .header(&quot;x-filename&quot;, DOCKER_COMPOSE_YML)</b>
+<b class="nc">&nbsp;                .contentLength(dockerCompose.contentLength())</b>
+<b class="nc">&nbsp;                .contentType(MediaType.APPLICATION_OCTET_STREAM)</b>
+<b class="nc">&nbsp;                .body(dockerCompose);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean checkIsGateway(Device device) {
+<b class="nc">&nbsp;        return device.getAdditionalInfo().has(DataConstants.GATEWAY_PARAMETER) &amp;&amp;</b>
+<b class="nc">&nbsp;                device.getAdditionalInfo().get(DataConstants.GATEWAY_PARAMETER).asBoolean();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

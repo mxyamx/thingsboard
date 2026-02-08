@@ -1,0 +1,316 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseAlarmProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge.rpc.processor.alarm</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseAlarmProcessor (org.thingsboard.server.service.edge.rpc.processor.alarm)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseAlarmProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseAlarmProcessor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/51)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge.rpc.processor.alarm;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmComment;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventType;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageDataIterableByTenantIdEntityId;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmCommentDao;
+&nbsp;import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
+&nbsp;import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.dao.edge.BaseRelatedEdgesService.RELATED_EDGES_CACHE_ITEMS;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class BaseAlarmProcessor extends BaseEdgeProcessor {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AlarmCommentDao alarmCommentDao;
+&nbsp;
+&nbsp;    public ListenableFuture&lt;Void&gt; processAlarmMsg(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] processAlarmMsg [{}]&quot;, tenantId, alarmUpdateMsg);</b>
+<b class="nc">&nbsp;        AlarmId alarmId = new AlarmId(new UUID(alarmUpdateMsg.getIdMSB(), alarmUpdateMsg.getIdLSB()));</b>
+<b class="nc">&nbsp;        Alarm alarm = JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);</b>
+<b class="nc">&nbsp;        if (alarm == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;[{&quot; + tenantId + &quot;}] alarmUpdateMsg {&quot; + alarmUpdateMsg + &quot;} cannot be converted to alarm&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarm.getOriginator() == null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Originator not found for the alarm msg {}&quot;, tenantId, alarmUpdateMsg);</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(null);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            switch (alarmUpdateMsg.getMsgType()) {</b>
+&nbsp;                case ENTITY_CREATED_RPC_MESSAGE:
+<b class="nc">&nbsp;                    edgeCtx.getAlarmService().createAlarm(AlarmCreateOrUpdateActiveRequest.fromAlarm(alarm, null, alarmId));</b>
+&nbsp;                    break;
+&nbsp;                case ENTITY_UPDATED_RPC_MESSAGE:
+<b class="nc">&nbsp;                    edgeCtx.getAlarmService().updateAlarm(AlarmUpdateRequest.fromAlarm(alarm));</b>
+&nbsp;                    break;
+&nbsp;                case ALARM_ACK_RPC_MESSAGE:
+<b class="nc">&nbsp;                    Alarm alarmToAck = edgeCtx.getAlarmService().findAlarmById(tenantId, alarmId);</b>
+<b class="nc">&nbsp;                    if (alarmToAck != null) {</b>
+<b class="nc">&nbsp;                        edgeCtx.getAlarmService().acknowledgeAlarm(tenantId, alarmId, alarm.getAckTs());</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case ALARM_CLEAR_RPC_MESSAGE:
+<b class="nc">&nbsp;                    Alarm alarmToClear = edgeCtx.getAlarmService().findAlarmById(tenantId, alarmId);</b>
+<b class="nc">&nbsp;                    if (alarmToClear != null) {</b>
+<b class="nc">&nbsp;                        edgeCtx.getAlarmService().clearAlarm(tenantId, alarmId, alarm.getClearTs(), alarm.getDetails(), true);</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case ENTITY_DELETED_RPC_MESSAGE:
+<b class="nc">&nbsp;                    Alarm alarmToDelete = edgeCtx.getAlarmService().findAlarmById(tenantId, alarmId);</b>
+<b class="nc">&nbsp;                    if (alarmToDelete != null) {</b>
+<b class="nc">&nbsp;                        edgeCtx.getAlarmService().delAlarm(tenantId, alarmId);</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case UNRECOGNIZED:
+&nbsp;                default:
+<b class="nc">&nbsp;                    return handleUnsupportedMsgType(alarmUpdateMsg.getMsgType());</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to process alarm update msg [{}]&quot;, tenantId, alarmUpdateMsg, e);</b>
+<b class="nc">&nbsp;            return Futures.immediateFailedFuture(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.immediateFuture(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ListenableFuture&lt;Void&gt; processAlarmCommentMsg(TenantId tenantId, AlarmCommentUpdateMsg alarmCommentUpdateMsg) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] processAlarmCommentMsg [{}]&quot;, tenantId, alarmCommentUpdateMsg);</b>
+<b class="nc">&nbsp;        AlarmComment alarmComment = JacksonUtil.fromString(alarmCommentUpdateMsg.getEntity(), AlarmComment.class, true);</b>
+<b class="nc">&nbsp;        if (alarmComment == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;[{&quot; + tenantId + &quot;}] alarmCommentUpdateMsg {&quot; + alarmCommentUpdateMsg + &quot;} cannot be converted to alarm comment&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            Alarm alarm = edgeCtx.getAlarmService().findAlarmById(tenantId, new AlarmId(alarmComment.getAlarmId().getId()));</b>
+<b class="nc">&nbsp;            if (alarm == null) {</b>
+<b class="nc">&nbsp;                return Futures.immediateFuture(null);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            switch (alarmCommentUpdateMsg.getMsgType()) {</b>
+&nbsp;                case ENTITY_CREATED_RPC_MESSAGE:
+<b class="nc">&nbsp;                    alarmCommentDao.save(tenantId, alarmComment);</b>
+&nbsp;                    break;
+&nbsp;                case ENTITY_UPDATED_RPC_MESSAGE:
+<b class="nc">&nbsp;                    edgeCtx.getAlarmCommentService().createOrUpdateAlarmComment(tenantId, alarmComment);</b>
+&nbsp;                    break;
+&nbsp;                case ENTITY_DELETED_RPC_MESSAGE:
+<b class="nc">&nbsp;                    AlarmComment alarmCommentToDelete = edgeCtx.getAlarmCommentService().findAlarmCommentById(tenantId, alarmComment.getId());</b>
+<b class="nc">&nbsp;                    if (alarmCommentToDelete != null) {</b>
+<b class="nc">&nbsp;                        edgeCtx.getAlarmCommentService().saveAlarmComment(tenantId, alarmCommentToDelete);</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case UNRECOGNIZED:
+&nbsp;                default:
+<b class="nc">&nbsp;                    return handleUnsupportedMsgType(alarmCommentUpdateMsg.getMsgType());</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to process alarm comment update msg [{}]&quot;, tenantId, alarmCommentUpdateMsg, e);</b>
+<b class="nc">&nbsp;            return Futures.immediateFailedFuture(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.immediateFuture(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected List&lt;ListenableFuture&lt;Void&gt;&gt; pushEventToAllRelatedEdges(TenantId tenantId, EntityId originatorId, AlarmId alarmId,
+&nbsp;                                                                      EdgeEventActionType actionType, JsonNode body, EdgeId sourceEdgeId,
+&nbsp;                                                                      EdgeEventType edgeEventType) {
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;Void&gt;&gt; futures = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        PageDataIterableByTenantIdEntityId&lt;EdgeId&gt; edgeIds =</b>
+<b class="nc">&nbsp;                new PageDataIterableByTenantIdEntityId&lt;&gt;(edgeCtx.getEdgeService()::findRelatedEdgeIdsByEntityId, tenantId, originatorId, RELATED_EDGES_CACHE_ITEMS);</b>
+<b class="nc">&nbsp;        for (EdgeId relatedEdgeId : edgeIds) {</b>
+<b class="nc">&nbsp;            if (!relatedEdgeId.equals(sourceEdgeId)) {</b>
+<b class="nc">&nbsp;                futures.add(saveEdgeEvent(tenantId, relatedEdgeId, edgeEventType, actionType, alarmId, body));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return futures;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbRuleEngineConsumerService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbRuleEngineConsumerService (org.thingsboard.server.service.queue)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbRuleEngineConsumerService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/98)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue;
+&nbsp;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.context.event.EventListener;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.QueueId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.queue.Queue;
+&nbsp;import org.thingsboard.server.common.data.rpc.RpcError;
+&nbsp;import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+&nbsp;import org.thingsboard.server.common.util.ProtoUtils;
+&nbsp;import org.thingsboard.server.dao.queue.QueueService;
+&nbsp;import org.thingsboard.server.dao.resource.TbResourceDataCache;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.QueueDeleteMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.QueueUpdateMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.util.TbRuleEngineComponent;
+&nbsp;import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+&nbsp;import org.thingsboard.server.service.cf.CalculatedFieldCache;
+&nbsp;import org.thingsboard.server.service.profile.TbAssetProfileCache;
+&nbsp;import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+&nbsp;import org.thingsboard.server.service.queue.processing.AbstractPartitionBasedConsumerService;
+&nbsp;import org.thingsboard.server.service.queue.ruleengine.TbRuleEngineConsumerContext;
+&nbsp;import org.thingsboard.server.service.queue.ruleengine.TbRuleEngineQueueConsumerManager;
+&nbsp;import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbRuleEngineComponent
+&nbsp;public class DefaultTbRuleEngineConsumerService extends AbstractPartitionBasedConsumerService&lt;ToRuleEngineNotificationMsg&gt; implements TbRuleEngineConsumerService {
+&nbsp;
+&nbsp;    private final TbRuleEngineConsumerContext ctx;
+&nbsp;    private final QueueService queueService;
+&nbsp;    private final TbRuleEngineDeviceRpcService tbDeviceRpcService;
+&nbsp;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;QueueKey, TbRuleEngineQueueConsumerManager&gt; consumers = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    public DefaultTbRuleEngineConsumerService(TbRuleEngineConsumerContext ctx,
+&nbsp;                                              ActorSystemContext actorContext,
+&nbsp;                                              TbRuleEngineDeviceRpcService tbDeviceRpcService,
+&nbsp;                                              QueueService queueService,
+&nbsp;                                              TbDeviceProfileCache deviceProfileCache,
+&nbsp;                                              TbAssetProfileCache assetProfileCache,
+&nbsp;                                              TbResourceDataCache tbResourceDataCache,
+&nbsp;                                              TbTenantProfileCache tenantProfileCache,
+&nbsp;                                              TbApiUsageStateService apiUsageStateService,
+&nbsp;                                              PartitionService partitionService,
+&nbsp;                                              ApplicationEventPublisher eventPublisher,
+&nbsp;                                              JwtSettingsService jwtSettingsService,
+&nbsp;                                              CalculatedFieldCache calculatedFieldCache) {
+<b class="nc">&nbsp;        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, tbResourceDataCache, calculatedFieldCache, apiUsageStateService, partitionService, eventPublisher, jwtSettingsService);</b>
+<b class="nc">&nbsp;        this.ctx = ctx;</b>
+<b class="nc">&nbsp;        this.tbDeviceRpcService = tbDeviceRpcService;</b>
+<b class="nc">&nbsp;        this.queueService = queueService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onStartUp() {
+<b class="nc">&nbsp;        List&lt;Queue&gt; queues = queueService.findAllQueues();</b>
+<b class="nc">&nbsp;        for (Queue configuration : queues) {</b>
+<b class="nc">&nbsp;            if (partitionService.isManagedByCurrentService(configuration.getTenantId())) {</b>
+<b class="nc">&nbsp;                QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, configuration);</b>
+<b class="nc">&nbsp;                createConsumer(queueKey, configuration);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onPartitionChangeEvent(PartitionChangeEvent event) {
+<b class="nc">&nbsp;        event.getNewPartitions().forEach((queueKey, partitions) -&gt; {</b>
+<b class="nc">&nbsp;            if (DataConstants.CF_QUEUE_NAME.equals(queueKey.getQueueName()) || DataConstants.CF_STATES_QUEUE_NAME.equals(queueKey.getQueueName())) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (partitionService.isManagedByCurrentService(queueKey.getTenantId())) {</b>
+<b class="nc">&nbsp;                var consumer = getConsumer(queueKey).orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;                    Queue config = queueService.findQueueByTenantIdAndName(queueKey.getTenantId(), queueKey.getQueueName());</b>
+<b class="nc">&nbsp;                    if (config == null) {</b>
+<b class="nc">&nbsp;                        if (!partitions.isEmpty()) {</b>
+<b class="nc">&nbsp;                            log.error(&quot;[{}] Queue configuration is missing&quot;, queueKey, new RuntimeException(&quot;stacktrace&quot;));</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        return null;</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return createConsumer(queueKey, config);</b>
+&nbsp;                });
+<b class="nc">&nbsp;                if (consumer != null) {</b>
+<b class="nc">&nbsp;                    consumer.update(partitions);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        consumers.keySet().stream()</b>
+<b class="nc">&nbsp;                .collect(Collectors.groupingBy(QueueKey::getTenantId))</b>
+<b class="nc">&nbsp;                .forEach((tenantId, queueKeys) -&gt; {</b>
+<b class="nc">&nbsp;                    if (!partitionService.isManagedByCurrentService(tenantId)) {</b>
+<b class="nc">&nbsp;                        queueKeys.forEach(queueKey -&gt; {</b>
+<b class="nc">&nbsp;                            removeConsumer(queueKey).ifPresent(TbRuleEngineQueueConsumerManager::stop);</b>
+&nbsp;                        });
+&nbsp;                    }
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void stopConsumers() {
+<b class="nc">&nbsp;        super.stopConsumers();</b>
+<b class="nc">&nbsp;        consumers.values().forEach(TbRuleEngineQueueConsumerManager::stop);</b>
+<b class="nc">&nbsp;        consumers.values().forEach(TbRuleEngineQueueConsumerManager::awaitStop);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ServiceType getServiceType() {
+<b class="nc">&nbsp;        return ServiceType.TB_RULE_ENGINE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getPrefix() {
+<b class="nc">&nbsp;        return &quot;tb-rule-engine&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPollDuration() {
+<b class="nc">&nbsp;        return ctx.getPollDuration();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPackProcessingTimeout() {
+<b class="nc">&nbsp;        return ctx.getPackProcessingTimeout();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected int getMgmtThreadPoolSize() {
+<b class="nc">&nbsp;        return ctx.getMgmtThreadPoolSize();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToRuleEngineNotificationMsg&gt;&gt; createNotificationsConsumer() {
+<b class="nc">&nbsp;        return ctx.getQueueFactory().createToRuleEngineNotificationsMsgConsumer();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void handleNotification(UUID id, TbProtoQueueMsg&lt;ToRuleEngineNotificationMsg&gt; msg, TbCallback callback) {
+<b class="nc">&nbsp;        ToRuleEngineNotificationMsg nfMsg = msg.getValue();</b>
+<b class="nc">&nbsp;        if (nfMsg.hasComponentLifecycle()) {</b>
+<b class="nc">&nbsp;            handleComponentLifecycleMsg(id, ProtoUtils.fromProto(nfMsg.getComponentLifecycle()));</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (nfMsg.hasFromDeviceRpcResponse()) {</b>
+<b class="nc">&nbsp;            TransportProtos.FromDeviceRPCResponseProto proto = nfMsg.getFromDeviceRpcResponse();</b>
+<b class="nc">&nbsp;            RpcError error = proto.getError() &gt; 0 ? RpcError.values()[proto.getError()] : null;</b>
+<b class="nc">&nbsp;            FromDeviceRpcResponse response = new FromDeviceRpcResponse(new UUID(proto.getRequestIdMSB(), proto.getRequestIdLSB())</b>
+<b class="nc">&nbsp;                    , proto.getResponse(), error);</b>
+<b class="nc">&nbsp;            tbDeviceRpcService.processRpcResponseFromDevice(response);</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (nfMsg.getQueueUpdateMsgsCount() &gt; 0) {</b>
+<b class="nc">&nbsp;            updateQueues(nfMsg.getQueueUpdateMsgsList());</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;        } else if (nfMsg.getQueueDeleteMsgsCount() &gt; 0) {</b>
+<b class="nc">&nbsp;            deleteQueues(nfMsg.getQueueDeleteMsgsList());</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Received notification with missing handler&quot;);</b>
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateQueues(List&lt;QueueUpdateMsg&gt; queueUpdateMsgs) {
+<b class="nc">&nbsp;        for (QueueUpdateMsg queueUpdateMsg : queueUpdateMsgs) {</b>
+<b class="nc">&nbsp;            log.info(&quot;Received queue update msg: [{}]&quot;, queueUpdateMsg);</b>
+<b class="nc">&nbsp;            TenantId tenantId = TenantId.fromUUID(new UUID(queueUpdateMsg.getTenantIdMSB(), queueUpdateMsg.getTenantIdLSB()));</b>
+<b class="nc">&nbsp;            if (partitionService.isManagedByCurrentService(tenantId)) {</b>
+<b class="nc">&nbsp;                QueueId queueId = new QueueId(new UUID(queueUpdateMsg.getQueueIdMSB(), queueUpdateMsg.getQueueIdLSB()));</b>
+<b class="nc">&nbsp;                String queueName = queueUpdateMsg.getQueueName();</b>
+<b class="nc">&nbsp;                QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queueName, tenantId);</b>
+<b class="nc">&nbsp;                Queue queue = queueService.findQueueById(tenantId, queueId);</b>
+&nbsp;
+<b class="nc">&nbsp;                getConsumer(queueKey).ifPresentOrElse(consumer -&gt; consumer.update(queue),</b>
+<b class="nc">&nbsp;                        () -&gt; createConsumer(queueKey, queue));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        partitionService.updateQueues(queueUpdateMsgs);</b>
+<b class="nc">&nbsp;        partitionService.recalculatePartitions(ctx.getServiceInfoProvider().getServiceInfo(),</b>
+<b class="nc">&nbsp;                new ArrayList&lt;&gt;(partitionService.getOtherServices(ServiceType.TB_RULE_ENGINE)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteQueues(List&lt;QueueDeleteMsg&gt; queueDeleteMsgs) {
+<b class="nc">&nbsp;        for (QueueDeleteMsg queueDeleteMsg : queueDeleteMsgs) {</b>
+<b class="nc">&nbsp;            log.info(&quot;Received queue delete msg: [{}]&quot;, queueDeleteMsg);</b>
+<b class="nc">&nbsp;            TenantId tenantId = TenantId.fromUUID(new UUID(queueDeleteMsg.getTenantIdMSB(), queueDeleteMsg.getTenantIdLSB()));</b>
+<b class="nc">&nbsp;            QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queueDeleteMsg.getQueueName(), tenantId);</b>
+<b class="nc">&nbsp;            removeConsumer(queueKey).ifPresent(consumer -&gt; consumer.delete(true));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        partitionService.removeQueues(queueDeleteMsgs);</b>
+<b class="nc">&nbsp;        partitionService.recalculatePartitions(ctx.getServiceInfoProvider().getServiceInfo(), new ArrayList&lt;&gt;(partitionService.getOtherServices(ServiceType.TB_RULE_ENGINE)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener
+&nbsp;    public void handleComponentLifecycleEvent(ComponentLifecycleMsg event) {
+<b class="nc">&nbsp;        if (event.getEntityId().getEntityType() == EntityType.TENANT) {</b>
+<b class="nc">&nbsp;            if (event.getEvent() == ComponentLifecycleEvent.DELETED) {</b>
+<b class="nc">&nbsp;                List&lt;QueueKey&gt; toRemove = consumers.keySet().stream()</b>
+<b class="nc">&nbsp;                        .filter(queueKey -&gt; queueKey.getTenantId().equals(event.getTenantId()))</b>
+<b class="nc">&nbsp;                        .toList();</b>
+<b class="nc">&nbsp;                toRemove.forEach(queueKey -&gt; {</b>
+<b class="nc">&nbsp;                    removeConsumer(queueKey).ifPresent(consumer -&gt; consumer.delete(false));</b>
+&nbsp;                });
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;TbRuleEngineQueueConsumerManager&gt; getConsumer(QueueKey queueKey) {
+<b class="nc">&nbsp;        return Optional.ofNullable(consumers.get(queueKey));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbRuleEngineQueueConsumerManager createConsumer(QueueKey queueKey, Queue queue) {
+<b class="nc">&nbsp;        var consumer = TbRuleEngineQueueConsumerManager.create()</b>
+<b class="nc">&nbsp;                .ctx(ctx)</b>
+<b class="nc">&nbsp;                .queueKey(queueKey)</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumersExecutor)</b>
+<b class="nc">&nbsp;                .scheduler(scheduler)</b>
+<b class="nc">&nbsp;                .taskExecutor(mgmtExecutor)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        consumers.put(queueKey, consumer);</b>
+<b class="nc">&nbsp;        consumer.init(queue);</b>
+<b class="nc">&nbsp;        return consumer;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;TbRuleEngineQueueConsumerManager&gt; removeConsumer(QueueKey queueKey) {
+<b class="nc">&nbsp;        return Optional.ofNullable(consumers.remove(queueKey));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(fixedDelayString = &quot;${queue.rule-engine.stats.print-interval-ms}&quot;)
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        if (ctx.isStatsEnabled()) {</b>
+<b class="nc">&nbsp;            long ts = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            consumers.values().forEach(manager -&gt; manager.printStats(ts));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

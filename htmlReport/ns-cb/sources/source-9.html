@@ -1,0 +1,430 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ThingsboardSecurityConfiguration</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.config</a>
+</div>
+
+<h1>Coverage Summary for Class: ThingsboardSecurityConfiguration (org.thingsboard.server.config)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ThingsboardSecurityConfiguration</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/79)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.config;
+&nbsp;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Qualifier;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+&nbsp;import org.springframework.boot.autoconfigure.security.SecurityProperties;
+&nbsp;import org.springframework.boot.web.servlet.FilterRegistrationBean;
+&nbsp;import org.springframework.context.annotation.Bean;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;import org.springframework.core.annotation.Order;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.security.authentication.AuthenticationManager;
+&nbsp;import org.springframework.security.authentication.ProviderManager;
+&nbsp;import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+&nbsp;import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+&nbsp;import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+&nbsp;import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+&nbsp;import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
+&nbsp;import org.springframework.security.config.http.SessionCreationPolicy;
+&nbsp;import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+&nbsp;import org.springframework.security.web.SecurityFilterChain;
+&nbsp;import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+&nbsp;import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+&nbsp;import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+&nbsp;import org.springframework.security.web.header.writers.CrossOriginOpenerPolicyHeaderWriter.CrossOriginOpenerPolicy;
+&nbsp;import org.springframework.security.web.header.writers.StaticHeadersWriter;
+&nbsp;import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+&nbsp;import org.springframework.web.filter.CorsFilter;
+&nbsp;import org.springframework.web.filter.ShallowEtagHeaderFilter;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2Configuration;
+&nbsp;import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.auth.AuthExceptionHandler;
+&nbsp;import org.thingsboard.server.service.security.auth.extractor.TokenExtractor;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.JwtAuthenticationProvider;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.JwtTokenAuthenticationProcessingFilter;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.RefreshTokenAuthenticationProvider;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.RefreshTokenProcessingFilter;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.SkipPathRequestMatcher;
+&nbsp;import org.thingsboard.server.service.security.auth.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
+&nbsp;import org.thingsboard.server.service.security.auth.pat.ApiKeyAuthenticationProvider;
+&nbsp;import org.thingsboard.server.service.security.auth.pat.ApiKeyTokenAuthenticationProcessingFilter;
+&nbsp;import org.thingsboard.server.service.security.auth.rest.RestAuthenticationProvider;
+&nbsp;import org.thingsboard.server.service.security.auth.rest.RestLoginProcessingFilter;
+&nbsp;import org.thingsboard.server.service.security.auth.rest.RestPublicLoginProcessingFilter;
+&nbsp;import org.thingsboard.server.transport.http.config.PayloadSizeFilter;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.List;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;@Configuration
+&nbsp;@EnableWebSecurity
+&nbsp;@EnableMethodSecurity
+&nbsp;@Order(SecurityProperties.BASIC_AUTH_ORDER)
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;public class ThingsboardSecurityConfiguration {</b>
+&nbsp;
+&nbsp;    public static final String AUTHORIZATION_HEADER = &quot;X-Authorization&quot;;
+&nbsp;    public static final String AUTHORIZATION_HEADER_V2 = &quot;Authorization&quot;;
+&nbsp;    public static final String JWT_TOKEN_QUERY_PARAM = &quot;token&quot;;
+&nbsp;
+&nbsp;    public static final String API_KEY_HEADER_PREFIX = &quot;ApiKey &quot;;
+&nbsp;    public static final String BEARER_HEADER_PREFIX = &quot;Bearer &quot;;
+&nbsp;
+&nbsp;    public static final String DEVICE_API_ENTRY_POINT = &quot;/api/v1/**&quot;;
+&nbsp;    public static final String FORM_BASED_LOGIN_ENTRY_POINT = &quot;/api/auth/login&quot;;
+&nbsp;    public static final String PUBLIC_LOGIN_ENTRY_POINT = &quot;/api/auth/login/public&quot;;
+&nbsp;    public static final String TOKEN_REFRESH_ENTRY_POINT = &quot;/api/auth/token&quot;;
+<b class="nc">&nbsp;    protected static final String[] NON_TOKEN_BASED_AUTH_ENTRY_POINTS = new String[]{&quot;/index.html&quot;, &quot;/assets/**&quot;, &quot;/static/**&quot;, &quot;/api/noauth/**&quot;, &quot;/webjars/**&quot;, &quot;/api/license/**&quot;, &quot;/api/images/public/**&quot;, &quot;/.well-known/**&quot;};</b>
+&nbsp;    public static final String TOKEN_BASED_AUTH_ENTRY_POINT = &quot;/api/**&quot;;
+&nbsp;    public static final String WS_ENTRY_POINT = &quot;/api/ws/**&quot;;
+&nbsp;    public static final String MAIL_OAUTH2_PROCESSING_ENTRY_POINT = &quot;/api/admin/mail/oauth2/code&quot;;
+&nbsp;    public static final String DEVICE_CONNECTIVITY_CERTIFICATE_DOWNLOAD_ENTRY_POINT = &quot;/api/device-connectivity/*/certificate/download&quot;;
+&nbsp;
+&nbsp;    @Value(&quot;${server.http.max_payload_size:/api/image*/**=52428800;/api/resource/**=52428800;/api/**=16777216}&quot;)
+&nbsp;    private String maxPayloadSizeConfig;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ThingsboardErrorResponseHandler restAccessDeniedHandler;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    @Qualifier(&quot;oauth2AuthenticationSuccessHandler&quot;)
+&nbsp;    private AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    @Qualifier(&quot;oauth2AuthenticationFailureHandler&quot;)
+&nbsp;    private AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Qualifier(&quot;defaultAuthenticationSuccessHandler&quot;)
+&nbsp;    private AuthenticationSuccessHandler successHandler;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Qualifier(&quot;defaultAuthenticationFailureHandler&quot;)
+&nbsp;    private AuthenticationFailureHandler failureHandler;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RestAuthenticationProvider restAuthenticationProvider;
+&nbsp;    @Autowired
+&nbsp;    private JwtAuthenticationProvider jwtAuthenticationProvider;
+&nbsp;    @Autowired
+&nbsp;    private RefreshTokenAuthenticationProvider refreshTokenAuthenticationProvider;
+&nbsp;    @Autowired
+&nbsp;    private ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    OAuth2Configuration oauth2Configuration;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Qualifier(&quot;jwtHeaderTokenExtractor&quot;)
+&nbsp;    private TokenExtractor jwtHeaderTokenExtractor;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Qualifier(&quot;apiKeyHeaderTokenExtractor&quot;)
+&nbsp;    private TokenExtractor apiKeyHeaderTokenExtractor;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AuthenticationManager authenticationManager;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RateLimitProcessingFilter rateLimitProcessingFilter;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AuthExceptionHandler authExceptionHandler;
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    protected PayloadSizeFilter payloadSizeFilter() {
+<b class="nc">&nbsp;        return new PayloadSizeFilter(maxPayloadSizeConfig);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    protected FilterRegistrationBean&lt;ShallowEtagHeaderFilter&gt; buildEtagFilter() {
+<b class="nc">&nbsp;        ShallowEtagHeaderFilter etagFilter = new ShallowEtagHeaderFilter();</b>
+<b class="nc">&nbsp;        etagFilter.setWriteWeakETag(true);</b>
+<b class="nc">&nbsp;        FilterRegistrationBean&lt;ShallowEtagHeaderFilter&gt; filterRegistrationBean</b>
+&nbsp;                = new FilterRegistrationBean&lt;&gt;(etagFilter);
+<b class="nc">&nbsp;        filterRegistrationBean.addUrlPatterns(&quot;*.js&quot;, &quot;*.css&quot;, &quot;*.ico&quot;, &quot;/assets/*&quot;, &quot;/static/*&quot;);</b>
+<b class="nc">&nbsp;        filterRegistrationBean.setName(&quot;etagFilter&quot;);</b>
+<b class="nc">&nbsp;        return filterRegistrationBean;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    protected RestLoginProcessingFilter buildRestLoginProcessingFilter() {
+<b class="nc">&nbsp;        RestLoginProcessingFilter filter = new RestLoginProcessingFilter(FORM_BASED_LOGIN_ENTRY_POINT, successHandler, failureHandler);</b>
+<b class="nc">&nbsp;        filter.setAuthenticationManager(this.authenticationManager);</b>
+<b class="nc">&nbsp;        return filter;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    protected RestPublicLoginProcessingFilter buildRestPublicLoginProcessingFilter() {
+<b class="nc">&nbsp;        RestPublicLoginProcessingFilter filter = new RestPublicLoginProcessingFilter(PUBLIC_LOGIN_ENTRY_POINT, successHandler, failureHandler);</b>
+<b class="nc">&nbsp;        filter.setAuthenticationManager(this.authenticationManager);</b>
+<b class="nc">&nbsp;        return filter;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter() {
+<b class="nc">&nbsp;        SkipPathRequestMatcher matcher = buildSkipPathRequestMatcher();</b>
+<b class="nc">&nbsp;        JwtTokenAuthenticationProcessingFilter filter</b>
+&nbsp;                = new JwtTokenAuthenticationProcessingFilter(failureHandler, jwtHeaderTokenExtractor, matcher);
+<b class="nc">&nbsp;        filter.setAuthenticationManager(this.authenticationManager);</b>
+<b class="nc">&nbsp;        return filter;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    protected ApiKeyTokenAuthenticationProcessingFilter buildApiKeyTokenAuthenticationProcessingFilter() {
+<b class="nc">&nbsp;        SkipPathRequestMatcher matcher = buildSkipPathRequestMatcher();</b>
+<b class="nc">&nbsp;        ApiKeyTokenAuthenticationProcessingFilter filter =</b>
+&nbsp;                new ApiKeyTokenAuthenticationProcessingFilter(failureHandler, apiKeyHeaderTokenExtractor, matcher);
+<b class="nc">&nbsp;        filter.setAuthenticationManager(this.authenticationManager);</b>
+<b class="nc">&nbsp;        return filter;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private SkipPathRequestMatcher buildSkipPathRequestMatcher() {
+<b class="nc">&nbsp;        List&lt;String&gt; pathsToSkip = Stream.concat(</b>
+<b class="nc">&nbsp;                Arrays.stream(NON_TOKEN_BASED_AUTH_ENTRY_POINTS),</b>
+<b class="nc">&nbsp;                Stream.of(</b>
+&nbsp;                        WS_ENTRY_POINT,
+&nbsp;                        TOKEN_REFRESH_ENTRY_POINT,
+&nbsp;                        FORM_BASED_LOGIN_ENTRY_POINT,
+&nbsp;                        PUBLIC_LOGIN_ENTRY_POINT,
+&nbsp;                        DEVICE_API_ENTRY_POINT,
+&nbsp;                        MAIL_OAUTH2_PROCESSING_ENTRY_POINT,
+<b class="nc">&nbsp;                        DEVICE_CONNECTIVITY_CERTIFICATE_DOWNLOAD_ENTRY_POINT)).toList();</b>
+<b class="nc">&nbsp;        return new SkipPathRequestMatcher(pathsToSkip, TOKEN_BASED_AUTH_ENTRY_POINT);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    protected RefreshTokenProcessingFilter buildRefreshTokenProcessingFilter() {
+<b class="nc">&nbsp;        RefreshTokenProcessingFilter filter = new RefreshTokenProcessingFilter(TOKEN_REFRESH_ENTRY_POINT, successHandler, failureHandler);</b>
+<b class="nc">&nbsp;        filter.setAuthenticationManager(this.authenticationManager);</b>
+<b class="nc">&nbsp;        return filter;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public AuthenticationManager authenticationManager() {
+<b class="nc">&nbsp;        return new ProviderManager(List.of(</b>
+&nbsp;                restAuthenticationProvider,
+&nbsp;                jwtAuthenticationProvider,
+&nbsp;                apiKeyAuthenticationProvider,
+&nbsp;                refreshTokenAuthenticationProvider
+&nbsp;        ));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private OAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver;
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    @Order(0)
+&nbsp;    SecurityFilterChain resources(HttpSecurity http) throws Exception {
+<b class="nc">&nbsp;        http</b>
+<b class="nc">&nbsp;                .securityMatchers(matchers -&gt; matchers</b>
+<b class="nc">&nbsp;                        .requestMatchers(&quot;/*.js&quot;, &quot;/*.css&quot;, &quot;/*.ico&quot;, &quot;/assets/**&quot;, &quot;/static/**&quot;))</b>
+<b class="nc">&nbsp;                .headers(header -&gt; header</b>
+<b class="nc">&nbsp;                        .defaultsDisabled()</b>
+<b class="nc">&nbsp;                        .addHeaderWriter(new StaticHeadersWriter(HttpHeaders.CACHE_CONTROL, &quot;max-age=0, public&quot;)))</b>
+<b class="nc">&nbsp;                .authorizeHttpRequests((authorize) -&gt; authorize.anyRequest().permitAll())</b>
+<b class="nc">&nbsp;                .requestCache(RequestCacheConfigurer::disable)</b>
+<b class="nc">&nbsp;                .securityContext(AbstractHttpConfigurer::disable)</b>
+<b class="nc">&nbsp;                .sessionManagement(AbstractHttpConfigurer::disable);</b>
+<b class="nc">&nbsp;        return http.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+<b class="nc">&nbsp;        http.headers(headers -&gt; headers.defaultsDisabled()</b>
+<b class="nc">&nbsp;                        .crossOriginOpenerPolicy(coop -&gt; coop.policy(CrossOriginOpenerPolicy.SAME_ORIGIN)))</b>
+<b class="nc">&nbsp;                .cors(cors -&gt; {})</b>
+<b class="nc">&nbsp;                .csrf(AbstractHttpConfigurer::disable)</b>
+<b class="nc">&nbsp;                .exceptionHandling(config -&gt; {})</b>
+<b class="nc">&nbsp;                .sessionManagement(config -&gt; config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</b>
+<b class="nc">&nbsp;                .authorizeHttpRequests(config -&gt; config</b>
+<b class="nc">&nbsp;                        .requestMatchers(NON_TOKEN_BASED_AUTH_ENTRY_POINTS).permitAll() // static resources, user activation and password reset end-points (webjars included)</b>
+<b class="nc">&nbsp;                        .requestMatchers(</b>
+&nbsp;                                FORM_BASED_LOGIN_ENTRY_POINT, // Login end-point
+&nbsp;                                PUBLIC_LOGIN_ENTRY_POINT, // Public login end-point
+&nbsp;                                TOKEN_REFRESH_ENTRY_POINT, // Token refresh end-point
+&nbsp;                                MAIL_OAUTH2_PROCESSING_ENTRY_POINT, // Mail oauth2 code processing url
+&nbsp;                                DEVICE_CONNECTIVITY_CERTIFICATE_DOWNLOAD_ENTRY_POINT, // Device connectivity certificate (public)
+<b class="nc">&nbsp;                                WS_ENTRY_POINT).permitAll() // Protected WebSocket API End-points</b>
+<b class="nc">&nbsp;                        .requestMatchers(TOKEN_BASED_AUTH_ENTRY_POINT).authenticated() // Protected API End-points</b>
+<b class="nc">&nbsp;                        .anyRequest().permitAll())</b>
+<b class="nc">&nbsp;                .exceptionHandling(config -&gt; config.accessDeniedHandler(restAccessDeniedHandler))</b>
+<b class="nc">&nbsp;                .addFilterBefore(buildRestLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)</b>
+<b class="nc">&nbsp;                .addFilterBefore(buildRestPublicLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)</b>
+<b class="nc">&nbsp;                .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)</b>
+<b class="nc">&nbsp;                .addFilterBefore(buildApiKeyTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)</b>
+<b class="nc">&nbsp;                .addFilterBefore(buildRefreshTokenProcessingFilter(), UsernamePasswordAuthenticationFilter.class)</b>
+<b class="nc">&nbsp;                .addFilterBefore(payloadSizeFilter(), UsernamePasswordAuthenticationFilter.class)</b>
+<b class="nc">&nbsp;                .addFilterAfter(rateLimitProcessingFilter, UsernamePasswordAuthenticationFilter.class)</b>
+<b class="nc">&nbsp;                .addFilterBefore(authExceptionHandler, buildRestLoginProcessingFilter().getClass());</b>
+<b class="nc">&nbsp;        if (oauth2Configuration != null) {</b>
+<b class="nc">&nbsp;            http.oauth2Login(login -&gt; login</b>
+<b class="nc">&nbsp;                    .authorizationEndpoint(config -&gt; config</b>
+<b class="nc">&nbsp;                            .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)</b>
+<b class="nc">&nbsp;                            .authorizationRequestResolver(oAuth2AuthorizationRequestResolver))</b>
+<b class="nc">&nbsp;                    .loginPage(&quot;/oauth2Login&quot;)</b>
+<b class="nc">&nbsp;                    .loginProcessingUrl(oauth2Configuration.getLoginProcessingUrl())</b>
+<b class="nc">&nbsp;                    .successHandler(oauth2AuthenticationSuccessHandler)</b>
+<b class="nc">&nbsp;                    .failureHandler(oauth2AuthenticationFailureHandler));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return http.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    @ConditionalOnMissingBean(CorsFilter.class)
+&nbsp;    public CorsFilter corsFilter(@Autowired MvcCorsProperties mvcCorsProperties) {
+<b class="nc">&nbsp;        if (mvcCorsProperties.getMappings().isEmpty()) {</b>
+<b class="nc">&nbsp;            return new CorsFilter(new UrlBasedCorsConfigurationSource());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();</b>
+<b class="nc">&nbsp;            source.setCorsConfigurations(mvcCorsProperties.getMappings());</b>
+<b class="nc">&nbsp;            return new CorsFilter(source);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

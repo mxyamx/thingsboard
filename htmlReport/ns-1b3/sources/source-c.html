@@ -1,0 +1,298 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbMsgPackProcessingContext</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: TbMsgPackProcessingContext (org.thingsboard.server.service.queue)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbMsgPackProcessingContext</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/66)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.queue.RuleEngineException;
+&nbsp;import org.thingsboard.server.common.msg.queue.RuleNodeInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.service.queue.processing.TbRuleEngineSubmitStrategy;
+&nbsp;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbMsgPackProcessingContext {
+&nbsp;
+&nbsp;    private final String queueName;
+&nbsp;    private final TbRuleEngineSubmitStrategy submitStrategy;
+&nbsp;    private final boolean skipTimeoutMsgsPossible;
+&nbsp;    @Getter
+&nbsp;    private final boolean profilerEnabled;
+&nbsp;    private final AtomicInteger pendingCount;
+<b class="nc">&nbsp;    private final CountDownLatch processingTimeoutLatch = new CountDownLatch(1);</b>
+&nbsp;    @Getter
+&nbsp;    private final ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;TransportProtos.ToRuleEngineMsg&gt;&gt; pendingMap;
+<b class="nc">&nbsp;    @Getter</b>
+&nbsp;    private final ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;TransportProtos.ToRuleEngineMsg&gt;&gt; successMap = new ConcurrentHashMap&lt;&gt;();
+<b class="nc">&nbsp;    @Getter</b>
+&nbsp;    private final ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;TransportProtos.ToRuleEngineMsg&gt;&gt; failedMap = new ConcurrentHashMap&lt;&gt;();
+<b class="nc">&nbsp;    @Getter</b>
+&nbsp;    private final ConcurrentMap&lt;TenantId, RuleEngineException&gt; exceptionsMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;UUID, RuleNodeInfo&gt; lastRuleNodeMap = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    private volatile boolean canceled = false;</b>
+&nbsp;
+<b class="nc">&nbsp;    public TbMsgPackProcessingContext(String queueName, TbRuleEngineSubmitStrategy submitStrategy, boolean skipTimeoutMsgsPossible) {</b>
+<b class="nc">&nbsp;        this.queueName = queueName;</b>
+<b class="nc">&nbsp;        this.submitStrategy = submitStrategy;</b>
+<b class="nc">&nbsp;        this.skipTimeoutMsgsPossible = skipTimeoutMsgsPossible;</b>
+<b class="nc">&nbsp;        this.profilerEnabled = log.isDebugEnabled();</b>
+<b class="nc">&nbsp;        this.pendingMap = submitStrategy.getPendingMap();</b>
+<b class="nc">&nbsp;        this.pendingCount = new AtomicInteger(pendingMap.size());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean await(long packProcessingTimeout, TimeUnit milliseconds) throws InterruptedException {
+<b class="nc">&nbsp;        boolean success = processingTimeoutLatch.await(packProcessingTimeout, milliseconds);</b>
+<b class="nc">&nbsp;        if (!success &amp;&amp; profilerEnabled) {</b>
+<b class="nc">&nbsp;            msgProfilerMap.values().forEach(this::onTimeout);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return success;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onSuccess(UUID id) {
+&nbsp;        TbProtoQueueMsg&lt;TransportProtos.ToRuleEngineMsg&gt; msg;
+<b class="nc">&nbsp;        boolean empty = false;</b>
+<b class="nc">&nbsp;        msg = pendingMap.remove(id);</b>
+<b class="nc">&nbsp;        if (msg != null) {</b>
+<b class="nc">&nbsp;            empty = pendingCount.decrementAndGet() == 0;</b>
+<b class="nc">&nbsp;            successMap.put(id, msg);</b>
+<b class="nc">&nbsp;            submitStrategy.onSuccess(id);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (empty) {</b>
+<b class="nc">&nbsp;            processingTimeoutLatch.countDown();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onFailure(TenantId tenantId, UUID id, RuleEngineException e) {
+&nbsp;        TbProtoQueueMsg&lt;TransportProtos.ToRuleEngineMsg&gt; msg;
+<b class="nc">&nbsp;        boolean empty = false;</b>
+<b class="nc">&nbsp;        msg = pendingMap.remove(id);</b>
+<b class="nc">&nbsp;        if (msg != null) {</b>
+<b class="nc">&nbsp;            empty = pendingCount.decrementAndGet() == 0;</b>
+<b class="nc">&nbsp;            failedMap.put(id, msg);</b>
+<b class="nc">&nbsp;            exceptionsMap.putIfAbsent(tenantId, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (empty) {</b>
+<b class="nc">&nbsp;            processingTimeoutLatch.countDown();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final ConcurrentHashMap&lt;UUID, TbMsgProfilerInfo&gt; msgProfilerMap = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentHashMap&lt;UUID, TbRuleNodeProfilerInfo&gt; ruleNodeProfilerMap = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    public void onProcessingStart(UUID id, RuleNodeInfo ruleNodeInfo) {
+<b class="nc">&nbsp;        lastRuleNodeMap.put(id, ruleNodeInfo);</b>
+<b class="nc">&nbsp;        if (profilerEnabled) {</b>
+<b class="nc">&nbsp;            msgProfilerMap.computeIfAbsent(id, TbMsgProfilerInfo::new).onStart(ruleNodeInfo.getRuleNodeId());</b>
+<b class="nc">&nbsp;            ruleNodeProfilerMap.putIfAbsent(ruleNodeInfo.getRuleNodeId().getId(), new TbRuleNodeProfilerInfo(ruleNodeInfo));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onProcessingEnd(UUID id, RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        if (profilerEnabled) {</b>
+<b class="nc">&nbsp;            long processingTime = msgProfilerMap.computeIfAbsent(id, TbMsgProfilerInfo::new).onEnd(ruleNodeId);</b>
+<b class="nc">&nbsp;            if (processingTime &gt; 0) {</b>
+<b class="nc">&nbsp;                ruleNodeProfilerMap.computeIfAbsent(ruleNodeId.getId(), TbRuleNodeProfilerInfo::new).record(processingTime);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onTimeout(TbMsgProfilerInfo profilerInfo) {
+<b class="nc">&nbsp;        Map.Entry&lt;UUID, Long&gt; ruleNodeInfo = profilerInfo.onTimeout();</b>
+<b class="nc">&nbsp;        if (ruleNodeInfo != null) {</b>
+<b class="nc">&nbsp;            ruleNodeProfilerMap.computeIfAbsent(ruleNodeInfo.getKey(), TbRuleNodeProfilerInfo::new).record(ruleNodeInfo.getValue());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public RuleNodeInfo getLastVisitedRuleNode(UUID id) {
+<b class="nc">&nbsp;        return lastRuleNodeMap.get(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void printProfilerStats() {
+<b class="nc">&nbsp;        if (profilerEnabled) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Top Rule Nodes by max execution time:&quot;);</b>
+<b class="nc">&nbsp;            ruleNodeProfilerMap.values().stream()</b>
+<b class="nc">&nbsp;                    .sorted(Comparator.comparingLong(TbRuleNodeProfilerInfo::getMaxExecutionTime).reversed()).limit(5)</b>
+<b class="nc">&nbsp;                    .forEach(info -&gt; log.debug(&quot;[{}][{}] max execution time: {}. {}&quot;, queueName, info.getRuleNodeId(), info.getMaxExecutionTime(), info.getLabel()));</b>
+&nbsp;
+<b class="nc">&nbsp;            log.info(&quot;Top Rule Nodes by avg execution time:&quot;);</b>
+<b class="nc">&nbsp;            ruleNodeProfilerMap.values().stream()</b>
+<b class="nc">&nbsp;                    .sorted(Comparator.comparingDouble(TbRuleNodeProfilerInfo::getAvgExecutionTime).reversed()).limit(5)</b>
+<b class="nc">&nbsp;                    .forEach(info -&gt; log.info(&quot;[{}][{}] avg execution time: {}. {}&quot;, queueName, info.getRuleNodeId(), info.getAvgExecutionTime(), info.getLabel()));</b>
+&nbsp;
+<b class="nc">&nbsp;            log.info(&quot;Top Rule Nodes by execution count:&quot;);</b>
+<b class="nc">&nbsp;            ruleNodeProfilerMap.values().stream()</b>
+<b class="nc">&nbsp;                    .sorted(Comparator.comparingInt(TbRuleNodeProfilerInfo::getExecutionCount).reversed()).limit(5)</b>
+<b class="nc">&nbsp;                    .forEach(info -&gt; log.info(&quot;[{}][{}] execution count: {}. {}&quot;, queueName, info.getRuleNodeId(), info.getExecutionCount(), info.getLabel()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void cleanup() {
+<b class="nc">&nbsp;        canceled = true;</b>
+<b class="nc">&nbsp;        pendingMap.clear();</b>
+<b class="nc">&nbsp;        successMap.clear();</b>
+<b class="nc">&nbsp;        failedMap.clear();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isCanceled() {
+<b class="nc">&nbsp;        return skipTimeoutMsgsPossible &amp;&amp; canceled;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

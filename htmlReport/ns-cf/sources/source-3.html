@@ -1,0 +1,338 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DaoUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao</a>
+</div>
+
+<h1>Coverage Summary for Class: DaoUtil (org.thingsboard.server.dao)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DaoUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/66)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.domain.Slice;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UUIDBased;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.page.SortOrder;
+&nbsp;import org.thingsboard.server.dao.model.ToData;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.function.Consumer;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;public final class DaoUtil {
+&nbsp;
+&nbsp;    private DaoUtil() {}
+&nbsp;
+&nbsp;    public static &lt;T&gt; PageData&lt;T&gt; toPageData(Page&lt;? extends ToData&lt;T&gt;&gt; page) {
+<b class="nc">&nbsp;        List&lt;T&gt; data = convertDataList(page.getContent());</b>
+<b class="nc">&nbsp;        return new PageData&lt;&gt;(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; PageData&lt;T&gt; pageToPageData(Slice&lt;T&gt; slice) {
+&nbsp;        int totalPages;
+&nbsp;        long totalElements;
+<b class="nc">&nbsp;        if (slice instanceof Page&lt;T&gt; page) {</b>
+<b class="nc">&nbsp;            totalPages = page.getTotalPages();</b>
+<b class="nc">&nbsp;            totalElements = page.getTotalElements();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            totalPages = 0;</b>
+<b class="nc">&nbsp;            totalElements = 0;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new PageData&lt;&gt;(slice.getContent(), totalPages, totalElements, slice.hasNext());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink) {
+<b class="nc">&nbsp;        return toPageable(pageLink, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink, boolean addDefaultSorting) {
+<b class="nc">&nbsp;        return toPageable(pageLink, Collections.emptyMap(), addDefaultSorting);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink, Map&lt;String, String&gt; columnMap) {
+<b class="nc">&nbsp;        return toPageable(pageLink, columnMap, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink, Map&lt;String, String&gt; columnMap, boolean addDefaultSorting) {
+<b class="nc">&nbsp;        return PageRequest.of(pageLink.getPage(), pageLink.getPageSize(), pageLink.toSort(pageLink.getSortOrder(), columnMap, addDefaultSorting));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink, List&lt;SortOrder&gt; sortOrders) {
+<b class="nc">&nbsp;        return toPageable(pageLink, Collections.emptyMap(), sortOrders);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink, String... sortColumns) {
+<b class="nc">&nbsp;        return toPageable(pageLink, Collections.emptyMap(), Arrays.stream(sortColumns).map(column -&gt; new SortOrder(column, SortOrder.Direction.ASC)).toList(), false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink, Map&lt;String, String&gt; columnMap, List&lt;SortOrder&gt; sortOrders) {
+<b class="nc">&nbsp;        return toPageable(pageLink, columnMap, sortOrders, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Pageable toPageable(PageLink pageLink, Map&lt;String, String&gt; columnMap, List&lt;SortOrder&gt; sortOrders, boolean addDefaultSorting) {
+<b class="nc">&nbsp;        return PageRequest.of(pageLink.getPage(), pageLink.getPageSize(), pageLink.toSort(sortOrders, columnMap, addDefaultSorting));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; List&lt;T&gt; convertDataList(Collection&lt;? extends ToData&lt;T&gt;&gt; toConvert) {
+<b class="nc">&nbsp;        if (CollectionUtils.isEmpty(toConvert)) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;T&gt; converted = new ArrayList&lt;&gt;(toConvert.size());</b>
+<b class="nc">&nbsp;        for (ToData&lt;T&gt; object : toConvert) {</b>
+<b class="nc">&nbsp;            if (object != null) {</b>
+<b class="nc">&nbsp;                converted.add(object.toData());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return converted;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; T getData(ToData&lt;T&gt; data) {
+<b class="nc">&nbsp;        T object = null;</b>
+<b class="nc">&nbsp;        if (data != null) {</b>
+<b class="nc">&nbsp;            object = data.toData();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return object;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; T getData(Optional&lt;? extends ToData&lt;T&gt;&gt; data) {
+<b class="nc">&nbsp;        T object = null;</b>
+<b class="nc">&nbsp;        if (data.isPresent()) {</b>
+<b class="nc">&nbsp;            object = data.get().toData();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return object;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static UUID getId(UUIDBased idBased) {
+<b class="nc">&nbsp;        UUID id = null;</b>
+<b class="nc">&nbsp;        if (idBased != null) {</b>
+<b class="nc">&nbsp;            id = idBased.getId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;UUID&gt; toUUIDs(List&lt;? extends UUIDBased&gt; idBasedIds) {
+<b class="nc">&nbsp;        List&lt;UUID&gt; ids = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (UUIDBased idBased : idBasedIds) {</b>
+<b class="nc">&nbsp;            ids.add(getId(idBased));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ids;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;I&gt; List&lt;I&gt; fromUUIDs(List&lt;UUID&gt; uuids, Function&lt;UUID, I&gt; mapper) {
+<b class="nc">&nbsp;        return uuids.stream().map(mapper).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;I&gt; I toEntityId(UUID uuid, Function&lt;UUID, I&gt; creator) {
+<b class="nc">&nbsp;        if (uuid != null) {</b>
+<b class="nc">&nbsp;            return creator.apply(uuid);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; void processInBatches(Function&lt;PageLink, PageData&lt;T&gt;&gt; finder, int batchSize, Consumer&lt;T&gt; processor) {
+<b class="nc">&nbsp;        processBatches(finder, batchSize, batch -&gt; batch.getData().forEach(processor));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; void processBatches(Function&lt;PageLink, PageData&lt;T&gt;&gt; finder, int batchSize, Consumer&lt;PageData&lt;T&gt;&gt; processor) {
+<b class="nc">&nbsp;        PageLink pageLink = new PageLink(batchSize);</b>
+&nbsp;        PageData&lt;T&gt; batch;
+&nbsp;
+&nbsp;        boolean hasNextBatch;
+&nbsp;        do {
+<b class="nc">&nbsp;            batch = finder.apply(pageLink);</b>
+<b class="nc">&nbsp;            processor.accept(batch);</b>
+&nbsp;
+<b class="nc">&nbsp;            hasNextBatch = batch.hasNext();</b>
+<b class="nc">&nbsp;            pageLink = pageLink.nextPageLink();</b>
+<b class="nc">&nbsp;        } while (hasNextBatch);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String getStringId(UUIDBased id) {
+<b class="nc">&nbsp;        if (id != null) {</b>
+<b class="nc">&nbsp;            return id.toString();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;EntitySubtype&gt; convertTenantEntityTypesToDto(UUID tenantUUID, EntityType entityType, List&lt;String&gt; types) {
+<b class="nc">&nbsp;        if (CollectionUtils.isEmpty(types)) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        TenantId tenantId = TenantId.fromUUID(tenantUUID);</b>
+<b class="nc">&nbsp;        return types.stream()</b>
+<b class="nc">&nbsp;                .map(type -&gt; new EntitySubtype(tenantId, entityType, type))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Deprecated // used only in deprecated DAO api
+&nbsp;    public static List&lt;EntitySubtype&gt; convertTenantEntityInfosToDto(UUID tenantUUID, EntityType entityType, List&lt;EntityInfo&gt; entityInfos) {
+<b class="nc">&nbsp;        if (CollectionUtils.isEmpty(entityInfos)) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var tenantId = TenantId.fromUUID(tenantUUID);</b>
+<b class="nc">&nbsp;        return entityInfos.stream()</b>
+<b class="nc">&nbsp;                .map(info -&gt; new EntitySubtype(tenantId, entityType, info.getName()))</b>
+<b class="nc">&nbsp;                .sorted(Comparator.comparing(EntitySubtype::getType))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > QueueValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.service.validator</a>
+</div>
+
+<h1>Coverage Summary for Class: QueueValidator (org.thingsboard.server.dao.service.validator)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QueueValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.service.validator;
+&nbsp;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.queue.ProcessingStrategy;
+&nbsp;import org.thingsboard.server.common.data.queue.Queue;
+&nbsp;import org.thingsboard.server.common.data.queue.SubmitStrategy;
+&nbsp;import org.thingsboard.server.common.data.queue.SubmitStrategyType;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.queue.QueueDao;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;public class QueueValidator extends DataValidator&lt;Queue&gt; {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private QueueDao queueDao;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    private TbTenantProfileCache tenantProfileCache;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void validateCreate(TenantId tenantId, Queue queue) {
+<b class="nc">&nbsp;        if (queueDao.findQueueByTenantIdAndName(tenantId, queue.getName()) != null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(String.format(&quot;Queue with name: %s already exists!&quot;, queue.getName()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (queueDao.findQueueByTenantIdAndTopic(tenantId, queue.getTopic()) != null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(String.format(&quot;Queue with topic: %s already exists!&quot;, queue.getTopic()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Queue validateUpdate(TenantId tenantId, Queue queue) {
+<b class="nc">&nbsp;        Queue foundQueue = queueDao.findById(tenantId, queue.getUuidId());</b>
+<b class="nc">&nbsp;        if (queueDao.findById(tenantId, queue.getUuidId()) == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(String.format(&quot;Queue with id: %s does not exists!&quot;, queue.getId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!foundQueue.getName().equals(queue.getName())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue name can&#39;t be changed!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!foundQueue.getTopic().equals(queue.getTopic())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue topic can&#39;t be changed!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return foundQueue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void validateDataImpl(TenantId tenantId, Queue queue) {
+<b class="nc">&nbsp;        if (!tenantId.equals(TenantId.SYS_TENANT_ID)) {</b>
+<b class="nc">&nbsp;            TenantProfile tenantProfile = tenantProfileCache.get(tenantId);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (!tenantProfile.isIsolatedTbRuleEngine()) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Tenant should be isolated!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        validateQueueName(queue.getName());</b>
+<b class="nc">&nbsp;        validateQueueTopic(queue.getTopic());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (queue.getPollInterval() &lt; 1) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue poll interval should be more then 0!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (queue.getPartitions() &lt; 1) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue partitions should be more then 0!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (queue.getPackProcessingTimeout() &lt; 1) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue pack processing timeout should be more then 0!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        SubmitStrategy submitStrategy = queue.getSubmitStrategy();</b>
+<b class="nc">&nbsp;        if (submitStrategy == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue submit strategy can&#39;t be null!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (submitStrategy.getType() == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue submit strategy type can&#39;t be null!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (submitStrategy.getType() == SubmitStrategyType.BATCH &amp;&amp; submitStrategy.getBatchSize() &lt; 1) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue submit strategy batch size should be more then 0!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ProcessingStrategy processingStrategy = queue.getProcessingStrategy();</b>
+<b class="nc">&nbsp;        if (processingStrategy == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue processing strategy can&#39;t be null!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (processingStrategy.getType() == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue processing strategy type can&#39;t be null!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (processingStrategy.getRetries() &lt; 0) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue processing strategy retries can&#39;t be less then 0!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (processingStrategy.getFailurePercentage() &lt; 0 || processingStrategy.getFailurePercentage() &gt; 100) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue processing strategy failure percentage should be in a range from 0 to 100!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (processingStrategy.getPauseBetweenRetries() &lt; 0) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue processing strategy pause between retries can&#39;t be less then 0!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (processingStrategy.getMaxPauseBetweenRetries() &lt; processingStrategy.getPauseBetweenRetries()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Queue processing strategy MAX pause between retries can&#39;t be less then pause between retries!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

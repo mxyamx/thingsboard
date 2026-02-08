@@ -1,0 +1,532 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultEdqsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edqs</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultEdqsService (org.thingsboard.server.service.edqs)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultEdqsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/148)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edqs;
+&nbsp;
+&nbsp;import com.google.protobuf.ByteString;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.NoArgsConstructor;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.ObjectType;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsEventType;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsObject;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsState;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsState.EdqsApiMode;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsState.EdqsSyncStatus;
+&nbsp;import org.thingsboard.server.common.data.edqs.EdqsSyncRequest;
+&nbsp;import org.thingsboard.server.common.data.edqs.Entity;
+&nbsp;import org.thingsboard.server.common.data.edqs.ToCoreEdqsMsg;
+&nbsp;import org.thingsboard.server.common.data.edqs.ToCoreEdqsRequest;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.JsonDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.KvEntry;
+&nbsp;import org.thingsboard.server.common.msg.edqs.EdqsApiService;
+&nbsp;import org.thingsboard.server.common.msg.edqs.EdqsService;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.edqs.processor.EdqsProducer;
+&nbsp;import org.thingsboard.server.edqs.state.EdqsPartitionService;
+&nbsp;import org.thingsboard.server.edqs.util.DefaultEdqsMapper;
+&nbsp;import org.thingsboard.server.edqs.util.EdqsMapper;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EdqsEventMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsCoreServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+&nbsp;import org.thingsboard.server.queue.discovery.DiscoveryService;
+&nbsp;import org.thingsboard.server.queue.discovery.HashPartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.environment.DistributedLock;
+&nbsp;import org.thingsboard.server.queue.environment.DistributedLockService;
+&nbsp;import org.thingsboard.server.queue.provider.EdqsClientQueueFactory;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@ConditionalOnProperty(value = &quot;queue.edqs.sync.enabled&quot;, havingValue = &quot;true&quot;)
+&nbsp;public class DefaultEdqsService implements EdqsService {
+&nbsp;
+&nbsp;    private final EdqsClientQueueFactory queueFactory;
+&nbsp;    private final EdqsMapper edqsMapper;
+&nbsp;    private final EdqsSyncService edqsSyncService;
+&nbsp;    private final EdqsApiService edqsApiService;
+&nbsp;    private final DistributedLockService distributedLockService;
+&nbsp;    private final AttributesService attributesService;
+&nbsp;    private final EdqsPartitionService edqsPartitionService;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final DiscoveryService discoveryService;
+&nbsp;    @Autowired @Lazy
+&nbsp;    private TbClusterService clusterService;
+&nbsp;    @Autowired @Lazy
+&nbsp;    private HashPartitionService hashPartitionService;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.edqs.api.auto_enable:true}&quot;)
+&nbsp;    private boolean autoEnableApi;
+&nbsp;    @Value(&quot;${queue.edqs.readiness_check_interval:60000}&quot;)
+&nbsp;    private int edqsReadinessCheckInterval;
+&nbsp;
+&nbsp;    private EdqsProducer eventsProducer;
+&nbsp;    private ExecutorService executor;
+&nbsp;    private ScheduledExecutorService scheduler;
+&nbsp;    private DistributedLock syncLock;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private EdqsState state;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    private void init() {
+<b class="nc">&nbsp;        executor = ThingsBoardExecutors.newWorkStealingPool(12, getClass());</b>
+<b class="nc">&nbsp;        scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor(&quot;edqs-check&quot;);</b>
+<b class="nc">&nbsp;        eventsProducer = EdqsProducer.builder()</b>
+<b class="nc">&nbsp;                .producer(queueFactory.createEdqsEventsProducer())</b>
+<b class="nc">&nbsp;                .partitionService(edqsPartitionService)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        syncLock = distributedLockService.getLock(&quot;edqs_sync&quot;);</b>
+<b class="nc">&nbsp;        state = new EdqsState();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
+&nbsp;    public void onStartUp() {
+<b class="nc">&nbsp;        if (!serviceInfoProvider.isService(ServiceType.TB_CORE)) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (edqsApiService.isSupported()) {</b>
+<b class="nc">&nbsp;            scheduler.scheduleWithFixedDelay(() -&gt; {</b>
+<b class="nc">&nbsp;                if (!hashPartitionService.isSystemPartitionMine(ServiceType.TB_CORE)) {</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                List&lt;ServiceInfo&gt; servers = new ArrayList&lt;&gt;(discoveryService.getOtherServers());</b>
+<b class="nc">&nbsp;                servers.add(serviceInfoProvider.getServiceInfo());</b>
+&nbsp;
+<b class="nc">&nbsp;                List&lt;ServiceInfo&gt; readyEdqsServers = servers.stream()</b>
+<b class="nc">&nbsp;                        .filter(serviceInfo -&gt; serviceInfo.getServiceTypesList().contains(ServiceType.EDQS.name()))</b>
+<b class="nc">&nbsp;                        .filter(ServiceInfo::getReady)</b>
+<b class="nc">&nbsp;                        .toList();</b>
+<b class="nc">&nbsp;                boolean changed = state.updateEdqsReady(!readyEdqsServers.isEmpty());</b>
+<b class="nc">&nbsp;                if (changed) {</b>
+<b class="nc">&nbsp;                    broadcastEdqsReady(state.getEdqsReady());</b>
+&nbsp;                }
+&nbsp;            }, 0, edqsReadinessCheckInterval, TimeUnit.MILLISECONDS);
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        executor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                EdqsSyncState syncState = getSyncState();</b>
+<b class="nc">&nbsp;                if (edqsSyncService.isSyncNeeded() || syncState == null) {</b>
+<b class="nc">&nbsp;                    requestEdqsSync(new EdqsSyncRequest());</b>
+<b class="nc">&nbsp;                } else if (syncState.getStatus() != EdqsSyncStatus.FINISHED) {</b>
+<b class="nc">&nbsp;                    requestEdqsSync(new EdqsSyncRequest(syncState.getObjectTypes()));</b>
+&nbsp;                } else {
+&nbsp;                    // only if topic/RocksDB is not empty and sync is finished
+<b class="nc">&nbsp;                    onSyncStatusUpdate(EdqsSyncStatus.FINISHED);</b>
+&nbsp;                }
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to start EDQS service&quot;, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void requestEdqsSync(EdqsSyncRequest syncRequest) {
+<b class="nc">&nbsp;        if (hashPartitionService.isSystemPartitionMine(ServiceType.TB_CORE)) {</b>
+<b class="nc">&nbsp;            processSystemRequest(ToCoreEdqsRequest.builder()</b>
+<b class="nc">&nbsp;                    .syncRequest(syncRequest)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void processSystemRequest(ToCoreEdqsRequest request) {
+<b class="nc">&nbsp;        log.info(&quot;Processing system request {}&quot;, request);</b>
+<b class="nc">&nbsp;        if (request.getSyncRequest() != null) {</b>
+<b class="nc">&nbsp;            saveSyncState(EdqsSyncStatus.REQUESTED, request.getSyncRequest().getObjectTypes());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        broadcast(ToCoreEdqsMsg.builder()</b>
+<b class="nc">&nbsp;                .syncRequest(request.getSyncRequest())</b>
+<b class="nc">&nbsp;                .apiEnabled(request.getApiEnabled())</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void processSystemMsg(ToCoreEdqsMsg msg) {
+<b class="nc">&nbsp;        executor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            log.info(&quot;Processing system msg {}&quot;, msg);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (msg.getApiEnabled() != null) {</b>
+<b class="nc">&nbsp;                    if (msg.getApiEnabled()) {</b>
+<b class="nc">&nbsp;                        state.setApiMode(EdqsApiMode.ENABLED);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        state.setApiMode(EdqsApiMode.DISABLED);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    log.info(&quot;New state: {}&quot;, state);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (msg.getEdqsReady() != null) {</b>
+<b class="nc">&nbsp;                    onEdqsReady(msg.getEdqsReady());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (msg.getSyncStatus() != null) {</b>
+<b class="nc">&nbsp;                    onSyncStatusUpdate(msg.getSyncStatus());</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                EdqsSyncRequest syncRequest = msg.getSyncRequest();</b>
+<b class="nc">&nbsp;                if (syncRequest != null) {</b>
+<b class="nc">&nbsp;                    syncLock.lock();</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        EdqsSyncState syncState = getSyncState();</b>
+<b class="nc">&nbsp;                        if (syncState != null) {</b>
+<b class="nc">&nbsp;                            EdqsSyncStatus status = syncState.getStatus();</b>
+<b class="nc">&nbsp;                            if (status == EdqsSyncStatus.FINISHED || status == EdqsSyncStatus.FAILED) {</b>
+<b class="nc">&nbsp;                                log.info(&quot;EDQS sync is already &quot; + status + &quot;, ignoring the msg&quot;);</b>
+&nbsp;                                return;
+&nbsp;                            }
+&nbsp;                        }
+<b class="nc">&nbsp;                        saveSyncState(EdqsSyncStatus.STARTED, syncRequest.getObjectTypes());</b>
+&nbsp;
+<b class="nc">&nbsp;                        edqsSyncService.sync(syncRequest);</b>
+&nbsp;
+<b class="nc">&nbsp;                        saveSyncState(EdqsSyncStatus.FINISHED);</b>
+<b class="nc">&nbsp;                        broadcastSyncStatusUpdate(EdqsSyncStatus.FINISHED);</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        log.error(&quot;Failed to complete sync&quot;, e);</b>
+<b class="nc">&nbsp;                        saveSyncState(EdqsSyncStatus.FAILED, syncRequest.getObjectTypes());</b>
+<b class="nc">&nbsp;                        broadcastSyncStatusUpdate(EdqsSyncStatus.FAILED);</b>
+&nbsp;                    } finally {
+<b class="nc">&nbsp;                        syncLock.unlock();</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to process msg {}&quot;, msg, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void broadcastEdqsReady(boolean ready) {
+<b class="nc">&nbsp;        broadcast(ToCoreEdqsMsg.builder()</b>
+<b class="nc">&nbsp;                .edqsReady(ready)</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onEdqsReady(boolean ready) {
+<b class="nc">&nbsp;        state.updateEdqsReady(ready);</b>
+<b class="nc">&nbsp;        checkState();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void broadcastSyncStatusUpdate(EdqsSyncStatus status) {
+<b class="nc">&nbsp;        broadcast(ToCoreEdqsMsg.builder()</b>
+<b class="nc">&nbsp;                .syncStatus(status)</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onSyncStatusUpdate(EdqsSyncStatus status) {
+<b class="nc">&nbsp;        state.setSyncStatus(status);</b>
+<b class="nc">&nbsp;        checkState();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkState() {
+<b class="nc">&nbsp;        if (!edqsApiService.isSupported()) {</b>
+<b class="nc">&nbsp;            log.info(&quot;New state: {}. EDQS API not supported&quot;, state);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (state.isApiReady()) {</b>
+<b class="nc">&nbsp;            if (autoEnableApi) {</b>
+<b class="nc">&nbsp;                if (state.getApiMode() == null || state.getApiMode() == EdqsApiMode.AUTO_DISABLED) {</b>
+<b class="nc">&nbsp;                    state.setApiMode(EdqsApiMode.AUTO_ENABLED);</b>
+<b class="nc">&nbsp;                    log.info(&quot;New state: {}. Auto-enabled EDQS API&quot;, state);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.info(&quot;New state: {}. API mode left as is&quot;, state);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.info(&quot;New state: {}. API auto-enabling is disabled&quot;, state);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (state.isApiEnabled()) {</b>
+<b class="nc">&nbsp;                state.setApiMode(EdqsApiMode.AUTO_DISABLED);</b>
+<b class="nc">&nbsp;                log.info(&quot;New state: {}. Disabled EDQS API&quot;, state);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.info(&quot;New state: {}. API left disabled&quot;, state);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isApiEnabled() {
+<b class="nc">&nbsp;        return state.isApiEnabled();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onUpdate(TenantId tenantId, EntityId entityId, Object entity) {
+<b class="nc">&nbsp;        EntityType entityType = entityId.getEntityType();</b>
+<b class="nc">&nbsp;        ObjectType objectType = ObjectType.fromEntityType(entityType);</b>
+<b class="nc">&nbsp;        if (!isEdqsType(tenantId, objectType)) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Ignoring update event, type {} not supported&quot;, tenantId, entityId, entityType);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        onUpdate(tenantId, objectType, DefaultEdqsMapper.toEntity(entityType, entity));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onUpdate(TenantId tenantId, ObjectType objectType, EdqsObject object) {
+<b class="nc">&nbsp;        processEvent(tenantId, objectType, EdqsEventType.UPDATED, object);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDelete(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        EntityType entityType = entityId.getEntityType();</b>
+<b class="nc">&nbsp;        ObjectType objectType = ObjectType.fromEntityType(entityType);</b>
+<b class="nc">&nbsp;        if (!isEdqsType(tenantId, objectType)) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Ignoring deletion event, type {} not supported&quot;, tenantId, entityId, entityType);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        onDelete(tenantId, objectType, new Entity(entityType, entityId.getId(), Long.MAX_VALUE));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDelete(TenantId tenantId, ObjectType objectType, EdqsObject object) {
+<b class="nc">&nbsp;        processEvent(tenantId, objectType, EdqsEventType.DELETED, object);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void processEvent(TenantId tenantId, ObjectType objectType, EdqsEventType eventType, EdqsObject object) {
+<b class="nc">&nbsp;        executor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                String key = object.stringKey();</b>
+<b class="nc">&nbsp;                Long version = object.version();</b>
+<b class="nc">&nbsp;                EdqsEventMsg.Builder eventMsg = EdqsEventMsg.newBuilder()</b>
+<b class="nc">&nbsp;                        .setObjectType(objectType.name())</b>
+<b class="nc">&nbsp;                        .setData(ByteString.copyFrom(edqsMapper.serialize(object)))</b>
+<b class="nc">&nbsp;                        .setEventType(eventType.name());</b>
+<b class="nc">&nbsp;                if (version != null) {</b>
+<b class="nc">&nbsp;                    eventMsg.setVersion(version);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                eventsProducer.send(tenantId, objectType, key, ToEdqsMsg.newBuilder()</b>
+<b class="nc">&nbsp;                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                        .setTs(System.currentTimeMillis())</b>
+<b class="nc">&nbsp;                        .setEventMsg(eventMsg)</b>
+<b class="nc">&nbsp;                        .build());</b>
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.error(&quot;[{}] Failed to push {} event for {} {}&quot;, tenantId, eventType, objectType, object, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isEdqsType(TenantId tenantId, ObjectType objectType) {
+<b class="nc">&nbsp;        if (objectType == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            return ObjectType.edqsTypes.contains(objectType);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return ObjectType.edqsSystemTypes.contains(objectType);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void broadcast(ToCoreEdqsMsg msg) {
+<b class="nc">&nbsp;        clusterService.broadcastToCore(ToCoreNotificationMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setToEdqsCoreServiceMsg(ToEdqsCoreServiceMsg.newBuilder()</b>
+<b class="nc">&nbsp;                        .setValue(ByteString.copyFrom(JacksonUtil.writeValueAsBytes(msg))))</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    private EdqsSyncState getSyncState() {
+<b class="nc">&nbsp;        EdqsSyncState state = attributesService.find(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, AttributeScope.SERVER_SCOPE, &quot;edqsSyncState&quot;).get(30, TimeUnit.SECONDS)</b>
+<b class="nc">&nbsp;                .flatMap(KvEntry::getJsonValue)</b>
+<b class="nc">&nbsp;                .map(value -&gt; JacksonUtil.fromString(value, EdqsSyncState.class))</b>
+<b class="nc">&nbsp;                .orElse(null);</b>
+<b class="nc">&nbsp;        log.info(&quot;EDQS sync state: {}&quot;, state);</b>
+<b class="nc">&nbsp;        return state;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    private void saveSyncState(EdqsSyncStatus status) {
+<b class="nc">&nbsp;        saveSyncState(status, null);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    private void saveSyncState(EdqsSyncStatus status, Set&lt;ObjectType&gt; objectTypes) {
+<b class="nc">&nbsp;        EdqsSyncState state = new EdqsSyncState(status, objectTypes);</b>
+<b class="nc">&nbsp;        log.info(&quot;New EDQS sync state: {}&quot;, state);</b>
+<b class="nc">&nbsp;        attributesService.save(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, AttributeScope.SERVER_SCOPE, new BaseAttributeKvEntry(</b>
+<b class="nc">&nbsp;                new JsonDataEntry(&quot;edqsSyncState&quot;, JacksonUtil.toString(state)),</b>
+<b class="nc">&nbsp;                System.currentTimeMillis())).get(30, TimeUnit.SECONDS);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void stop() {
+<b class="nc">&nbsp;        executor.shutdown();</b>
+<b class="nc">&nbsp;        scheduler.shutdownNow();</b>
+<b class="nc">&nbsp;        eventsProducer.stop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

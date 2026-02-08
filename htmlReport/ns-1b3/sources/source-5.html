@@ -1,0 +1,466 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbEdgeConsumerService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbEdgeConsumerService (org.thingsboard.server.service.queue)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbEdgeConsumerService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/103)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultTbEdgeConsumerService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/109)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import org.checkerframework.checker.nullness.qual.Nullable;
+&nbsp;import org.jetbrains.annotations.NotNull;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventType;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.queue.QueueConfig;
+&nbsp;import org.thingsboard.server.common.msg.edge.EdgeSessionMsg;
+&nbsp;import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.common.util.ProtoUtils;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.MainQueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.edge.EdgeContextComponent;
+&nbsp;import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+&nbsp;import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
+&nbsp;import org.thingsboard.server.service.queue.processing.IdMsgPair;
+&nbsp;
+&nbsp;import javax.annotation.PostConstruct;
+&nbsp;import javax.annotation.PreDestroy;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;public class DefaultTbEdgeConsumerService extends AbstractConsumerService&lt;ToEdgeNotificationMsg&gt; implements TbEdgeConsumerService {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${queue.edge.pool-interval:25}&quot;)
+&nbsp;    private int pollInterval;
+&nbsp;    @Value(&quot;${queue.edge.pack-processing-timeout:10000}&quot;)
+&nbsp;    private int packProcessingTimeout;
+&nbsp;    @Value(&quot;${queue.edge.consumer-per-partition:false}&quot;)
+&nbsp;    private boolean consumerPerPartition;
+&nbsp;    @Value(&quot;${queue.edge.pack-processing-retries:3}&quot;)
+&nbsp;    private int packProcessingRetries;
+&nbsp;    @Value(&quot;${queue.edge.stats.enabled:false}&quot;)
+&nbsp;    private boolean statsEnabled;
+&nbsp;
+&nbsp;    private final TbCoreQueueFactory queueFactory;
+&nbsp;    private final EdgeContextComponent edgeCtx;
+&nbsp;    private final EdgeConsumerStats stats;
+&nbsp;
+&nbsp;    private MainQueueConsumerManager&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;, QueueConfig&gt; mainConsumer;
+&nbsp;
+&nbsp;    public DefaultTbEdgeConsumerService(TbCoreQueueFactory tbCoreQueueFactory, ActorSystemContext actorContext,
+&nbsp;                                        StatsFactory statsFactory, EdgeContextComponent edgeCtx) {
+<b class="nc">&nbsp;        super(actorContext, null, null, null, null, null, null, null, null, null);</b>
+<b class="nc">&nbsp;        this.edgeCtx = edgeCtx;</b>
+<b class="nc">&nbsp;        this.stats = new EdgeConsumerStats(statsFactory);</b>
+<b class="nc">&nbsp;        this.queueFactory = tbCoreQueueFactory;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        super.init(&quot;tb-edge&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        this.mainConsumer = MainQueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;, QueueConfig&gt;builder()</b>
+<b class="nc">&nbsp;                .queueKey(new QueueKey(ServiceType.TB_CORE).withQueueName(DataConstants.EDGE_QUEUE_NAME))</b>
+<b class="nc">&nbsp;                .config(QueueConfig.of(consumerPerPartition, pollInterval))</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                .consumerCreator((config, tpi) -&gt; queueFactory.createEdgeMsgConsumer())</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumersExecutor)</b>
+<b class="nc">&nbsp;                .scheduler(scheduler)</b>
+<b class="nc">&nbsp;                .taskExecutor(mgmtExecutor)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        super.destroy();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void startConsumers() {
+<b class="nc">&nbsp;        super.startConsumers();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+<b class="nc">&nbsp;        var partitions = event.getEdgePartitions();</b>
+<b class="nc">&nbsp;        log.debug(&quot;Subscribing to partitions: {}&quot;, partitions);</b>
+<b class="nc">&nbsp;        mainConsumer.update(partitions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsgs(List&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; consumer, Object consumerKey, QueueConfig edgeQueueConfig) throws InterruptedException {
+<b class="nc">&nbsp;        List&lt;IdMsgPair&lt;ToEdgeMsg&gt;&gt; orderedMsgList = msgs.stream().map(msg -&gt; new IdMsgPair&lt;&gt;(UUID.randomUUID(), msg)).toList();</b>
+<b class="nc">&nbsp;        ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; pendingMap = orderedMsgList.stream().collect(</b>
+<b class="nc">&nbsp;                Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));</b>
+<b class="nc">&nbsp;        CountDownLatch processingTimeoutLatch = new CountDownLatch(1);</b>
+<b class="nc">&nbsp;        TbPackProcessingContext&lt;TbProtoQueueMsg&lt;ToEdgeMsg&gt;&gt; ctx = new TbPackProcessingContext&lt;&gt;(</b>
+&nbsp;                processingTimeoutLatch, pendingMap, new ConcurrentHashMap&lt;&gt;());
+<b class="nc">&nbsp;        PendingMsgHolder&lt;ToEdgeMsg&gt; pendingMsgHolder = new PendingMsgHolder&lt;&gt;();</b>
+<b class="nc">&nbsp;        Future&lt;?&gt; submitFuture = consumersExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            orderedMsgList.forEach((element) -&gt; {</b>
+<b class="nc">&nbsp;                UUID id = element.getUuid();</b>
+<b class="nc">&nbsp;                TbProtoQueueMsg&lt;ToEdgeMsg&gt; msg = element.getMsg();</b>
+<b class="nc">&nbsp;                TbCallback callback = new TbPackCallback&lt;&gt;(id, ctx);</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    ToEdgeMsg toEdgeMsg = msg.getValue();</b>
+<b class="nc">&nbsp;                    pendingMsgHolder.setMsg(toEdgeMsg);</b>
+<b class="nc">&nbsp;                    if (toEdgeMsg.hasEdgeNotificationMsg()) {</b>
+<b class="nc">&nbsp;                        pushNotificationToEdge(toEdgeMsg.getEdgeNotificationMsg(), 0, packProcessingRetries, callback);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (statsEnabled) {</b>
+<b class="nc">&nbsp;                        stats.log(toEdgeMsg);</b>
+&nbsp;                    }
+&nbsp;                } catch (Throwable e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process message: {}&quot;, id, msg, e);</b>
+<b class="nc">&nbsp;                    callback.onFailure(e);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        });
+<b class="nc">&nbsp;        if (!processingTimeoutLatch.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {</b>
+<b class="nc">&nbsp;            if (!submitFuture.isDone()) {</b>
+<b class="nc">&nbsp;                submitFuture.cancel(true);</b>
+<b class="nc">&nbsp;                log.info(&quot;Timeout to process message: {}&quot;, pendingMsgHolder.getMsg());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            ctx.getFailedMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Failed to process message: {}&quot;, id, msg.getValue()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ServiceType getServiceType() {
+<b class="nc">&nbsp;        return ServiceType.TB_CORE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPollDuration() {
+<b class="nc">&nbsp;        return pollInterval;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPackProcessingTimeout() {
+<b class="nc">&nbsp;        return packProcessingTimeout;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected int getMgmtThreadPoolSize() {
+<b class="nc">&nbsp;        return Math.max(Runtime.getRuntime().availableProcessors(), 4);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToEdgeNotificationMsg&gt;&gt; createNotificationsConsumer() {
+<b class="nc">&nbsp;        return queueFactory.createToEdgeNotificationsMsgConsumer();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void handleNotification(UUID id, TbProtoQueueMsg&lt;ToEdgeNotificationMsg&gt; msg, TbCallback callback) {
+<b class="nc">&nbsp;        ToEdgeNotificationMsg toEdgeNotificationMsg = msg.getValue();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            EdgeRpcService edgeRpcService = edgeCtx.getEdgeRpcService();</b>
+<b class="nc">&nbsp;            if (edgeRpcService == null) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;No EdgeRpcService available (edge functionality disabled), ignoring msg: {}&quot;, toEdgeNotificationMsg);</b>
+<b class="nc">&nbsp;                callback.onSuccess();</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (toEdgeNotificationMsg.hasEdgeHighPriority()) {</b>
+<b class="nc">&nbsp;                EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getEdgeHighPriority());</b>
+<b class="nc">&nbsp;                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);</b>
+<b class="nc">&nbsp;                callback.onSuccess();</b>
+<b class="nc">&nbsp;            } else if (toEdgeNotificationMsg.hasEdgeEventUpdate()) {</b>
+<b class="nc">&nbsp;                EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getEdgeEventUpdate());</b>
+<b class="nc">&nbsp;                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);</b>
+<b class="nc">&nbsp;                callback.onSuccess();</b>
+<b class="nc">&nbsp;            } else if (toEdgeNotificationMsg.hasToEdgeSyncRequest()) {</b>
+<b class="nc">&nbsp;                EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getToEdgeSyncRequest());</b>
+<b class="nc">&nbsp;                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);</b>
+<b class="nc">&nbsp;                callback.onSuccess();</b>
+<b class="nc">&nbsp;            } else if (toEdgeNotificationMsg.hasFromEdgeSyncResponse()) {</b>
+<b class="nc">&nbsp;                EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getFromEdgeSyncResponse());</b>
+<b class="nc">&nbsp;                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);</b>
+<b class="nc">&nbsp;                callback.onSuccess();</b>
+<b class="nc">&nbsp;            } else if (toEdgeNotificationMsg.hasComponentLifecycle()) {</b>
+<b class="nc">&nbsp;                ComponentLifecycleMsg componentLifecycle = ProtoUtils.fromProto(toEdgeNotificationMsg.getComponentLifecycle());</b>
+<b class="nc">&nbsp;                TenantId tenantId = componentLifecycle.getTenantId();</b>
+<b class="nc">&nbsp;                EdgeId edgeId = new EdgeId(componentLifecycle.getEntityId().getId());</b>
+<b class="nc">&nbsp;                if (ComponentLifecycleEvent.DELETED.equals(componentLifecycle.getEvent())) {</b>
+<b class="nc">&nbsp;                    edgeRpcService.deleteEdge(tenantId, edgeId);</b>
+<b class="nc">&nbsp;                } else if (ComponentLifecycleEvent.UPDATED.equals(componentLifecycle.getEvent())) {</b>
+<b class="nc">&nbsp;                    Edge edge = edgeCtx.getEdgeService().findEdgeById(tenantId, edgeId);</b>
+<b class="nc">&nbsp;                    edgeRpcService.updateEdge(tenantId, edge);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                callback.onSuccess();</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Error processing edge notification message {}&quot;, toEdgeNotificationMsg, e);</b>
+<b class="nc">&nbsp;            callback.onFailure(e);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.log(msg.getValue());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void pushNotificationToEdge(EdgeNotificationMsgProto edgeNotificationMsg, int retryCount, int retryLimit, TbCallback callback) {
+<b class="nc">&nbsp;        TenantId tenantId = TenantId.fromUUID(new UUID(edgeNotificationMsg.getTenantIdMSB(), edgeNotificationMsg.getTenantIdLSB()));</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Pushing notification to edge {}&quot;, tenantId, edgeNotificationMsg);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());</b>
+<b class="nc">&nbsp;            ListenableFuture&lt;Void&gt; future = edgeCtx.getProcessor(type).processEntityNotification(tenantId, edgeNotificationMsg);</b>
+<b class="nc">&nbsp;            Futures.addCallback(future, new FutureCallback&lt;&gt;() {</b>
+&nbsp;                @Override
+&nbsp;                public void onSuccess(@Nullable Void unused) {
+<b class="nc">&nbsp;                    callback.onSuccess();</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                @Override
+&nbsp;                public void onFailure(@NotNull Throwable throwable) {
+<b class="nc">&nbsp;                    if (retryCount &lt; retryLimit) {</b>
+<b class="nc">&nbsp;                        log.warn(&quot;[{}] Retry {} for message due to failure: {}&quot;, tenantId, retryCount + 1, throwable.getMessage());</b>
+<b class="nc">&nbsp;                        pushNotificationToEdge(edgeNotificationMsg, retryCount + 1, retryLimit, callback);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        callBackFailure(tenantId, edgeNotificationMsg, callback, throwable);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;            }, MoreExecutors.directExecutor());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            if (retryCount &lt; retryLimit) {</b>
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Retry {} for message due to exception: {}&quot;, tenantId, retryCount + 1, e.getMessage());</b>
+<b class="nc">&nbsp;                pushNotificationToEdge(edgeNotificationMsg, retryCount + 1, retryLimit, callback);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                callBackFailure(tenantId, edgeNotificationMsg, callback, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void callBackFailure(TenantId tenantId, EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback, Throwable throwable) {
+<b class="nc">&nbsp;        log.error(&quot;[{}] Can&#39;t push to edge updates, edgeNotificationMsg [{}]&quot;, tenantId, edgeNotificationMsg, throwable);</b>
+<b class="nc">&nbsp;        callback.onFailure(throwable);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(fixedDelayString = &quot;${queue.edge.stats.print-interval-ms}&quot;)
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        if (statsEnabled) {</b>
+<b class="nc">&nbsp;            stats.printStats();</b>
+<b class="nc">&nbsp;            stats.reset();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void stopConsumers() {
+<b class="nc">&nbsp;        super.stopConsumers();</b>
+<b class="nc">&nbsp;        mainConsumer.stop();</b>
+<b class="nc">&nbsp;        mainConsumer.awaitStop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

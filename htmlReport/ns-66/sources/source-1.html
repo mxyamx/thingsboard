@@ -1,0 +1,230 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlarmCalculatedFieldConfiguration</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.common.data.cf.configuration</a>
+</div>
+
+<h1>Coverage Summary for Class: AlarmCalculatedFieldConfiguration (org.thingsboard.server.common.data.cf.configuration)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AlarmCalculatedFieldConfiguration</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.common.data.cf.configuration;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import jakarta.validation.constraints.NotEmpty;
+&nbsp;import lombok.Data;
+&nbsp;import org.apache.commons.lang3.tuple.Pair;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.alarm.rule.AlarmRule;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+&nbsp;import org.thingsboard.server.common.data.util.CollectionsUtil;
+&nbsp;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.function.BiPredicate;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;import static java.util.Map.Entry.comparingByKey;
+&nbsp;
+&nbsp;@Data
+&nbsp;public class AlarmCalculatedFieldConfiguration implements ArgumentsBasedCalculatedFieldConfiguration {
+&nbsp;
+&nbsp;    private Map&lt;String, Argument&gt; arguments;
+&nbsp;
+&nbsp;    @Valid
+&nbsp;    @NotEmpty
+&nbsp;    private Map&lt;AlarmSeverity, AlarmRule&gt; createRules;
+&nbsp;    @Valid
+&nbsp;    private AlarmRule clearRule;
+&nbsp;
+&nbsp;    private boolean propagate;
+&nbsp;    private boolean propagateToOwner;
+&nbsp;    private boolean propagateToTenant;
+&nbsp;    private List&lt;String&gt; propagateRelationTypes;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedFieldType getType() {
+<b class="nc">&nbsp;        return CalculatedFieldType.ALARM;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Output getOutput() {
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    @Override
+&nbsp;    public boolean requiresScheduledReevaluation() {
+<b class="nc">&nbsp;        return getAllRules().anyMatch(entry -&gt; entry.getValue().requiresScheduledReevaluation());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    public Stream&lt;Pair&lt;AlarmSeverity, AlarmRule&gt;&gt; getAllRules() {
+<b class="nc">&nbsp;        Stream&lt;Pair&lt;AlarmSeverity, AlarmRule&gt;&gt; rules = createRules.entrySet().stream()</b>
+<b class="nc">&nbsp;                .map(entry -&gt; Pair.of(entry.getKey(), entry.getValue()));</b>
+<b class="nc">&nbsp;        if (clearRule != null) {</b>
+<b class="nc">&nbsp;            rules = Stream.concat(rules, Stream.of(Pair.of(null, clearRule)));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return rules.sorted(comparingByKey(Comparator.nullsLast(Comparator.naturalOrder())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean rulesEqual(AlarmCalculatedFieldConfiguration other, BiPredicate&lt;AlarmRule, AlarmRule&gt; equalityCheck) {
+<b class="nc">&nbsp;        List&lt;Pair&lt;AlarmSeverity, AlarmRule&gt;&gt; thisRules = this.getAllRules().toList();</b>
+<b class="nc">&nbsp;        List&lt;Pair&lt;AlarmSeverity, AlarmRule&gt;&gt; otherRules = other.getAllRules().toList();</b>
+<b class="nc">&nbsp;        return CollectionsUtil.elementsEqual(thisRules, otherRules, (thisRule, otherRule) -&gt; {</b>
+<b class="nc">&nbsp;            if (!Objects.equals(thisRule.getKey(), otherRule.getKey())) {</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return equalityCheck.test(thisRule.getValue(), otherRule.getValue());</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean propagationSettingsEqual(AlarmCalculatedFieldConfiguration other) {
+<b class="nc">&nbsp;        return this.propagate == other.propagate &amp;&amp;</b>
+&nbsp;               this.propagateToOwner == other.propagateToOwner &amp;&amp;
+&nbsp;               this.propagateToTenant == other.propagateToTenant &amp;&amp;
+<b class="nc">&nbsp;               Objects.equals(this.propagateRelationTypes, other.propagateRelationTypes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

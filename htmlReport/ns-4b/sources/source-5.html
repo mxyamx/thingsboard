@@ -1,0 +1,427 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RedisTbTransactionalCache</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.cache</a>
+</div>
+
+<h1>Coverage Summary for Class: RedisTbTransactionalCache (org.thingsboard.server.cache)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedisTbTransactionalCache</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/109)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.cache;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.cache.support.NullValue;
+&nbsp;import org.springframework.dao.InvalidDataAccessApiUsageException;
+&nbsp;import org.springframework.data.redis.connection.RedisConnection;
+&nbsp;import org.springframework.data.redis.connection.RedisConnectionFactory;
+&nbsp;import org.springframework.data.redis.connection.RedisStringCommands;
+&nbsp;import org.springframework.data.redis.connection.ReturnType;
+&nbsp;import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
+&nbsp;import org.springframework.data.redis.connection.jedis.JedisConnection;
+&nbsp;import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+&nbsp;import org.springframework.data.redis.core.types.Expiration;
+&nbsp;import org.springframework.data.redis.serializer.RedisSerializer;
+&nbsp;import org.springframework.data.redis.serializer.StringRedisSerializer;
+&nbsp;import org.thingsboard.server.common.data.FstStatsService;
+&nbsp;import redis.clients.jedis.Jedis;
+&nbsp;import redis.clients.jedis.JedisPool;
+&nbsp;import redis.clients.jedis.util.JedisClusterCRC16;
+&nbsp;
+&nbsp;import java.io.Serializable;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.function.Supplier;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public abstract class RedisTbTransactionalCache&lt;K extends Serializable, V extends Serializable&gt; implements TbTransactionalCache&lt;K, V&gt; {
+&nbsp;
+<b class="nc">&nbsp;    static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);</b>
+<b class="nc">&nbsp;    static final JedisPool MOCK_POOL = new JedisPool(); //non-null pool required for JedisConnection to trigger closing jedis connection</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private FstStatsService fstStatsService;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private final String cacheName;
+&nbsp;    @Getter
+&nbsp;    private final JedisConnectionFactory connectionFactory;
+<b class="nc">&nbsp;    private final RedisSerializer&lt;String&gt; keySerializer = StringRedisSerializer.UTF_8;</b>
+&nbsp;    private final TbRedisSerializer&lt;K, V&gt; valueSerializer;
+&nbsp;    protected final Expiration evictExpiration;
+&nbsp;    protected final Expiration cacheTtl;
+&nbsp;    protected final boolean cacheEnabled;
+&nbsp;
+&nbsp;    public RedisTbTransactionalCache(String cacheName,
+&nbsp;                                     CacheSpecsMap cacheSpecsMap,
+&nbsp;                                     RedisConnectionFactory connectionFactory,
+&nbsp;                                     TBRedisCacheConfiguration configuration,
+<b class="nc">&nbsp;                                     TbRedisSerializer&lt;K, V&gt; valueSerializer) {</b>
+<b class="nc">&nbsp;        this.cacheName = cacheName;</b>
+<b class="nc">&nbsp;        this.connectionFactory = (JedisConnectionFactory) connectionFactory;</b>
+<b class="nc">&nbsp;        this.valueSerializer = valueSerializer;</b>
+<b class="nc">&nbsp;        this.evictExpiration = Expiration.from(configuration.getEvictTtlInMs(), TimeUnit.MILLISECONDS);</b>
+<b class="nc">&nbsp;        this.cacheTtl = Optional.ofNullable(cacheSpecsMap)</b>
+<b class="nc">&nbsp;                .map(CacheSpecsMap::getSpecs)</b>
+<b class="nc">&nbsp;                .map(specs -&gt; specs.get(cacheName))</b>
+<b class="nc">&nbsp;                .map(CacheSpecs::getTimeToLiveInMinutes)</b>
+<b class="nc">&nbsp;                .filter(ttl -&gt; !ttl.equals(0))</b>
+<b class="nc">&nbsp;                .map(ttl -&gt; Expiration.from(ttl, TimeUnit.MINUTES))</b>
+<b class="nc">&nbsp;                .orElseGet(Expiration::persistent);</b>
+<b class="nc">&nbsp;        this.cacheEnabled = Optional.ofNullable(cacheSpecsMap)</b>
+<b class="nc">&nbsp;                .map(CacheSpecsMap::getSpecs)</b>
+<b class="nc">&nbsp;                .map(x -&gt; x.get(cacheName))</b>
+<b class="nc">&nbsp;                .map(CacheSpecs::getMaxSize)</b>
+<b class="nc">&nbsp;                .map(size -&gt; size &gt; 0)</b>
+<b class="nc">&nbsp;                .orElse(false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbCacheValueWrapper&lt;V&gt; get(K key) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            byte[] rawValue = doGet(key, connection);</b>
+<b class="nc">&nbsp;            if (rawValue == null || rawValue.length == 0) {</b>
+<b class="nc">&nbsp;                return null;</b>
+<b class="nc">&nbsp;            } else if (Arrays.equals(rawValue, BINARY_NULL_VALUE)) {</b>
+<b class="nc">&nbsp;                return SimpleTbCacheValueWrapper.empty();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                long startTime = System.nanoTime();</b>
+<b class="nc">&nbsp;                V value = valueSerializer.deserialize(key, rawValue);</b>
+<b class="nc">&nbsp;                if (value != null) {</b>
+<b class="nc">&nbsp;                    fstStatsService.recordDecodeTime(value.getClass(), startTime);</b>
+<b class="nc">&nbsp;                    fstStatsService.incrementDecode(value.getClass());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return SimpleTbCacheValueWrapper.wrap(value);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected byte[] doGet(K key, RedisConnection connection) {
+<b class="nc">&nbsp;        return connection.stringCommands().get(getRawKey(key));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void put(K key, V value) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            put(key, value, connection);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void put(K key, V value, RedisConnection connection) {
+<b class="nc">&nbsp;        put(connection, key, value, RedisStringCommands.SetOption.UPSERT);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void putIfAbsent(K key, V value) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            put(connection, key, value, RedisStringCommands.SetOption.SET_IF_ABSENT);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evict(K key) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            connection.keyCommands().del(getRawKey(key));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evict(Collection&lt;K&gt; keys) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;        //Redis expects at least 1 key to delete. Otherwise - ERR wrong number of arguments for &#39;del&#39; command
+<b class="nc">&nbsp;        if (keys.isEmpty()) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            connection.keyCommands().del(keys.stream().map(this::getRawKey).toArray(byte[][]::new));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evictOrPut(K key, V value) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            var rawKey = getRawKey(key);</b>
+<b class="nc">&nbsp;            var records = connection.keyCommands().del(rawKey);</b>
+<b class="nc">&nbsp;            if (records == null || records == 0) {</b>
+&nbsp;                //We need to put the value in case of Redis, because evict will NOT cancel concurrent transaction used to &quot;get&quot; the missing value from cache.
+<b class="nc">&nbsp;                connection.stringCommands().set(rawKey, getRawValue(value), evictExpiration, RedisStringCommands.SetOption.UPSERT);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbCacheTransaction&lt;K, V&gt; newTransactionForKey(K key) {
+<b class="nc">&nbsp;        byte[][] rawKey = new byte[][]{getRawKey(key)};</b>
+<b class="nc">&nbsp;        RedisConnection connection = watch(rawKey);</b>
+<b class="nc">&nbsp;        return new RedisTbCacheTransaction&lt;&gt;(this, connection);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbCacheTransaction&lt;K, V&gt; newTransactionForKeys(List&lt;K&gt; keys) {
+<b class="nc">&nbsp;        RedisConnection connection = watch(keys.stream().map(this::getRawKey).toArray(byte[][]::new));</b>
+<b class="nc">&nbsp;        return new RedisTbCacheTransaction&lt;&gt;(this, connection);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;R&gt; R getAndPutInTransaction(K key, Supplier&lt;R&gt; dbCall, Function&lt;V, R&gt; cacheValueToResult, Function&lt;R, V&gt; dbValueToCacheValue, boolean cacheNullValue) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+<b class="nc">&nbsp;            return dbCall.get();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return TbTransactionalCache.super.getAndPutInTransaction(key, dbCall, cacheValueToResult, dbValueToCacheValue, cacheNullValue);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected RedisConnection getConnection(byte[] rawKey) {
+<b class="nc">&nbsp;        if (!connectionFactory.isRedisClusterAware()) {</b>
+<b class="nc">&nbsp;            return connectionFactory.getConnection();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        RedisConnection connection = connectionFactory.getClusterConnection();</b>
+&nbsp;
+<b class="nc">&nbsp;        int slotNum = JedisClusterCRC16.getSlot(rawKey);</b>
+<b class="nc">&nbsp;        Jedis jedis = new Jedis((((JedisClusterConnection) connection).getNativeConnection().getConnectionFromSlot(slotNum)));</b>
+&nbsp;
+<b class="nc">&nbsp;        JedisConnection jedisConnection = new JedisConnection(jedis, MOCK_POOL, jedis.getDB());</b>
+<b class="nc">&nbsp;        jedisConnection.setConvertPipelineAndTxResults(connectionFactory.getConvertPipelineAndTxResults());</b>
+&nbsp;
+<b class="nc">&nbsp;        return jedisConnection;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected RedisConnection watch(byte[][] rawKeysList) {
+<b class="nc">&nbsp;        RedisConnection connection = getConnection(rawKeysList[0]);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            connection.watch(rawKeysList);</b>
+<b class="nc">&nbsp;            connection.multi();</b>
+&nbsp;        } catch (Exception e) {
+&nbsp;            connection.close();
+&nbsp;            throw e;
+&nbsp;        }
+<b class="nc">&nbsp;        return connection;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected byte[] getRawKey(K key) {
+<b class="nc">&nbsp;        String keyString = cacheName + key.toString();</b>
+&nbsp;        byte[] rawKey;
+&nbsp;        try {
+<b class="nc">&nbsp;            rawKey = keySerializer.serialize(keyString);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to serialize the cache key: {}&quot;, key, e);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (rawKey == null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;Failed to serialize the cache key: {}&quot;, key);</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Failed to serialize the cache key!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return rawKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected byte[] getRawValue(V value) {
+<b class="nc">&nbsp;        if (value == null) {</b>
+<b class="nc">&nbsp;            return BINARY_NULL_VALUE;</b>
+&nbsp;        } else {
+&nbsp;            try {
+<b class="nc">&nbsp;                long startTime = System.nanoTime();</b>
+<b class="nc">&nbsp;                var bytes = valueSerializer.serialize(value);</b>
+<b class="nc">&nbsp;                fstStatsService.recordEncodeTime(value.getClass(), startTime);</b>
+<b class="nc">&nbsp;                fstStatsService.incrementEncode(value.getClass());</b>
+<b class="nc">&nbsp;                return bytes;</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to serialize the cache value: {}&quot;, value, e);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void put(RedisConnection connection, K key, V value, RedisStringCommands.SetOption setOption) {
+<b class="nc">&nbsp;        if (!cacheEnabled) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        byte[] rawKey = getRawKey(key);</b>
+<b class="nc">&nbsp;        put(connection, rawKey, value, setOption);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void put(RedisConnection connection, byte[] rawKey, V value, RedisStringCommands.SetOption setOption) {
+<b class="nc">&nbsp;        byte[] rawValue = getRawValue(value);</b>
+<b class="nc">&nbsp;        connection.stringCommands().set(rawKey, rawValue, this.cacheTtl, setOption);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void executeScript(RedisConnection connection, byte[] scriptSha, byte[] luaScript, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+&nbsp;        try {
+<b class="nc">&nbsp;            connection.scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);</b>
+&nbsp;        } catch (InvalidDataAccessApiUsageException ignored) {
+<b class="nc">&nbsp;            log.debug(&quot;Loading LUA with expected SHA [{}], connection [{}]&quot;, new String(scriptSha), connection.getNativeConnection());</b>
+<b class="nc">&nbsp;            String actualSha = connection.scriptingCommands().scriptLoad(luaScript);</b>
+<b class="nc">&nbsp;            if (!Arrays.equals(scriptSha, StringRedisSerializer.UTF_8.serialize(actualSha))) {</b>
+<b class="nc">&nbsp;                String message = String.format(&quot;SHA for LUA script wrong! Expected [%s], but actual [%s], connection [%s]&quot;,</b>
+<b class="nc">&nbsp;                        new String(scriptSha), actualSha, connection.getNativeConnection());</b>
+<b class="nc">&nbsp;                throw new IllegalStateException(message);</b>
+&nbsp;            }
+&nbsp;            try {
+<b class="nc">&nbsp;                connection.scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);</b>
+&nbsp;            } catch (InvalidDataAccessApiUsageException exception) {
+<b class="nc">&nbsp;                log.warn(&quot;Slowly executing eval instead of fast evalSha&quot;, exception);</b>
+<b class="nc">&nbsp;                connection.scriptingCommands().eval(luaScript, returnType, numKeys, keysAndArgs);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

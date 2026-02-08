@@ -1,0 +1,497 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CustomerServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.customer</a>
+</div>
+
+<h1>Coverage Summary for Class: CustomerServiceImpl (org.thingsboard.server.dao.customer)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CustomerServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/104)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CustomerServiceImpl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/107)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.customer;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.cache.customer.CustomerCacheEvictEvent;
+&nbsp;import org.thingsboard.server.cache.customer.CustomerCacheKey;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.NameConflictPolicy;
+&nbsp;import org.thingsboard.server.common.data.NameConflictStrategy;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.dao.asset.AssetService;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceService;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityCountService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.dao.sql.JpaExecutorService;
+&nbsp;import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;CustomerDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class CustomerServiceImpl extends AbstractCachedEntityService&lt;CustomerCacheKey, Customer, CustomerCacheEvictEvent&gt; implements CustomerService {</b>
+&nbsp;
+&nbsp;    public static final String PUBLIC_CUSTOMER_TITLE = &quot;Public&quot;;
+&nbsp;    public static final String INCORRECT_CUSTOMER_ID = &quot;Incorrect customerId &quot;;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+<b class="nc">&nbsp;    public static final JsonNode PUBLIC_CUSTOMER_ADDITIONAL_INFO_JSON = JacksonUtil.toJsonNode(&quot;{\&quot;isPublic\&quot;:true}&quot;);</b>
+&nbsp;    public static final String CUSTOMER_UNIQUE_TITLE_EX_MSG = &quot;Customer with such title already exists!&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private CustomerDao customerDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserService userService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AssetService assetService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DeviceService deviceService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DashboardService dashboardService;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    private ApiUsageStateService apiUsageStateService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;Customer&gt; customerValidator;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityCountService countService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private JpaExecutorService executor;
+&nbsp;
+&nbsp;    @TransactionalEventListener(classes = CustomerCacheEvictEvent.class)
+&nbsp;    @Override
+&nbsp;    public void handleEvictEvent(CustomerCacheEvictEvent event) {
+<b class="nc">&nbsp;        List&lt;CustomerCacheKey&gt; keys = new ArrayList&lt;&gt;(2);</b>
+<b class="nc">&nbsp;        keys.add(new CustomerCacheKey(event.tenantId(), event.newTitle()));</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(event.oldTitle()) &amp;&amp; !event.oldTitle().equals(event.newTitle())) {</b>
+<b class="nc">&nbsp;            keys.add(new CustomerCacheKey(event.tenantId(), event.oldTitle()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        cache.evict(keys);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCustomerById [{}]&quot;, customerId);</b>
+<b class="nc">&nbsp;        Validator.validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        return customerDao.findById(tenantId, customerId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;Customer&gt; findCustomerByTenantIdAndTitle(TenantId tenantId, String title) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCustomerByTenantIdAndTitle [{}] [{}]&quot;, tenantId, title);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return Optional.ofNullable(cache.getAndPutInTransaction(new CustomerCacheKey(tenantId, title),</b>
+<b class="nc">&nbsp;                () -&gt; customerDao.findCustomerByTenantIdAndTitle(tenantId.getId(), title)</b>
+<b class="nc">&nbsp;                        .orElse(null), true));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Optional&lt;Customer&gt;&gt; findCustomerByTenantIdAndTitleAsync(TenantId tenantId, String title) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCustomerByTenantIdAndTitleAsync [{}] [{}]&quot;, tenantId, title);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return executor.submit(() -&gt; findCustomerByTenantIdAndTitle(tenantId, title));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Customer&gt; findCustomerByIdAsync(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCustomerByIdAsync [{}]&quot;, customerId);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        return customerDao.findByIdAsync(tenantId, customerId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public Customer saveCustomer(Customer customer) {
+<b class="nc">&nbsp;        return saveCustomer(customer, NameConflictStrategy.DEFAULT);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public Customer saveCustomer(Customer customer, NameConflictStrategy nameConflictStrategy) {
+<b class="nc">&nbsp;        return saveEntity(customer, () -&gt; saveCustomer(customer, true, nameConflictStrategy));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Customer saveCustomer(Customer customer, boolean doValidate) {
+<b class="nc">&nbsp;        return saveCustomer(customer, doValidate, NameConflictStrategy.DEFAULT);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Customer saveCustomer(Customer customer, boolean doValidate, NameConflictStrategy nameConflictStrategy) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveCustomer [{}]&quot;, customer);</b>
+<b class="nc">&nbsp;        Customer oldCustomer = (customer.getId() != null) ? customerDao.findById(customer.getTenantId(), customer.getId().getId()) : null;</b>
+<b class="nc">&nbsp;        if (nameConflictStrategy.policy() == NameConflictPolicy.UNIQUIFY &amp;&amp; (oldCustomer == null || !oldCustomer.getTitle().equals(customer.getTitle()))) {</b>
+<b class="nc">&nbsp;            uniquifyEntityName(customer, oldCustomer, customer::setTitle, EntityType.CUSTOMER, nameConflictStrategy);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (doValidate) {</b>
+<b class="nc">&nbsp;            customerValidator.validate(customer, Customer::getTenantId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var evictEvent = new CustomerCacheEvictEvent(customer.getTenantId(), customer.getTitle(), oldCustomer != null ? oldCustomer.getTitle() : null);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            Customer savedCustomer = customerDao.saveAndFlush(customer.getTenantId(), customer);</b>
+<b class="nc">&nbsp;            if (!savedCustomer.isPublic()) {</b>
+<b class="nc">&nbsp;                dashboardService.updateCustomerDashboards(savedCustomer.getTenantId(), savedCustomer.getId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (customer.getId() == null) {</b>
+<b class="nc">&nbsp;                countService.publishCountEntityEvictEvent(savedCustomer.getTenantId(), EntityType.CUSTOMER);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            publishEvictEvent(evictEvent);</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(savedCustomer.getTenantId())</b>
+<b class="nc">&nbsp;                    .entityId(savedCustomer.getId())</b>
+<b class="nc">&nbsp;                    .entity(savedCustomer)</b>
+<b class="nc">&nbsp;                    .oldEntity(oldCustomer)</b>
+<b class="nc">&nbsp;                    .created(customer.getId() == null)</b>
+<b class="nc">&nbsp;                    .build());</b>
+<b class="nc">&nbsp;            return savedCustomer;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            handleEvictEvent(evictEvent);</b>
+<b class="nc">&nbsp;            checkConstraintViolation(e,</b>
+&nbsp;                    &quot;customer_title_unq_key&quot;, CUSTOMER_UNIQUE_TITLE_EX_MSG,
+&nbsp;                    &quot;customer_external_id_unq_key&quot;, &quot;Customer with such external id already exists!&quot;);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteCustomer(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteCustomer [{}]&quot;, customerId);</b>
+<b class="nc">&nbsp;        Validator.validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        deleteEntity(tenantId, customerId, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        if (!force &amp;&amp; calculatedFieldService.referencedInAnyCalculatedField(tenantId, id)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t delete customer that is referenced in calculated fields!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        CustomerId customerId = (CustomerId) id;</b>
+<b class="nc">&nbsp;        Customer customer = findCustomerById(tenantId, customerId);</b>
+<b class="nc">&nbsp;        if (customer == null) {</b>
+<b class="nc">&nbsp;            if (force) {</b>
+&nbsp;                return;
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new IncorrectParameterException(&quot;Unable to delete non-existent customer.&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        dashboardService.unassignCustomerDashboards(tenantId, customerId);</b>
+<b class="nc">&nbsp;        entityViewService.unassignCustomerEntityViews(customer.getTenantId(), customerId);</b>
+<b class="nc">&nbsp;        assetService.unassignCustomerAssets(customer.getTenantId(), customerId);</b>
+<b class="nc">&nbsp;        deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);</b>
+<b class="nc">&nbsp;        edgeService.unassignCustomerEdges(customer.getTenantId(), customerId);</b>
+<b class="nc">&nbsp;        userService.deleteCustomerUsers(customer.getTenantId(), customerId);</b>
+<b class="nc">&nbsp;        apiUsageStateService.deleteApiUsageStateByEntityId(customerId);</b>
+<b class="nc">&nbsp;        customerDao.removeById(tenantId, customerId.getId());</b>
+<b class="nc">&nbsp;        publishEvictEvent(new CustomerCacheEvictEvent(customer.getTenantId(), customer.getTitle(), null));</b>
+<b class="nc">&nbsp;        countService.publishCountEntityEvictEvent(tenantId, EntityType.CUSTOMER);</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(customerId).build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Customer findOrCreatePublicCustomer(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOrCreatePublicCustomer, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        var publicCustomer = findPublicCustomer(tenantId);</b>
+<b class="nc">&nbsp;        if (publicCustomer != null) {</b>
+<b class="nc">&nbsp;            return publicCustomer;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        publicCustomer = new Customer();</b>
+<b class="nc">&nbsp;        publicCustomer.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            publicCustomer.setAdditionalInfo(PUBLIC_CUSTOMER_ADDITIONAL_INFO_JSON);</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Unable to create public customer.&quot;, e);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            return saveCustomer(publicCustomer, false);</b>
+&nbsp;        } catch (DataValidationException e) {
+<b class="nc">&nbsp;            if (CUSTOMER_UNIQUE_TITLE_EX_MSG.equals(e.getMessage())) {</b>
+<b class="nc">&nbsp;                Optional&lt;Customer&gt; publicCustomerOpt = customerDao.findPublicCustomerByTenantId(tenantId.getId());</b>
+<b class="nc">&nbsp;                if (publicCustomerOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                    return publicCustomerOpt.get();</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Failed to create public customer.&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Customer findPublicCustomer(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findPublicCustomer, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Optional&lt;Customer&gt; publicCustomerOpt = customerDao.findPublicCustomerByTenantId(tenantId.getId());</b>
+<b class="nc">&nbsp;        return publicCustomerOpt.orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Customer&gt; findCustomersByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCustomersByTenantId, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; &quot;Incorrect tenantId &quot; + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return customerDao.findCustomersByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteCustomersByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteCustomersByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; &quot;Incorrect tenantId &quot; + id);</b>
+<b class="nc">&nbsp;        customersByTenantRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;Customer&gt; findCustomersByTenantIdAndIds(TenantId tenantId, List&lt;CustomerId&gt; customerIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCustomersByTenantIdAndIds, tenantId [{}], customerIds [{}]&quot;, tenantId, customerIds);</b>
+<b class="nc">&nbsp;        return customerDao.findCustomersByTenantIdAndIds(tenantId.getId(), customerIds.stream().map(CustomerId::getId).collect(Collectors.toList()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteCustomersByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, Customer&gt; customersByTenantRemover =</b>
+<b class="nc">&nbsp;            new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;                @Override
+&nbsp;                protected PageData&lt;Customer&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;                    return customerDao.findCustomersByTenantId(id.getId(), pageLink);</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                @Override
+&nbsp;                protected void removeEntity(TenantId tenantId, Customer entity) {
+<b class="nc">&nbsp;                    deleteCustomer(tenantId, new CustomerId(entity.getUuidId()));</b>
+&nbsp;                }
+&nbsp;            };
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findCustomerById(tenantId, new CustomerId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(findCustomerByIdAsync(tenantId, new CustomerId(entityId.getId())))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        return customerDao.countByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.CUSTOMER;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

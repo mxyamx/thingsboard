@@ -1,0 +1,408 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JsonMqttAdaptor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.mqtt.adaptors</a>
+</div>
+
+<h1>Coverage Summary for Class: JsonMqttAdaptor (org.thingsboard.server.transport.mqtt.adaptors)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JsonMqttAdaptor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.mqtt.adaptors;
+&nbsp;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import com.google.gson.JsonParser;
+&nbsp;import com.google.gson.JsonSyntaxException;
+&nbsp;import io.netty.buffer.ByteBuf;
+&nbsp;import io.netty.handler.codec.mqtt.MqttFixedHeader;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessageType;
+&nbsp;import io.netty.handler.codec.mqtt.MqttPublishMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.adaptor.AdaptorException;
+&nbsp;import org.thingsboard.server.common.adaptor.JsonConverter;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.device.profile.MqttTopics;
+&nbsp;import org.thingsboard.server.common.data.ota.OtaPackageType;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.transport.mqtt.session.MqttDeviceAwareSessionContext;
+&nbsp;
+&nbsp;import java.nio.charset.Charset;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_SOFTWARE_FIRMWARE_RESPONSES_TOPIC_FORMAT;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class JsonMqttAdaptor implements MqttTransportAdaptor {</b>
+&nbsp;
+<b class="nc">&nbsp;    protected static final Charset UTF8 = StandardCharsets.UTF_8;</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.PostTelemetryMsg convertToPostTelemetry(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound) throws AdaptorException {
+<b class="nc">&nbsp;        String payload = validatePayload(ctx.getSessionId(), inbound.payload(), false);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return JsonConverter.convertToTelemetryProto(JsonParser.parseString(payload));</b>
+&nbsp;        } catch (IllegalStateException | JsonSyntaxException ex) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to decode post telemetry request&quot;, ex);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.PostAttributeMsg convertToPostAttributes(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound) throws AdaptorException {
+<b class="nc">&nbsp;        String payload = validatePayload(ctx.getSessionId(), inbound.payload(), false);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return JsonConverter.convertToAttributesProto(JsonParser.parseString(payload));</b>
+&nbsp;        } catch (IllegalStateException | JsonSyntaxException ex) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to decode post attributes request&quot;, ex);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.ClaimDeviceMsg convertToClaimDevice(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound) throws AdaptorException {
+<b class="nc">&nbsp;        String payload = validatePayload(ctx.getSessionId(), inbound.payload(), true);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return JsonConverter.convertToClaimDeviceProto(ctx.getDeviceId(), payload);</b>
+&nbsp;        } catch (IllegalStateException | JsonSyntaxException ex) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to decode claim device request&quot;, ex);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.ProvisionDeviceRequestMsg convertToProvisionRequestMsg(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound) throws AdaptorException {
+<b class="nc">&nbsp;        String payload = validatePayload(ctx.getSessionId(), inbound.payload(), false);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return JsonConverter.convertToProvisionRequestMsg(payload);</b>
+&nbsp;        } catch (IllegalStateException | JsonSyntaxException ex) {
+<b class="nc">&nbsp;            throw new AdaptorException(ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.GetAttributeRequestMsg convertToGetAttributes(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        return processGetAttributeRequestMsg(inbound, topicBase);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.ToDeviceRpcResponseMsg convertToDeviceRpcResponse(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        return processToDeviceRpcResponseMsg(inbound, topicBase);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.ToServerRpcRequestMsg convertToServerRpcRequest(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        return processToServerRpcRequestMsg(ctx, inbound, topicBase);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.GetAttributeResponseMsg responseMsg, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        return processConvertFromAttributeResponseMsg(ctx, responseMsg, topicBase);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToGatewayPublish(MqttDeviceAwareSessionContext ctx, String deviceName, TransportProtos.GetAttributeResponseMsg responseMsg) throws AdaptorException {
+<b class="nc">&nbsp;        return processConvertFromGatewayAttributeResponseMsg(ctx, deviceName, responseMsg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.AttributeUpdateNotificationMsg notificationMsg, String topic) {
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, topic, JsonConverter.toJson(notificationMsg)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToGatewayPublish(MqttDeviceAwareSessionContext ctx, String deviceName, TransportProtos.AttributeUpdateNotificationMsg notificationMsg) {
+<b class="nc">&nbsp;        JsonObject result = JsonConverter.getJsonObjectForGateway(deviceName, notificationMsg);</b>
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, MqttTopics.GATEWAY_ATTRIBUTES_TOPIC, result));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.ToDeviceRpcRequestMsg rpcRequest, String topicBase) {
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, topicBase + rpcRequest.getRequestId(), JsonConverter.toJson(rpcRequest, false)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToGatewayPublish(MqttDeviceAwareSessionContext ctx, String deviceName, TransportProtos.ToDeviceRpcRequestMsg rpcRequest) {
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, MqttTopics.GATEWAY_RPC_TOPIC, JsonConverter.toGatewayJson(deviceName, rpcRequest)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.ToServerRpcResponseMsg rpcResponse, String topicBase) {
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, topicBase + rpcResponse.getRequestId(), JsonConverter.toJson(rpcResponse)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.ProvisionDeviceResponseMsg provisionResponse) {
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, MqttTopics.DEVICE_PROVISION_RESPONSE_TOPIC, JsonConverter.toJson(provisionResponse)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToGatewayDeviceDisconnectPublish(MqttDeviceAwareSessionContext ctx, String deviceName, int reasonCode) {
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, MqttTopics.GATEWAY_DISCONNECT_TOPIC, JsonConverter.toGatewayDeviceDisconnectJson(deviceName, reasonCode)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;MqttMessage&gt; convertToPublish(MqttDeviceAwareSessionContext ctx, byte[] firmwareChunk, String requestId, int chunk, OtaPackageType firmwareType) {
+<b class="nc">&nbsp;        return Optional.of(createMqttPublishMsg(ctx, String.format(DEVICE_SOFTWARE_FIRMWARE_RESPONSES_TOPIC_FORMAT, firmwareType.getKeyPrefix(), requestId, chunk), firmwareChunk));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static JsonElement validateJsonPayload(UUID sessionId, ByteBuf payloadData) throws AdaptorException {
+<b class="nc">&nbsp;        String payload = validatePayload(sessionId, payloadData, false);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return JsonParser.parseString(payload);</b>
+&nbsp;        } catch (JsonSyntaxException ex) {
+<b class="nc">&nbsp;            log.debug(&quot;Payload is in incorrect format: {}&quot;, payload);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TransportProtos.GetAttributeRequestMsg processGetAttributeRequestMsg(MqttPublishMessage inbound, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        String topicName = inbound.variableHeader().topicName();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            TransportProtos.GetAttributeRequestMsg.Builder result = TransportProtos.GetAttributeRequestMsg.newBuilder();</b>
+<b class="nc">&nbsp;            result.setRequestId(getRequestId(topicName, topicBase));</b>
+<b class="nc">&nbsp;            String payload = inbound.payload().toString(UTF8);</b>
+<b class="nc">&nbsp;            JsonElement requestBody = JsonParser.parseString(payload);</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; clientKeys = toStringSet(requestBody, &quot;clientKeys&quot;);</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; sharedKeys = toStringSet(requestBody, &quot;sharedKeys&quot;);</b>
+<b class="nc">&nbsp;            if (clientKeys != null) {</b>
+<b class="nc">&nbsp;                result.addAllClientAttributeNames(clientKeys);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (sharedKeys != null) {</b>
+<b class="nc">&nbsp;                result.addAllSharedAttributeNames(sharedKeys);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return result.build();</b>
+&nbsp;        } catch (RuntimeException e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to decode get attributes request&quot;, e);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TransportProtos.ToDeviceRpcResponseMsg processToDeviceRpcResponseMsg(MqttPublishMessage inbound, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        String topicName = inbound.variableHeader().topicName();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            int requestId = getRequestId(topicName, topicBase);</b>
+<b class="nc">&nbsp;            String payload = inbound.payload().toString(UTF8);</b>
+<b class="nc">&nbsp;            return TransportProtos.ToDeviceRpcResponseMsg.newBuilder().setRequestId(requestId).setPayload(payload).build();</b>
+&nbsp;        } catch (RuntimeException e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to decode rpc response&quot;, e);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TransportProtos.ToServerRpcRequestMsg processToServerRpcRequestMsg(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        String topicName = inbound.variableHeader().topicName();</b>
+<b class="nc">&nbsp;        String payload = validatePayload(ctx.getSessionId(), inbound.payload(), false);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            int requestId = getRequestId(topicName, topicBase);</b>
+<b class="nc">&nbsp;            return JsonConverter.convertToServerRpcRequest(JsonParser.parseString(payload), requestId);</b>
+&nbsp;        } catch (IllegalStateException | JsonSyntaxException ex) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to decode to server rpc request&quot;, ex);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;MqttMessage&gt; processConvertFromAttributeResponseMsg(MqttDeviceAwareSessionContext ctx, TransportProtos.GetAttributeResponseMsg responseMsg, String topicBase) throws AdaptorException {
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(responseMsg.getError())) {</b>
+<b class="nc">&nbsp;            throw new AdaptorException(responseMsg.getError());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            int requestId = responseMsg.getRequestId();</b>
+<b class="nc">&nbsp;            if (requestId &gt;= 0) {</b>
+<b class="nc">&nbsp;                return Optional.of(createMqttPublishMsg(ctx,</b>
+&nbsp;                        topicBase + requestId,
+<b class="nc">&nbsp;                        JsonConverter.toJson(responseMsg)));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return Optional.empty();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;MqttMessage&gt; processConvertFromGatewayAttributeResponseMsg(MqttDeviceAwareSessionContext ctx, String deviceName, TransportProtos.GetAttributeResponseMsg responseMsg) throws AdaptorException {
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(responseMsg.getError())) {</b>
+<b class="nc">&nbsp;            throw new AdaptorException(responseMsg.getError());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            JsonObject result = JsonConverter.getJsonObjectForGateway(deviceName, responseMsg);</b>
+<b class="nc">&nbsp;            return Optional.of(createMqttPublishMsg(ctx, MqttTopics.GATEWAY_ATTRIBUTES_RESPONSE_TOPIC, result));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected MqttPublishMessage createMqttPublishMsg(MqttDeviceAwareSessionContext ctx, String topic, JsonElement json) {
+<b class="nc">&nbsp;        MqttFixedHeader mqttFixedHeader =</b>
+<b class="nc">&nbsp;                new MqttFixedHeader(MqttMessageType.PUBLISH, false, ctx.getQoSForTopic(topic), false, 0);</b>
+<b class="nc">&nbsp;        MqttPublishVariableHeader header = new MqttPublishVariableHeader(topic, ctx.nextMsgId());</b>
+<b class="nc">&nbsp;        ByteBuf payload = ALLOCATOR.buffer();</b>
+<b class="nc">&nbsp;        payload.writeBytes(json.toString().getBytes(UTF8));</b>
+<b class="nc">&nbsp;        return new MqttPublishMessage(mqttFixedHeader, header, payload);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;String&gt; toStringSet(JsonElement requestBody, String name) {
+<b class="nc">&nbsp;        JsonElement element = requestBody.getAsJsonObject().get(name);</b>
+<b class="nc">&nbsp;        if (element != null) {</b>
+<b class="nc">&nbsp;            return new HashSet&lt;&gt;(Arrays.asList(element.getAsString().split(&quot;,&quot;)));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String validatePayload(UUID sessionId, ByteBuf payloadData, boolean isEmptyPayloadAllowed) throws AdaptorException {
+<b class="nc">&nbsp;        String payload = payloadData.toString(UTF8);</b>
+<b class="nc">&nbsp;        if (payload == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Payload is empty!&quot;, sessionId);</b>
+<b class="nc">&nbsp;            if (!isEmptyPayloadAllowed) {</b>
+<b class="nc">&nbsp;                throw new AdaptorException(new IllegalArgumentException(&quot;Payload is empty!&quot;));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return payload;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private int getRequestId(String topicName, String topic) {
+<b class="nc">&nbsp;        return Integer.parseInt(topicName.substring(topic.length()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

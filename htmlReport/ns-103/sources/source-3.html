@@ -1,0 +1,322 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AssetRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.asset</a>
+</div>
+
+<h1>Coverage Summary for Class: AssetRepository (org.thingsboard.server.dao.sql.asset)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">AssetRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.asset;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Limit;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.edqs.fields.AssetFields;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.dao.ExportableEntityRepository;
+&nbsp;import org.thingsboard.server.dao.model.sql.AssetEntity;
+&nbsp;import org.thingsboard.server.dao.model.sql.AssetInfoEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface AssetRepository extends JpaRepository&lt;AssetEntity, UUID&gt;, ExportableEntityRepository&lt;AssetEntity&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo, p.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = a.customerId &quot; +
+&nbsp;            &quot;LEFT JOIN AssetProfileEntity p on p.id = a.assetProfileId &quot; +
+&nbsp;            &quot;WHERE a.id = :assetId&quot;)
+&nbsp;    AssetInfoEntity findAssetInfoById(@Param(&quot;assetId&quot;) UUID assetId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.type, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;AssetEntity&gt; findByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                     @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                     Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo, p.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = a.customerId &quot; +
+&nbsp;            &quot;LEFT JOIN AssetProfileEntity p on p.id = a.assetProfileId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(p.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(c.title, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;AssetInfoEntity&gt; findAssetInfosByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                   @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                   Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.type, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;AssetEntity&gt; findByTenantIdAndCustomerId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                  @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                  @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                  Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.assetProfileId = :profileId &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;AssetEntity&gt; findByTenantIdAndProfileId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                 @Param(&quot;profileId&quot;) UUID profileId,
+&nbsp;                                                 @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                 Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo, p.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = a.customerId &quot; +
+&nbsp;            &quot;LEFT JOIN AssetProfileEntity p on p.id = a.assetProfileId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(c.title, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(p.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetInfoEntity&gt; findAssetInfosByTenantIdAndCustomerId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                                @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                                Pageable pageable);
+&nbsp;
+&nbsp;    List&lt;AssetEntity&gt; findByTenantIdAndIdIn(UUID tenantId, List&lt;UUID&gt; assetIds);
+&nbsp;
+&nbsp;    List&lt;AssetEntity&gt; findByTenantIdAndCustomerIdAndIdIn(UUID tenantId, UUID customerId, List&lt;UUID&gt; assetIds);
+&nbsp;
+&nbsp;    AssetEntity findByTenantIdAndName(UUID tenantId, String name);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.EntityInfo(a.id, &#39;ASSET&#39;, a.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a WHERE a.tenantId = :tenantId AND a.name LIKE CONCAT(:prefix, &#39;%&#39;)&quot;)
+&nbsp;    List&lt;EntityInfo&gt; findEntityInfosByNamePrefix(UUID tenantId, String prefix);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;AssetEntity&gt; findByTenantIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                            @Param(&quot;type&quot;) String type,
+&nbsp;                                            @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                            Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo, p.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = a.customerId &quot; +
+&nbsp;            &quot;LEFT JOIN AssetProfileEntity p on p.id = a.assetProfileId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(c.title, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetInfoEntity&gt; findAssetInfosByTenantIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                          @Param(&quot;type&quot;) String type,
+&nbsp;                                                          @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo, p.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = a.customerId &quot; +
+&nbsp;            &quot;LEFT JOIN AssetProfileEntity p on p.id = a.assetProfileId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.assetProfileId = :assetProfileId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(c.title, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.type, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetInfoEntity&gt; findAssetInfosByTenantIdAndAssetProfileId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                    @Param(&quot;assetProfileId&quot;) UUID assetProfileId,
+&nbsp;                                                                    @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                                    Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a.id FROM AssetEntity a &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.assetProfileId = :assetProfileId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.type, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;UUID&gt; findAssetIdsByTenantIdAndAssetProfileId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                       @Param(&quot;assetProfileId&quot;) UUID assetProfileId,
+&nbsp;                                                       @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                       Pageable pageable);
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.customerId = :customerId AND a.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetEntity&gt; findByTenantIdAndCustomerIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                         @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                         @Param(&quot;type&quot;) String type,
+&nbsp;                                                         @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                         Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo, p.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = a.customerId &quot; +
+&nbsp;            &quot;LEFT JOIN AssetProfileEntity p on p.id = a.assetProfileId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.customerId = :customerId &quot; +
+&nbsp;            &quot;AND a.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(c.title, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetInfoEntity&gt; findAssetInfosByTenantIdAndCustomerIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                       @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                                       @Param(&quot;type&quot;) String type,
+&nbsp;                                                                       @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                                       Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo, p.name) &quot; +
+&nbsp;            &quot;FROM AssetEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = a.customerId &quot; +
+&nbsp;            &quot;LEFT JOIN AssetProfileEntity p on p.id = a.assetProfileId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.customerId = :customerId &quot; +
+&nbsp;            &quot;AND a.assetProfileId = :assetProfileId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(c.title, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.type, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetInfoEntity&gt; findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                                 @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                                                 @Param(&quot;assetProfileId&quot;) UUID assetProfileId,
+&nbsp;                                                                                 @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                                                 Pageable pageable);
+&nbsp;
+&nbsp;    Long countByAssetProfileId(UUID assetProfileId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AssetEntity a, RelationEntity re WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.id = re.toId AND re.toType = &#39;ASSET&#39; AND re.relationTypeGroup = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :edgeId AND re.fromType = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetEntity&gt; findByTenantIdAndEdgeId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                              @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                              @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                              Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AssetEntity a, RelationEntity re WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.id = re.toId AND re.toType = &#39;ASSET&#39; AND re.relationTypeGroup = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :edgeId AND re.fromType = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND a.type = :type &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(a.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.label, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true) &quot;)
+&nbsp;    Page&lt;AssetEntity&gt; findByTenantIdAndEdgeIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                     @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                                     @Param(&quot;type&quot;) String type,
+&nbsp;                                                     @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                     Pageable pageable);
+&nbsp;
+&nbsp;    Long countByTenantId(UUID tenantId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT externalId FROM AssetEntity WHERE id = :id&quot;)
+&nbsp;    UUID getExternalIdById(@Param(&quot;id&quot;) UUID id);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT DISTINCT new org.thingsboard.server.common.data.util.TbPair(a.tenantId , a.type) FROM  AssetEntity a&quot;)
+&nbsp;    Page&lt;TbPair&lt;UUID, String&gt;&gt; getAllAssetTypes(Pageable pageable);
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.edqs.fields.AssetFields(a.id, a.createdTime, a.tenantId, a.customerId,&quot; +
+&nbsp;            &quot;a.name, a.version, a.type, a.label, a.assetProfileId, a.additionalInfo) FROM AssetEntity a WHERE a.id &gt; :id ORDER BY a.id&quot;)
+&nbsp;    List&lt;AssetFields&gt; findAllFields(@Param(&quot;id&quot;) UUID id, Limit limit);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

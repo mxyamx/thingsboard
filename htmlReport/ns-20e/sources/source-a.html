@@ -1,0 +1,349 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbLwM2mRedisSecurityStore</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.server.store</a>
+</div>
+
+<h1>Coverage Summary for Class: TbLwM2mRedisSecurityStore (org.thingsboard.server.transport.lwm2m.server.store)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbLwM2mRedisSecurityStore</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/82)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/91)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.server.store;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.core.SecurityMode;
+&nbsp;import org.eclipse.leshan.core.peer.OscoreIdentity;
+&nbsp;import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
+&nbsp;import org.eclipse.leshan.server.security.SecurityInfo;
+&nbsp;import org.springframework.data.redis.connection.RedisConnection;
+&nbsp;import org.springframework.data.redis.connection.RedisConnectionFactory;
+&nbsp;import org.springframework.integration.redis.util.RedisLockRegistry;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.JavaSerDesUtil;
+&nbsp;import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
+&nbsp;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.store.TbLwM2mRedisRegistrationStore.REG_EP;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
+&nbsp;    private static final String SEC_EP = &quot;SEC#EP#&quot;;
+&nbsp;    private static final String LOCK_EP = &quot;LOCK#EP#&quot;;
+&nbsp;    private static final String PSKID_SEC = &quot;PSKID#SEC&quot;;
+&nbsp;
+&nbsp;    private final RedisConnectionFactory connectionFactory;
+&nbsp;    private final RedisLockRegistry redisLock;
+&nbsp;
+<b class="nc">&nbsp;    public TbLwM2mRedisSecurityStore(RedisConnectionFactory connectionFactory) {</b>
+<b class="nc">&nbsp;        this.connectionFactory = connectionFactory;</b>
+<b class="nc">&nbsp;        redisLock = new RedisLockRegistry(connectionFactory, &quot;Security&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SecurityInfo getByEndpoint(String endpoint) {
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            lock = redisLock.obtain(toLockKey(endpoint));</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+<b class="nc">&nbsp;            byte[] data = connection.get((SEC_EP + endpoint).getBytes());</b>
+<b class="nc">&nbsp;            if (data == null || data.length == 0) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                TbLwM2MSecurityInfo tbLwM2MSecurityInfo = JavaSerDesUtil.decode(data);</b>
+<b class="nc">&nbsp;                if (tbLwM2MSecurityInfo != null) {</b>
+<b class="nc">&nbsp;                    if (SecurityMode.NO_SEC.equals(tbLwM2MSecurityInfo.getSecurityMode())){</b>
+&nbsp;
+&nbsp;                        // for tests: redis connect NoSec (securityInfo == null)
+<b class="nc">&nbsp;                        log.info(&quot;lwm2m redis securityStore (decode -ok). Endpoint: [{}], secMode: [NoSec] key: [{}], data [{}]&quot;, endpoint, SEC_EP, data);</b>
+&nbsp;
+<b class="nc">&nbsp;                        return SecurityInfo.newPreSharedKeyInfo(SecurityMode.NO_SEC.toString(), SecurityMode.NO_SEC.toString(),</b>
+<b class="nc">&nbsp;                                SecurityMode.NO_SEC.toString().getBytes());</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        return tbLwM2MSecurityInfo.getSecurityInfo();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                } else if (SecurityMode.NO_SEC.equals(getSecurityModeByRegistration (connection,  endpoint))){</b>
+&nbsp;
+&nbsp;                    // for tests: redis connect NoSec (securityInfo == null)
+<b class="nc">&nbsp;                    log.info(&quot;lwm2m redis securityStore (decode - bad, registration - unsecure). Endpoint: [{}], secMode: [NoSec] key: [{}], data [{}]&quot;, endpoint, SEC_EP, data);</b>
+&nbsp;
+<b class="nc">&nbsp;                    return SecurityInfo.newPreSharedKeyInfo(SecurityMode.NO_SEC.toString(), SecurityMode.NO_SEC.toString(),</b>
+<b class="nc">&nbsp;                            SecurityMode.NO_SEC.toString().getBytes());</b>
+&nbsp;                } else {
+&nbsp;
+&nbsp;                    // for tests: redis connect NoSec (securityInfo == null)
+<b class="nc">&nbsp;                    log.info(&quot;lwm2m redis securityStore (decode - bad, registration is not unsecure) - return null. Endpoint: [{}], key: [{}], data [{}]&quot;, endpoint, SEC_EP, data);</b>
+&nbsp;
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (lock != null) {</b>
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SecurityInfo getByIdentity(String identity) {
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            lock = redisLock.obtain(toLockKey(identity));</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+<b class="nc">&nbsp;            byte[] ep = connection.hGet(PSKID_SEC.getBytes(), identity.getBytes());</b>
+<b class="nc">&nbsp;            if (ep == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                byte[] data = connection.get((SEC_EP + new String(ep)).getBytes());</b>
+<b class="nc">&nbsp;                if (data == null || data.length == 0) {</b>
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return ((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(data)).getSecurityInfo();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (lock != null) {</b>
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SecurityInfo getByOscoreIdentity(OscoreIdentity oscoreIdentity) {
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void put(TbLwM2MSecurityInfo tbSecurityInfo) throws NonUniqueSecurityInfoException {
+<b class="nc">&nbsp;        SecurityInfo info = tbSecurityInfo.getSecurityInfo();</b>
+<b class="nc">&nbsp;        byte[] tbSecurityInfoSerialized = JavaSerDesUtil.encode(tbSecurityInfo);</b>
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            lock = redisLock.obtain(tbSecurityInfo.getEndpoint());</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+<b class="nc">&nbsp;            if (info != null &amp;&amp; info.getPskIdentity() != null) {</b>
+<b class="nc">&nbsp;                byte[] oldEndpointBytes = connection.hGet(PSKID_SEC.getBytes(), info.getPskIdentity().getBytes());</b>
+<b class="nc">&nbsp;                if (oldEndpointBytes != null) {</b>
+<b class="nc">&nbsp;                    String oldEndpoint = new String(oldEndpointBytes);</b>
+<b class="nc">&nbsp;                    if (!oldEndpoint.equals(info.getEndpoint())) {</b>
+<b class="nc">&nbsp;                        throw new NonUniqueSecurityInfoException(&quot;PSK Identity &quot; + info.getPskIdentity() + &quot; is already used&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    connection.hSet(PSKID_SEC.getBytes(), info.getPskIdentity().getBytes(), info.getEndpoint().getBytes());</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            byte[] previousData = connection.getSet((SEC_EP + tbSecurityInfo.getEndpoint()).getBytes(), tbSecurityInfoSerialized);</b>
+&nbsp;
+&nbsp;                // for tests: redis connect NoSec (securityInfo == null)
+<b class="nc">&nbsp;            log.info(&quot;lwm2m redis connect. Endpoint: [{}], secMode: [{}] key: [{}], tbSecurityInfoSerialized [{}]&quot;,</b>
+<b class="nc">&nbsp;                    tbSecurityInfo.getEndpoint(), tbSecurityInfo.getSecurityMode().name(), SEC_EP, tbSecurityInfoSerialized);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (previousData != null &amp;&amp; info != null) {</b>
+<b class="nc">&nbsp;                String previousIdentity = ((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(previousData)).getSecurityInfo().getPskIdentity();</b>
+<b class="nc">&nbsp;                if (previousIdentity != null &amp;&amp; !previousIdentity.equals(info.getPskIdentity())) {</b>
+<b class="nc">&nbsp;                    connection.hDel(PSKID_SEC.getBytes(), previousIdentity.getBytes());</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (lock != null) {</b>
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbLwM2MSecurityInfo getTbLwM2MSecurityInfoByEndpoint(String endpoint) {
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            lock = redisLock.obtain(endpoint);</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+<b class="nc">&nbsp;            byte[] data = connection.get((SEC_EP + endpoint).getBytes());</b>
+<b class="nc">&nbsp;            if (data != null &amp;&amp; data.length &gt; 0) {</b>
+<b class="nc">&nbsp;                return JavaSerDesUtil.decode(data);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (lock != null) {</b>
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void remove(String endpoint) {
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            lock = redisLock.obtain(endpoint);</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+<b class="nc">&nbsp;            byte[] data = connection.get((SEC_EP + endpoint).getBytes());</b>
+<b class="nc">&nbsp;            if (data != null &amp;&amp; data.length &gt; 0) {</b>
+<b class="nc">&nbsp;                SecurityInfo info = ((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(data)).getSecurityInfo();</b>
+<b class="nc">&nbsp;                if (info != null &amp;&amp; info.getPskIdentity() != null) {</b>
+<b class="nc">&nbsp;                    connection.hDel(PSKID_SEC.getBytes(), info.getPskIdentity().getBytes());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                connection.del((SEC_EP + endpoint).getBytes());</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (lock != null) {</b>
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String toLockKey(String endpoint) {
+<b class="nc">&nbsp;        return LOCK_EP + endpoint;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private SecurityMode getSecurityModeByRegistration (RedisConnection connection, String endpoint) {
+&nbsp;        try {
+<b class="nc">&nbsp;            byte[] data = connection.get((REG_EP + endpoint).getBytes());</b>
+<b class="nc">&nbsp;            JsonNode registrationNode = JacksonUtil.fromString(new String(data != null ? data : new byte[0]), JsonNode.class);</b>
+<b class="nc">&nbsp;            String typeModeStr = registrationNode.get(&quot;transportdata&quot;).get(&quot;identity&quot;).get(&quot;type&quot;).asText();</b>
+<b class="nc">&nbsp;            return &quot;unsecure&quot;.equals(typeModeStr) ? SecurityMode.NO_SEC : null;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Redis: Failed get SecurityMode by Registration, endpoint: [{}]&quot;, endpoint, e);</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

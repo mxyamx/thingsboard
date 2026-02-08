@@ -1,0 +1,473 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AggregatePartitionsFunction</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.timeseries</a>
+</div>
+
+<h1>Coverage Summary for Class: AggregatePartitionsFunction (org.thingsboard.server.dao.timeseries)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AggregatePartitionsFunction</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/182)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/139)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AggregatePartitionsFunction$AggregationResult</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/182)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/149)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.timeseries;
+&nbsp;
+&nbsp;import com.datastax.oss.driver.api.core.cql.Row;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import jakarta.annotation.Nullable;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.data.kv.AggTsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.Aggregation;
+&nbsp;import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.DataType;
+&nbsp;import org.thingsboard.server.common.data.kv.DoubleDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.JsonDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.LongDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.StringDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntryAggWrapper;
+&nbsp;import org.thingsboard.server.dao.nosql.TbResultSet;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.Executor;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 20.02.17.
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class AggregatePartitionsFunction implements com.google.common.util.concurrent.AsyncFunction&lt;List&lt;TbResultSet&gt;, Optional&lt;TsKvEntryAggWrapper&gt;&gt; {
+&nbsp;
+&nbsp;    private static final int LONG_CNT_POS = 0;
+&nbsp;    private static final int DOUBLE_CNT_POS = 1;
+&nbsp;    private static final int BOOL_CNT_POS = 2;
+&nbsp;    private static final int STR_CNT_POS = 3;
+&nbsp;    private static final int JSON_CNT_POS = 4;
+&nbsp;    private static final int MAX_TS_POS = 5;
+&nbsp;    private static final int LONG_POS = 6;
+&nbsp;    private static final int DOUBLE_POS = 7;
+&nbsp;    private static final int BOOL_POS = 8;
+&nbsp;    private static final int STR_POS = 9;
+&nbsp;    private static final int JSON_POS = 10;
+&nbsp;
+&nbsp;
+&nbsp;    private final Aggregation aggregation;
+&nbsp;    private final String key;
+&nbsp;    private final long ts;
+&nbsp;    private final Executor executor;
+&nbsp;
+<b class="nc">&nbsp;    public AggregatePartitionsFunction(Aggregation aggregation, String key, long ts, Executor executor) {</b>
+<b class="nc">&nbsp;        this.aggregation = aggregation;</b>
+<b class="nc">&nbsp;        this.key = key;</b>
+<b class="nc">&nbsp;        this.ts = ts;</b>
+<b class="nc">&nbsp;        this.executor = executor;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Optional&lt;TsKvEntryAggWrapper&gt;&gt; apply(@Nullable List&lt;TbResultSet&gt; rsList) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}][{}] Going to aggregate data&quot;, key, ts, aggregation);</b>
+<b class="nc">&nbsp;        if (rsList == null || rsList.isEmpty()) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(Optional.empty());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.transform(</b>
+<b class="nc">&nbsp;                Futures.allAsList(</b>
+<b class="nc">&nbsp;                        rsList.stream().map(rs -&gt; rs.allRows(this.executor))</b>
+<b class="nc">&nbsp;                                .collect(Collectors.toList())),</b>
+&nbsp;                rowsList -&gt; {
+&nbsp;                    try {
+<b class="nc">&nbsp;                        AggregationResult aggResult = new AggregationResult();</b>
+<b class="nc">&nbsp;                        for (List&lt;Row&gt; rs : rowsList) {</b>
+<b class="nc">&nbsp;                            for (Row row : rs) {</b>
+<b class="nc">&nbsp;                                processResultSetRow(row, aggResult);</b>
+&nbsp;                            }
+&nbsp;                        }
+<b class="nc">&nbsp;                        return processAggregationResult(aggResult);</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        log.error(&quot;[{}][{}][{}] Failed to aggregate data&quot;, key, ts, aggregation, e);</b>
+<b class="nc">&nbsp;                        return Optional.empty();</b>
+&nbsp;                    }
+&nbsp;                }, this.executor);
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processResultSetRow(Row row, AggregationResult aggResult) {
+<b class="nc">&nbsp;        long curCount = 0L;</b>
+&nbsp;
+<b class="nc">&nbsp;        Long curLValue = null;</b>
+<b class="nc">&nbsp;        Double curDValue = null;</b>
+<b class="nc">&nbsp;        Boolean curBValue = null;</b>
+<b class="nc">&nbsp;        String curSValue = null;</b>
+<b class="nc">&nbsp;        String curJValue = null;</b>
+&nbsp;
+<b class="nc">&nbsp;        long longCount = row.getLong(LONG_CNT_POS);</b>
+<b class="nc">&nbsp;        long doubleCount = row.getLong(DOUBLE_CNT_POS);</b>
+<b class="nc">&nbsp;        long boolCount = row.getLong(BOOL_CNT_POS);</b>
+<b class="nc">&nbsp;        long strCount = row.getLong(STR_CNT_POS);</b>
+<b class="nc">&nbsp;        long jsonCount = row.getLong(JSON_CNT_POS);</b>
+<b class="nc">&nbsp;        long aggValuesLastTs = row.getLong(MAX_TS_POS);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (longCount &gt; 0 || doubleCount &gt; 0) {</b>
+<b class="nc">&nbsp;            if (longCount &gt; 0) {</b>
+<b class="nc">&nbsp;                aggResult.dataType = DataType.LONG;</b>
+<b class="nc">&nbsp;                curCount += longCount;</b>
+<b class="nc">&nbsp;                curLValue = getLongValue(row);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (doubleCount &gt; 0) {</b>
+<b class="nc">&nbsp;                aggResult.hasDouble = true;</b>
+<b class="nc">&nbsp;                aggResult.dataType = DataType.DOUBLE;</b>
+<b class="nc">&nbsp;                curCount += doubleCount;</b>
+<b class="nc">&nbsp;                curDValue = getDoubleValue(row);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (boolCount &gt; 0) {</b>
+<b class="nc">&nbsp;            aggResult.dataType = DataType.BOOLEAN;</b>
+<b class="nc">&nbsp;            curCount = boolCount;</b>
+<b class="nc">&nbsp;            curBValue = getBooleanValue(row);</b>
+<b class="nc">&nbsp;        } else if (strCount &gt; 0) {</b>
+<b class="nc">&nbsp;            aggResult.dataType = DataType.STRING;</b>
+<b class="nc">&nbsp;            curCount = strCount;</b>
+<b class="nc">&nbsp;            curSValue = getStringValue(row);</b>
+<b class="nc">&nbsp;        } else if (jsonCount &gt; 0) {</b>
+<b class="nc">&nbsp;            aggResult.dataType = DataType.JSON;</b>
+<b class="nc">&nbsp;            curCount = jsonCount;</b>
+<b class="nc">&nbsp;            curJValue = getJsonValue(row);</b>
+&nbsp;        } else {
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        aggResult.aggValuesLastTs = Math.max(aggResult.aggValuesLastTs, aggValuesLastTs);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (aggregation == Aggregation.COUNT) {</b>
+<b class="nc">&nbsp;            aggResult.count += curCount;</b>
+<b class="nc">&nbsp;        } else if (aggregation == Aggregation.AVG || aggregation == Aggregation.SUM) {</b>
+<b class="nc">&nbsp;            processAvgOrSumAggregation(aggResult, curCount, curLValue, curDValue);</b>
+<b class="nc">&nbsp;        } else if (aggregation == Aggregation.MIN) {</b>
+<b class="nc">&nbsp;            processMinAggregation(aggResult, curLValue, curDValue, curBValue, curSValue, curJValue);</b>
+<b class="nc">&nbsp;        } else if (aggregation == Aggregation.MAX) {</b>
+<b class="nc">&nbsp;            processMaxAggregation(aggResult, curLValue, curDValue, curBValue, curSValue, curJValue);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processAvgOrSumAggregation(AggregationResult aggResult, long curCount, Long curLValue, Double curDValue) {
+<b class="nc">&nbsp;        aggResult.count += curCount;</b>
+<b class="nc">&nbsp;        if (curDValue != null) {</b>
+<b class="nc">&nbsp;            aggResult.dValue = aggResult.dValue == null ? curDValue : aggResult.dValue + curDValue;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (curLValue != null) {</b>
+<b class="nc">&nbsp;            aggResult.lValue = aggResult.lValue == null ? curLValue : aggResult.lValue + curLValue;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMinAggregation(AggregationResult aggResult, Long curLValue, Double curDValue, Boolean curBValue, String curSValue, String curJValue) {
+<b class="nc">&nbsp;        if (curDValue != null || curLValue != null) {</b>
+<b class="nc">&nbsp;            if (curDValue != null) {</b>
+<b class="nc">&nbsp;                aggResult.dValue = aggResult.dValue == null ? curDValue : Math.min(aggResult.dValue, curDValue);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (curLValue != null) {</b>
+<b class="nc">&nbsp;                aggResult.lValue = aggResult.lValue == null ? curLValue : Math.min(aggResult.lValue, curLValue);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (curBValue != null) {</b>
+<b class="nc">&nbsp;            aggResult.bValue = aggResult.bValue == null ? curBValue : aggResult.bValue &amp;&amp; curBValue;</b>
+<b class="nc">&nbsp;        } else if (curSValue != null &amp;&amp; (aggResult.sValue == null || curSValue.compareTo(aggResult.sValue) &lt; 0)) {</b>
+<b class="nc">&nbsp;            aggResult.sValue = curSValue;</b>
+<b class="nc">&nbsp;        } else if (curJValue != null &amp;&amp; (aggResult.jValue == null || curJValue.compareTo(aggResult.jValue) &lt; 0)) {</b>
+<b class="nc">&nbsp;            aggResult.jValue = curJValue;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMaxAggregation(AggregationResult aggResult, Long curLValue, Double curDValue, Boolean curBValue, String curSValue, String curJValue) {
+<b class="nc">&nbsp;        if (curDValue != null || curLValue != null) {</b>
+<b class="nc">&nbsp;            if (curDValue != null) {</b>
+<b class="nc">&nbsp;                aggResult.dValue = aggResult.dValue == null ? curDValue : Math.max(aggResult.dValue, curDValue);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (curLValue != null) {</b>
+<b class="nc">&nbsp;                aggResult.lValue = aggResult.lValue == null ? curLValue : Math.max(aggResult.lValue, curLValue);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (curBValue != null) {</b>
+<b class="nc">&nbsp;            aggResult.bValue = aggResult.bValue == null ? curBValue : aggResult.bValue || curBValue;</b>
+<b class="nc">&nbsp;        } else if (curSValue != null &amp;&amp; (aggResult.sValue == null || curSValue.compareTo(aggResult.sValue) &gt; 0)) {</b>
+<b class="nc">&nbsp;            aggResult.sValue = curSValue;</b>
+<b class="nc">&nbsp;        } else if (curJValue != null &amp;&amp; (aggResult.jValue == null || curJValue.compareTo(aggResult.jValue) &gt; 0)) {</b>
+<b class="nc">&nbsp;            aggResult.jValue = curJValue;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Boolean getBooleanValue(Row row) {
+<b class="nc">&nbsp;        if (aggregation == Aggregation.MIN || aggregation == Aggregation.MAX) {</b>
+<b class="nc">&nbsp;            return row.getBoolean(BOOL_POS);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null; //NOSONAR, null is used for further comparison</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getStringValue(Row row) {
+<b class="nc">&nbsp;        if (aggregation == Aggregation.MIN || aggregation == Aggregation.MAX) {</b>
+<b class="nc">&nbsp;            return row.getString(STR_POS);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getJsonValue(Row row) {
+<b class="nc">&nbsp;        if (aggregation == Aggregation.MIN || aggregation == Aggregation.MAX) {</b>
+<b class="nc">&nbsp;            return row.getString(JSON_POS);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Long getLongValue(Row row) {
+<b class="nc">&nbsp;        if (aggregation == Aggregation.MIN || aggregation == Aggregation.MAX</b>
+&nbsp;                || aggregation == Aggregation.SUM || aggregation == Aggregation.AVG) {
+<b class="nc">&nbsp;            return row.getLong(LONG_POS);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Double getDoubleValue(Row row) {
+<b class="nc">&nbsp;        if (aggregation == Aggregation.MIN || aggregation == Aggregation.MAX</b>
+&nbsp;                || aggregation == Aggregation.SUM || aggregation == Aggregation.AVG) {
+<b class="nc">&nbsp;            return row.getDouble(DOUBLE_POS);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;TsKvEntryAggWrapper&gt; processAggregationResult(AggregationResult aggResult) {
+&nbsp;        Optional&lt;TsKvEntry&gt; result;
+<b class="nc">&nbsp;        if (aggResult.dataType == null) {</b>
+<b class="nc">&nbsp;            result = Optional.empty();</b>
+<b class="nc">&nbsp;        } else if (aggregation == Aggregation.COUNT) {</b>
+<b class="nc">&nbsp;            result = Optional.of(new BasicTsKvEntry(ts, new LongDataEntry(key, aggResult.count)));</b>
+<b class="nc">&nbsp;        } else if (aggregation == Aggregation.AVG || aggregation == Aggregation.SUM) {</b>
+<b class="nc">&nbsp;            result = processAvgOrSumResult(aggregation, aggResult);</b>
+<b class="nc">&nbsp;        } else if (aggregation == Aggregation.MIN || aggregation == Aggregation.MAX) {</b>
+<b class="nc">&nbsp;            result = processMinOrMaxResult(aggResult);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result = Optional.empty();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (result.isEmpty()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}][{}] Aggregated data is empty.&quot;, key, ts, aggregation);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result.map(tsKvEntry -&gt; new TsKvEntryAggWrapper(tsKvEntry, aggResult.aggValuesLastTs));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;TsKvEntry&gt; processAvgOrSumResult(Aggregation aggregation, AggregationResult aggResult) {
+<b class="nc">&nbsp;        if (aggResult.count == 0 || (aggResult.dataType == DataType.DOUBLE &amp;&amp; aggResult.dValue == null) || (aggResult.dataType == DataType.LONG &amp;&amp; aggResult.lValue == null)) {</b>
+<b class="nc">&nbsp;            return Optional.empty();</b>
+<b class="nc">&nbsp;        } else if (aggResult.dataType == DataType.DOUBLE || aggResult.dataType == DataType.LONG) {</b>
+<b class="nc">&nbsp;            if (aggregation == Aggregation.AVG || aggResult.hasDouble) {</b>
+<b class="nc">&nbsp;                double sum = Optional.ofNullable(aggResult.dValue).orElse(0.0d) + Optional.ofNullable(aggResult.lValue).orElse(0L);</b>
+<b class="nc">&nbsp;                DoubleDataEntry doubleDataEntry = new DoubleDataEntry(key, aggregation == Aggregation.SUM ? sum : (sum / aggResult.count));</b>
+<b class="nc">&nbsp;                TsKvEntry result = aggregation == Aggregation.AVG ? new AggTsKvEntry(ts, doubleDataEntry, aggResult.count) : new BasicTsKvEntry(ts, doubleDataEntry);</b>
+<b class="nc">&nbsp;                return Optional.of(result);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                LongDataEntry longDataEntry = new LongDataEntry(key, aggregation == Aggregation.SUM ? aggResult.lValue : (aggResult.lValue / aggResult.count));</b>
+<b class="nc">&nbsp;                return Optional.of(new BasicTsKvEntry(ts, longDataEntry));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;TsKvEntry&gt; processMinOrMaxResult(AggregationResult aggResult) {
+<b class="nc">&nbsp;        if (aggResult.dataType == DataType.DOUBLE || aggResult.dataType == DataType.LONG) {</b>
+<b class="nc">&nbsp;            if (aggResult.hasDouble) {</b>
+<b class="nc">&nbsp;                double currentD = aggregation == Aggregation.MIN ? Optional.ofNullable(aggResult.dValue).orElse(Double.MAX_VALUE) : Optional.ofNullable(aggResult.dValue).orElse(Double.MIN_VALUE);</b>
+<b class="nc">&nbsp;                double currentL = aggregation == Aggregation.MIN ? Optional.ofNullable(aggResult.lValue).orElse(Long.MAX_VALUE) : Optional.ofNullable(aggResult.lValue).orElse(Long.MIN_VALUE);</b>
+<b class="nc">&nbsp;                return Optional.of(new BasicTsKvEntry(ts, new DoubleDataEntry(key, aggregation == Aggregation.MIN ? Math.min(currentD, currentL) : Math.max(currentD, currentL))));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return Optional.of(new BasicTsKvEntry(ts, new LongDataEntry(key, aggResult.lValue)));</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (aggResult.dataType == DataType.STRING) {</b>
+<b class="nc">&nbsp;            return Optional.of(new BasicTsKvEntry(ts, new StringDataEntry(key, aggResult.sValue)));</b>
+<b class="nc">&nbsp;        } else if (aggResult.dataType == DataType.JSON) {</b>
+<b class="nc">&nbsp;            return Optional.of(new BasicTsKvEntry(ts, new JsonDataEntry(key, aggResult.jValue)));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Optional.of(new BasicTsKvEntry(ts, new BooleanDataEntry(key, aggResult.bValue)));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private class AggregationResult {</b>
+<b class="nc">&nbsp;        DataType dataType = null;</b>
+<b class="nc">&nbsp;        Boolean bValue = null;</b>
+<b class="nc">&nbsp;        String sValue = null;</b>
+<b class="nc">&nbsp;        String jValue = null;</b>
+<b class="nc">&nbsp;        Double dValue = null;</b>
+<b class="nc">&nbsp;        Long lValue = null;</b>
+<b class="nc">&nbsp;        long count = 0;</b>
+<b class="nc">&nbsp;        boolean hasDouble = false;</b>
+<b class="nc">&nbsp;        long aggValuesLastTs = 0;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

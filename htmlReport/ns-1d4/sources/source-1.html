@@ -1,0 +1,471 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultSubscriptionManagerService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.subscription</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultSubscriptionManagerService (org.thingsboard.server.service.subscription)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultSubscriptionManagerService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/62)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/126)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.subscription;
+&nbsp;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.context.event.EventListener;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.KvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.StringDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueProducer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.discovery.TopicService;
+&nbsp;import org.thingsboard.server.queue.discovery.event.OtherServiceShutdownEvent;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationsSubscriptionUpdate;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@TbCoreComponent
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultSubscriptionManagerService extends TbApplicationEventListener&lt;PartitionChangeEvent&gt; implements SubscriptionManagerService {
+&nbsp;
+&nbsp;    private final TopicService topicService;
+&nbsp;    private final PartitionService partitionService;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final TbQueueProducerProvider producerProvider;
+&nbsp;    private final TbLocalSubscriptionService localSubscriptionService;
+&nbsp;    private final SubscriptionSchedulerComponent scheduler;
+&nbsp;
+&nbsp;    private final Lock subsLock = new ReentrantLock();
+&nbsp;    private final ConcurrentMap&lt;EntityId, TbEntityRemoteSubsInfo&gt; entitySubscriptions = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;EntityId, TbEntityUpdatesInfo&gt; entityUpdates = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private String serviceId;
+&nbsp;    private TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; toCoreNotificationsProducer;
+&nbsp;
+&nbsp;    private long initTs;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void initExecutor() {
+<b class="nc">&nbsp;        serviceId = serviceInfoProvider.getServiceId();</b>
+<b class="nc">&nbsp;        initTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        toCoreNotificationsProducer = producerProvider.getTbCoreNotificationsMsgProducer();</b>
+<b class="nc">&nbsp;        scheduler.scheduleWithFixedDelay(this::cleanupEntityUpdates, 1, 1, TimeUnit.HOURS);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onSubEvent(String serviceId, TbEntitySubEvent event, TbCallback callback) {
+<b class="nc">&nbsp;        var tenantId = event.getTenantId();</b>
+<b class="nc">&nbsp;        var entityId = event.getEntityId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}][{}] Processing subscription event {}&quot;, tenantId, entityId, serviceId, event);</b>
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId);</b>
+<b class="nc">&nbsp;        if (tpi.isMyPartition()) {</b>
+<b class="nc">&nbsp;            subsLock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                var entitySubs = entitySubscriptions.computeIfAbsent(entityId, id -&gt; new TbEntityRemoteSubsInfo(tenantId, entityId));</b>
+<b class="nc">&nbsp;                boolean empty = entitySubs.updateAndCheckIsEmpty(serviceId, event);</b>
+<b class="nc">&nbsp;                if (empty) {</b>
+<b class="nc">&nbsp;                    entitySubscriptions.remove(entityId);</b>
+&nbsp;                }
+&nbsp;            } finally {
+<b class="nc">&nbsp;                subsLock.unlock();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            callback.onSuccess();</b>
+<b class="nc">&nbsp;            if (event.hasTsOrAttrSub()) {</b>
+<b class="nc">&nbsp;                sendSubEventCallback(tenantId, serviceId, entityId, event.getSeqNumber());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}][{}] Event belongs to external partition. Probably re-balancing is in progress. Topic: {}&quot;</b>
+<b class="nc">&nbsp;                    , tenantId, entityId, serviceId, tpi.getFullTopicName());</b>
+<b class="nc">&nbsp;            callback.onFailure(new RuntimeException(&quot;Entity belongs to external partition &quot; + tpi.getFullTopicName() + &quot;!&quot;));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @EventListener(OtherServiceShutdownEvent.class)
+&nbsp;    public void onApplicationEvent(OtherServiceShutdownEvent event) {
+<b class="nc">&nbsp;        if (event.getServiceTypes() != null &amp;&amp; event.getServiceTypes().contains(ServiceType.TB_CORE)) {</b>
+<b class="nc">&nbsp;            subsLock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                int sizeBeforeCleanup = entitySubscriptions.size();</b>
+<b class="nc">&nbsp;                entitySubscriptions.entrySet().removeIf(kv -&gt; kv.getValue().removeAndCheckIsEmpty(event.getServiceId()));</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}][{}] Removed {} entity subscription records due to server shutdown.&quot;, serviceId, event.getServiceId(), entitySubscriptions.size() - sizeBeforeCleanup);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                subsLock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendSubEventCallback(TenantId tenantId, String targetId, EntityId entityId, int seqNumber) {
+<b class="nc">&nbsp;        var update = getEntityUpdatesInfo(entityId);</b>
+<b class="nc">&nbsp;        if (serviceId.equals(targetId)) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onSubEventCallback(tenantId, entityId, seqNumber, update, TbCallback.EMPTY);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sendCoreNotification(targetId, entityId, TbSubscriptionUtils.toProto(tenantId, entityId.getId(), seqNumber, update));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+<b class="nc">&nbsp;        if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {</b>
+<b class="nc">&nbsp;            entitySubscriptions.values().removeIf(sub -&gt;</b>
+<b class="nc">&nbsp;                    !partitionService.isMyPartition(ServiceType.TB_CORE, sub.getTenantId(), sub.getEntityId()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onTimeSeriesUpdate(TenantId tenantId, EntityId entityId, List&lt;TsKvEntry&gt; ts, TbCallback callback) {
+<b class="nc">&nbsp;        onTimeSeriesUpdate(entityId, ts);</b>
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onTimeSeriesDelete(TenantId tenantId, EntityId entityId, List&lt;String&gt; keys, TbCallback callback) {
+<b class="nc">&nbsp;        onTimeSeriesUpdate(entityId,</b>
+<b class="nc">&nbsp;                keys.stream().map(key -&gt; new BasicTsKvEntry(0, new StringDataEntry(key, &quot;&quot;))).collect(Collectors.toList()));</b>
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onTimeSeriesUpdate(EntityId entityId, List&lt;TsKvEntry&gt; update) {
+<b class="nc">&nbsp;        getEntityUpdatesInfo(entityId).timeSeriesUpdateTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        TbEntityRemoteSubsInfo subInfo = entitySubscriptions.get(entityId);</b>
+<b class="nc">&nbsp;        if (subInfo != null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Handling time-series update: {}&quot;, entityId, update);</b>
+<b class="nc">&nbsp;            subInfo.getSubs().forEach((serviceId, sub) -&gt; {</b>
+<b class="nc">&nbsp;                if (sub.tsAllKeys) {</b>
+<b class="nc">&nbsp;                    onTimeSeriesUpdate(serviceId, entityId, update);</b>
+<b class="nc">&nbsp;                } else if (sub.tsKeys != null) {</b>
+<b class="nc">&nbsp;                    List&lt;TsKvEntry&gt; tmp = getSubList(update, sub.tsKeys);</b>
+<b class="nc">&nbsp;                    if (tmp != null) {</b>
+<b class="nc">&nbsp;                        onTimeSeriesUpdate(serviceId, entityId, tmp);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            });
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] No time-series subscriptions for entity.&quot;, entityId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onTimeSeriesUpdate(String targetId, EntityId entityId, List&lt;TsKvEntry&gt; update) {
+<b class="nc">&nbsp;        if (serviceId.equals(targetId)) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onTimeSeriesUpdate(entityId, update, TbCallback.EMPTY);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sendCoreNotification(targetId, entityId, TbSubscriptionUtils.toProto(entityId, update));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onAttributesUpdate(TenantId tenantId, EntityId entityId, String scope, List&lt;AttributeKvEntry&gt; attributes, TbCallback callback) {
+<b class="nc">&nbsp;        getEntityUpdatesInfo(entityId).attributesUpdateTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        processAttributesUpdate(entityId, scope, attributes);</b>
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onAttributesDelete(TenantId tenantId, EntityId entityId, String scope, List&lt;String&gt; keys, TbCallback callback) {
+&nbsp;        try {
+<b class="nc">&nbsp;            List&lt;AttributeKvEntry&gt; deletedEntries = keys.stream()</b>
+<b class="nc">&nbsp;                    .&lt;AttributeKvEntry&gt;map(key -&gt; new BaseAttributeKvEntry(0L, new StringDataEntry(key, &quot;&quot;)))</b>
+<b class="nc">&nbsp;                    .toList();</b>
+<b class="nc">&nbsp;            processAttributesUpdate(entityId, scope, deletedEntries);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            callback.onFailure(e);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processAttributesUpdate(EntityId entityId, String scope, List&lt;AttributeKvEntry&gt; update) {
+<b class="nc">&nbsp;        TbEntityRemoteSubsInfo subInfo = entitySubscriptions.get(entityId);</b>
+<b class="nc">&nbsp;        if (subInfo != null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Handling attributes update: {}&quot;, entityId, update);</b>
+<b class="nc">&nbsp;            subInfo.getSubs().forEach((serviceId, sub) -&gt; {</b>
+<b class="nc">&nbsp;                if (sub.attrAllKeys) {</b>
+<b class="nc">&nbsp;                    processAttributesUpdate(serviceId, entityId, scope, update);</b>
+<b class="nc">&nbsp;                } else if (sub.attrKeys != null) {</b>
+<b class="nc">&nbsp;                    List&lt;AttributeKvEntry&gt; tmp = getSubList(update, sub.attrKeys);</b>
+<b class="nc">&nbsp;                    if (tmp != null) {</b>
+<b class="nc">&nbsp;                        processAttributesUpdate(serviceId, entityId, scope, tmp);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            });
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] No attributes subscriptions for entity.&quot;, entityId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processAttributesUpdate(String targetId, EntityId entityId, String scope, List&lt;AttributeKvEntry&gt; update) {
+<b class="nc">&nbsp;        List&lt;TsKvEntry&gt; tsKvEntryList = update.stream().map(attr -&gt; new BasicTsKvEntry(attr.getLastUpdateTs(), attr)).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        if (serviceId.equals(targetId)) {</b>
+<b class="nc">&nbsp;            localSubscriptionService.onAttributesUpdate(entityId, scope, tsKvEntryList, TbCallback.EMPTY);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sendCoreNotification(targetId, entityId, TbSubscriptionUtils.toProto(scope, entityId, tsKvEntryList));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onAlarmUpdate(TenantId tenantId, EntityId entityId, AlarmInfo alarm, TbCallback callback) {
+<b class="nc">&nbsp;        onAlarmSubUpdate(tenantId, entityId, alarm, false, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onAlarmDeleted(TenantId tenantId, EntityId entityId, AlarmInfo alarm, TbCallback callback) {
+<b class="nc">&nbsp;        onAlarmSubUpdate(tenantId, entityId, alarm, true, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onAlarmSubUpdate(TenantId tenantId, EntityId entityId, AlarmInfo alarm, boolean deleted, TbCallback callback) {
+<b class="nc">&nbsp;        TbEntityRemoteSubsInfo subInfo = entitySubscriptions.get(entityId);</b>
+<b class="nc">&nbsp;        if (subInfo != null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Handling alarm update {}: {}&quot;, tenantId, entityId, alarm, deleted);</b>
+<b class="nc">&nbsp;            for (Map.Entry&lt;String, TbSubscriptionsInfo&gt; entry : subInfo.getSubs().entrySet()) {</b>
+<b class="nc">&nbsp;                if (entry.getValue().alarms) {</b>
+<b class="nc">&nbsp;                    onAlarmSubUpdate(entry.getKey(), entityId, alarm, deleted);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onAlarmSubUpdate(String targetServiceId, EntityId entityId, AlarmInfo alarm, boolean deleted) {
+<b class="nc">&nbsp;        if (alarm == null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}] empty alarm update!&quot;, entityId);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (serviceId.equals(targetServiceId)) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding to local service: {} deleted: {}&quot;, entityId, alarm, deleted);</b>
+<b class="nc">&nbsp;            localSubscriptionService.onAlarmUpdate(entityId, alarm, deleted, TbCallback.EMPTY);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sendCoreNotification(targetServiceId, entityId,</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.toAlarmSubUpdateToProto(entityId, alarm, deleted));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendCoreNotification(String targetServiceId, EntityId entityId, ToCoreNotificationMsg msg) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Forwarding to remote service [{}]: {}&quot;, entityId, targetServiceId, msg);</b>
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, targetServiceId);</b>
+<b class="nc">&nbsp;        TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt; queueMsg = new TbProtoQueueMsg&lt;&gt;(entityId.getId(), msg);</b>
+<b class="nc">&nbsp;        toCoreNotificationsProducer.send(tpi, queueMsg, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onNotificationUpdate(TenantId tenantId, UserId entityId, NotificationUpdate notificationUpdate, TbCallback callback) {
+<b class="nc">&nbsp;        TbEntityRemoteSubsInfo subInfo = entitySubscriptions.get(entityId);</b>
+<b class="nc">&nbsp;        if (subInfo != null) {</b>
+<b class="nc">&nbsp;            NotificationsSubscriptionUpdate subscriptionUpdate = new NotificationsSubscriptionUpdate(notificationUpdate);</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Handling notificationUpdate for user {}&quot;, tenantId, entityId, notificationUpdate);</b>
+<b class="nc">&nbsp;            for (Map.Entry&lt;String, TbSubscriptionsInfo&gt; entry : subInfo.getSubs().entrySet()) {</b>
+<b class="nc">&nbsp;                if (entry.getValue().notifications) {</b>
+<b class="nc">&nbsp;                    onNotificationsSubUpdate(entry.getKey(), entityId, subscriptionUpdate);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        callback.onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onNotificationsSubUpdate(String targetServiceId, EntityId entityId, NotificationsSubscriptionUpdate subscriptionUpdate) {
+<b class="nc">&nbsp;        if (serviceId.equals(targetServiceId)) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding to local service: {}&quot;, entityId, subscriptionUpdate);</b>
+<b class="nc">&nbsp;            localSubscriptionService.onNotificationUpdate(entityId, subscriptionUpdate, TbCallback.EMPTY);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sendCoreNotification(targetServiceId, entityId,</b>
+<b class="nc">&nbsp;                    TbSubscriptionUtils.notificationsSubUpdateToProto(entityId, subscriptionUpdate));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static &lt;T extends KvEntry&gt; List&lt;T&gt; getSubList(List&lt;T&gt; ts, Set&lt;String&gt; keys) {
+<b class="nc">&nbsp;        List&lt;T&gt; update = null;</b>
+<b class="nc">&nbsp;        for (T entry : ts) {</b>
+<b class="nc">&nbsp;            if (keys.contains(entry.getKey())) {</b>
+<b class="nc">&nbsp;                if (update == null) {</b>
+<b class="nc">&nbsp;                    update = new ArrayList&lt;&gt;(ts.size());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                update.add(entry);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return update;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbEntityUpdatesInfo getEntityUpdatesInfo(EntityId entityId) {
+<b class="nc">&nbsp;        return entityUpdates.computeIfAbsent(entityId, id -&gt; new TbEntityUpdatesInfo(initTs));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanupEntityUpdates() {
+<b class="nc">&nbsp;        initTs = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1);</b>
+<b class="nc">&nbsp;        int sizeBeforeCleanup = entityUpdates.size();</b>
+<b class="nc">&nbsp;        entityUpdates.entrySet().removeIf(kv -&gt; {</b>
+<b class="nc">&nbsp;            var v = kv.getValue();</b>
+<b class="nc">&nbsp;            return initTs &gt; v.attributesUpdateTs &amp;&amp; initTs &gt; v.timeSeriesUpdateTs;</b>
+&nbsp;        });
+<b class="nc">&nbsp;        log.info(&quot;Removed {} old entity update records.&quot;, entityUpdates.size() - sizeBeforeCleanup);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractSslCredentials</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.common.transport.config.ssl</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractSslCredentials (org.thingsboard.server.common.transport.config.ssl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractSslCredentials</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/76)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.common.transport.config.ssl;
+&nbsp;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;
+&nbsp;import javax.net.ssl.KeyManagerFactory;
+&nbsp;import javax.net.ssl.TrustManagerFactory;
+&nbsp;import java.io.IOException;
+&nbsp;import java.security.GeneralSecurityException;
+&nbsp;import java.security.KeyStore;
+&nbsp;import java.security.KeyStore.PrivateKeyEntry;
+&nbsp;import java.security.KeyStoreException;
+&nbsp;import java.security.NoSuchAlgorithmException;
+&nbsp;import java.security.PrivateKey;
+&nbsp;import java.security.PublicKey;
+&nbsp;import java.security.UnrecoverableEntryException;
+&nbsp;import java.security.UnrecoverableKeyException;
+&nbsp;import java.security.cert.Certificate;
+&nbsp;import java.security.cert.X509Certificate;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Enumeration;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;
+<b class="nc">&nbsp;public abstract class AbstractSslCredentials implements SslCredentials {</b>
+&nbsp;
+&nbsp;    private char[] keyPasswordArray;
+&nbsp;
+&nbsp;    private KeyStore keyStore;
+&nbsp;
+&nbsp;    private PrivateKey privateKey;
+&nbsp;
+&nbsp;    private PublicKey publicKey;
+&nbsp;
+&nbsp;    private X509Certificate[] chain;
+&nbsp;
+&nbsp;    private X509Certificate[] trusts;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(boolean trustsOnly) throws IOException, GeneralSecurityException {
+<b class="nc">&nbsp;        String keyPassword = getKeyPassword();</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(keyPassword)) {</b>
+<b class="nc">&nbsp;            this.keyPasswordArray = new char[0];</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.keyPasswordArray = keyPassword.toCharArray();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        this.keyStore = this.loadKeyStore(trustsOnly, this.keyPasswordArray);</b>
+<b class="nc">&nbsp;        Set&lt;X509Certificate&gt; trustedCerts = getTrustedCerts(this.keyStore, trustsOnly);</b>
+<b class="nc">&nbsp;        this.trusts = trustedCerts.toArray(new X509Certificate[0]);</b>
+<b class="nc">&nbsp;        if (!trustsOnly) {</b>
+<b class="nc">&nbsp;            PrivateKeyEntry privateKeyEntry = null;</b>
+<b class="nc">&nbsp;            String keyAlias = this.getKeyAlias();</b>
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(keyAlias)) {</b>
+<b class="nc">&nbsp;                privateKeyEntry = tryGetPrivateKeyEntry(this.keyStore, keyAlias, this.keyPasswordArray);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                for (Enumeration&lt;String&gt; e = this.keyStore.aliases(); e.hasMoreElements(); ) {</b>
+<b class="nc">&nbsp;                    String alias = e.nextElement();</b>
+<b class="nc">&nbsp;                    privateKeyEntry = tryGetPrivateKeyEntry(this.keyStore, alias, this.keyPasswordArray);</b>
+<b class="nc">&nbsp;                    if (privateKeyEntry != null) {</b>
+<b class="nc">&nbsp;                        this.updateKeyAlias(alias);</b>
+&nbsp;                        break;
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (privateKeyEntry == null) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Failed to get private key from the keystore or pem files. &quot; +</b>
+&nbsp;                        &quot;Please check if the private key exists in the keystore or pem files and if the provided private key password is valid.&quot;);
+&nbsp;            }
+<b class="nc">&nbsp;            this.chain = asX509Certificates(privateKeyEntry.getCertificateChain());</b>
+<b class="nc">&nbsp;            this.privateKey = privateKeyEntry.getPrivateKey();</b>
+<b class="nc">&nbsp;            if (this.chain.length &gt; 0) {</b>
+<b class="nc">&nbsp;                this.publicKey = this.chain[0].getPublicKey();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public KeyStore getKeyStore() {
+<b class="nc">&nbsp;        return this.keyStore;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PrivateKey getPrivateKey() {
+<b class="nc">&nbsp;        return this.privateKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PublicKey getPublicKey() {
+<b class="nc">&nbsp;        return this.publicKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public X509Certificate[] getCertificateChain() {
+<b class="nc">&nbsp;        return this.chain;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public X509Certificate[] getTrustedCertificates() {
+<b class="nc">&nbsp;        return this.trusts;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException, KeyStoreException {
+<b class="nc">&nbsp;        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());</b>
+<b class="nc">&nbsp;        tmFactory.init(this.keyStore);</b>
+<b class="nc">&nbsp;        return tmFactory;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
+<b class="nc">&nbsp;        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());</b>
+<b class="nc">&nbsp;        kmf.init(this.keyStore, this.keyPasswordArray);</b>
+<b class="nc">&nbsp;        return kmf;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getValueFromSubjectNameByKey(String subjectName, String key) {
+<b class="nc">&nbsp;        String[] dns = subjectName.split(&quot;,&quot;);</b>
+<b class="nc">&nbsp;        Optional&lt;String&gt; cn = (Arrays.stream(dns).filter(dn -&gt; dn.contains(key + &quot;=&quot;))).findFirst();</b>
+<b class="nc">&nbsp;        String value = cn.isPresent() ? cn.get().replace(key + &quot;=&quot;, &quot;&quot;) : null;</b>
+<b class="nc">&nbsp;        return StringUtils.isNotEmpty(value) ? value : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract boolean canUse();
+&nbsp;
+&nbsp;    protected abstract KeyStore loadKeyStore(boolean isPrivateKeyRequired, char[] keyPasswordArray) throws IOException, GeneralSecurityException;
+&nbsp;
+&nbsp;    protected abstract void updateKeyAlias(String keyAlias);
+&nbsp;
+&nbsp;    private static X509Certificate[] asX509Certificates(Certificate[] certificates) {
+<b class="nc">&nbsp;        if (null == certificates || 0 == certificates.length) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;certificates missing!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        X509Certificate[] x509Certificates = new X509Certificate[certificates.length];</b>
+<b class="nc">&nbsp;        for (int index = 0; certificates.length &gt; index; ++index) {</b>
+<b class="nc">&nbsp;            if (null == certificates[index]) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;[&quot; + index + &quot;] is null!&quot;);</b>
+&nbsp;            }
+&nbsp;            try {
+<b class="nc">&nbsp;                x509Certificates[index] = (X509Certificate) certificates[index];</b>
+&nbsp;            } catch (ClassCastException e) {
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;[&quot; + index + &quot;] is not a x509 certificate! Instead it&#39;s a &quot;</b>
+<b class="nc">&nbsp;                        + certificates[index].getClass().getName());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return x509Certificates;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static PrivateKeyEntry tryGetPrivateKeyEntry(KeyStore keyStore, String alias, char[] pwd) {
+<b class="nc">&nbsp;        PrivateKeyEntry entry = null;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (keyStore.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class)) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    entry = (KeyStore.PrivateKeyEntry) keyStore</b>
+<b class="nc">&nbsp;                            .getEntry(alias, new KeyStore.PasswordProtection(pwd));</b>
+&nbsp;                } catch (UnsupportedOperationException e) {
+<b class="nc">&nbsp;                    PrivateKey key = (PrivateKey) keyStore.getKey(alias, pwd);</b>
+<b class="nc">&nbsp;                    Certificate[] certs = keyStore.getCertificateChain(alias);</b>
+<b class="nc">&nbsp;                    entry = new KeyStore.PrivateKeyEntry(key, certs);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (KeyStoreException | UnrecoverableEntryException | NoSuchAlgorithmException ignored) {}
+<b class="nc">&nbsp;        return entry;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Set&lt;X509Certificate&gt; getTrustedCerts(KeyStore ks, boolean trustsOnly) {
+<b class="nc">&nbsp;        Set&lt;X509Certificate&gt; set = new HashSet&lt;&gt;();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            for (Enumeration&lt;String&gt; e = ks.aliases(); e.hasMoreElements(); ) {</b>
+<b class="nc">&nbsp;                String alias = e.nextElement();</b>
+<b class="nc">&nbsp;                if (ks.isCertificateEntry(alias)) {</b>
+<b class="nc">&nbsp;                    Certificate cert = ks.getCertificate(alias);</b>
+<b class="nc">&nbsp;                    if (cert instanceof X509Certificate) {</b>
+<b class="nc">&nbsp;                        if (trustsOnly) {</b>
+&nbsp;                            // is CA certificate
+<b class="nc">&nbsp;                            if (((X509Certificate) cert).getBasicConstraints()&gt;=0) {</b>
+<b class="nc">&nbsp;                                set.add((X509Certificate) cert);</b>
+&nbsp;                            }
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            set.add((X509Certificate) cert);</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                } else if (ks.isKeyEntry(alias)) {</b>
+<b class="nc">&nbsp;                    Certificate[] certs = ks.getCertificateChain(alias);</b>
+<b class="nc">&nbsp;                    if ((certs != null) &amp;&amp; (certs.length &gt; 0) &amp;&amp;</b>
+&nbsp;                            (certs[0] instanceof X509Certificate)) {
+<b class="nc">&nbsp;                        if (trustsOnly) {</b>
+<b class="nc">&nbsp;                            for (Certificate cert : certs) {</b>
+&nbsp;                                // is CA certificate
+<b class="nc">&nbsp;                                if (((X509Certificate) cert).getBasicConstraints()&gt;=0) {</b>
+<b class="nc">&nbsp;                                    set.add((X509Certificate) cert);</b>
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            set.add((X509Certificate)certs[0]);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (KeyStoreException ignored) {}
+<b class="nc">&nbsp;        return Collections.unmodifiableSet(set);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

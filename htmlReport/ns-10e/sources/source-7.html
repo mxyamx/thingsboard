@@ -1,0 +1,205 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > StatisticsEventRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.event</a>
+</div>
+
+<h1>Coverage Summary for Class: StatisticsEventRepository (org.thingsboard.server.dao.sql.event)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">StatisticsEventRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.event;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Modifying;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.common.data.event.StatisticsEvent;
+&nbsp;import org.thingsboard.server.dao.model.sql.StatisticsEventEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface StatisticsEventRepository extends EventRepository&lt;StatisticsEventEntity, StatisticsEvent&gt;, JpaRepository&lt;StatisticsEventEntity, UUID&gt; {
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Query(nativeQuery = true,  value = &quot;SELECT * FROM stats_event e WHERE e.tenant_id = :tenantId AND e.entity_id = :entityId ORDER BY e.ts DESC LIMIT :limit&quot;)
+&nbsp;    List&lt;StatisticsEventEntity&gt; findLatestEvents(@Param(&quot;tenantId&quot;) UUID tenantId, @Param(&quot;entityId&quot;) UUID entityId, @Param(&quot;limit&quot;) int limit);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT e FROM StatisticsEventEntity e WHERE &quot; +
+&nbsp;            &quot;e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.entityId = :entityId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR e.ts &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR e.ts &lt;= :endTime)&quot;
+&nbsp;    )
+&nbsp;    Page&lt;StatisticsEventEntity&gt; findEvents(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                           @Param(&quot;entityId&quot;) UUID entityId,
+&nbsp;                                           @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                           @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                           Pageable pageable);
+&nbsp;
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;SELECT * FROM stats_event e WHERE &quot; +
+&nbsp;                    &quot;e.tenant_id = :tenantId &quot; +
+&nbsp;                    &quot;AND e.entity_id = :entityId &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR e.ts &gt;= :startTime) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR e.ts &lt;= :endTime) &quot; +
+&nbsp;                    &quot;AND (:serviceId IS NULL OR e.service_id ILIKE concat(&#39;%&#39;, :serviceId, &#39;%&#39;)) &quot; +
+&nbsp;                    &quot;AND (:minMessagesProcessed IS NULL OR e.e_messages_processed &gt;= :minMessagesProcessed) &quot; +
+&nbsp;                    &quot;AND (:maxMessagesProcessed IS NULL OR e.e_messages_processed &lt; :maxMessagesProcessed) &quot; +
+&nbsp;                    &quot;AND (:minErrorsOccurred IS NULL OR e.e_errors_occurred &gt;= :minErrorsOccurred) &quot; +
+&nbsp;                    &quot;AND (:maxErrorsOccurred IS NULL OR e.e_errors_occurred &lt; :maxErrorsOccurred)&quot;
+&nbsp;            ,
+&nbsp;            countQuery = &quot;SELECT count(*) FROM stats_event e WHERE &quot; +
+&nbsp;                    &quot;e.tenant_id = :tenantId &quot; +
+&nbsp;                    &quot;AND e.entity_id = :entityId &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR e.ts &gt;= :startTime) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR e.ts &lt;= :endTime) &quot; +
+&nbsp;                    &quot;AND (:serviceId IS NULL OR e.service_id ILIKE concat(&#39;%&#39;, :serviceId, &#39;%&#39;)) &quot; +
+&nbsp;                    &quot;AND (:minMessagesProcessed IS NULL OR e.e_messages_processed &gt;= :minMessagesProcessed) &quot; +
+&nbsp;                    &quot;AND (:maxMessagesProcessed IS NULL OR e.e_messages_processed &lt; :maxMessagesProcessed) &quot; +
+&nbsp;                    &quot;AND (:minErrorsOccurred IS NULL OR e.e_errors_occurred &gt;= :minErrorsOccurred) &quot; +
+&nbsp;                    &quot;AND (:maxErrorsOccurred IS NULL OR e.e_errors_occurred &lt; :maxErrorsOccurred)&quot;
+&nbsp;    )
+&nbsp;    Page&lt;StatisticsEventEntity&gt; findEvents(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                           @Param(&quot;entityId&quot;) UUID entityId,
+&nbsp;                                           @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                           @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                           @Param(&quot;serviceId&quot;) String server,
+&nbsp;                                           @Param(&quot;minMessagesProcessed&quot;) Integer minMessagesProcessed,
+&nbsp;                                           @Param(&quot;maxMessagesProcessed&quot;) Integer maxMessagesProcessed,
+&nbsp;                                           @Param(&quot;minErrorsOccurred&quot;) Integer minErrorsOccurred,
+&nbsp;                                           @Param(&quot;maxErrorsOccurred&quot;) Integer maxErrorsOccurred,
+&nbsp;                                           Pageable pageable);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying
+&nbsp;    @Query(&quot;DELETE FROM StatisticsEventEntity e WHERE &quot; +
+&nbsp;            &quot;e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.entityId = :entityId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR e.ts &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR e.ts &lt;= :endTime)&quot;
+&nbsp;    )
+&nbsp;    void removeEvents(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                      @Param(&quot;entityId&quot;) UUID entityId,
+&nbsp;                      @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                      @Param(&quot;endTime&quot;) Long endTime);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying
+&nbsp;    @Query(nativeQuery = true,
+&nbsp;            value = &quot;DELETE FROM stats_event e WHERE &quot; +
+&nbsp;                    &quot;e.tenant_id = :tenantId &quot; +
+&nbsp;                    &quot;AND e.entity_id = :entityId &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR e.ts &gt;= :startTime) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR e.ts &lt;= :endTime) &quot; +
+&nbsp;                    &quot;AND (:serviceId IS NULL OR e.service_id ILIKE concat(&#39;%&#39;, :serviceId, &#39;%&#39;)) &quot; +
+&nbsp;                    &quot;AND (:minMessagesProcessed IS NULL OR e.e_messages_processed &gt;= :minMessagesProcessed) &quot; +
+&nbsp;                    &quot;AND (:maxMessagesProcessed IS NULL OR e.e_messages_processed &lt; :maxMessagesProcessed) &quot; +
+&nbsp;                    &quot;AND (:minErrorsOccurred IS NULL OR e.e_errors_occurred &gt;= :minErrorsOccurred) &quot; +
+&nbsp;                    &quot;AND (:maxErrorsOccurred IS NULL OR e.e_errors_occurred &lt; :maxErrorsOccurred)&quot;
+&nbsp;
+&nbsp;    )
+&nbsp;    void removeEvents(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                      @Param(&quot;entityId&quot;) UUID entityId,
+&nbsp;                      @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                      @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                      @Param(&quot;serviceId&quot;) String server,
+&nbsp;                      @Param(&quot;minMessagesProcessed&quot;) Integer minMessagesProcessed,
+&nbsp;                      @Param(&quot;maxMessagesProcessed&quot;) Integer maxMessagesProcessed,
+&nbsp;                      @Param(&quot;minErrorsOccurred&quot;) Integer minErrorsOccurred,
+&nbsp;                      @Param(&quot;maxErrorsOccurred&quot;) Integer maxErrorsOccurred);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

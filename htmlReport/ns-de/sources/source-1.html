@@ -1,0 +1,702 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DashboardServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.dashboard</a>
+</div>
+
+<h1>Coverage Summary for Class: DashboardServiceImpl (org.thingsboard.server.dao.dashboard)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DashboardServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/149)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DashboardServiceImpl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DashboardServiceImpl$CustomerDashboardsRemover</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DashboardServiceImpl$CustomerDashboardsUpdater</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/160)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.dashboard;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.collections4.CollectionUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.springframework.transaction.support.TransactionSynchronizationManager;
+&nbsp;import org.thingsboard.server.cache.TbTransactionalCache;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.Dashboard;
+&nbsp;import org.thingsboard.server.common.data.DashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DashboardId;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.dao.customer.CustomerDao;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeDao;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractEntityService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityCountService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.resource.ImageService;
+&nbsp;import org.thingsboard.server.dao.resource.ResourceService;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.dao.sql.JpaExecutorService;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;DashboardDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DashboardServiceImpl extends AbstractEntityService implements DashboardService {
+&nbsp;
+&nbsp;    public static final String INCORRECT_DASHBOARD_ID = &quot;Incorrect dashboardId &quot;;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DashboardDao dashboardDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DashboardInfoDao dashboardInfoDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private CustomerDao customerDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EdgeDao edgeDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ImageService imageService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ResourceService resourceService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;Dashboard&gt; dashboardValidator;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbTransactionalCache&lt;DashboardId, String&gt; cache;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityCountService countService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ApplicationEventPublisher eventPublisher;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private JpaExecutorService executor;
+&nbsp;
+&nbsp;    protected void publishEvictEvent(DashboardTitleEvictEvent event) {
+<b class="nc">&nbsp;        if (TransactionSynchronizationManager.isActualTransactionActive()) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(event);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            handleEvictEvent(event);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @TransactionalEventListener(classes = DashboardTitleEvictEvent.class)
+&nbsp;    public void handleEvictEvent(DashboardTitleEvictEvent event) {
+<b class="nc">&nbsp;        cache.evict(event.getKey());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Dashboard findDashboardById(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardById [{}]&quot;, dashboardId);</b>
+<b class="nc">&nbsp;        Validator.validateId(dashboardId, id -&gt; INCORRECT_DASHBOARD_ID + id);</b>
+<b class="nc">&nbsp;        return dashboardDao.findById(tenantId, dashboardId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Dashboard&gt; findDashboardByIdAsync(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardByIdAsync [{}]&quot;, dashboardId);</b>
+<b class="nc">&nbsp;        validateId(dashboardId, id -&gt; INCORRECT_DASHBOARD_ID + id);</b>
+<b class="nc">&nbsp;        return dashboardDao.findByIdAsync(tenantId, dashboardId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DashboardInfo findDashboardInfoById(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardInfoById [{}]&quot;, dashboardId);</b>
+<b class="nc">&nbsp;        Validator.validateId(dashboardId, id -&gt; INCORRECT_DASHBOARD_ID + id);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findById(tenantId, dashboardId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String findDashboardTitleById(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;        return cache.getAndPutInTransaction(dashboardId,</b>
+<b class="nc">&nbsp;                () -&gt; dashboardInfoDao.findTitleById(tenantId.getId(), dashboardId.getId()), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;DashboardInfo&gt; findDashboardInfoByIdAsync(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardInfoByIdAsync [{}]&quot;, dashboardId);</b>
+<b class="nc">&nbsp;        validateId(dashboardId, id -&gt; INCORRECT_DASHBOARD_ID + id);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findByIdAsync(tenantId, dashboardId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Dashboard saveDashboard(Dashboard dashboard) {
+<b class="nc">&nbsp;        return saveDashboard(dashboard, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Dashboard saveDashboard(Dashboard dashboard, boolean doValidate) {
+<b class="nc">&nbsp;        return saveEntity(dashboard, () -&gt; doSaveDashboard(dashboard, doValidate));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Dashboard doSaveDashboard(Dashboard dashboard, boolean doValidate) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveDashboard [{}]&quot;, dashboard);</b>
+<b class="nc">&nbsp;        if (doValidate) {</b>
+<b class="nc">&nbsp;            dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            TenantId tenantId = dashboard.getTenantId();</b>
+<b class="nc">&nbsp;            if (CollectionUtils.isNotEmpty(dashboard.getResources())) {</b>
+<b class="nc">&nbsp;                resourceService.importResources(tenantId, dashboard.getResources());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            imageService.updateImagesUsage(dashboard);</b>
+<b class="nc">&nbsp;            resourceService.updateResourcesUsage(tenantId, dashboard);</b>
+&nbsp;
+<b class="nc">&nbsp;            var saved = dashboardDao.save(tenantId, dashboard);</b>
+<b class="nc">&nbsp;            publishEvictEvent(new DashboardTitleEvictEvent(saved.getId()));</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .entityId(saved.getId()).entity(saved).created(dashboard.getId() == null).build());</b>
+<b class="nc">&nbsp;            if (dashboard.getId() == null) {</b>
+<b class="nc">&nbsp;                countService.publishCountEntityEvictEvent(tenantId, EntityType.DASHBOARD);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return saved;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            if (dashboard.getId() != null) {</b>
+<b class="nc">&nbsp;                publishEvictEvent(new DashboardTitleEvictEvent(dashboard.getId()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            checkConstraintViolation(e, &quot;dashboard_external_id_unq_key&quot;, &quot;Dashboard with such external id already exists!&quot;);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId) {
+<b class="nc">&nbsp;        Dashboard dashboard = findDashboardById(tenantId, dashboardId);</b>
+<b class="nc">&nbsp;        Customer customer = customerDao.findById(tenantId, customerId.getId());</b>
+<b class="nc">&nbsp;        if (customer == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign dashboard to non-existent customer!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!customer.getTenantId().getId().equals(dashboard.getTenantId().getId())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign dashboard to customer from different tenant!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (dashboard.addAssignedCustomer(customer)) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                createRelation(tenantId, new EntityRelation(customerId, dashboardId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.DASHBOARD));</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Failed to create dashboard relation. Customer Id: [{}]&quot;, dashboardId, customerId);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return saveDashboard(dashboard);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return dashboard;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Dashboard unassignDashboardFromCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId) {
+<b class="nc">&nbsp;        Dashboard dashboard = findDashboardById(tenantId, dashboardId);</b>
+<b class="nc">&nbsp;        Customer customer = customerDao.findById(tenantId, customerId.getId());</b>
+<b class="nc">&nbsp;        if (customer == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t unassign dashboard from non-existent customer!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (dashboard.removeAssignedCustomer(customer)) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                deleteRelation(tenantId, new EntityRelation(customerId, dashboardId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.DASHBOARD));</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Failed to delete dashboard relation. Customer Id: [{}]&quot;, dashboardId, customerId);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return saveDashboard(dashboard);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return dashboard;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateAssignedCustomer(TenantId tenantId, DashboardId dashboardId, Customer customer) {
+<b class="nc">&nbsp;        Dashboard dashboard = findDashboardById(tenantId, dashboardId);</b>
+<b class="nc">&nbsp;        if (dashboard.updateAssignedCustomer(customer)) {</b>
+<b class="nc">&nbsp;            saveDashboard(dashboard);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteDashboard(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteDashboard [{}]&quot;, dashboardId);</b>
+<b class="nc">&nbsp;        Validator.validateId(dashboardId, id -&gt; INCORRECT_DASHBOARD_ID + id);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            dashboardDao.removeById(tenantId, dashboardId.getId());</b>
+<b class="nc">&nbsp;            publishEvictEvent(new DashboardTitleEvictEvent(dashboardId));</b>
+<b class="nc">&nbsp;            countService.publishCountEntityEvictEvent(tenantId, EntityType.DASHBOARD);</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(dashboardId).build());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            checkConstraintViolation(e, Map.of(</b>
+&nbsp;                    &quot;fk_default_dashboard_device_profile&quot;, &quot;The dashboard is referenced by a device profile&quot;,
+&nbsp;                    &quot;fk_default_dashboard_asset_profile&quot;, &quot;The dashboard is referenced by an asset profile&quot;
+&nbsp;            ));
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        deleteDashboard(tenantId, (DashboardId) id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;DashboardInfo&gt; findDashboardsByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardsByTenantId, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findDashboardsByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;DashboardInfo&gt; findMobileDashboardsByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findMobileDashboardsByTenantId, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findMobileDashboardsByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteDashboardsByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteDashboardsByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        tenantDashboardsRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteDashboardsByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;DashboardInfo&gt; findDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardsByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]&quot;, tenantId, customerId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validateId(customerId, id -&gt; &quot;Incorrect customerId &quot; + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;DashboardInfo&gt; findMobileDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findMobileDashboardsByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]&quot;, tenantId, customerId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validateId(customerId, id -&gt; &quot;Incorrect customerId &quot; + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findMobileDashboardsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void unassignCustomerDashboards(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing unassignCustomerDashboards, customerId [{}]&quot;, customerId);</b>
+<b class="nc">&nbsp;        Validator.validateId(customerId, id -&gt; &quot;Incorrect customerId &quot; + id);</b>
+<b class="nc">&nbsp;        Customer customer = customerDao.findById(tenantId, customerId.getId());</b>
+<b class="nc">&nbsp;        if (customer == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t unassign dashboards from non-existent customer!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        new CustomerDashboardsRemover(customer).removeEntities(tenantId, customer);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateCustomerDashboards(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing updateCustomerDashboards, customerId [{}]&quot;, customerId);</b>
+<b class="nc">&nbsp;        Validator.validateId(customerId, id -&gt; &quot;Incorrect customerId &quot; + id);</b>
+<b class="nc">&nbsp;        Customer customer = customerDao.findById(tenantId, customerId.getId());</b>
+<b class="nc">&nbsp;        if (customer == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t update dashboards for non-existent customer!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        new CustomerDashboardsUpdater(customer).removeEntities(tenantId, customer);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Dashboard assignDashboardToEdge(TenantId tenantId, DashboardId dashboardId, EdgeId edgeId) {
+<b class="nc">&nbsp;        Dashboard dashboard = findDashboardById(tenantId, dashboardId);</b>
+<b class="nc">&nbsp;        Edge edge = edgeDao.findById(tenantId, edgeId.getId());</b>
+<b class="nc">&nbsp;        if (edge == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign dashboard to non-existent edge!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!edge.getTenantId().equals(dashboard.getTenantId())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign dashboard to edge from different tenant!&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            createRelation(tenantId, new EntityRelation(edgeId, dashboardId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to create dashboard relation. Edge Id: [{}]&quot;, dashboardId, edgeId);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(dashboardId)</b>
+<b class="nc">&nbsp;                .actionType(ActionType.ASSIGNED_TO_EDGE).build());</b>
+<b class="nc">&nbsp;        return dashboard;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Dashboard unassignDashboardFromEdge(TenantId tenantId, DashboardId dashboardId, EdgeId edgeId) {
+<b class="nc">&nbsp;        Dashboard dashboard = findDashboardById(tenantId, dashboardId);</b>
+<b class="nc">&nbsp;        Edge edge = edgeDao.findById(tenantId, edgeId.getId());</b>
+<b class="nc">&nbsp;        if (edge == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t unassign dashboard from non-existent edge!&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            deleteRelation(tenantId, new EntityRelation(edgeId, dashboardId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to delete dashboard relation. Edge Id: [{}]&quot;, dashboardId, edgeId);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(dashboardId)</b>
+<b class="nc">&nbsp;                .actionType(ActionType.UNASSIGNED_FROM_EDGE).build());</b>
+<b class="nc">&nbsp;        return dashboard;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;DashboardInfo&gt; findDashboardsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]&quot;, tenantId, edgeId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validateId(edgeId, id -&gt; INCORRECT_EDGE_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findDashboardsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DashboardInfo findFirstDashboardInfoByTenantIdAndName(TenantId tenantId, String name) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findFirstDashboardInfoByTenantIdAndName [{}][{}]&quot;, tenantId, name);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findFirstByTenantIdAndName(tenantId.getId(), name);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;DashboardInfo&gt; findFirstDashboardInfoByTenantIdAndNameAsync(TenantId tenantId, String name) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findFirstDashboardInfoByTenantIdAndNameAsync [{}][{}]&quot;, tenantId, name);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return executor.submit(() -&gt; findFirstDashboardInfoByTenantIdAndName(tenantId, name));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;Dashboard&gt; findTenantDashboardsByTitle(TenantId tenantId, String title) {
+<b class="nc">&nbsp;        return dashboardDao.findByTenantIdAndTitle(tenantId.getId(), title);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean existsById(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;        return dashboardDao.existsById(tenantId, dashboardId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;DashboardId&gt; findAllDashboardsIds(PageLink pageLink) {
+<b class="nc">&nbsp;        return dashboardDao.findAllIds(pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;DashboardInfo&gt; findDashboardInfoByIds(TenantId tenantId, List&lt;DashboardId&gt; dashboardIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDashboardInfoByIds, dashboardIds [{}]&quot;, dashboardIds);</b>
+<b class="nc">&nbsp;        return dashboardInfoDao.findDashboardsByIds(tenantId.getId(), toUUIDs(dashboardIds));</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, DashboardId&gt; tenantDashboardsRemover = new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;DashboardId&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;            return dashboardDao.findIdsByTenantId(id, pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, DashboardId dashboardId) {
+<b class="nc">&nbsp;            deleteDashboard(tenantId, dashboardId);</b>
+&nbsp;        }
+&nbsp;    };
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findDashboardById(tenantId, new DashboardId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(findDashboardByIdAsync(tenantId, new DashboardId(entityId.getId())))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        return dashboardDao.countByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.DASHBOARD;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private class CustomerDashboardsRemover extends PaginatedRemover&lt;Customer, DashboardInfo&gt; {
+&nbsp;
+&nbsp;        private final Customer customer;
+&nbsp;
+<b class="nc">&nbsp;        CustomerDashboardsRemover(Customer customer) {</b>
+<b class="nc">&nbsp;            this.customer = customer;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;DashboardInfo&gt; findEntities(TenantId tenantId, Customer customer, PageLink pageLink) {
+<b class="nc">&nbsp;            return dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(customer.getTenantId().getId(), customer.getId().getId(), pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
+<b class="nc">&nbsp;            unassignDashboardFromCustomer(customer.getTenantId(), new DashboardId(entity.getUuidId()), this.customer.getId());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private class CustomerDashboardsUpdater extends PaginatedRemover&lt;Customer, DashboardInfo&gt; {
+&nbsp;
+&nbsp;        private final Customer customer;
+&nbsp;
+<b class="nc">&nbsp;        CustomerDashboardsUpdater(Customer customer) {</b>
+<b class="nc">&nbsp;            this.customer = customer;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;DashboardInfo&gt; findEntities(TenantId tenantId, Customer customer, PageLink pageLink) {
+<b class="nc">&nbsp;            return dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(customer.getTenantId().getId(), customer.getId().getId(), pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
+<b class="nc">&nbsp;            updateAssignedCustomer(customer.getTenantId(), new DashboardId(entity.getUuidId()), this.customer);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

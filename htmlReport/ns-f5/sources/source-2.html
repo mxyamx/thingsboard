@@ -1,0 +1,291 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > OAuth2ClientServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.oauth2</a>
+</div>
+
+<h1>Coverage Summary for Class: OAuth2ClientServiceImpl (org.thingsboard.server.dao.oauth2)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OAuth2ClientServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.oauth2;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import jakarta.transaction.Transactional;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.OAuth2ClientId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.oauth2.OAuth2Client;
+&nbsp;import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
+&nbsp;import org.thingsboard.server.common.data.oauth2.OAuth2ClientLoginInfo;
+&nbsp;import org.thingsboard.server.common.data.oauth2.PlatformType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractEntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service(&quot;OAuth2ClientService&quot;)
+<b class="nc">&nbsp;public class OAuth2ClientServiceImpl extends AbstractEntityService implements OAuth2ClientService {</b>
+&nbsp;
+&nbsp;    private static final String PLATFORM_TYPE_IS_REQUIRED = &quot;Platform type is required if package name is specified&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private OAuth2ClientDao oauth2ClientDao;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;OAuth2Client&gt; oAuth2ClientDataValidator;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;OAuth2ClientLoginInfo&gt; findOAuth2ClientLoginInfosByDomainName(String domainName) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOAuth2ClientLoginInfosByDomainName [{}] &quot;, domainName);</b>
+<b class="nc">&nbsp;        return oauth2ClientDao.findEnabledByDomainName(domainName)</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(OAuth2Utils::toClientLoginInfo)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;OAuth2ClientLoginInfo&gt; findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType(String pkgName, PlatformType platformType) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType pkgName=[{}] platformType=[{}]&quot;, pkgName, platformType);</b>
+<b class="nc">&nbsp;        return oauth2ClientDao.findEnabledByPkgNameAndPlatformType(pkgName, platformType)</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(OAuth2Utils::toClientLoginInfo)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public OAuth2Client saveOAuth2Client(TenantId tenantId, OAuth2Client oAuth2Client) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveOAuth2Client [{}]&quot;, oAuth2Client);</b>
+<b class="nc">&nbsp;        oAuth2ClientDataValidator.validate(oAuth2Client, OAuth2Client::getTenantId);</b>
+<b class="nc">&nbsp;        OAuth2Client savedOauth2Client = oauth2ClientDao.save(tenantId, oAuth2Client);</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedOauth2Client.getId()).entity(savedOauth2Client).build());</b>
+<b class="nc">&nbsp;        return savedOauth2Client;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public OAuth2Client findOAuth2ClientById(TenantId tenantId, OAuth2ClientId oAuth2ClientId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOAuth2ClientById [{}]&quot;, oAuth2ClientId);</b>
+<b class="nc">&nbsp;        return oauth2ClientDao.findById(tenantId, oAuth2ClientId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;OAuth2Client&gt; findOAuth2ClientsByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOAuth2ClientsByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        return oauth2ClientDao.findByTenantId(tenantId.getId(), new PageLink(Integer.MAX_VALUE)).getData();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String findAppSecret(OAuth2ClientId oAuth2ClientId, String pkgName, PlatformType platformType) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAppSecret oAuth2ClientId = [{}] pkgName = [{}], platform [{}]&quot;, oAuth2ClientId, pkgName, platformType);</b>
+<b class="nc">&nbsp;        Validator.checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);</b>
+<b class="nc">&nbsp;        return oauth2ClientDao.findAppSecret(oAuth2ClientId.getId(), pkgName, platformType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteOAuth2ClientById(TenantId tenantId, OAuth2ClientId oAuth2ClientId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteOAuth2ClientById [{}]&quot;, oAuth2ClientId);</b>
+<b class="nc">&nbsp;        oauth2ClientDao.removeById(tenantId, oAuth2ClientId.getId());</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(DeleteEntityEvent.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .entityId(oAuth2ClientId)</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteOauth2ClientsByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteOauth2ClientsByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        oauth2ClientDao.deleteByTenantId(tenantId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;OAuth2ClientInfo&gt; findOAuth2ClientInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOAuth2ClientInfosByTenantId tenantId=[{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        PageData&lt;OAuth2Client&gt; clients = oauth2ClientDao.findByTenantId(tenantId.getId(), pageLink);</b>
+<b class="nc">&nbsp;        return clients.mapData(OAuth2ClientInfo::new);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;OAuth2ClientInfo&gt; findOAuth2ClientInfosByIds(TenantId tenantId, List&lt;OAuth2ClientId&gt; oAuth2ClientIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findQueueStatsByIds, tenantId [{}], oAuth2ClientIds [{}]&quot;, tenantId, oAuth2ClientIds);</b>
+<b class="nc">&nbsp;        return oauth2ClientDao.findByIds(tenantId.getId(), oAuth2ClientIds)</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(OAuth2ClientInfo::new)</b>
+<b class="nc">&nbsp;                .sorted(Comparator.comparing(OAuth2ClientInfo::getTitle))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isPropagateOAuth2ClientToEdge(TenantId tenantId, OAuth2ClientId oAuth2ClientId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing isPropagateOAuth2ClientToEdge, tenantId [{}], oAuth2ClientId [{}]&quot;, tenantId, oAuth2ClientId);</b>
+<b class="nc">&nbsp;        return oauth2ClientDao.isPropagateToEdge(tenantId, oAuth2ClientId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteOauth2ClientsByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findOAuth2ClientById(tenantId, new OAuth2ClientId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(oauth2ClientDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        deleteOAuth2ClientById(tenantId, (OAuth2ClientId) id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.OAUTH2_CLIENT;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

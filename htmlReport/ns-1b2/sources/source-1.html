@@ -1,0 +1,444 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultEntityQueryService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.query</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultEntityQueryService (org.thingsboard.server.service.query)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultEntityQueryService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultEntityQueryService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/92)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.query;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.common.util.KvUtil;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmCountQuery;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.AvailableEntityKeys;
+&nbsp;import org.thingsboard.server.common.data.query.ComplexFilterPredicate;
+&nbsp;import org.thingsboard.server.common.data.query.DynamicValue;
+&nbsp;import org.thingsboard.server.common.data.query.EntityCountQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataPageLink;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.query.FilterPredicateType;
+&nbsp;import org.thingsboard.server.common.data.query.KeyFilter;
+&nbsp;import org.thingsboard.server.common.data.query.KeyFilterPredicate;
+&nbsp;import org.thingsboard.server.common.data.query.SimpleKeyFilterPredicate;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmService;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.sql.query.EntityKeyMapping;
+&nbsp;import org.thingsboard.server.dao.timeseries.TimeseriesService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.Futures.immediateFuture;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;public class DefaultEntityQueryService implements EntityQueryService {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityService entityService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AlarmService alarmService;
+&nbsp;
+&nbsp;    @Value(&quot;${server.ws.max_entities_per_alarm_subscription:1000}&quot;)
+&nbsp;    private int maxEntitiesPerAlarmSubscription;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DbCallbackExecutorService dbCallbackExecutor;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TimeseriesService timeseriesService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AttributesService attributesService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countEntitiesByQuery(SecurityUser securityUser, EntityCountQuery query) {
+<b class="nc">&nbsp;        return entityService.countEntitiesByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntityData&gt; findEntityDataByQuery(SecurityUser securityUser, EntityDataQuery query) {
+<b class="nc">&nbsp;        if (query.getKeyFilters() != null) {</b>
+<b class="nc">&nbsp;            resolveDynamicValuesInPredicates(</b>
+<b class="nc">&nbsp;                    query.getKeyFilters().stream()</b>
+<b class="nc">&nbsp;                            .map(KeyFilter::getPredicate)</b>
+<b class="nc">&nbsp;                            .collect(Collectors.toList()),</b>
+&nbsp;                    securityUser
+&nbsp;            );
+&nbsp;        }
+<b class="nc">&nbsp;        return entityService.findEntityDataByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void resolveDynamicValuesInPredicates(List&lt;KeyFilterPredicate&gt; predicates, SecurityUser user) {
+<b class="nc">&nbsp;        predicates.forEach(predicate -&gt; {</b>
+<b class="nc">&nbsp;            if (predicate.getType() == FilterPredicateType.COMPLEX) {</b>
+<b class="nc">&nbsp;                resolveDynamicValuesInPredicates(</b>
+<b class="nc">&nbsp;                        ((ComplexFilterPredicate) predicate).getPredicates(),</b>
+&nbsp;                        user
+&nbsp;                );
+&nbsp;            } else {
+<b class="nc">&nbsp;                setResolvedValue(user, (SimpleKeyFilterPredicate&lt;?&gt;) predicate);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setResolvedValue(SecurityUser user, SimpleKeyFilterPredicate&lt;?&gt; predicate) {
+<b class="nc">&nbsp;        DynamicValue&lt;?&gt; dynamicValue = predicate.getValue().getDynamicValue();</b>
+<b class="nc">&nbsp;        if (dynamicValue != null &amp;&amp; dynamicValue.getResolvedValue() == null) {</b>
+<b class="nc">&nbsp;            resolveDynamicValue(dynamicValue, user, predicate.getType());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; void resolveDynamicValue(DynamicValue&lt;T&gt; dynamicValue, SecurityUser user, FilterPredicateType predicateType) {
+<b class="nc">&nbsp;        EntityId entityId = switch (dynamicValue.getSourceType()) {</b>
+<b class="nc">&nbsp;            case CURRENT_TENANT -&gt; user.getTenantId();</b>
+<b class="nc">&nbsp;            case CURRENT_CUSTOMER -&gt; user.getCustomerId();</b>
+<b class="nc">&nbsp;            case CURRENT_USER -&gt; user.getId();</b>
+<b class="nc">&nbsp;            default -&gt; throw new RuntimeException(&quot;Not supported operation for source type: {&quot; + dynamicValue.getSourceType() + &quot;}&quot;);</b>
+&nbsp;        };
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            Optional&lt;AttributeKvEntry&gt; valueOpt = attributesService.find(user.getTenantId(), entityId,</b>
+<b class="nc">&nbsp;                    AttributeScope.SERVER_SCOPE, dynamicValue.getSourceAttribute()).get();</b>
+&nbsp;
+<b class="nc">&nbsp;            if (valueOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                AttributeKvEntry entry = valueOpt.get();</b>
+<b class="nc">&nbsp;                Object resolved = null;</b>
+<b class="nc">&nbsp;                switch (predicateType) {</b>
+&nbsp;                    case STRING:
+<b class="nc">&nbsp;                        resolved = KvUtil.getStringValue(entry);</b>
+&nbsp;                        break;
+&nbsp;                    case NUMERIC:
+<b class="nc">&nbsp;                        resolved = KvUtil.getDoubleValue(entry);</b>
+&nbsp;                        break;
+&nbsp;                    case BOOLEAN:
+<b class="nc">&nbsp;                        resolved = KvUtil.getBoolValue(entry);</b>
+&nbsp;                        break;
+&nbsp;                    case COMPLEX:
+&nbsp;                        break;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                dynamicValue.setResolvedValue((T) resolved);</b>
+&nbsp;            }
+&nbsp;        } catch (InterruptedException | ExecutionException e) {
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmData&gt; findAlarmDataByQuery(SecurityUser securityUser, AlarmDataQuery query) {
+<b class="nc">&nbsp;        EntityDataQuery entityDataQuery = this.buildEntityDataQuery(query);</b>
+<b class="nc">&nbsp;        PageData&lt;EntityData&gt; entities = entityService.findEntityDataByQuery(securityUser.getTenantId(),</b>
+<b class="nc">&nbsp;                securityUser.getCustomerId(), entityDataQuery);</b>
+<b class="nc">&nbsp;        if (entities.getTotalElements() &gt; 0) {</b>
+<b class="nc">&nbsp;            LinkedHashMap&lt;EntityId, EntityData&gt; entitiesMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (EntityData entityData : entities.getData()) {</b>
+<b class="nc">&nbsp;                entitiesMap.put(entityData.getEntityId(), entityData);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            PageData&lt;AlarmData&gt; alarms = alarmService.findAlarmDataByQueryForEntities(securityUser.getTenantId(), query, entitiesMap.keySet());</b>
+<b class="nc">&nbsp;            for (AlarmData alarmData : alarms.getData()) {</b>
+<b class="nc">&nbsp;                EntityId entityId = alarmData.getEntityId();</b>
+<b class="nc">&nbsp;                if (entityId != null) {</b>
+<b class="nc">&nbsp;                    EntityData entityData = entitiesMap.get(entityId);</b>
+<b class="nc">&nbsp;                    if (entityData != null) {</b>
+<b class="nc">&nbsp;                        alarmData.getLatest().putAll(entityData.getLatest());</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return alarms;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return new PageData&lt;&gt;();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countAlarmsByQuery(SecurityUser securityUser, AlarmCountQuery query) {
+<b class="nc">&nbsp;        if (query.getEntityFilter() != null) {</b>
+<b class="nc">&nbsp;            EntityDataQuery entityDataQuery = this.buildEntityDataQuery(query);</b>
+<b class="nc">&nbsp;            PageData&lt;EntityData&gt; entities = entityService.findEntityDataByQuery(securityUser.getTenantId(),</b>
+<b class="nc">&nbsp;                    securityUser.getCustomerId(), entityDataQuery);</b>
+<b class="nc">&nbsp;            if (entities.getTotalElements() &gt; 0) {</b>
+<b class="nc">&nbsp;                List&lt;EntityId&gt; entityIds = entities.getData().stream().map(EntityData::getEntityId).toList();</b>
+<b class="nc">&nbsp;                return alarmService.countAlarmsByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query, entityIds);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return 0;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return alarmService.countAlarmsByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityDataQuery buildEntityDataQuery(AlarmCountQuery query) {
+<b class="nc">&nbsp;        EntityDataPageLink edpl = new EntityDataPageLink(maxEntitiesPerAlarmSubscription, 0, null,</b>
+&nbsp;                new EntityDataSortOrder(new EntityKey(EntityKeyType.ENTITY_FIELD, EntityKeyMapping.CREATED_TIME)));
+<b class="nc">&nbsp;        return new EntityDataQuery(query.getEntityFilter(), edpl, null, null, query.getKeyFilters());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityDataQuery buildEntityDataQuery(AlarmDataQuery query) {
+<b class="nc">&nbsp;        EntityDataSortOrder sortOrder = query.getPageLink().getSortOrder();</b>
+&nbsp;        EntityDataSortOrder entitiesSortOrder;
+<b class="nc">&nbsp;        if (sortOrder == null || sortOrder.getKey().getType().equals(EntityKeyType.ALARM_FIELD)) {</b>
+<b class="nc">&nbsp;            entitiesSortOrder = new EntityDataSortOrder(new EntityKey(EntityKeyType.ENTITY_FIELD, EntityKeyMapping.CREATED_TIME));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            entitiesSortOrder = sortOrder;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        EntityDataPageLink edpl = new EntityDataPageLink(maxEntitiesPerAlarmSubscription, 0, null, entitiesSortOrder);</b>
+<b class="nc">&nbsp;        return new EntityDataQuery(query.getEntityFilter(), edpl, query.getEntityFields(), query.getLatestValues(), query.getKeyFilters());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;AvailableEntityKeys&gt; getKeysByQuery(SecurityUser securityUser, TenantId tenantId, EntityDataQuery query,
+&nbsp;                                                                boolean isTimeseries, boolean isAttributes, AttributeScope scope) {
+<b class="nc">&nbsp;        if (!isAttributes &amp;&amp; !isTimeseries) {</b>
+<b class="nc">&nbsp;            return immediateFuture(AvailableEntityKeys.none());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;EntityId&gt; ids = findEntityDataByQuery(securityUser, query).getData().stream()</b>
+<b class="nc">&nbsp;                .map(EntityData::getEntityId)</b>
+<b class="nc">&nbsp;                .toList();</b>
+<b class="nc">&nbsp;        if (ids.isEmpty()) {</b>
+<b class="nc">&nbsp;            return immediateFuture(AvailableEntityKeys.none());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;EntityType&gt; types = ids.stream().map(EntityId::getEntityType).collect(Collectors.toSet());</b>
+&nbsp;        ListenableFuture&lt;List&lt;String&gt;&gt; timeseriesKeysFuture;
+&nbsp;        ListenableFuture&lt;List&lt;String&gt;&gt; attributesKeysFuture;
+&nbsp;
+<b class="nc">&nbsp;        if (isTimeseries) {</b>
+<b class="nc">&nbsp;            timeseriesKeysFuture = timeseriesService.findAllKeysByEntityIdsAsync(tenantId, ids);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            timeseriesKeysFuture = immediateFuture(Collections.emptyList());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (isAttributes) {</b>
+<b class="nc">&nbsp;            Map&lt;EntityType, List&lt;EntityId&gt;&gt; typesMap = ids.stream().collect(Collectors.groupingBy(EntityId::getEntityType));</b>
+<b class="nc">&nbsp;            List&lt;ListenableFuture&lt;List&lt;String&gt;&gt;&gt; futures = new ArrayList&lt;&gt;(typesMap.size());</b>
+<b class="nc">&nbsp;            typesMap.forEach((type, entityIds) -&gt; futures.add(dbCallbackExecutor.submit(() -&gt; attributesService.findAllKeysByEntityIds(tenantId, entityIds, scope))));</b>
+<b class="nc">&nbsp;            attributesKeysFuture = Futures.transform(Futures.allAsList(futures), lists -&gt; {</b>
+<b class="nc">&nbsp;                if (CollectionUtils.isEmpty(lists)) {</b>
+<b class="nc">&nbsp;                    return Collections.emptyList();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return lists.stream().flatMap(List::stream).distinct().sorted().toList();</b>
+&nbsp;            }, dbCallbackExecutor);
+&nbsp;        } else {
+<b class="nc">&nbsp;            attributesKeysFuture = immediateFuture(Collections.emptyList());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return Futures.whenAllComplete(timeseriesKeysFuture, attributesKeysFuture)</b>
+<b class="nc">&nbsp;                .call(() -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        return new AvailableEntityKeys(types, Futures.getDone(timeseriesKeysFuture), Futures.getDone(attributesKeysFuture));</b>
+&nbsp;                    } catch (ExecutionException e) {
+<b class="nc">&nbsp;                        throw new ThingsboardException(e.getCause(), ThingsboardErrorCode.DATABASE);</b>
+&nbsp;                    }
+&nbsp;                }, dbCallbackExecutor);
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

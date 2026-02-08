@@ -1,0 +1,464 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultCalculatedFieldCache</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.cf</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultCalculatedFieldCache (org.thingsboard.server.service.cf)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultCalculatedFieldCache</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/101)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultCalculatedFieldCache$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/102)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.cf;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.util.ConcurrentReferenceHashMap;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldLink;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.id.AssetId;
+&nbsp;import org.thingsboard.server.common.data.id.CalculatedFieldId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantProfileId;
+&nbsp;import org.thingsboard.server.common.data.page.PageDataIterable;
+&nbsp;import org.thingsboard.server.dao.cf.CalculatedFieldService;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
+&nbsp;import org.thingsboard.server.service.profile.TbAssetProfileCache;
+&nbsp;import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.CopyOnWriteArrayList;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;import java.util.function.Predicate;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
+&nbsp;
+&nbsp;    private final ConcurrentReferenceHashMap&lt;CalculatedFieldId, Lock&gt; calculatedFieldFetchLocks = new ConcurrentReferenceHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private final CalculatedFieldService calculatedFieldService;
+&nbsp;    private final TbAssetProfileCache assetProfileCache;
+&nbsp;    private final TbDeviceProfileCache deviceProfileCache;
+&nbsp;    private final TbTenantProfileCache tenantProfileCache;
+&nbsp;    @Lazy
+&nbsp;    private final ActorSystemContext systemContext;
+&nbsp;    private final OwnerService ownerService;
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;CalculatedFieldId, CalculatedField&gt; calculatedFields = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;EntityId, List&lt;CalculatedField&gt;&gt; entityIdCalculatedFields = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;CalculatedFieldId, List&lt;CalculatedFieldLink&gt;&gt; calculatedFieldLinks = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;EntityId, List&lt;CalculatedFieldLink&gt;&gt; entityIdCalculatedFieldLinks = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;CalculatedFieldId, CalculatedFieldCtx&gt; calculatedFieldsCtx = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;EntityId, Set&lt;EntityId&gt;&gt; ownerEntities = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    @Value(&quot;${queue.calculated_fields.init_fetch_pack_size:50000}&quot;)
+&nbsp;    @Getter
+&nbsp;    private int initFetchPackSize;
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.CF_READ_CF_SERVICE)
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        PageDataIterable&lt;CalculatedField&gt; cfs = new PageDataIterable&lt;&gt;(calculatedFieldService::findAllCalculatedFields, initFetchPackSize);</b>
+<b class="nc">&nbsp;        cfs.forEach(cf -&gt; {</b>
+<b class="nc">&nbsp;            if (cf != null) {</b>
+<b class="nc">&nbsp;                calculatedFields.putIfAbsent(cf.getId(), cf);</b>
+<b class="nc">&nbsp;                List&lt;CalculatedFieldLink&gt; links = cf.getConfiguration().buildCalculatedFieldLinks(cf.getTenantId(), cf.getEntityId(), cf.getId());</b>
+<b class="nc">&nbsp;                calculatedFieldLinks.put(cf.getId(), new CopyOnWriteArrayList&lt;&gt;(links));</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        calculatedFields.values().forEach(cf -&gt; {</b>
+<b class="nc">&nbsp;            entityIdCalculatedFields.computeIfAbsent(cf.getEntityId(), id -&gt; new CopyOnWriteArrayList&lt;&gt;()).add(cf);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        calculatedFieldLinks.values().stream()</b>
+<b class="nc">&nbsp;                .flatMap(List::stream)</b>
+<b class="nc">&nbsp;                .forEach(link -&gt;</b>
+<b class="nc">&nbsp;                        entityIdCalculatedFieldLinks.computeIfAbsent(link.entityId(), id -&gt; new CopyOnWriteArrayList&lt;&gt;()).add(link)</b>
+&nbsp;                );
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedField getCalculatedField(CalculatedFieldId calculatedFieldId) {
+<b class="nc">&nbsp;        return calculatedFields.get(calculatedFieldId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;CalculatedField&gt; getCalculatedFieldsByEntityId(EntityId entityId) {
+<b class="nc">&nbsp;        return entityIdCalculatedFields.getOrDefault(entityId, Collections.emptyList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;CalculatedFieldLink&gt; getCalculatedFieldLinksByEntityId(EntityId entityId) {
+<b class="nc">&nbsp;        return entityIdCalculatedFieldLinks.getOrDefault(entityId, Collections.emptyList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedFieldCtx getCalculatedFieldCtx(CalculatedFieldId calculatedFieldId) {
+<b class="nc">&nbsp;        CalculatedFieldCtx ctx = calculatedFieldsCtx.get(calculatedFieldId);</b>
+<b class="nc">&nbsp;        if (ctx == null) {</b>
+<b class="nc">&nbsp;            Lock lock = getFetchLock(calculatedFieldId);</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                ctx = calculatedFieldsCtx.get(calculatedFieldId);</b>
+<b class="nc">&nbsp;                if (ctx == null) {</b>
+<b class="nc">&nbsp;                    CalculatedField calculatedField = getCalculatedField(calculatedFieldId);</b>
+<b class="nc">&nbsp;                    if (calculatedField != null) {</b>
+<b class="nc">&nbsp;                        ctx = new CalculatedFieldCtx(calculatedField, systemContext);</b>
+<b class="nc">&nbsp;                        calculatedFieldsCtx.put(calculatedFieldId, ctx);</b>
+<b class="nc">&nbsp;                        log.debug(&quot;[{}] Put calculated field ctx into cache: {}&quot;, calculatedFieldId, ctx);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } finally {
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Found calculated field ctx in cache: {}&quot;, calculatedFieldId, ctx);</b>
+<b class="nc">&nbsp;        return ctx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;CalculatedFieldCtx&gt; getCalculatedFieldCtxsByEntityId(EntityId entityId) {
+<b class="nc">&nbsp;        if (entityId == null) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return getCalculatedFieldsByEntityId(entityId).stream()</b>
+<b class="nc">&nbsp;                .map(cf -&gt; getCalculatedFieldCtx(cf.getId()))</b>
+<b class="nc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Stream&lt;CalculatedFieldCtx&gt; getCalculatedFieldCtxsByType(CalculatedFieldType cfType) {
+<b class="nc">&nbsp;        return calculatedFields.values().stream()</b>
+<b class="nc">&nbsp;                .filter(cf -&gt; cfType.equals(cf.getType()))</b>
+<b class="nc">&nbsp;                .map(cf -&gt; getCalculatedFieldCtx(cf.getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean hasCalculatedFields(TenantId tenantId, EntityId entityId, Predicate&lt;CalculatedFieldCtx&gt; filter) {
+<b class="nc">&nbsp;        List&lt;CalculatedFieldCtx&gt; entityCfs = getCalculatedFieldCtxsByEntityId(entityId);</b>
+<b class="nc">&nbsp;        for (CalculatedFieldCtx ctx : entityCfs) {</b>
+<b class="nc">&nbsp;            if (filter.test(ctx)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return hasCalculatedFieldsByProfile(tenantId, entityId, filter);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean hasCalculatedFieldsByProfile(TenantId tenantId, EntityId entityId, Predicate&lt;CalculatedFieldCtx&gt; filter) {
+<b class="nc">&nbsp;        EntityId profileId = getProfileId(tenantId, entityId);</b>
+<b class="nc">&nbsp;        if (profileId != null) {</b>
+<b class="nc">&nbsp;            List&lt;CalculatedFieldCtx&gt; profileCfs = getCalculatedFieldCtxsByEntityId(profileId);</b>
+<b class="nc">&nbsp;            for (CalculatedFieldCtx ctx : profileCfs) {</b>
+<b class="nc">&nbsp;                if (filter.test(ctx)) {</b>
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void addCalculatedField(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
+<b class="nc">&nbsp;        Lock lock = getFetchLock(calculatedFieldId);</b>
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            CalculatedField calculatedField = calculatedFieldService.findById(tenantId, calculatedFieldId);</b>
+<b class="nc">&nbsp;            if (calculatedField == null) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            EntityId cfEntityId = calculatedField.getEntityId();</b>
+&nbsp;
+<b class="nc">&nbsp;            calculatedFields.put(calculatedFieldId, calculatedField);</b>
+&nbsp;
+<b class="nc">&nbsp;            entityIdCalculatedFields.computeIfAbsent(cfEntityId, entityId -&gt; new CopyOnWriteArrayList&lt;&gt;()).add(calculatedField);</b>
+&nbsp;
+<b class="nc">&nbsp;            CalculatedFieldConfiguration configuration = calculatedField.getConfiguration();</b>
+<b class="nc">&nbsp;            calculatedFieldLinks.put(calculatedFieldId, configuration.buildCalculatedFieldLinks(tenantId, cfEntityId, calculatedFieldId));</b>
+&nbsp;
+<b class="nc">&nbsp;            configuration.getReferencedEntities().stream()</b>
+<b class="nc">&nbsp;                    .filter(referencedEntityId -&gt; !referencedEntityId.equals(cfEntityId))</b>
+<b class="nc">&nbsp;                    .forEach(referencedEntityId -&gt; {</b>
+<b class="nc">&nbsp;                        entityIdCalculatedFieldLinks.computeIfAbsent(referencedEntityId, entityId -&gt; new CopyOnWriteArrayList&lt;&gt;())</b>
+<b class="nc">&nbsp;                                .add(configuration.buildCalculatedFieldLink(tenantId, referencedEntityId, calculatedFieldId));</b>
+&nbsp;                    });
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateCalculatedField(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
+<b class="nc">&nbsp;        evict(calculatedFieldId);</b>
+<b class="nc">&nbsp;        addCalculatedField(tenantId, calculatedFieldId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evict(CalculatedFieldId calculatedFieldId) {
+<b class="nc">&nbsp;        CalculatedField oldCalculatedField = calculatedFields.remove(calculatedFieldId);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] evict calculated field from cache: {}&quot;, calculatedFieldId, oldCalculatedField);</b>
+<b class="nc">&nbsp;        calculatedFieldLinks.remove(calculatedFieldId);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] evict calculated field from cached calculated fields by entity id: {}&quot;, calculatedFieldId, oldCalculatedField);</b>
+<b class="nc">&nbsp;        entityIdCalculatedFields.forEach((entityId, calculatedFields) -&gt; calculatedFields.removeIf(cf -&gt; cf.getId().equals(calculatedFieldId)));</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] evict calculated field links from cache: {}&quot;, calculatedFieldId, oldCalculatedField);</b>
+<b class="nc">&nbsp;        calculatedFieldsCtx.remove(calculatedFieldId);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] evict calculated field ctx from cache: {}&quot;, calculatedFieldId, oldCalculatedField);</b>
+<b class="nc">&nbsp;        entityIdCalculatedFieldLinks.forEach((entityId, calculatedFieldLinks) -&gt; calculatedFieldLinks.removeIf(link -&gt; link.calculatedFieldId().equals(calculatedFieldId)));</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] evict calculated field links from cached links by entity id: {}&quot;, calculatedFieldId, oldCalculatedField);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleTenantProfileUpdate(TenantProfileId tenantProfileId) {
+<b class="nc">&nbsp;        calculatedFieldsCtx.values().stream()</b>
+<b class="nc">&nbsp;                .filter(ctx -&gt; {</b>
+<b class="nc">&nbsp;                    TenantProfile tenantProfile = tenantProfileCache.get(ctx.getTenantId());</b>
+<b class="nc">&nbsp;                    return tenantProfile != null &amp;&amp; tenantProfileId.equals(tenantProfile.getId());</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .forEach(CalculatedFieldCtx::setTenantProfileProperties);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityId getProfileId(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        HasId&lt;? extends EntityId&gt; profile = switch (entityId.getEntityType()) {</b>
+<b class="nc">&nbsp;            case ASSET -&gt; assetProfileCache.get(tenantId, (AssetId) entityId);</b>
+<b class="nc">&nbsp;            case DEVICE -&gt; deviceProfileCache.get(tenantId, (DeviceId) entityId);</b>
+<b class="nc">&nbsp;            default -&gt; null;</b>
+&nbsp;        };
+<b class="nc">&nbsp;        return profile != null ? profile.getId() : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;EntityId&gt; getDynamicEntities(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        if (entityId != null &amp;&amp; entityId.getEntityType().isOneOf(EntityType.CUSTOMER, EntityType.TENANT)) {</b>
+<b class="nc">&nbsp;            return getOwnedEntities(tenantId, entityId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Collections.emptySet();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void addOwnerEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        EntityId owner = ownerService.getOwner(tenantId, entityId);</b>
+<b class="nc">&nbsp;        getOwnedEntities(tenantId, owner).add(entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateOwnerEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        evictEntity(entityId);</b>
+<b class="nc">&nbsp;        addOwnerEntity(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evictEntity(EntityId entityId) {
+<b class="nc">&nbsp;        ownerEntities.values().forEach(entities -&gt; entities.remove(entityId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evictOwner(EntityId owner) {
+<b class="nc">&nbsp;        ownerEntities.remove(owner);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;EntityId&gt; getOwnedEntities(TenantId tenantId, EntityId ownerId) {
+<b class="nc">&nbsp;        return ownerEntities.computeIfAbsent(ownerId, owner -&gt; {</b>
+<b class="nc">&nbsp;            Set&lt;EntityId&gt; entities = ConcurrentHashMap.newKeySet();</b>
+<b class="nc">&nbsp;            entities.addAll(ownerService.getOwnedEntities(tenantId, ownerId));</b>
+<b class="nc">&nbsp;            return entities;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private Lock getFetchLock(CalculatedFieldId id) {
+<b class="nc">&nbsp;        return calculatedFieldFetchLocks.computeIfAbsent(id, __ -&gt; new ReentrantLock());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

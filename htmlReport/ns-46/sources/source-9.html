@@ -1,0 +1,204 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RuleEngineComponentActor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.actors.ruleChain</a>
+</div>
+
+<h1>Coverage Summary for Class: RuleEngineComponentActor (org.thingsboard.server.actors.ruleChain)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RuleEngineComponentActor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.actors.ruleChain;
+&nbsp;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.actors.TbRuleNodeUpdateException;
+&nbsp;import org.thingsboard.server.actors.service.ComponentActor;
+&nbsp;import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.RuleEngineComponentLifecycleEventTrigger;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.msg.TbActorStopReason;
+&nbsp;
+&nbsp;public abstract class RuleEngineComponentActor&lt;T extends EntityId, P extends ComponentMsgProcessor&lt;T&gt;&gt; extends ComponentActor&lt;T, P&gt; {
+&nbsp;
+&nbsp;    public RuleEngineComponentActor(ActorSystemContext systemContext, TenantId tenantId, T id) {
+<b class="nc">&nbsp;        super(systemContext, tenantId, id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void logLifecycleEvent(ComponentLifecycleEvent event, Exception e) {
+<b class="nc">&nbsp;        super.logLifecycleEvent(event, e);</b>
+<b class="nc">&nbsp;        if (e instanceof TbRuleNodeUpdateException || (event == ComponentLifecycleEvent.STARTED &amp;&amp; e != null)) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        processNotificationRule(event, e);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy(TbActorStopReason stopReason, Throwable cause) {
+<b class="nc">&nbsp;        super.destroy(stopReason, cause);</b>
+<b class="nc">&nbsp;        if (stopReason == TbActorStopReason.INIT_FAILED &amp;&amp; cause != null) {</b>
+<b class="nc">&nbsp;            processNotificationRule(ComponentLifecycleEvent.STARTED, cause);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processNotificationRule(ComponentLifecycleEvent event, Throwable e) {
+<b class="nc">&nbsp;        if (processor == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        systemContext.getNotificationRuleProcessor().process(RuleEngineComponentLifecycleEventTrigger.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .ruleChainId(getRuleChainId())</b>
+<b class="nc">&nbsp;                .ruleChainName(getRuleChainName())</b>
+<b class="nc">&nbsp;                .componentId(id)</b>
+<b class="nc">&nbsp;                .componentName(processor.getComponentName())</b>
+<b class="nc">&nbsp;                .eventType(event)</b>
+<b class="nc">&nbsp;                .error(e)</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract RuleChainId getRuleChainId();
+&nbsp;
+&nbsp;    protected abstract String getRuleChainName();
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

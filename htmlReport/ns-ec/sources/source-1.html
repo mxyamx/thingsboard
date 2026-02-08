@@ -1,0 +1,403 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultJobService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.job</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultJobService (org.thingsboard.server.dao.job)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultJobService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/60)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/100)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.job;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.JobId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.job.Job;
+&nbsp;import org.thingsboard.server.common.data.job.JobFilter;
+&nbsp;import org.thingsboard.server.common.data.job.JobResult;
+&nbsp;import org.thingsboard.server.common.data.job.JobStats;
+&nbsp;import org.thingsboard.server.common.data.job.JobStatus;
+&nbsp;import org.thingsboard.server.common.data.job.JobType;
+&nbsp;import org.thingsboard.server.common.data.job.task.TaskResult;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractEntityService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.service.ConstraintValidator;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.common.data.job.JobStatus.CANCELLED;
+&nbsp;import static org.thingsboard.server.common.data.job.JobStatus.COMPLETED;
+&nbsp;import static org.thingsboard.server.common.data.job.JobStatus.FAILED;
+&nbsp;import static org.thingsboard.server.common.data.job.JobStatus.PENDING;
+&nbsp;import static org.thingsboard.server.common.data.job.JobStatus.QUEUED;
+&nbsp;import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultJobService extends AbstractEntityService implements JobService {
+&nbsp;
+&nbsp;    private final JobDao jobDao;
+&nbsp;    private final EntityService entityService;
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public Job saveJob(TenantId tenantId, Job job) {
+<b class="nc">&nbsp;        if (jobDao.existsByTenantAndKeyAndStatusOneOf(tenantId, job.getKey(), QUEUED, PENDING, RUNNING)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;The same job is already queued or running&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (jobDao.existsByTenantIdAndTypeAndStatusOneOf(tenantId, job.getType(), PENDING, RUNNING)) {</b>
+<b class="nc">&nbsp;            job.setStatus(QUEUED);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            job.setStatus(PENDING);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return saveJob(tenantId, job, true, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Job findJobById(TenantId tenantId, JobId jobId) {
+<b class="nc">&nbsp;        return jobDao.findById(tenantId, jobId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void cancelJob(TenantId tenantId, JobId jobId) {
+<b class="nc">&nbsp;        Job job = findForUpdate(tenantId, jobId);</b>
+<b class="nc">&nbsp;        if (!job.getStatus().isOneOf(QUEUED, PENDING, RUNNING)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Job already &quot; + job.getStatus().name().toLowerCase());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        job.getResult().setCancellationTs(System.currentTimeMillis());</b>
+<b class="nc">&nbsp;        JobStatus prevStatus = job.getStatus();</b>
+<b class="nc">&nbsp;        job.setStatus(CANCELLED);</b>
+<b class="nc">&nbsp;        saveJob(tenantId, job, true, prevStatus);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void markAsFailed(TenantId tenantId, JobId jobId, String error) {
+<b class="nc">&nbsp;        Job job = findForUpdate(tenantId, jobId);</b>
+<b class="nc">&nbsp;        job.getResult().setGeneralError(error);</b>
+<b class="nc">&nbsp;        JobStatus prevStatus = job.getStatus();</b>
+<b class="nc">&nbsp;        job.setStatus(FAILED);</b>
+<b class="nc">&nbsp;        saveJob(tenantId, job, true, prevStatus);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void processStats(TenantId tenantId, JobId jobId, JobStats jobStats) {
+<b class="nc">&nbsp;        Job job = findForUpdate(tenantId, jobId);</b>
+<b class="nc">&nbsp;        if (job == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Got stale stats: {}&quot;, tenantId, jobId, jobStats);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        JobStatus prevStatus = job.getStatus();</b>
+<b class="nc">&nbsp;        if (job.getStatus() == PENDING) {</b>
+<b class="nc">&nbsp;            job.setStatus(RUNNING);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        JobResult result = job.getResult();</b>
+<b class="nc">&nbsp;        if (jobStats.getTotalTasksCount() != null) {</b>
+<b class="nc">&nbsp;            result.setTotalCount(jobStats.getTotalTasksCount());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean publishEvent = false;</b>
+<b class="nc">&nbsp;        long lastFinishTs = 0;</b>
+<b class="nc">&nbsp;        for (TaskResult taskResult : jobStats.getTaskResults()) {</b>
+<b class="nc">&nbsp;            if (!taskResult.getKey().equals(job.getConfiguration().getTasksKey())) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;Ignoring task result {} with outdated key {}&quot;, taskResult, job.getConfiguration().getTasksKey());</b>
+&nbsp;                continue;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            result.processTaskResult(taskResult);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (result.getCancellationTs() &gt; 0) {</b>
+<b class="nc">&nbsp;                if (!taskResult.isDiscarded() &amp;&amp; System.currentTimeMillis() &gt; result.getCancellationTs()) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;Got task result for cancelled job {}: {}, re-notifying processors about cancellation&quot;, jobId, taskResult);</b>
+&nbsp;                    // task processor forgot the task is cancelled
+<b class="nc">&nbsp;                    publishEvent = true;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (taskResult.getFinishTs() &gt; lastFinishTs) {</b>
+<b class="nc">&nbsp;                lastFinishTs = taskResult.getFinishTs();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (job.getStatus().isOneOf(RUNNING, CANCELLED)) {</b>
+<b class="nc">&nbsp;            if (result.getTotalCount() != null &amp;&amp; result.getCompletedCount() &gt;= result.getTotalCount()) {</b>
+<b class="nc">&nbsp;                if (result.getCancellationTs() &gt; 0) {</b>
+<b class="nc">&nbsp;                    job.setStatus(CANCELLED);</b>
+<b class="nc">&nbsp;                } else if (result.getFailedCount() &gt; 0) {</b>
+<b class="nc">&nbsp;                    job.setStatus(FAILED);</b>
+<b class="nc">&nbsp;                    publishEvent = true;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    job.setStatus(COMPLETED);</b>
+<b class="nc">&nbsp;                    publishEvent = true;</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (result.getTotalCount() == 0 &amp;&amp; lastFinishTs == 0) {</b>
+<b class="nc">&nbsp;                    lastFinishTs = System.currentTimeMillis();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                result.setFinishTs(lastFinishTs);</b>
+<b class="nc">&nbsp;                job.getConfiguration().setToReprocess(null);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        saveJob(tenantId, job, publishEvent, prevStatus);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Job saveJob(TenantId tenantId, Job job, boolean publishEvent, JobStatus prevStatus) {
+<b class="nc">&nbsp;        ConstraintValidator.validateFields(job);</b>
+<b class="nc">&nbsp;        if (!Job.SUPPORTED_ENTITY_TYPES.contains(job.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Unsupported entity type &quot; + job.getEntityId().getEntityType());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (job.getStatus() == PENDING) {</b>
+<b class="nc">&nbsp;            job.getResult().setStartTs(System.currentTimeMillis());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        job = jobDao.save(tenantId, job);</b>
+<b class="nc">&nbsp;        if (publishEvent) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .entityId(job.getId())</b>
+<b class="nc">&nbsp;                    .entity(job)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.info(&quot;[{}] Saved job: {}&quot;, tenantId, job);</b>
+<b class="nc">&nbsp;        if (prevStatus != null &amp;&amp; job.getStatus() != prevStatus) {</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}][{}][{}] New job status: {} -&gt; {}&quot;, tenantId, job.getId(), job.getType(), prevStatus, job.getStatus());</b>
+<b class="nc">&nbsp;            if (job.getStatus().isOneOf(CANCELLED, COMPLETED, FAILED) &amp;&amp; prevStatus != QUEUED) { // if prev status is QUEUED - means there are already running jobs with this type, no need to check for waiting job</b>
+<b class="nc">&nbsp;                checkWaitingJobs(tenantId, job.getType());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return job;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkWaitingJobs(TenantId tenantId, JobType jobType) {
+<b class="nc">&nbsp;        Job queuedJob = jobDao.findOldestByTenantIdAndTypeAndStatusForUpdate(tenantId, jobType, QUEUED);</b>
+<b class="nc">&nbsp;        if (queuedJob == null || jobDao.existsByTenantIdAndTypeAndStatusOneOf(tenantId, jobType, PENDING, RUNNING)) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        queuedJob.setStatus(PENDING);</b>
+<b class="nc">&nbsp;        saveJob(tenantId, queuedJob, true, QUEUED);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Job&gt; findJobsByFilter(TenantId tenantId, JobFilter filter, PageLink pageLink) {
+<b class="nc">&nbsp;        PageData&lt;Job&gt; jobs = jobDao.findByTenantIdAndFilter(tenantId, filter, pageLink);</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;EntityId&gt; entityIds = jobs.getData().stream()</b>
+<b class="nc">&nbsp;                .map(Job::getEntityId)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;        Map&lt;EntityId, EntityInfo&gt; entityInfos = entityService.fetchEntityInfos(tenantId, null, entityIds);</b>
+<b class="nc">&nbsp;        jobs.getData().forEach(job -&gt; {</b>
+<b class="nc">&nbsp;            EntityInfo entityInfo = entityInfos.get(job.getEntityId());</b>
+<b class="nc">&nbsp;            if (entityInfo != null) {</b>
+<b class="nc">&nbsp;                job.setEntityName(entityInfo.getName());</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        return jobs;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Job findLatestJobByKey(TenantId tenantId, String key) {
+<b class="nc">&nbsp;        return jobDao.findLatestByTenantIdAndKey(tenantId, key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteJob(TenantId tenantId, JobId jobId) {
+<b class="nc">&nbsp;        Job job = findJobById(tenantId, jobId);</b>
+<b class="nc">&nbsp;        if (!job.getStatus().isOneOf(CANCELLED, COMPLETED, FAILED)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Job must be cancelled, completed or failed&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        jobDao.removeById(tenantId, jobId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int deleteJobsByEntityId(TenantId tenantId, EntityId entityId) { // TODO: cancel all jobs for this entity
+<b class="nc">&nbsp;        return jobDao.removeByEntityId(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Job findForUpdate(TenantId tenantId, JobId jobId) {
+<b class="nc">&nbsp;        return jobDao.findByIdForUpdate(tenantId, jobId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findJobById(tenantId, (JobId) entityId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(jobDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        jobDao.removeById(tenantId, id.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        jobDao.removeByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.JOB;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

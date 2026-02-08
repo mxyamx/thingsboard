@@ -1,0 +1,446 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EdgeEventSourcingListener</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge</a>
+</div>
+
+<h1>Coverage Summary for Class: EdgeEventSourcingListener (org.thingsboard.server.service.edge)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EdgeEventSourcingListener</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/96)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">EdgeEventSourcingListener$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/97)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.NullNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.EdgeUtils;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.OtaPackageInfo;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmComment;
+&nbsp;import org.thingsboard.server.common.data.alarm.EntityAlarm;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.domain.Domain;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventType;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.common.data.security.Authority;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;
+&nbsp;/**
+&nbsp; * This event listener does not support async event processing because relay on ThreadLocal
+&nbsp; * Another possible approach is to implement a special annotation and a bunch of classes similar to TransactionalApplicationListener
+&nbsp; * This class is the simplest approach to maintain edge synchronization within the single class.
+&nbsp; * &lt;p&gt;
+&nbsp; * For async event publishers, you have to decide whether publish event on creating async task in the same thread where dao method called
+&nbsp; * @Autowired
+&nbsp; * EdgeEventSynchronizationManager edgeSynchronizationManager
+&nbsp; * ...
+&nbsp; *   //some async write action make future
+&nbsp; *   if (!edgeSynchronizationManager.isSync()) {
+&nbsp; *     future.addCallback(eventPublisher.publishEvent(...))
+&nbsp; *   }
+&nbsp; * */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class EdgeEventSourcingListener {
+&nbsp;
+&nbsp;    private final TbClusterService tbClusterService;
+&nbsp;
+&nbsp;    private final TenantService tenantService;
+&nbsp;    private final EdgeSynchronizationManager edgeSynchronizationManager;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        log.debug(&quot;EdgeEventSourcingListener initiated&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @TransactionalEventListener(fallbackExecution = true)
+&nbsp;    public void handleEvent(SaveEntityEvent&lt;?&gt; event) {
+<b class="nc">&nbsp;        if (Boolean.FALSE.equals(event.getBroadcastEvent())) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Ignoring event {}&quot;, event);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            if (!isValidSaveEntityEventForEdgeProcessing(event)) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            log.trace(&quot;[{}] SaveEntityEvent called: {}&quot;, event.getTenantId(), event);</b>
+<b class="nc">&nbsp;            boolean isCreated = Boolean.TRUE.equals(event.getCreated());</b>
+<b class="nc">&nbsp;            String body = getBodyMsgForEntityEvent(event.getEntity());</b>
+<b class="nc">&nbsp;            EdgeEventType type = getEdgeEventTypeForEntityEvent(event.getEntity());</b>
+<b class="nc">&nbsp;            EdgeEventActionType action = getActionForEntityEvent(event.getEntity(), isCreated);</b>
+<b class="nc">&nbsp;            tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),</b>
+<b class="nc">&nbsp;                    body, type, action, edgeSynchronizationManager.getEdgeId().get());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] failed to process SaveEntityEvent: {}&quot;, event.getTenantId(), event, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @TransactionalEventListener(fallbackExecution = true)
+&nbsp;    public void handleEvent(DeleteEntityEvent&lt;?&gt; event) {
+<b class="nc">&nbsp;        TenantId tenantId = event.getTenantId();</b>
+<b class="nc">&nbsp;        EntityType entityType = event.getEntityId().getEntityType();</b>
+<b class="nc">&nbsp;        if (!tenantId.isSysTenantId() &amp;&amp; !tenantService.tenantExists(tenantId)) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}&quot;, tenantId, event);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            if (EntityType.TENANT == entityType || EntityType.EDGE == entityType) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            log.trace(&quot;[{}] DeleteEntityEvent called: {}&quot;, tenantId, event);</b>
+<b class="nc">&nbsp;            EdgeEventType type = getEdgeEventTypeForEntityEvent(event.getEntity());</b>
+<b class="nc">&nbsp;            EdgeEventActionType actionType = getEdgeEventActionTypeForEntityEvent(event.getEntity());</b>
+<b class="nc">&nbsp;            tbClusterService.sendNotificationMsgToEdge(tenantId, null, event.getEntityId(),</b>
+<b class="nc">&nbsp;                    JacksonUtil.toString(event.getEntity()), type, actionType,</b>
+<b class="nc">&nbsp;                    edgeSynchronizationManager.getEdgeId().get());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] failed to process DeleteEntityEvent: {}&quot;, tenantId, event, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdgeEventActionType getEdgeEventActionTypeForEntityEvent(Object entity) {
+<b class="nc">&nbsp;        if (entity instanceof AlarmComment) {</b>
+<b class="nc">&nbsp;            return EdgeEventActionType.DELETED_COMMENT;</b>
+<b class="nc">&nbsp;        } else if (entity instanceof Alarm) {</b>
+<b class="nc">&nbsp;            return EdgeEventActionType.ALARM_DELETE;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return EdgeEventActionType.DELETED;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @TransactionalEventListener(fallbackExecution = true)
+&nbsp;    public void handleEvent(ActionEntityEvent&lt;?&gt; event) {
+<b class="nc">&nbsp;        if (EntityType.DEVICE.equals(event.getEntityId().getEntityType()) &amp;&amp; ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (EntityType.ALARM.equals(event.getEntityId().getEntityType())) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            if (event.getEntityId().getEntityType().equals(EntityType.RULE_CHAIN) &amp;&amp; event.getEdgeId() != null &amp;&amp; event.getActionType().equals(ActionType.ASSIGNED_TO_EDGE)) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    Edge edge = JacksonUtil.fromString(event.getBody(), Edge.class);</b>
+<b class="nc">&nbsp;                    if (edge != null &amp;&amp; new RuleChainId(event.getEntityId().getId()).equals(edge.getRootRuleChainId())) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] skipping ASSIGNED_TO_EDGE event of RULE_CHAIN entity in case Edge Root Rule Chain: {}&quot;, event.getTenantId(), event);</b>
+&nbsp;                        return;
+&nbsp;                    }
+&nbsp;                } catch (Exception ignored) {
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            log.trace(&quot;[{}] ActionEntityEvent called: {}&quot;, event.getTenantId(), event);</b>
+<b class="nc">&nbsp;            tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), event.getEdgeId(), event.getEntityId(),</b>
+<b class="nc">&nbsp;                    event.getBody(), null, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()),</b>
+<b class="nc">&nbsp;                    edgeSynchronizationManager.getEdgeId().get());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] failed to process ActionEntityEvent: {}&quot;, event.getTenantId(), event, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @TransactionalEventListener(fallbackExecution = true)
+&nbsp;    public void handleEvent(RelationActionEvent event) {
+&nbsp;        try {
+<b class="nc">&nbsp;            TenantId tenantId = event.getTenantId();</b>
+<b class="nc">&nbsp;            if (ActionType.RELATION_DELETED.equals(event.getActionType()) &amp;&amp; !tenantService.tenantExists(tenantId)) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Ignoring RelationActionEvent because tenant does not exist: {}&quot;, tenantId, event);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            EntityRelation relation = event.getRelation();</b>
+<b class="nc">&nbsp;            if (relation == null) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] skipping RelationActionEvent event in case relation is null: {}&quot;, event.getTenantId(), event);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (!RelationTypeGroup.COMMON.equals(relation.getTypeGroup())) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] skipping RelationActionEvent event in case NOT COMMON relation type group: {}&quot;, event.getTenantId(), event);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            log.trace(&quot;[{}] RelationActionEvent called: {}&quot;, event.getTenantId(), event);</b>
+<b class="nc">&nbsp;            tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, null,</b>
+<b class="nc">&nbsp;                    JacksonUtil.toString(relation), EdgeEventType.RELATION, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()),</b>
+<b class="nc">&nbsp;                    edgeSynchronizationManager.getEdgeId().get());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] failed to process RelationActionEvent: {}&quot;, event.getTenantId(), event, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isValidSaveEntityEventForEdgeProcessing(SaveEntityEvent&lt;?&gt; event) {
+<b class="nc">&nbsp;        Object entity = event.getEntity();</b>
+<b class="nc">&nbsp;        Object oldEntity = event.getOldEntity();</b>
+<b class="nc">&nbsp;        if (event.getEntityId() != null) {</b>
+<b class="nc">&nbsp;            switch (event.getEntityId().getEntityType()) {</b>
+&nbsp;                case RULE_CHAIN:
+<b class="nc">&nbsp;                    if (entity instanceof RuleChain ruleChain) {</b>
+<b class="nc">&nbsp;                        return RuleChainType.EDGE.equals(ruleChain.getType());</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case USER:
+<b class="nc">&nbsp;                    if (entity instanceof User user) {</b>
+<b class="nc">&nbsp;                        if (Authority.SYS_ADMIN.equals(user.getAuthority())) {</b>
+<b class="nc">&nbsp;                            return false;</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        if (oldEntity != null) {</b>
+<b class="nc">&nbsp;                            user = JacksonUtil.clone(user);</b>
+<b class="nc">&nbsp;                            User oldUser = JacksonUtil.clone((User) oldEntity);</b>
+<b class="nc">&nbsp;                            cleanUpUserAdditionalInfo(oldUser);</b>
+<b class="nc">&nbsp;                            cleanUpUserAdditionalInfo(user);</b>
+<b class="nc">&nbsp;                            return !user.equals(oldUser);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case OTA_PACKAGE:
+<b class="nc">&nbsp;                    if (entity instanceof OtaPackageInfo otaPackageInfo) {</b>
+<b class="nc">&nbsp;                        return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case ALARM:
+<b class="nc">&nbsp;                    if (entity instanceof AlarmApiCallResult || entity instanceof Alarm || entity instanceof EntityAlarm) {</b>
+<b class="nc">&nbsp;                        return false;</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case TENANT:
+<b class="nc">&nbsp;                    return !event.getCreated();</b>
+&nbsp;                case API_USAGE_STATE, EDGE:
+<b class="nc">&nbsp;                    return false;</b>
+&nbsp;                case DOMAIN:
+<b class="nc">&nbsp;                    if (entity instanceof Domain domain) {</b>
+<b class="nc">&nbsp;                        return domain.isPropagateToEdge();</b>
+&nbsp;                    }
+&nbsp;            }
+&nbsp;        }
+&nbsp;        // Default: If the entity doesn&#39;t match any of the conditions, consider it as valid.
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanUpUserAdditionalInfo(User user) {
+<b class="nc">&nbsp;        if (user.getAdditionalInfo() instanceof NullNode) {</b>
+<b class="nc">&nbsp;            user.setAdditionalInfo(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (user.getAdditionalInfo() instanceof ObjectNode additionalInfo) {</b>
+<b class="nc">&nbsp;            if (additionalInfo.isEmpty()) {</b>
+<b class="nc">&nbsp;                user.setAdditionalInfo(null);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                user.setAdditionalInfo(additionalInfo);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        user.setVersion(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdgeEventType getEdgeEventTypeForEntityEvent(Object entity) {
+<b class="nc">&nbsp;        if (entity instanceof AlarmComment) {</b>
+<b class="nc">&nbsp;            return EdgeEventType.ALARM_COMMENT;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getBodyMsgForEntityEvent(Object entity) {
+<b class="nc">&nbsp;        if (entity instanceof AlarmComment) {</b>
+<b class="nc">&nbsp;            return JacksonUtil.toString(entity);</b>
+<b class="nc">&nbsp;        } else if (entity instanceof CalculatedField calculatedField) {</b>
+<b class="nc">&nbsp;            return JacksonUtil.toString(calculatedField.getEntityId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdgeEventActionType getActionForEntityEvent(Object entity, boolean isCreated) {
+<b class="nc">&nbsp;        if (entity instanceof AlarmComment) {</b>
+<b class="nc">&nbsp;            return isCreated ? EdgeEventActionType.ADDED_COMMENT : EdgeEventActionType.UPDATED_COMMENT;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return isCreated ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

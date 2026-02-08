@@ -1,0 +1,398 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JwtTokenFactory</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.security.model.token</a>
+</div>
+
+<h1>Coverage Summary for Class: JwtTokenFactory (org.thingsboard.server.service.security.model.token)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JwtTokenFactory</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/60)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/113)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.security.model.token;
+&nbsp;
+&nbsp;import io.jsonwebtoken.Claims;
+&nbsp;import io.jsonwebtoken.ClaimsBuilder;
+&nbsp;import io.jsonwebtoken.ExpiredJwtException;
+&nbsp;import io.jsonwebtoken.Jws;
+&nbsp;import io.jsonwebtoken.JwtBuilder;
+&nbsp;import io.jsonwebtoken.JwtParser;
+&nbsp;import io.jsonwebtoken.Jwts;
+&nbsp;import io.jsonwebtoken.MalformedJwtException;
+&nbsp;import io.jsonwebtoken.SignatureException;
+&nbsp;import io.jsonwebtoken.UnsupportedJwtException;
+&nbsp;import io.jsonwebtoken.security.Keys;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.security.authentication.BadCredentialsException;
+&nbsp;import org.springframework.security.core.GrantedAuthority;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.security.Authority;
+&nbsp;import org.thingsboard.server.common.data.security.model.JwtPair;
+&nbsp;import org.thingsboard.server.common.data.security.model.JwtToken;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+&nbsp;import org.thingsboard.server.service.security.exception.JwtExpiredTokenException;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.model.UserPrincipal;
+&nbsp;
+&nbsp;import javax.crypto.SecretKey;
+&nbsp;import javax.crypto.spec.SecretKeySpec;
+&nbsp;import java.time.ZonedDateTime;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Date;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Component
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class JwtTokenFactory {
+&nbsp;
+<b class="nc">&nbsp;    public static int KEY_LENGTH = Jwts.SIG.HS512.getKeyBitLength();</b>
+&nbsp;
+&nbsp;    private static final String SCOPES = &quot;scopes&quot;;
+&nbsp;    private static final String USER_ID = &quot;userId&quot;;
+&nbsp;    private static final String FIRST_NAME = &quot;firstName&quot;;
+&nbsp;    private static final String LAST_NAME = &quot;lastName&quot;;
+&nbsp;    private static final String ENABLED = &quot;enabled&quot;;
+&nbsp;    private static final String IS_PUBLIC = &quot;isPublic&quot;;
+&nbsp;    private static final String TENANT_ID = &quot;tenantId&quot;;
+&nbsp;    private static final String CUSTOMER_ID = &quot;customerId&quot;;
+&nbsp;    private static final String SESSION_ID = &quot;sessionId&quot;;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    private final JwtSettingsService jwtSettingsService;
+&nbsp;
+&nbsp;    private volatile JwtParser jwtParser;
+&nbsp;    private volatile SecretKey secretKey;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Factory method for issuing new JWT Tokens.
+&nbsp;     */
+&nbsp;    public AccessJwtToken createAccessJwtToken(SecurityUser securityUser) {
+<b class="nc">&nbsp;        if (securityUser.getAuthority() == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;User doesn&#39;t have any privileges&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        UserPrincipal principal = securityUser.getUserPrincipal();</b>
+&nbsp;
+<b class="nc">&nbsp;        JwtBuilder jwtBuilder = setUpToken(securityUser, securityUser.getAuthorities().stream()</b>
+<b class="nc">&nbsp;                .map(GrantedAuthority::getAuthority).collect(Collectors.toList()), jwtSettingsService.getJwtSettings().getTokenExpirationTime());</b>
+<b class="nc">&nbsp;        jwtBuilder.claim(FIRST_NAME, securityUser.getFirstName())</b>
+<b class="nc">&nbsp;                .claim(LAST_NAME, securityUser.getLastName())</b>
+<b class="nc">&nbsp;                .claim(ENABLED, securityUser.isEnabled())</b>
+<b class="nc">&nbsp;                .claim(IS_PUBLIC, principal.getType() == UserPrincipal.Type.PUBLIC_ID);</b>
+<b class="nc">&nbsp;        if (securityUser.getTenantId() != null) {</b>
+<b class="nc">&nbsp;            jwtBuilder.claim(TENANT_ID, securityUser.getTenantId().getId().toString());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (securityUser.getCustomerId() != null) {</b>
+<b class="nc">&nbsp;            jwtBuilder.claim(CUSTOMER_ID, securityUser.getCustomerId().getId().toString());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String token = jwtBuilder.compact();</b>
+&nbsp;
+<b class="nc">&nbsp;        return new AccessJwtToken(token);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public SecurityUser parseAccessJwtToken(String token) {
+<b class="nc">&nbsp;        Jws&lt;Claims&gt; jwsClaims = parseTokenClaims(token);</b>
+<b class="nc">&nbsp;        Claims claims = jwsClaims.getPayload();</b>
+<b class="nc">&nbsp;        String subject = claims.getSubject();</b>
+&nbsp;        @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;        List&lt;String&gt; scopes = claims.get(SCOPES, List.class);</b>
+<b class="nc">&nbsp;        if (scopes == null || scopes.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;JWT Token doesn&#39;t have any scopes&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Authority authority = Authority.parse(scopes.get(0));</b>
+&nbsp;
+<b class="nc">&nbsp;        SecurityUser securityUser = new SecurityUser(new UserId(UUID.fromString(claims.get(USER_ID, String.class))));</b>
+<b class="nc">&nbsp;        securityUser.setEmail(subject);</b>
+<b class="nc">&nbsp;        securityUser.setAuthority(authority);</b>
+<b class="nc">&nbsp;        String tenantId = claims.get(TENANT_ID, String.class);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (tenantId != null) {</b>
+<b class="nc">&nbsp;            securityUser.setTenantId(TenantId.fromUUID(UUID.fromString(tenantId)));</b>
+<b class="nc">&nbsp;        } else if (authority == Authority.SYS_ADMIN) {</b>
+<b class="nc">&nbsp;            securityUser.setTenantId(TenantId.SYS_TENANT_ID);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String customerId = claims.get(CUSTOMER_ID, String.class);</b>
+<b class="nc">&nbsp;        if (customerId != null) {</b>
+<b class="nc">&nbsp;            securityUser.setCustomerId(new CustomerId(UUID.fromString(customerId)));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (claims.get(SESSION_ID, String.class) != null) {</b>
+<b class="nc">&nbsp;            securityUser.setSessionId(claims.get(SESSION_ID, String.class));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean isPublic = false;</b>
+<b class="nc">&nbsp;        if (authority != Authority.PRE_VERIFICATION_TOKEN &amp;&amp; authority != Authority.MFA_CONFIGURATION_TOKEN) {</b>
+<b class="nc">&nbsp;            securityUser.setFirstName(claims.get(FIRST_NAME, String.class));</b>
+<b class="nc">&nbsp;            securityUser.setLastName(claims.get(LAST_NAME, String.class));</b>
+<b class="nc">&nbsp;            securityUser.setEnabled(claims.get(ENABLED, Boolean.class));</b>
+<b class="nc">&nbsp;            isPublic = claims.get(IS_PUBLIC, Boolean.class);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        UserPrincipal principal = new UserPrincipal(isPublic ? UserPrincipal.Type.PUBLIC_ID : UserPrincipal.Type.USER_NAME, subject);</b>
+<b class="nc">&nbsp;        securityUser.setUserPrincipal(principal);</b>
+<b class="nc">&nbsp;        return securityUser;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public JwtToken createRefreshToken(SecurityUser securityUser) {
+<b class="nc">&nbsp;        UserPrincipal principal = securityUser.getUserPrincipal();</b>
+&nbsp;
+<b class="nc">&nbsp;        String token = setUpToken(securityUser, Collections.singletonList(Authority.REFRESH_TOKEN.name()), jwtSettingsService.getJwtSettings().getRefreshTokenExpTime())</b>
+<b class="nc">&nbsp;                .claim(IS_PUBLIC, principal.getType() == UserPrincipal.Type.PUBLIC_ID)</b>
+<b class="nc">&nbsp;                .id(UUID.randomUUID().toString()).compact();</b>
+&nbsp;
+<b class="nc">&nbsp;        return new AccessJwtToken(token);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public SecurityUser parseRefreshToken(String token) {
+<b class="nc">&nbsp;        Jws&lt;Claims&gt; jwsClaims = parseTokenClaims(token);</b>
+<b class="nc">&nbsp;        Claims claims = jwsClaims.getPayload();</b>
+<b class="nc">&nbsp;        String subject = claims.getSubject();</b>
+&nbsp;        @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;        List&lt;String&gt; scopes = claims.get(SCOPES, List.class);</b>
+<b class="nc">&nbsp;        if (scopes == null || scopes.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Refresh Token doesn&#39;t have any scopes&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!scopes.get(0).equals(Authority.REFRESH_TOKEN.name())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid Refresh Token scope&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        boolean isPublic = claims.get(IS_PUBLIC, Boolean.class);</b>
+<b class="nc">&nbsp;        UserPrincipal principal = new UserPrincipal(isPublic ? UserPrincipal.Type.PUBLIC_ID : UserPrincipal.Type.USER_NAME, subject);</b>
+<b class="nc">&nbsp;        SecurityUser securityUser = new SecurityUser(new UserId(UUID.fromString(claims.get(USER_ID, String.class))));</b>
+<b class="nc">&nbsp;        securityUser.setUserPrincipal(principal);</b>
+<b class="nc">&nbsp;        if (claims.get(SESSION_ID, String.class) != null) {</b>
+<b class="nc">&nbsp;            securityUser.setSessionId(claims.get(SESSION_ID, String.class));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return securityUser;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public JwtToken createMfaToken(SecurityUser user, Authority scope, Integer expirationTime) {
+<b class="nc">&nbsp;        JwtBuilder jwtBuilder = setUpToken(user, Collections.singletonList(scope.name()), expirationTime)</b>
+<b class="nc">&nbsp;                .claim(TENANT_ID, user.getTenantId().toString());</b>
+<b class="nc">&nbsp;        if (user.getCustomerId() != null) {</b>
+<b class="nc">&nbsp;            jwtBuilder.claim(CUSTOMER_ID, user.getCustomerId().toString());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new AccessJwtToken(jwtBuilder.compact());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void reload() {
+<b class="nc">&nbsp;        getSecretKey(true);</b>
+<b class="nc">&nbsp;        getJwtParser(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private JwtBuilder setUpToken(SecurityUser securityUser, List&lt;String&gt; scopes, long expirationTime) {
+<b class="nc">&nbsp;        if (StringUtils.isBlank(securityUser.getEmail())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Cannot create JWT Token without username/email&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        UserPrincipal principal = securityUser.getUserPrincipal();</b>
+&nbsp;
+<b class="nc">&nbsp;        ClaimsBuilder claimsBuilder = Jwts.claims()</b>
+<b class="nc">&nbsp;                .subject(principal.getValue())</b>
+<b class="nc">&nbsp;                .add(USER_ID, securityUser.getId().getId().toString())</b>
+<b class="nc">&nbsp;                .add(SCOPES, scopes);</b>
+<b class="nc">&nbsp;        if (securityUser.getSessionId() != null) {</b>
+<b class="nc">&nbsp;            claimsBuilder.add(SESSION_ID, securityUser.getSessionId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ZonedDateTime currentTime = ZonedDateTime.now();</b>
+&nbsp;
+<b class="nc">&nbsp;        claimsBuilder.expiration(Date.from(currentTime.plusSeconds(expirationTime).toInstant()));</b>
+&nbsp;
+<b class="nc">&nbsp;        return Jwts.builder()</b>
+<b class="nc">&nbsp;                .claims(claimsBuilder.build())</b>
+<b class="nc">&nbsp;                .issuer(jwtSettingsService.getJwtSettings().getTokenIssuer())</b>
+<b class="nc">&nbsp;                .issuedAt(Date.from(currentTime.toInstant()))</b>
+<b class="nc">&nbsp;                .signWith(getSecretKey(false), Jwts.SIG.HS512);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Jws&lt;Claims&gt; parseTokenClaims(String token) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return getJwtParser(false).parseSignedClaims(token);</b>
+&nbsp;        } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException ex) {
+<b class="nc">&nbsp;            log.debug(&quot;Invalid JWT Token&quot;, ex);</b>
+<b class="nc">&nbsp;            throw new BadCredentialsException(&quot;Invalid JWT token: &quot;, ex);</b>
+&nbsp;        } catch (SignatureException | ExpiredJwtException expiredEx) {
+<b class="nc">&nbsp;            log.debug(&quot;JWT Token is expired&quot;, expiredEx);</b>
+<b class="nc">&nbsp;            throw new JwtExpiredTokenException(token, &quot;JWT Token expired&quot;, expiredEx);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public JwtPair createTokenPair(SecurityUser securityUser) {
+<b class="nc">&nbsp;        securityUser.setSessionId(UUID.randomUUID().toString());</b>
+<b class="nc">&nbsp;        JwtToken accessToken = createAccessJwtToken(securityUser);</b>
+<b class="nc">&nbsp;        JwtToken refreshToken = createRefreshToken(securityUser);</b>
+<b class="nc">&nbsp;        return new JwtPair(accessToken.token(), refreshToken.token());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private SecretKey getSecretKey(boolean forceReload) {
+<b class="nc">&nbsp;        if (secretKey == null || forceReload) {</b>
+<b class="nc">&nbsp;            synchronized (this) {</b>
+<b class="nc">&nbsp;                if (secretKey == null || forceReload) {</b>
+<b class="nc">&nbsp;                    byte[] decodedToken = Base64.getDecoder().decode(jwtSettingsService.getJwtSettings().getTokenSigningKey());</b>
+<b class="nc">&nbsp;                    secretKey = new SecretKeySpec(decodedToken, &quot;HmacSHA512&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return secretKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private JwtParser getJwtParser(boolean forceReload) {
+<b class="nc">&nbsp;        if (jwtParser == null || forceReload) {</b>
+<b class="nc">&nbsp;            synchronized (this) {</b>
+<b class="nc">&nbsp;                if (jwtParser == null || forceReload) {</b>
+<b class="nc">&nbsp;                    jwtParser = Jwts.parser()</b>
+<b class="nc">&nbsp;                            .verifyWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSettingsService.getJwtSettings().getTokenSigningKey())))</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return jwtParser;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

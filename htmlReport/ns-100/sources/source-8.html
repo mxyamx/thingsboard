@@ -1,0 +1,277 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbSqlBlockingQueue</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql</a>
+</div>
+
+<h1>Coverage Summary for Class: TbSqlBlockingQueue (org.thingsboard.server.dao.sql)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbSqlBlockingQueue</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/57)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.SettableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.util.CollectionsUtil;
+&nbsp;import org.thingsboard.server.common.stats.MessagesStats;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.concurrent.BlockingQueue;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.LinkedBlockingQueue;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbSqlBlockingQueue&lt;E, R&gt; implements TbSqlQueue&lt;E, R&gt; {
+&nbsp;
+<b class="nc">&nbsp;    private final BlockingQueue&lt;TbSqlQueueElement&lt;E, R&gt;&gt; queue = new LinkedBlockingQueue&lt;&gt;();</b>
+&nbsp;    private final TbSqlBlockingQueueParams params;
+&nbsp;
+&nbsp;    private ExecutorService executor;
+&nbsp;    private final MessagesStats stats;
+&nbsp;
+<b class="nc">&nbsp;    public TbSqlBlockingQueue(TbSqlBlockingQueueParams params, MessagesStats stats) {</b>
+<b class="nc">&nbsp;        this.params = params;</b>
+<b class="nc">&nbsp;        this.stats = stats;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(ScheduledLogExecutorComponent logExecutor, Function&lt;List&lt;E&gt;, List&lt;R&gt;&gt; saveFunction, Comparator&lt;E&gt; batchUpdateComparator, Function&lt;List&lt;TbSqlQueueElement&lt;E, R&gt;&gt;, List&lt;TbSqlQueueElement&lt;E, R&gt;&gt;&gt; filter, int index) {
+<b class="nc">&nbsp;        executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;sql-queue-&quot; + index + &quot;-&quot; + params.getLogName().toLowerCase()));</b>
+<b class="nc">&nbsp;        executor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            String logName = params.getLogName();</b>
+<b class="nc">&nbsp;            int batchSize = params.getBatchSize();</b>
+<b class="nc">&nbsp;            long maxDelay = params.getMaxDelay();</b>
+<b class="nc">&nbsp;            final List&lt;TbSqlQueueElement&lt;E, R&gt;&gt; entities = new ArrayList&lt;&gt;(batchSize);</b>
+<b class="nc">&nbsp;            while (!Thread.interrupted()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    long currentTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;                    TbSqlQueueElement&lt;E, R&gt; attr = queue.poll(maxDelay, TimeUnit.MILLISECONDS);</b>
+<b class="nc">&nbsp;                    if (attr == null) {</b>
+&nbsp;                        continue;
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        entities.add(attr);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    queue.drainTo(entities, batchSize - 1);</b>
+<b class="nc">&nbsp;                    boolean fullPack = entities.size() == batchSize;</b>
+<b class="nc">&nbsp;                    if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;                        log.debug(&quot;[{}] Going to save {} entities&quot;, logName, entities.size());</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}] Going to save entities: {}&quot;, logName, entities);</b>
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    List&lt;TbSqlQueueElement&lt;E, R&gt;&gt; entitiesToSave = filter.apply(entities);</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (params.isBatchSortEnabled()) {</b>
+<b class="nc">&nbsp;                        entitiesToSave = entitiesToSave.stream().sorted((o1, o2) -&gt; batchUpdateComparator.compare(o1.getEntity(), o2.getEntity())).toList();</b>
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    List&lt;R&gt; result = saveFunction.apply(entitiesToSave.stream().map(TbSqlQueueElement::getEntity).collect(Collectors.toList()));</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (params.isWithResponse()) {</b>
+<b class="nc">&nbsp;                        for (int i = 0; i &lt; entitiesToSave.size(); i++) {</b>
+<b class="nc">&nbsp;                            entitiesToSave.get(i).getFuture().set(result.get(i));</b>
+&nbsp;                        }
+&nbsp;
+<b class="nc">&nbsp;                        if (entities.size() &gt; entitiesToSave.size()) {</b>
+<b class="nc">&nbsp;                            CollectionsUtil.diffLists(entitiesToSave, entities).forEach(v -&gt; v.getFuture().set(null));</b>
+&nbsp;                        }
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        entities.forEach(v -&gt; v.getFuture().set(null));</b>
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    stats.incrementSuccessful(entities.size());</b>
+<b class="nc">&nbsp;                    if (!fullPack) {</b>
+<b class="nc">&nbsp;                        long remainingDelay = maxDelay - (System.currentTimeMillis() - currentTs);</b>
+<b class="nc">&nbsp;                        if (remainingDelay &gt; 0) {</b>
+<b class="nc">&nbsp;                            Thread.sleep(remainingDelay);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                } catch (Throwable t) {
+<b class="nc">&nbsp;                    if (t instanceof InterruptedException) {</b>
+<b class="nc">&nbsp;                        log.info(&quot;[{}] Queue polling was interrupted&quot;, logName);</b>
+&nbsp;                        break;
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.error(&quot;[{}] Failed to save {} entities&quot;, logName, entities.size(), t);</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            stats.incrementFailed(entities.size());</b>
+<b class="nc">&nbsp;                            entities.forEach(entityFutureWrapper -&gt; entityFutureWrapper.getFuture().setException(t));</b>
+&nbsp;                        } catch (Throwable th) {
+<b class="nc">&nbsp;                            log.error(&quot;[{}] Failed to set future exception&quot;, logName, th);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    entities.clear();</b>
+<b class="nc">&nbsp;                }</b>
+&nbsp;            }
+<b class="nc">&nbsp;            log.info(&quot;[{}] Queue polling completed&quot;, logName);</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        logExecutor.scheduleAtFixedRate(() -&gt; {</b>
+<b class="nc">&nbsp;            if (!queue.isEmpty() || stats.getTotal() &gt; 0 || stats.getSuccessful() &gt; 0 || stats.getFailed() &gt; 0) {</b>
+<b class="nc">&nbsp;                log.info(&quot;Queue-{} [{}] queueSize [{}] totalAdded [{}] totalSaved [{}] totalFailed [{}]&quot;, index,</b>
+<b class="nc">&nbsp;                        params.getLogName(), queue.size(), stats.getTotal(), stats.getSuccessful(), stats.getFailed());</b>
+<b class="nc">&nbsp;                stats.reset();</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }, params.getStatsPrintIntervalMs(), params.getStatsPrintIntervalMs(), TimeUnit.MILLISECONDS);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        if (executor != null) {</b>
+<b class="nc">&nbsp;            executor.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;R&gt; add(E element) {
+<b class="nc">&nbsp;        SettableFuture&lt;R&gt; future = SettableFuture.create();</b>
+<b class="nc">&nbsp;        queue.add(new TbSqlQueueElement&lt;&gt;(future, element));</b>
+<b class="nc">&nbsp;        stats.incrementTotal();</b>
+<b class="nc">&nbsp;        return future;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

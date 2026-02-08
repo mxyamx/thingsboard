@@ -1,0 +1,1040 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultCoapClientContext</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.coap.client</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultCoapClientContext (org.thingsboard.server.transport.coap.client)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultCoapClientContext</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/200)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/305)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultCoapClientContext$CoapSessionListener</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/62)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/104)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/51)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/262)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/409)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.coap.client;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.californium.core.coap.CoAP;
+&nbsp;import org.eclipse.californium.core.coap.Response;
+&nbsp;import org.eclipse.californium.core.config.CoapConfig;
+&nbsp;import org.eclipse.californium.core.observe.ObserveRelation;
+&nbsp;import org.eclipse.californium.core.server.resources.CoapExchange;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.context.event.EventListener;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.coapserver.CoapServerContext;
+&nbsp;import org.thingsboard.server.coapserver.TbCoapTransportComponent;
+&nbsp;import org.thingsboard.server.common.adaptor.AdaptorException;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.DeviceTransportType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.device.data.PowerMode;
+&nbsp;import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.CoapDeviceTypeConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.JsonTransportPayloadConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.rpc.RpcStatus;
+&nbsp;import org.thingsboard.server.common.msg.session.FeatureType;
+&nbsp;import org.thingsboard.server.common.transport.DeviceDeletedEvent;
+&nbsp;import org.thingsboard.server.common.transport.DeviceProfileUpdatedEvent;
+&nbsp;import org.thingsboard.server.common.transport.DeviceUpdatedEvent;
+&nbsp;import org.thingsboard.server.common.transport.SessionMsgListener;
+&nbsp;import org.thingsboard.server.common.transport.TransportDeviceProfileCache;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.common.transport.TransportServiceCallback;
+&nbsp;import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
+&nbsp;import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.transport.coap.CoapSessionMsgType;
+&nbsp;import org.thingsboard.server.transport.coap.CoapTransportContext;
+&nbsp;import org.thingsboard.server.transport.coap.TbCoapMessageObserver;
+&nbsp;import org.thingsboard.server.transport.coap.TransportConfigurationContainer;
+&nbsp;import org.thingsboard.server.transport.coap.adaptors.CoapTransportAdaptor;
+&nbsp;import org.thingsboard.server.transport.coap.callback.AbstractSyncSessionCallback;
+&nbsp;import org.thingsboard.server.transport.coap.callback.CoapNoOpCallback;
+&nbsp;import org.thingsboard.server.transport.coap.callback.CoapResponseCallback;
+&nbsp;import org.thingsboard.server.transport.coap.callback.CoapResponseCodeCallback;
+&nbsp;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.ThreadLocalRandom;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;
+&nbsp;import static org.eclipse.californium.core.coap.Message.MAX_MID;
+&nbsp;import static org.eclipse.californium.core.coap.Message.NONE;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@TbCoapTransportComponent
+&nbsp;public class DefaultCoapClientContext implements CoapClientContext {
+&nbsp;
+&nbsp;    private final CoapServerContext config;
+&nbsp;    private final CoapTransportContext transportContext;
+&nbsp;    private final TransportService transportService;
+&nbsp;    private final TransportDeviceProfileCache profileCache;
+&nbsp;    private final PartitionService partitionService;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;DeviceId, TbCoapClientState&gt; clients = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, TbCoapClientState&gt; clientsByToken = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    public DefaultCoapClientContext(CoapServerContext config, @Lazy CoapTransportContext transportContext,
+&nbsp;                                    TransportService transportService, TransportDeviceProfileCache profileCache,
+<b class="nc">&nbsp;                                    PartitionService partitionService) {</b>
+<b class="nc">&nbsp;        this.config = config;</b>
+<b class="nc">&nbsp;        this.transportContext = transportContext;</b>
+<b class="nc">&nbsp;        this.transportService = transportService;</b>
+<b class="nc">&nbsp;        this.profileCache = profileCache;</b>
+<b class="nc">&nbsp;        this.partitionService = partitionService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener(DeviceProfileUpdatedEvent.class)
+&nbsp;    public void onApplicationEvent(DeviceProfileUpdatedEvent event) {
+<b class="nc">&nbsp;        var deviceProfile = event.getDeviceProfile();</b>
+<b class="nc">&nbsp;        clients.values().stream().filter(state -&gt; state.getSession() == null).forEach(state -&gt; {</b>
+<b class="nc">&nbsp;            state.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (deviceProfile.getId().equals(state.getProfileId())) {</b>
+<b class="nc">&nbsp;                    initStateAdaptor(deviceProfile, state);</b>
+&nbsp;                }
+&nbsp;            } catch (AdaptorException e) {
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to update client state due to: &quot;, state.getDeviceId(), e);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                state.unlock();</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener(DeviceUpdatedEvent.class)
+&nbsp;    public void onApplicationEvent(DeviceUpdatedEvent event) {
+<b class="nc">&nbsp;        var device = event.getDevice();</b>
+<b class="nc">&nbsp;        var state = clients.get(device.getId());</b>
+<b class="nc">&nbsp;        if (state == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        state.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (state.getSession() == null) {</b>
+<b class="nc">&nbsp;                clients.remove(device.getId());</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            state.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener(DeviceDeletedEvent.class)
+&nbsp;    public void onApplicationEvent(DeviceDeletedEvent event) {
+<b class="nc">&nbsp;        clients.remove(event.getDeviceId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean registerAttributeObservation(TbCoapClientState clientState, String token, CoapExchange exchange) {
+<b class="nc">&nbsp;        return registerFeatureObservation(clientState, token, exchange, FeatureType.ATTRIBUTES);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean registerRpcObservation(TbCoapClientState clientState, String token, CoapExchange exchange) {
+<b class="nc">&nbsp;        return registerFeatureObservation(clientState, token, exchange, FeatureType.RPC);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AtomicInteger getNotificationCounterByToken(String token) {
+<b class="nc">&nbsp;        TbCoapClientState state = clientsByToken.get(token);</b>
+<b class="nc">&nbsp;        if (state == null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find state using token: {}&quot;, token);</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (state.getAttrs() != null &amp;&amp; state.getAttrs().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;            return state.getAttrs().getObserveCounter();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find attr subscription using token: {}&quot;, token);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (state.getRpc() != null &amp;&amp; state.getRpc().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;            return state.getRpc().getObserveCounter();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find rpc subscription using token: {}&quot;, token);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void registerObserveRelation(String token, ObserveRelation relation) {
+<b class="nc">&nbsp;        TbCoapClientState state = clientsByToken.get(token);</b>
+<b class="nc">&nbsp;        if (state == null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find state using token: {}&quot;, token);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (state.getAttrs() != null &amp;&amp; state.getAttrs().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;            state.getAttrs().setObserveRelation(relation);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find attr subscription using token: {}&quot;, token);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (state.getRpc() != null &amp;&amp; state.getRpc().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;            state.getRpc().setObserveRelation(relation);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find rpc subscription using token: {}&quot;, token);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deregisterObserveRelation(String token) {
+<b class="nc">&nbsp;        TbCoapClientState state = clientsByToken.remove(token);</b>
+<b class="nc">&nbsp;        if (state == null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find state using token: {}&quot;, token);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (state.getAttrs() != null &amp;&amp; state.getAttrs().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;            cancelAttributeSubscription(state);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find attr subscription using token: {}&quot;, token);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (state.getRpc() != null &amp;&amp; state.getRpc().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;            cancelRpcSubscription(state);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to find rpc subscription using token: {}&quot;, token);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void reportActivity() {
+<b class="nc">&nbsp;        for (TbCoapClientState state : clients.values()) {</b>
+<b class="nc">&nbsp;            if (state.getSession() != null) {</b>
+<b class="nc">&nbsp;                transportService.recordActivity(state.getSession());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onUplink(TbCoapClientState client, boolean notifyOtherServers, long uplinkTs) {
+<b class="nc">&nbsp;        PowerMode powerMode = client.getPowerMode();</b>
+<b class="nc">&nbsp;        PowerSavingConfiguration profileSettings = null;</b>
+<b class="nc">&nbsp;        if (powerMode == null &amp;&amp; client.getProfileId() != null) {</b>
+<b class="nc">&nbsp;            var clientProfile = getProfile(client.getProfileId());</b>
+<b class="nc">&nbsp;            if (clientProfile.isPresent()) {</b>
+<b class="nc">&nbsp;                profileSettings = clientProfile.get().getClientSettings();</b>
+<b class="nc">&nbsp;                if (profileSettings != null) {</b>
+<b class="nc">&nbsp;                    powerMode = profileSettings.getPowerMode();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (powerMode == null || PowerMode.DRX.equals(powerMode)) {</b>
+<b class="nc">&nbsp;            client.updateLastUplinkTime(uplinkTs);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            long uplinkTime = client.updateLastUplinkTime(uplinkTs);</b>
+<b class="nc">&nbsp;            long timeout = getTimeout(client, powerMode, profileSettings);</b>
+<b class="nc">&nbsp;            Future&lt;Void&gt; sleepTask = client.getSleepTask();</b>
+<b class="nc">&nbsp;            if (sleepTask != null) {</b>
+<b class="nc">&nbsp;                sleepTask.cancel(false);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            Future&lt;Void&gt; task = transportContext.getScheduler().schedule(() -&gt; {</b>
+<b class="nc">&nbsp;                if (uplinkTime == client.getLastUplinkTime()) {</b>
+<b class="nc">&nbsp;                    asleep(client);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }, timeout, TimeUnit.MILLISECONDS);
+<b class="nc">&nbsp;            client.setSleepTask(task);</b>
+<b class="nc">&nbsp;            if (notifyOtherServers &amp;&amp; partitionService.countTransportsByType(DataConstants.COAP_TRANSPORT_NAME) &gt; 1) {</b>
+<b class="nc">&nbsp;                transportService.notifyAboutUplink(getNewSyncSession(client), TransportProtos.UplinkNotificationMsg.newBuilder().setUplinkTs(uplinkTime).build(), TransportServiceCallback.EMPTY);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private long getTimeout(TbCoapClientState client, PowerMode powerMode, PowerSavingConfiguration profileSettings) {
+&nbsp;        long timeout;
+<b class="nc">&nbsp;        if (PowerMode.PSM.equals(powerMode)) {</b>
+<b class="nc">&nbsp;            Long psmActivityTimer = client.getPsmActivityTimer();</b>
+<b class="nc">&nbsp;            if (psmActivityTimer == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                psmActivityTimer = profileSettings.getPsmActivityTimer();</b>
+&nbsp;
+&nbsp;            }
+<b class="nc">&nbsp;            if (psmActivityTimer == null || psmActivityTimer == 0L) {</b>
+<b class="nc">&nbsp;                psmActivityTimer = transportContext.getPsmActivityTimer();</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            timeout = psmActivityTimer;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            Long pagingTransmissionWindow = client.getPagingTransmissionWindow();</b>
+<b class="nc">&nbsp;            if (pagingTransmissionWindow == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                pagingTransmissionWindow = profileSettings.getPagingTransmissionWindow();</b>
+&nbsp;
+&nbsp;            }
+<b class="nc">&nbsp;            if (pagingTransmissionWindow == null || pagingTransmissionWindow == 0L) {</b>
+<b class="nc">&nbsp;                pagingTransmissionWindow = transportContext.getPagingTransmissionWindow();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            timeout = pagingTransmissionWindow;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return timeout;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean registerFeatureObservation(TbCoapClientState state, String token, CoapExchange exchange, FeatureType featureType) {
+<b class="nc">&nbsp;        state.lock();</b>
+&nbsp;        try {
+&nbsp;            boolean newObservation;
+<b class="nc">&nbsp;            if (FeatureType.ATTRIBUTES.equals(featureType)) {</b>
+<b class="nc">&nbsp;                if (state.getAttrs() == null) {</b>
+<b class="nc">&nbsp;                    newObservation = true;</b>
+<b class="nc">&nbsp;                    state.setAttrs(new TbCoapObservationState(exchange, token));</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    newObservation = !state.getAttrs().getToken().equals(token);</b>
+<b class="nc">&nbsp;                    if (newObservation) {</b>
+<b class="nc">&nbsp;                        TbCoapObservationState old = state.getAttrs();</b>
+<b class="nc">&nbsp;                        state.setAttrs(new TbCoapObservationState(exchange, token));</b>
+<b class="nc">&nbsp;                        old.getExchange().respond(CoAP.ResponseCode.DELETED);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (state.getRpc() == null) {</b>
+<b class="nc">&nbsp;                    newObservation = true;</b>
+<b class="nc">&nbsp;                    state.setRpc(new TbCoapObservationState(exchange, token));</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    newObservation = !state.getRpc().getToken().equals(token);</b>
+<b class="nc">&nbsp;                    if (newObservation) {</b>
+<b class="nc">&nbsp;                        TbCoapObservationState old = state.getRpc();</b>
+<b class="nc">&nbsp;                        state.setRpc(new TbCoapObservationState(exchange, token));</b>
+<b class="nc">&nbsp;                        old.getExchange().respond(CoAP.ResponseCode.DELETED);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (newObservation) {</b>
+<b class="nc">&nbsp;                clientsByToken.put(token, state);</b>
+<b class="nc">&nbsp;                if (state.getSession() == null) {</b>
+<b class="nc">&nbsp;                    TransportProtos.SessionInfoProto session = SessionInfoCreator.create(state.getCredentials(), transportContext, UUID.randomUUID());</b>
+<b class="nc">&nbsp;                    state.setSession(session);</b>
+<b class="nc">&nbsp;                    CoapSessionListener listener = new CoapSessionListener(state);</b>
+<b class="nc">&nbsp;                    state.setListener(listener);</b>
+<b class="nc">&nbsp;                    transportService.registerAsyncSession(session, state.getListener());</b>
+<b class="nc">&nbsp;                    transportService.process(session, getSessionEventMsg(TransportProtos.SessionEvent.OPEN), null);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (FeatureType.ATTRIBUTES.equals(featureType)) {</b>
+<b class="nc">&nbsp;                    transportService.process(state.getSession(),</b>
+<b class="nc">&nbsp;                            TransportProtos.SubscribeToAttributeUpdatesMsg.getDefaultInstance(), new CoapNoOpCallback(exchange));</b>
+<b class="nc">&nbsp;                    transportService.process(state.getSession(),</b>
+<b class="nc">&nbsp;                            TransportProtos.GetAttributeRequestMsg.newBuilder().setOnlyShared(true).build(),</b>
+&nbsp;                            new CoapNoOpCallback(exchange));
+&nbsp;                } else {
+<b class="nc">&nbsp;                    Response response = new Response(CoAP.ResponseCode.VALID);</b>
+<b class="nc">&nbsp;                    if (state.getRpc() == null) {</b>
+<b class="nc">&nbsp;                        state.setRpc(new TbCoapObservationState(exchange, token));</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    response.getOptions().setObserve(state.getRpc().getObserveCounter().getAndIncrement());</b>
+<b class="nc">&nbsp;                    transportService.process(state.getSession(),</b>
+<b class="nc">&nbsp;                            TransportProtos.SubscribeToRPCMsg.getDefaultInstance(),</b>
+&nbsp;                            new CoapResponseCallback(exchange, response,  new Response(CoAP.ResponseCode.INTERNAL_SERVER_ERROR))
+&nbsp;                    );
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return newObservation;</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            state.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deregisterAttributeObservation(TbCoapClientState state, String token, CoapExchange exchange) {
+<b class="nc">&nbsp;        state.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            clientsByToken.remove(token);</b>
+<b class="nc">&nbsp;            if (state.getSession() == null) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to delete attribute observation: {}. Session is not present.&quot;, state.getDeviceId(), token);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (state.getAttrs() == null) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to delete attribute observation: {}. It is not registered.&quot;, state.getDeviceId(), token);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (!state.getAttrs().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to delete attribute observation: {}. Token mismatch.&quot;, state.getDeviceId(), token);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            cancelAttributeSubscription(state);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            state.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deregisterRpcObservation(TbCoapClientState state, String token, CoapExchange exchange) {
+<b class="nc">&nbsp;        state.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            clientsByToken.remove(token);</b>
+<b class="nc">&nbsp;            if (state.getSession() == null) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to delete rpc observation: {}. Session is not present.&quot;, state.getDeviceId(), token);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (state.getRpc() == null) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to delete rpc observation: {}. It is not registered.&quot;, state.getDeviceId(), token);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            if (!state.getRpc().getToken().equals(token)) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to delete rpc observation: {}. Token mismatch.&quot;, state.getDeviceId(), token);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            cancelRpcSubscription(state);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            state.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbCoapClientState getOrCreateClient(CoapSessionMsgType type, ValidateDeviceCredentialsResponse deviceCredentials, DeviceProfile deviceProfile) throws AdaptorException {
+<b class="nc">&nbsp;        DeviceId deviceId = deviceCredentials.getDeviceInfo().getDeviceId();</b>
+<b class="nc">&nbsp;        TbCoapClientState state = getClientState(deviceId);</b>
+<b class="nc">&nbsp;        state.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (state.getConfiguration() == null || state.getAdaptor() == null) {</b>
+<b class="nc">&nbsp;                initStateAdaptor(deviceProfile, state);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (state.getCredentials() == null) {</b>
+<b class="nc">&nbsp;                state.init(deviceCredentials);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            state.unlock();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return state;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TransportProtos.SessionInfoProto getNewSyncSession(TbCoapClientState state) {
+<b class="nc">&nbsp;        return SessionInfoCreator.create(state.getCredentials(), transportContext, UUID.randomUUID());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbCoapClientState getClientState(DeviceId deviceId) {
+<b class="nc">&nbsp;        return clients.computeIfAbsent(deviceId, TbCoapClientState::new);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static TransportProtos.SessionEventMsg getSessionEventMsg(TransportProtos.SessionEvent event) {
+<b class="nc">&nbsp;        return TransportProtos.SessionEventMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setSessionType(TransportProtos.SessionType.ASYNC)</b>
+<b class="nc">&nbsp;                .setEvent(event).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TransportConfigurationContainer getTransportConfigurationContainer(DeviceProfile deviceProfile) throws AdaptorException {
+<b class="nc">&nbsp;        DeviceProfileTransportConfiguration transportConfiguration = deviceProfile.getProfileData().getTransportConfiguration();</b>
+<b class="nc">&nbsp;        if (transportConfiguration instanceof DefaultDeviceProfileTransportConfiguration) {</b>
+<b class="nc">&nbsp;            return new TransportConfigurationContainer(true);</b>
+<b class="nc">&nbsp;        } else if (transportConfiguration instanceof CoapDeviceProfileTransportConfiguration) {</b>
+<b class="nc">&nbsp;            CoapDeviceProfileTransportConfiguration coapDeviceProfileTransportConfiguration =</b>
+&nbsp;                    (CoapDeviceProfileTransportConfiguration) transportConfiguration;
+<b class="nc">&nbsp;            CoapDeviceTypeConfiguration coapDeviceTypeConfiguration =</b>
+<b class="nc">&nbsp;                    coapDeviceProfileTransportConfiguration.getCoapDeviceTypeConfiguration();</b>
+<b class="nc">&nbsp;            if (coapDeviceTypeConfiguration instanceof DefaultCoapDeviceTypeConfiguration) {</b>
+<b class="nc">&nbsp;                DefaultCoapDeviceTypeConfiguration defaultCoapDeviceTypeConfiguration =</b>
+&nbsp;                        (DefaultCoapDeviceTypeConfiguration) coapDeviceTypeConfiguration;
+<b class="nc">&nbsp;                TransportPayloadTypeConfiguration transportPayloadTypeConfiguration =</b>
+<b class="nc">&nbsp;                        defaultCoapDeviceTypeConfiguration.getTransportPayloadTypeConfiguration();</b>
+<b class="nc">&nbsp;                if (transportPayloadTypeConfiguration instanceof JsonTransportPayloadConfiguration) {</b>
+<b class="nc">&nbsp;                    return new TransportConfigurationContainer(true);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    ProtoTransportPayloadConfiguration protoTransportPayloadConfiguration =</b>
+&nbsp;                            (ProtoTransportPayloadConfiguration) transportPayloadTypeConfiguration;
+<b class="nc">&nbsp;                    String deviceTelemetryProtoSchema = protoTransportPayloadConfiguration.getDeviceTelemetryProtoSchema();</b>
+<b class="nc">&nbsp;                    String deviceAttributesProtoSchema = protoTransportPayloadConfiguration.getDeviceAttributesProtoSchema();</b>
+<b class="nc">&nbsp;                    String deviceRpcRequestProtoSchema = protoTransportPayloadConfiguration.getDeviceRpcRequestProtoSchema();</b>
+<b class="nc">&nbsp;                    String deviceRpcResponseProtoSchema = protoTransportPayloadConfiguration.getDeviceRpcResponseProtoSchema();</b>
+<b class="nc">&nbsp;                    return new TransportConfigurationContainer(false,</b>
+<b class="nc">&nbsp;                            protoTransportPayloadConfiguration.getTelemetryDynamicMessageDescriptor(deviceTelemetryProtoSchema),</b>
+<b class="nc">&nbsp;                            protoTransportPayloadConfiguration.getAttributesDynamicMessageDescriptor(deviceAttributesProtoSchema),</b>
+<b class="nc">&nbsp;                            protoTransportPayloadConfiguration.getRpcResponseDynamicMessageDescriptor(deviceRpcResponseProtoSchema),</b>
+<b class="nc">&nbsp;                            protoTransportPayloadConfiguration.getRpcRequestDynamicMessageBuilder(deviceRpcRequestProtoSchema)</b>
+&nbsp;                    );
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new AdaptorException(&quot;Invalid CoapDeviceTypeConfiguration type: &quot; + coapDeviceTypeConfiguration.getClass().getSimpleName() + &quot;!&quot;);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new AdaptorException(&quot;Invalid DeviceProfileTransportConfiguration type&quot; + transportConfiguration.getClass().getSimpleName() + &quot;!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void initStateAdaptor(DeviceProfile deviceProfile, TbCoapClientState state) throws AdaptorException {
+<b class="nc">&nbsp;        state.setConfiguration(getTransportConfigurationContainer(deviceProfile));</b>
+<b class="nc">&nbsp;        state.setAdaptor(getCoapTransportAdaptor(state.getConfiguration().isJsonPayload()));</b>
+<b class="nc">&nbsp;        state.setContentFormat(state.getAdaptor().getContentFormat());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private CoapTransportAdaptor getCoapTransportAdaptor(boolean jsonPayloadType) {
+<b class="nc">&nbsp;        return jsonPayloadType ? transportContext.getJsonCoapAdaptor() : transportContext.getProtoCoapAdaptor();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @RequiredArgsConstructor
+&nbsp;    public class CoapSessionListener implements SessionMsgListener {
+&nbsp;
+&nbsp;        private final TbCoapClientState state;
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onGetAttributesResponse(TransportProtos.GetAttributeResponseMsg msg) {
+<b class="nc">&nbsp;            TbCoapObservationState attrs = state.getAttrs();</b>
+<b class="nc">&nbsp;            if (attrs != null) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    Response response = state.getAdaptor().convertToPublish(msg);</b>
+<b class="nc">&nbsp;                    response.getOptions().setObserve(attrs.getObserveCounter().getAndIncrement());</b>
+<b class="nc">&nbsp;                    respond(attrs.getExchange(), response, state.getContentFormat());</b>
+&nbsp;                } catch (AdaptorException e) {
+<b class="nc">&nbsp;                    log.trace(&quot;Failed to reply due to error&quot;, e);</b>
+<b class="nc">&nbsp;                    cancelObserveRelation(attrs);</b>
+<b class="nc">&nbsp;                    cancelAttributeSubscription(state);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Get Attrs exchange is empty&quot;, state.getDeviceId());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onAttributeUpdate(UUID sessionId, TransportProtos.AttributeUpdateNotificationMsg msg) {
+<b class="nc">&nbsp;            if (!isDownlinkAllowed(state)) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] ignore downlink request cause client is sleeping.&quot;, state.getDeviceId());</b>
+<b class="nc">&nbsp;                state.lock();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    state.addQueuedNotification(msg);</b>
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    state.unlock();</b>
+&nbsp;                }
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Received attributes update notification to device&quot;, sessionId);</b>
+<b class="nc">&nbsp;            TbCoapObservationState attrs = state.getAttrs();</b>
+<b class="nc">&nbsp;            if (attrs != null) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    boolean conRequest = AbstractSyncSessionCallback.isConRequest(state.getAttrs());</b>
+<b class="nc">&nbsp;                    boolean isMulticastRequest = AbstractSyncSessionCallback.isMulticastRequest(state.getAttrs());</b>
+<b class="nc">&nbsp;                    int requestId = getNextMsgId(isMulticastRequest);</b>
+<b class="nc">&nbsp;                    Response response = state.getAdaptor().convertToPublish(msg);</b>
+<b class="nc">&nbsp;                    response.getOptions().setObserve(attrs.getObserveCounter().getAndIncrement());</b>
+<b class="nc">&nbsp;                    response.setConfirmable(conRequest);</b>
+<b class="nc">&nbsp;                    response.setMID(requestId);</b>
+<b class="nc">&nbsp;                    if (conRequest) {</b>
+<b class="nc">&nbsp;                        response.addMessageObserver(new TbCoapMessageObserver(requestId, id -&gt; awake(state), id -&gt; asleep(state)));</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    respond(attrs.getExchange(), response, state.getContentFormat());</b>
+&nbsp;                } catch (AdaptorException e) {
+<b class="nc">&nbsp;                    log.trace(&quot;[{}] Failed to reply due to error&quot;, state.getDeviceId(), e);</b>
+<b class="nc">&nbsp;                    cancelObserveRelation(attrs);</b>
+<b class="nc">&nbsp;                    cancelAttributeSubscription(state);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Get Attrs exchange is empty&quot;, state.getDeviceId());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onDeviceProfileUpdate(TransportProtos.SessionInfoProto newSessionInfo, DeviceProfile deviceProfile) {
+&nbsp;            try {
+<b class="nc">&nbsp;                initStateAdaptor(deviceProfile, state);</b>
+&nbsp;            } catch (AdaptorException e) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Failed to update device profile: &quot;, deviceProfile.getId(), e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onDeviceUpdate(TransportProtos.SessionInfoProto sessionInfo, Device device, Optional&lt;DeviceProfile&gt; deviceProfileOpt) {
+<b class="nc">&nbsp;            if (deviceProfileOpt.isPresent()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    initStateAdaptor(deviceProfileOpt.get(), state);</b>
+&nbsp;                } catch (AdaptorException e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to update device: &quot;, device.getId(), e);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            state.onDeviceUpdate(device);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onDeviceDeleted(DeviceId deviceId) {
+<b class="nc">&nbsp;            cancelRpcSubscription(state);</b>
+<b class="nc">&nbsp;            cancelAttributeSubscription(state);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onRemoteSessionCloseCommand(UUID sessionId, TransportProtos.SessionCloseNotificationProto sessionCloseNotification) {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Received the remote command to close the session: {}&quot;, sessionId, sessionCloseNotification.getMessage());</b>
+<b class="nc">&nbsp;            cancelRpcSubscription(state);</b>
+<b class="nc">&nbsp;            cancelAttributeSubscription(state);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onToDeviceRpcRequest(UUID sessionId, TransportProtos.ToDeviceRpcRequestMsg msg) {
+<b class="nc">&nbsp;            DeviceId deviceId = state.getDeviceId();</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Received RPC command to device: {}&quot;, deviceId, sessionId, msg);</b>
+<b class="nc">&nbsp;            if (!isDownlinkAllowed(state)) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}][{}] ignore downlink request cause client is sleeping.&quot;, deviceId, sessionId);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            boolean sent = false;</b>
+<b class="nc">&nbsp;            String error = null;</b>
+<b class="nc">&nbsp;            boolean conRequest = AbstractSyncSessionCallback.isConRequest(state.getRpc());</b>
+<b class="nc">&nbsp;            boolean isMulticastRequest = AbstractSyncSessionCallback.isMulticastRequest(state.getRpc());</b>
+<b class="nc">&nbsp;            int requestId = getNextMsgId(isMulticastRequest);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                Response response = state.getAdaptor().convertToPublish(msg, state.getConfiguration().getRpcRequestDynamicMessageBuilder());</b>
+<b class="nc">&nbsp;                response.getOptions().setObserve(state.getRpc().getObserveCounter().getAndIncrement());</b>
+<b class="nc">&nbsp;                response.setConfirmable(conRequest);</b>
+<b class="nc">&nbsp;                response.setMID(requestId);</b>
+<b class="nc">&nbsp;                if (conRequest) {</b>
+<b class="nc">&nbsp;                    PowerMode powerMode = state.getPowerMode();</b>
+<b class="nc">&nbsp;                    PowerSavingConfiguration profileSettings = null;</b>
+<b class="nc">&nbsp;                    if (powerMode == null) {</b>
+<b class="nc">&nbsp;                        var clientProfile = getProfile(state.getProfileId());</b>
+<b class="nc">&nbsp;                        if (clientProfile.isPresent()) {</b>
+<b class="nc">&nbsp;                            profileSettings = clientProfile.get().getClientSettings();</b>
+<b class="nc">&nbsp;                            if (profileSettings != null) {</b>
+<b class="nc">&nbsp;                                powerMode = profileSettings.getPowerMode();</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    transportContext.getRpcAwaitingAck().put(requestId, msg);</b>
+<b class="nc">&nbsp;                    transportContext.getScheduler().schedule(() -&gt; {</b>
+<b class="nc">&nbsp;                        TransportProtos.ToDeviceRpcRequestMsg rpcRequestMsg = transportContext.getRpcAwaitingAck().remove(requestId);</b>
+<b class="nc">&nbsp;                        if (rpcRequestMsg != null) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] Going to send to device actor RPC request TIMEOUT status update due to server timeout ...&quot;, deviceId, sessionId, requestId);</b>
+<b class="nc">&nbsp;                            transportService.process(state.getSession(), msg, RpcStatus.TIMEOUT, TransportServiceCallback.EMPTY);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                    }, Math.min(getTimeout(state, powerMode, profileSettings), msg.getExpirationTime() - System.currentTimeMillis()), TimeUnit.MILLISECONDS);</b>
+&nbsp;
+<b class="nc">&nbsp;                    response.addMessageObserver(new TbCoapMessageObserver(requestId, id -&gt; {</b>
+<b class="nc">&nbsp;                        TransportProtos.ToDeviceRpcRequestMsg rpcRequestMsg = transportContext.getRpcAwaitingAck().remove(id);</b>
+<b class="nc">&nbsp;                        if (rpcRequestMsg != null) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] Going to send to device actor RPC request DELIVERED status update ...&quot;, deviceId, sessionId, requestId);</b>
+<b class="nc">&nbsp;                            transportService.process(state.getSession(), rpcRequestMsg, RpcStatus.DELIVERED, true, TransportServiceCallback.EMPTY);</b>
+&nbsp;                        }
+&nbsp;                    }, id -&gt; {
+<b class="nc">&nbsp;                        TransportProtos.ToDeviceRpcRequestMsg rpcRequestMsg = transportContext.getRpcAwaitingAck().remove(id);</b>
+<b class="nc">&nbsp;                        if (rpcRequestMsg != null) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] Going to send to device actor RPC request TIMEOUT status update ...&quot;, deviceId, sessionId, requestId);</b>
+<b class="nc">&nbsp;                            transportService.process(state.getSession(), msg, RpcStatus.TIMEOUT, TransportServiceCallback.EMPTY);</b>
+&nbsp;                        }
+&nbsp;                    }));
+&nbsp;                }
+<b class="nc">&nbsp;                if (conRequest) {</b>
+<b class="nc">&nbsp;                    response.addMessageObserver(new TbCoapMessageObserver(requestId, id -&gt; awake(state), id -&gt; asleep(state)));</b>
+&nbsp;                }
+<b class="nc">&nbsp;                respond(state.getRpc().getExchange(), response, state.getContentFormat());</b>
+<b class="nc">&nbsp;                sent = true;</b>
+&nbsp;            } catch (AdaptorException e) {
+<b class="nc">&nbsp;                log.trace(&quot;Failed to reply due to error&quot;, e);</b>
+<b class="nc">&nbsp;                cancelObserveRelation(state.getRpc());</b>
+<b class="nc">&nbsp;                cancelRpcSubscription(state);</b>
+<b class="nc">&nbsp;                error = &quot;Failed to convert device RPC command to CoAP msg&quot;;</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                error = &quot;Internal error: &quot; + e.getMessage();</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                if (StringUtils.isNotEmpty(error)) {</b>
+<b class="nc">&nbsp;                    transportService.process(state.getSession(),</b>
+<b class="nc">&nbsp;                            TransportProtos.ToDeviceRpcResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                                    .setRequestId(msg.getRequestId()).setError(error).build(), TransportServiceCallback.EMPTY);</b>
+<b class="nc">&nbsp;                } else if (sent) {</b>
+<b class="nc">&nbsp;                    if (!conRequest) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}][{}][{}] Going to send to device actor non-confirmable RPC request DELIVERED status update ...&quot;, deviceId, sessionId, requestId);</b>
+<b class="nc">&nbsp;                        transportService.process(state.getSession(), msg, RpcStatus.DELIVERED, TransportServiceCallback.EMPTY);</b>
+<b class="nc">&nbsp;                    } else if (msg.getPersisted()) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;[{}][{}][{}] Going to send to device actor RPC request SENT status update ...&quot;, deviceId, sessionId, requestId);</b>
+<b class="nc">&nbsp;                        transportService.process(state.getSession(), msg, RpcStatus.SENT, TransportServiceCallback.EMPTY);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onToServerRpcResponse(TransportProtos.ToServerRpcResponseMsg msg) {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Received server rpc response in the wrong session.&quot;, state.getSession());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onUplinkNotification(TransportProtos.UplinkNotificationMsg notificationMsg) {
+<b class="nc">&nbsp;            awake(state, false, notificationMsg.getUplinkTs());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private void cancelObserveRelation(TbCoapObservationState attrs) {
+<b class="nc">&nbsp;            if (attrs.getObserveRelation() != null) {</b>
+<b class="nc">&nbsp;                attrs.getObserveRelation().cancel();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean asleep(TbCoapClientState client) {
+<b class="nc">&nbsp;        boolean changed = compareAndSetSleepFlag(client, true);</b>
+<b class="nc">&nbsp;        if (changed) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] client is sleeping&quot;, client.getDeviceId());</b>
+<b class="nc">&nbsp;            transportService.log(client.getSession(), &quot;Info: Client is sleeping!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return changed;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean awake(TbCoapClientState client) {
+<b class="nc">&nbsp;        return awake(client, true, System.currentTimeMillis());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean awake(TbCoapClientState client, boolean notifyOtherServers, long uplinkTs) {
+<b class="nc">&nbsp;        onUplink(client, notifyOtherServers, uplinkTs);</b>
+<b class="nc">&nbsp;        boolean changed = compareAndSetSleepFlag(client, false);</b>
+<b class="nc">&nbsp;        if (changed) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] client is awake&quot;, client.getDeviceId());</b>
+<b class="nc">&nbsp;            transportService.log(client.getSession(), &quot;Info: Client is awake!&quot;);</b>
+<b class="nc">&nbsp;            sendMsgsAfterSleeping(client);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return changed;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendMsgsAfterSleeping(TbCoapClientState client) {
+<b class="nc">&nbsp;        if (client.getRpc() != null) {</b>
+&nbsp;            TransportProtos.TransportToDeviceActorMsg persistentRpcRequestMsg = TransportProtos.TransportToDeviceActorMsg
+<b class="nc">&nbsp;                    .newBuilder()</b>
+<b class="nc">&nbsp;                    .setSessionInfo(client.getSession())</b>
+<b class="nc">&nbsp;                    .setSendPendingRPC(TransportProtos.SendPendingRPCMsg.newBuilder().build())</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            transportService.process(persistentRpcRequestMsg, TransportServiceCallback.EMPTY);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (client.getAttrs() != null &amp;&amp; client.getMissedAttributeUpdates() != null) {</b>
+<b class="nc">&nbsp;            client.getListener().onAttributeUpdate(new UUID(client.getSession().getSessionIdMSB(), client.getSession().getSessionIdLSB()), client.getAndClearMissedUpdates());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean compareAndSetSleepFlag(TbCoapClientState client, boolean sleeping) {
+<b class="nc">&nbsp;        if (sleeping == client.isAsleep()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Client is already at sleeping: {}, ignoring event: {}&quot;, client.getDeviceId(), client.isAsleep(), sleeping);</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (sleeping == client.isAsleep()) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Client is already at sleeping: {}, ignoring event: {}&quot;, client.getDeviceId(), client.isAsleep(), sleeping);</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                PowerMode powerMode = getPowerMode(client);</b>
+<b class="nc">&nbsp;                if (PowerMode.PSM.equals(powerMode) || PowerMode.E_DRX.equals(powerMode)) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;[{}] Switch sleeping from: {} to: {}&quot;, client.getDeviceId(), client.isAsleep(), sleeping);</b>
+<b class="nc">&nbsp;                    client.setAsleep(sleeping);</b>
+&nbsp;                    // TODO: persist changes.
+&nbsp;                    // update(client);
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return false;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isDownlinkAllowed(TbCoapClientState client) {
+<b class="nc">&nbsp;        PowerMode powerMode = client.getPowerMode();</b>
+<b class="nc">&nbsp;        PowerSavingConfiguration profileSettings = null;</b>
+<b class="nc">&nbsp;        if (powerMode == null &amp;&amp; client.getProfileId() != null) {</b>
+<b class="nc">&nbsp;            var clientProfile = getProfile(client.getProfileId());</b>
+<b class="nc">&nbsp;            if (clientProfile.isPresent()) {</b>
+<b class="nc">&nbsp;                profileSettings = clientProfile.get().getClientSettings();</b>
+<b class="nc">&nbsp;                if (profileSettings != null) {</b>
+<b class="nc">&nbsp;                    powerMode = profileSettings.getPowerMode();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (powerMode == null || PowerMode.DRX.equals(powerMode)) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        client.lock();</b>
+<b class="nc">&nbsp;        long timeSinceLastUplink = System.currentTimeMillis() - client.getLastUplinkTime();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (PowerMode.PSM.equals(powerMode)) {</b>
+<b class="nc">&nbsp;                Long psmActivityTimer = client.getPsmActivityTimer();</b>
+<b class="nc">&nbsp;                if (psmActivityTimer == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                    psmActivityTimer = profileSettings.getPsmActivityTimer();</b>
+&nbsp;
+&nbsp;                }
+<b class="nc">&nbsp;                if (psmActivityTimer == null || psmActivityTimer == 0L) {</b>
+<b class="nc">&nbsp;                    psmActivityTimer = transportContext.getPsmActivityTimer();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return timeSinceLastUplink &lt;= psmActivityTimer;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                Long pagingTransmissionWindow = client.getPagingTransmissionWindow();</b>
+<b class="nc">&nbsp;                if (pagingTransmissionWindow == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                    pagingTransmissionWindow = profileSettings.getPagingTransmissionWindow();</b>
+&nbsp;
+&nbsp;                }
+<b class="nc">&nbsp;                if (pagingTransmissionWindow == null || pagingTransmissionWindow == 0L) {</b>
+<b class="nc">&nbsp;                    pagingTransmissionWindow = transportContext.getPagingTransmissionWindow();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                boolean allowed = timeSinceLastUplink &lt;= pagingTransmissionWindow;</b>
+<b class="nc">&nbsp;                if (!allowed) {</b>
+<b class="nc">&nbsp;                    return client.checkFirstDownlink();</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private PowerMode getPowerMode(TbCoapClientState client) {
+<b class="nc">&nbsp;        PowerMode powerMode = client.getPowerMode();</b>
+<b class="nc">&nbsp;        if (powerMode == null) {</b>
+<b class="nc">&nbsp;            powerMode = PowerMode.PSM;</b>
+<b class="nc">&nbsp;            if (client.getProfileId() != null) {</b>
+<b class="nc">&nbsp;                Optional&lt;CoapDeviceProfileTransportConfiguration&gt; deviceProfile = getProfile(client.getProfileId());</b>
+<b class="nc">&nbsp;                if (deviceProfile.isPresent()) {</b>
+<b class="nc">&nbsp;                    powerMode = deviceProfile.get().getClientSettings().getPowerMode();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return powerMode;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Optional&lt;CoapDeviceProfileTransportConfiguration&gt; getProfile(DeviceProfileId profileId) {
+<b class="nc">&nbsp;        DeviceProfile deviceProfile = profileCache.get(profileId);</b>
+<b class="nc">&nbsp;        if (deviceProfile.getTransportType().equals(DeviceTransportType.COAP)) {</b>
+<b class="nc">&nbsp;            return Optional.of((CoapDeviceProfileTransportConfiguration) deviceProfile.getProfileData().getTransportConfiguration());</b>
+<b class="nc">&nbsp;        } else if (deviceProfile.getTransportType().equals(DeviceTransportType.DEFAULT)) {</b>
+<b class="nc">&nbsp;            return Optional.empty();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Invalid device profile type: {}&quot;, profileId, deviceProfile.getTransportType());</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid device profile type: &quot; + deviceProfile.getTransportType());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected int getNextMsgId(boolean multicast) {
+<b class="nc">&nbsp;        if (multicast) {</b>
+&nbsp;            // Range [65000...65535]
+<b class="nc">&nbsp;            return ThreadLocalRandom.current().nextInt(CoapConfig.DEFAULT_MULTICAST_BASE_MID, MAX_MID + 1);</b>
+&nbsp;        } else {
+&nbsp;            // Range [0...64999]
+<b class="nc">&nbsp;            return ThreadLocalRandom.current().nextInt(NONE, CoapConfig.DEFAULT_MULTICAST_BASE_MID);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cancelRpcSubscription(TbCoapClientState state) {
+<b class="nc">&nbsp;        if (state.getRpc() != null) {</b>
+<b class="nc">&nbsp;            clientsByToken.remove(state.getRpc().getToken());</b>
+<b class="nc">&nbsp;            CoapExchange exchange = state.getRpc().getExchange();</b>
+<b class="nc">&nbsp;            state.setRpc(null);</b>
+<b class="nc">&nbsp;            transportService.process(state.getSession(),</b>
+<b class="nc">&nbsp;                    TransportProtos.SubscribeToRPCMsg.newBuilder().setUnsubscribe(true).build(),</b>
+&nbsp;                    new CoapResponseCodeCallback(exchange, CoAP.ResponseCode.DELETED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
+<b class="nc">&nbsp;            if (state.getAttrs() == null) {</b>
+<b class="nc">&nbsp;                closeAndCleanup(state);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cancelAttributeSubscription(TbCoapClientState state) {
+<b class="nc">&nbsp;        if (state.getAttrs() != null) {</b>
+<b class="nc">&nbsp;            clientsByToken.remove(state.getAttrs().getToken());</b>
+<b class="nc">&nbsp;            CoapExchange exchange = state.getAttrs().getExchange();</b>
+<b class="nc">&nbsp;            state.setAttrs(null);</b>
+<b class="nc">&nbsp;            transportService.process(state.getSession(),</b>
+<b class="nc">&nbsp;                    TransportProtos.SubscribeToAttributeUpdatesMsg.newBuilder().setUnsubscribe(true).build(),</b>
+&nbsp;                    new CoapResponseCodeCallback(exchange, CoAP.ResponseCode.DELETED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
+<b class="nc">&nbsp;            if (state.getRpc() == null) {</b>
+<b class="nc">&nbsp;                closeAndCleanup(state);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void closeAndCleanup(TbCoapClientState state) {
+<b class="nc">&nbsp;        transportService.process(state.getSession(), getSessionEventMsg(TransportProtos.SessionEvent.CLOSED), null);</b>
+<b class="nc">&nbsp;        transportService.deregisterSession(state.getSession());</b>
+<b class="nc">&nbsp;        state.setSession(null);</b>
+<b class="nc">&nbsp;        state.setConfiguration(null);</b>
+<b class="nc">&nbsp;        state.setCredentials(null);</b>
+<b class="nc">&nbsp;        state.setAdaptor(null);</b>
+&nbsp;        //TODO: add optimistic lock check that the client was already deleted and cleanup &quot;clients&quot; map.
+&nbsp;    }
+&nbsp;
+&nbsp;    private void respond(CoapExchange exchange, Response response, int defContentFormat) {
+<b class="nc">&nbsp;        response.getOptions().setContentFormat(TbCoapContentFormatUtil.getContentFormat(exchange.getRequestOptions().getContentFormat(), defContentFormat));</b>
+<b class="nc">&nbsp;        exchange.respond(response);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

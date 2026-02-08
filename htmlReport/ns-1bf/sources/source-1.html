@@ -1,0 +1,249 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultJwtSettingsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.security.auth.jwt.settings</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultJwtSettingsService (org.thingsboard.server.service.security.auth.jwt.settings)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultJwtSettingsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.security.auth.jwt.settings;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.AdminSettings;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.security.model.JwtSettings;
+&nbsp;import org.thingsboard.server.dao.settings.AdminSettingsService;
+&nbsp;import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+&nbsp;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;import static org.thingsboard.server.service.security.model.token.JwtTokenFactory.KEY_LENGTH;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultJwtSettingsService implements JwtSettingsService {
+&nbsp;
+&nbsp;    private final AdminSettingsService adminSettingsService;
+&nbsp;    private final Optional&lt;TbClusterService&gt; tbClusterService;
+&nbsp;    private final JwtSettingsValidator jwtSettingsValidator;
+&nbsp;    private final Optional&lt;JwtTokenFactory&gt; jwtTokenFactory;
+&nbsp;
+&nbsp;    private volatile JwtSettings jwtSettings = null; //lazy init
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public JwtSettings saveJwtSettings(JwtSettings jwtSettings) {
+<b class="nc">&nbsp;        jwtSettingsValidator.validate(jwtSettings);</b>
+<b class="nc">&nbsp;        final AdminSettings adminJwtSettings = mapJwtToAdminSettings(jwtSettings);</b>
+<b class="nc">&nbsp;        final AdminSettings existedSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, ADMIN_SETTINGS_JWT_KEY);</b>
+<b class="nc">&nbsp;        if (existedSettings != null) {</b>
+<b class="nc">&nbsp;            adminJwtSettings.setId(existedSettings.getId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;Saving new JWT admin settings. From this moment, the JWT parameters from YAML and ENV will be ignored&quot;);</b>
+<b class="nc">&nbsp;        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminJwtSettings);</b>
+&nbsp;
+<b class="nc">&nbsp;        tbClusterService.ifPresent(cs -&gt; cs.broadcastEntityStateChangeEvent(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, ComponentLifecycleEvent.UPDATED));</b>
+<b class="nc">&nbsp;        return reloadJwtSettings();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public JwtSettings reloadJwtSettings() {
+<b class="nc">&nbsp;        log.trace(&quot;Executing reloadJwtSettings&quot;);</b>
+<b class="nc">&nbsp;        var settings = getJwtSettings(true);</b>
+<b class="nc">&nbsp;        jwtTokenFactory.ifPresent(JwtTokenFactory::reload);</b>
+<b class="nc">&nbsp;        return settings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public JwtSettings getJwtSettings() {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getJwtSettings&quot;);</b>
+<b class="nc">&nbsp;        return getJwtSettings(false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public JwtSettings getJwtSettings(boolean forceReload) {
+<b class="nc">&nbsp;        if (this.jwtSettings == null || forceReload) {</b>
+<b class="nc">&nbsp;            synchronized (this) {</b>
+<b class="nc">&nbsp;                if (this.jwtSettings == null || forceReload) {</b>
+<b class="nc">&nbsp;                    jwtSettings = getJwtSettingsFromDb();</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return this.jwtSettings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private JwtSettings getJwtSettingsFromDb() {
+<b class="nc">&nbsp;        AdminSettings adminJwtSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, ADMIN_SETTINGS_JWT_KEY);</b>
+<b class="nc">&nbsp;        return adminJwtSettings != null ? mapAdminToJwtSettings(adminJwtSettings) : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private JwtSettings mapAdminToJwtSettings(AdminSettings adminSettings) {
+<b class="nc">&nbsp;        Objects.requireNonNull(adminSettings, &quot;adminSettings for JWT is null&quot;);</b>
+<b class="nc">&nbsp;        return JacksonUtil.treeToValue(adminSettings.getJsonValue(), JwtSettings.class);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AdminSettings mapJwtToAdminSettings(JwtSettings jwtSettings) {
+<b class="nc">&nbsp;        Objects.requireNonNull(jwtSettings, &quot;jwtSettings is null&quot;);</b>
+<b class="nc">&nbsp;        AdminSettings adminJwtSettings = new AdminSettings();</b>
+<b class="nc">&nbsp;        adminJwtSettings.setTenantId(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;        adminJwtSettings.setKey(ADMIN_SETTINGS_JWT_KEY);</b>
+<b class="nc">&nbsp;        adminJwtSettings.setJsonValue(JacksonUtil.valueToTree(jwtSettings));</b>
+<b class="nc">&nbsp;        return adminJwtSettings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isSigningKeyDefault(JwtSettings settings) {
+<b class="nc">&nbsp;        return TOKEN_SIGNING_KEY_DEFAULT.equals(settings.getTokenSigningKey());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean validateKeyLength(String key) {
+<b class="nc">&nbsp;        return Base64.getDecoder().decode(key).length * Byte.SIZE &gt;= KEY_LENGTH;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

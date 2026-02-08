@@ -1,0 +1,219 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AwsSmsSender</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.sms.aws</a>
+</div>
+
+<h1>Coverage Summary for Class: AwsSmsSender (org.thingsboard.server.service.sms.aws)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AwsSmsSender</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.sms.aws;
+&nbsp;
+&nbsp;import com.amazonaws.auth.AWSCredentials;
+&nbsp;import com.amazonaws.auth.AWSStaticCredentialsProvider;
+&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+&nbsp;import com.amazonaws.services.sns.AmazonSNS;
+&nbsp;import com.amazonaws.services.sns.AmazonSNSClient;
+&nbsp;import com.amazonaws.services.sns.model.MessageAttributeValue;
+&nbsp;import com.amazonaws.services.sns.model.PublishRequest;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.api.sms.exception.SmsException;
+&nbsp;import org.thingsboard.rule.engine.api.sms.exception.SmsSendException;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.sms.config.AwsSnsSmsProviderConfiguration;
+&nbsp;import org.thingsboard.server.service.sms.AbstractSmsSender;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class AwsSmsSender extends AbstractSmsSender {
+&nbsp;
+<b class="nc">&nbsp;    private static final Map&lt;String, MessageAttributeValue&gt; SMS_ATTRIBUTES = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        SMS_ATTRIBUTES.put(&quot;AWS.SNS.SMS.SMSType&quot;, new MessageAttributeValue()</b>
+<b class="nc">&nbsp;                .withStringValue(&quot;Transactional&quot;)</b>
+<b class="nc">&nbsp;                .withDataType(&quot;String&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AmazonSNS snsClient;
+&nbsp;
+<b class="nc">&nbsp;    public AwsSmsSender(AwsSnsSmsProviderConfiguration config) {</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(config.getAccessKeyId()) || StringUtils.isEmpty(config.getSecretAccessKey()) || StringUtils.isEmpty(config.getRegion())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid AWS sms provider configuration: aws accessKeyId, aws secretAccessKey and aws region should be specified!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AWSCredentials awsCredentials = new BasicAWSCredentials(config.getAccessKeyId(), config.getSecretAccessKey());</b>
+<b class="nc">&nbsp;        AWSStaticCredentialsProvider credProvider = new AWSStaticCredentialsProvider(awsCredentials);</b>
+<b class="nc">&nbsp;        this.snsClient = AmazonSNSClient.builder()</b>
+<b class="nc">&nbsp;                .withCredentials(credProvider)</b>
+<b class="nc">&nbsp;                .withRegion(config.getRegion())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int sendSms(String numberTo, String message) throws SmsException {
+<b class="nc">&nbsp;        numberTo = this.validatePhoneNumber(numberTo);</b>
+<b class="nc">&nbsp;        message = this.prepareMessage(message);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            PublishRequest publishRequest = new PublishRequest()</b>
+<b class="nc">&nbsp;                    .withMessageAttributes(SMS_ATTRIBUTES)</b>
+<b class="nc">&nbsp;                    .withPhoneNumber(numberTo)</b>
+<b class="nc">&nbsp;                    .withMessage(message);</b>
+<b class="nc">&nbsp;            this.snsClient.publish(publishRequest);</b>
+<b class="nc">&nbsp;            return this.countMessageSegments(message);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new SmsSendException(&quot;Failed to send SMS message - &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        if (this.snsClient != null) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                this.snsClient.shutdown();</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to shutdown SNS client during destroy()&quot;, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

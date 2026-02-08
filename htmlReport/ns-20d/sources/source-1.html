@@ -1,0 +1,192 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultLwM2MSessionManager</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.server.session</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultLwM2MSessionManager (org.thingsboard.server.transport.lwm2m.server.session)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultLwM2MSessionManager</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.server.session;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.util.TbLwM2mTransportComponent;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mSessionMsgListener;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.attributes.LwM2MAttributesService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.rpc.LwM2MRpcRequestHandler;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.transport.service.DefaultTransportService.SESSION_EVENT_MSG_CLOSED;
+&nbsp;import static org.thingsboard.server.common.transport.service.DefaultTransportService.SESSION_EVENT_MSG_OPEN;
+&nbsp;import static org.thingsboard.server.common.transport.service.DefaultTransportService.SUBSCRIBE_TO_ATTRIBUTE_UPDATES_ASYNC_MSG;
+&nbsp;import static org.thingsboard.server.common.transport.service.DefaultTransportService.SUBSCRIBE_TO_RPC_ASYNC_MSG;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@TbLwM2mTransportComponent
+&nbsp;public class DefaultLwM2MSessionManager implements LwM2MSessionManager {
+&nbsp;
+&nbsp;    private final TransportService transportService;
+&nbsp;    private final LwM2MAttributesService attributesService;
+&nbsp;    private final LwM2MRpcRequestHandler rpcHandler;
+&nbsp;    private final LwM2mUplinkMsgHandler uplinkHandler;
+&nbsp;
+&nbsp;    public DefaultLwM2MSessionManager(TransportService transportService,
+&nbsp;                                      @Lazy LwM2MAttributesService attributesService,
+&nbsp;                                      @Lazy LwM2MRpcRequestHandler rpcHandler,
+<b class="nc">&nbsp;                                      @Lazy LwM2mUplinkMsgHandler uplinkHandler) {</b>
+<b class="nc">&nbsp;        this.transportService = transportService;</b>
+<b class="nc">&nbsp;        this.attributesService = attributesService;</b>
+<b class="nc">&nbsp;        this.rpcHandler = rpcHandler;</b>
+<b class="nc">&nbsp;        this.uplinkHandler = uplinkHandler;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void register(TransportProtos.SessionInfoProto sessionInfo) {
+<b class="nc">&nbsp;        transportService.registerAsyncSession(sessionInfo, new LwM2mSessionMsgListener(uplinkHandler, attributesService, rpcHandler, sessionInfo, transportService));</b>
+<b class="nc">&nbsp;        TransportProtos.TransportToDeviceActorMsg msg = TransportProtos.TransportToDeviceActorMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setSessionInfo(sessionInfo)</b>
+<b class="nc">&nbsp;                .setSessionEvent(SESSION_EVENT_MSG_OPEN)</b>
+<b class="nc">&nbsp;                .setSubscribeToAttributes(SUBSCRIBE_TO_ATTRIBUTE_UPDATES_ASYNC_MSG)</b>
+<b class="nc">&nbsp;                .setSubscribeToRPC(SUBSCRIBE_TO_RPC_ASYNC_MSG)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        transportService.process(msg, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deregister(TransportProtos.SessionInfoProto sessionInfo) {
+<b class="nc">&nbsp;        transportService.process(sessionInfo, SESSION_EVENT_MSG_CLOSED, null);</b>
+<b class="nc">&nbsp;        transportService.deregisterSession(sessionInfo);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

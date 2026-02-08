@@ -1,0 +1,298 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbChangeOriginatorNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.transform</a>
+</div>
+
+<h1>Coverage Summary for Class: TbChangeOriginatorNode (org.thingsboard.rule.engine.transform)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbChangeOriginatorNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/39)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbChangeOriginatorNode$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.transform;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.util.EntitiesAlarmOriginatorIdAsyncLoader;
+&nbsp;import org.thingsboard.rule.engine.util.EntitiesByNameAndTypeLoader;
+&nbsp;import org.thingsboard.rule.engine.util.EntitiesRelatedEntityIdAsyncLoader;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.NoSuchElementException;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.Futures.immediateFuture;
+&nbsp;import static org.thingsboard.rule.engine.transform.OriginatorSource.ENTITY;
+&nbsp;import static org.thingsboard.rule.engine.transform.OriginatorSource.RELATED;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.TRANSFORMATION,
+&nbsp;        name = &quot;change originator&quot;,
+&nbsp;        configClazz = TbChangeOriginatorNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Change message originator to Tenant/Customer/Related Entity/Alarm Originator/Entity by name pattern.&quot;,
+&nbsp;        nodeDetails = &quot;Configuration: &lt;ul&gt;&lt;li&gt;&lt;strong&gt;Customer&lt;/strong&gt; - use customer of incoming message originator as new originator. &quot; +
+&nbsp;                &quot;Only for assigned to customer originators with one of the following type: &#39;User&#39;, &#39;Asset&#39;, &#39;Device&#39;.&lt;/li&gt;&quot; +
+&nbsp;                &quot;&lt;li&gt;&lt;strong&gt;Tenant&lt;/strong&gt; - use current tenant as new originator.&lt;/li&gt;&quot; +
+&nbsp;                &quot;&lt;li&gt;&lt;strong&gt;Related Entity&lt;/strong&gt; - use related entity as new originator. Lookup based on configured relation query. &quot; +
+&nbsp;                &quot;If multiple related entities are found, only first entity is used as new originator, other entities are discarded.&lt;/li&gt;&quot; +
+&nbsp;                &quot;&lt;li&gt;&lt;strong&gt;Alarm Originator&lt;/strong&gt; - use alarm originator as new originator. Only if incoming message originator is alarm entity.&lt;/li&gt;&quot; +
+&nbsp;                &quot;&lt;li&gt;&lt;strong&gt;Entity by name pattern&lt;/strong&gt; - specify entity type and name pattern of new originator. Following entity types are supported: &quot; +
+&nbsp;                &quot;&#39;Device&#39;, &#39;Asset&#39;, &#39;Entity View&#39;, &#39;Edge&#39; or &#39;User&#39;.&lt;/li&gt;&lt;/ul&gt;&quot; +
+&nbsp;                &quot;Output connections: &lt;code&gt;Success&lt;/code&gt;, &lt;code&gt;Failure&lt;/code&gt;.&quot;,
+&nbsp;        configDirective = &quot;tbTransformationNodeChangeOriginatorConfig&quot;,
+&nbsp;        icon = &quot;find_replace&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/transformation/change-originator/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbChangeOriginatorNode extends TbAbstractTransformNode&lt;TbChangeOriginatorNodeConfiguration&gt; {</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbChangeOriginatorNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        var config = TbNodeUtils.convert(configuration, TbChangeOriginatorNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        validateConfig(config);</b>
+<b class="nc">&nbsp;        return config;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ListenableFuture&lt;List&lt;TbMsg&gt;&gt; transform(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        ListenableFuture&lt;? extends EntityId&gt; newOriginatorFuture = getNewOriginator(ctx, msg);</b>
+<b class="nc">&nbsp;        return Futures.transformAsync(newOriginatorFuture, newOriginator -&gt; {</b>
+<b class="nc">&nbsp;            if (newOriginator == null || newOriginator.isNullUid()) {</b>
+<b class="nc">&nbsp;                return Futures.immediateFailedFuture(new NoSuchElementException(&quot;Failed to find new originator!&quot;));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return immediateFuture(List.of(ctx.transformMsgOriginator(msg, newOriginator)));</b>
+<b class="nc">&nbsp;        }, ctx.getDbCallbackExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;? extends EntityId&gt; getNewOriginator(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        switch (config.getOriginatorSource()) {</b>
+&nbsp;            case CUSTOMER:
+<b class="nc">&nbsp;                if (msg.getOriginator().getEntityType() == EntityType.CUSTOMER) {</b>
+<b class="nc">&nbsp;                    return immediateFuture(msg.getOriginator());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return ctx.getEntityService().fetchEntityCustomerIdAsync(ctx.getTenantId(), msg.getOriginator())</b>
+<b class="nc">&nbsp;                        .transform(customerIdOpt -&gt; customerIdOpt.orElse(null), ctx.getDbCallbackExecutor());</b>
+&nbsp;            case TENANT:
+<b class="nc">&nbsp;                return immediateFuture(ctx.getTenantId());</b>
+&nbsp;            case RELATED:
+<b class="nc">&nbsp;                return EntitiesRelatedEntityIdAsyncLoader.findEntityAsync(ctx, msg.getOriginator(), config.getRelationsQuery());</b>
+&nbsp;            case ALARM_ORIGINATOR:
+<b class="nc">&nbsp;                return EntitiesAlarmOriginatorIdAsyncLoader.findEntityIdAsync(ctx, msg.getOriginator());</b>
+&nbsp;            case ENTITY:
+<b class="nc">&nbsp;                EntityType entityType = EntityType.valueOf(config.getEntityType());</b>
+<b class="nc">&nbsp;                String entityName = TbNodeUtils.processPattern(config.getEntityNamePattern(), msg);</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    EntityId targetEntity = EntitiesByNameAndTypeLoader.findEntityId(ctx, entityType, entityName);</b>
+<b class="nc">&nbsp;                    return immediateFuture(targetEntity);</b>
+&nbsp;                } catch (IllegalStateException e) {
+<b class="nc">&nbsp;                    return Futures.immediateFailedFuture(e);</b>
+&nbsp;                }
+&nbsp;            default:
+<b class="nc">&nbsp;                return Futures.immediateFailedFuture(new IllegalStateException(&quot;Unexpected originator source &quot; + config.getOriginatorSource()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateConfig(TbChangeOriginatorNodeConfiguration conf) {
+<b class="nc">&nbsp;        if (conf.getOriginatorSource() == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Originator source should be specified.&quot;);</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Originator source should be specified.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (conf.getOriginatorSource().equals(RELATED) &amp;&amp; conf.getRelationsQuery() == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Relations query should be specified if &#39;Related entity&#39; source is selected.&quot;);</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Relations query should be specified if &#39;Related entity&#39; source is selected.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (conf.getOriginatorSource().equals(ENTITY)) {</b>
+<b class="nc">&nbsp;            if (conf.getEntityType() == null) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;Entity type should be specified if &#39;{}&#39; source is selected.&quot;, ENTITY);</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Entity type should be specified if &#39;Entity by name pattern&#39; source is selected.&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (StringUtils.isEmpty(conf.getEntityNamePattern())) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;Name pattern should be specified if &#39;{}&#39; source is selected.&quot;, ENTITY);</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Name pattern should be specified if &#39;Entity by name pattern&#39; source is selected.&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            EntitiesByNameAndTypeLoader.checkEntityType(EntityType.valueOf(conf.getEntityType()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

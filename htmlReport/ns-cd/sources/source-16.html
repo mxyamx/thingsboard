@@ -1,0 +1,707 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EdgeController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: EdgeController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EdgeController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/151)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.springframework.web.context.request.async.DeferredResult;
+&nbsp;import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeInfo;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeInstructions;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
+&nbsp;import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.edge.EdgeBulkImportService;
+&nbsp;import org.thingsboard.server.service.edge.instructions.EdgeInstallInstructionsService;
+&nbsp;import org.thingsboard.server.service.edge.instructions.EdgeUpgradeInstructionsService;
+&nbsp;import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+&nbsp;import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_INFO_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_TEXT_SEARCH_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_TYPE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class EdgeController extends BaseController {
+&nbsp;
+&nbsp;    private final EdgeBulkImportService edgeBulkImportService;
+&nbsp;    private final TbEdgeService tbEdgeService;
+&nbsp;    private final Optional&lt;EdgeRpcService&gt; edgeRpcServiceOpt;
+&nbsp;    private final Optional&lt;EdgeInstallInstructionsService&gt; edgeInstallServiceOpt;
+&nbsp;    private final Optional&lt;EdgeUpgradeInstructionsService&gt; edgeUpgradeServiceOpt;
+&nbsp;
+&nbsp;    public static final String EDGE_ID = &quot;edgeId&quot;;
+&nbsp;    public static final String EDGE_SECURITY_CHECK = &quot;If the user has the authority of &#39;Tenant Administrator&#39;, the server checks that the edge is owned by the same tenant. &quot; +
+&nbsp;            &quot;If the user has the authority of &#39;Customer User&#39;, the server checks that the edge is assigned to the same customer.&quot;;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Is edges support enabled (isEdgesSupportEnabled)&quot;,
+&nbsp;            notes = &quot;Returns &#39;true&#39; if edges support enabled on server, &#39;false&#39; - otherwise.&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edges/enabled&quot;)
+&nbsp;    public boolean isEdgesSupportEnabled() {
+<b class="nc">&nbsp;        return edgesEnabled;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Edge (getEdgeById)&quot;,
+&nbsp;            notes = &quot;Get the Edge object based on the provided Edge Id. &quot; + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/{edgeId}&quot;)
+&nbsp;    public Edge getEdgeById(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                            @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        return checkEdgeId(edgeId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Edge Info (getEdgeInfoById)&quot;,
+&nbsp;            notes = &quot;Get the Edge Info object based on the provided Edge Id. &quot; + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/info/{edgeId}&quot;)
+&nbsp;    public EdgeInfo getEdgeInfoById(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                    @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        return checkEdgeInfoId(edgeId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Or Update Edge (saveEdge)&quot;,
+&nbsp;            notes = &quot;Create or update the Edge. When creating edge, platform generates Edge Id as &quot; + UUID_WIKI_LINK +
+&nbsp;                    &quot;The newly created edge id will be present in the response. &quot; +
+&nbsp;                    &quot;Specify existing Edge id to update the edge. &quot; +
+&nbsp;                    &quot;Referencing non-existing Edge Id will cause &#39;Not Found&#39; error.&quot; +
+&nbsp;                    &quot;\n\nEdge name is unique in the scope of tenant. Use unique identifiers like MAC or IMEI for the edge names and non-unique &#39;label&#39; field for user-friendly visualization purposes.&quot; +
+&nbsp;                    &quot;Remove &#39;id&#39;, &#39;tenantId&#39; and optionally &#39;customerId&#39; from the request body example (below) to create new Edge entity. &quot; +
+&nbsp;                    TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/edge&quot;)
+&nbsp;    public Edge saveEdge(@Parameter(description = &quot;A JSON value representing the edge.&quot;, required = true)
+&nbsp;                         @RequestBody Edge edge) throws Exception {
+<b class="nc">&nbsp;        TenantId tenantId = getTenantId();</b>
+<b class="nc">&nbsp;        edge.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        boolean created = edge.getId() == null;</b>
+&nbsp;
+<b class="nc">&nbsp;        RuleChain edgeTemplateRootRuleChain = null;</b>
+<b class="nc">&nbsp;        if (created) {</b>
+<b class="nc">&nbsp;            edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenantId);</b>
+<b class="nc">&nbsp;            if (edgeTemplateRootRuleChain == null) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Root edge rule chain is not available!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Operation operation = created ? Operation.CREATE : Operation.WRITE;</b>
+&nbsp;
+<b class="nc">&nbsp;        accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation, edge.getId(), edge);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbEdgeService.save(edge, edgeTemplateRootRuleChain, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete edge (deleteEdge)&quot;,
+&nbsp;            notes = &quot;Deletes the edge. Referencing non-existing edge Id will cause an error.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/edge/{edgeId}&quot;)
+&nbsp;    public void deleteEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                           @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        Edge edge = checkEdgeId(edgeId, Operation.DELETE);</b>
+<b class="nc">&nbsp;        tbEdgeService.delete(edge, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Tenant Edges (getEdges)&quot;,
+&nbsp;            notes = &quot;Returns a page of edges owned by tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edges&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;Edge&gt; getEdges(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;                                   @RequestParam int pageSize,
+&nbsp;                                   @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;                                   @RequestParam int page,
+&nbsp;                                   @Parameter(description = EDGE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;                                   @RequestParam(required = false) String textSearch,
+&nbsp;                                   @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;                                   @RequestParam(required = false) String sortProperty,
+&nbsp;                                   @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;                                   @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        return checkNotNull(edgeService.findEdgesByTenantId(tenantId, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Assign edge to customer (assignEdgeToCustomer)&quot;,
+&nbsp;            notes = &quot;Creates assignment of the edge to customer. Customer will be able to query edge afterwards.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/customer/{customerId}/edge/{edgeId}&quot;)
+&nbsp;    public Edge assignEdgeToCustomer(@Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                     @PathVariable(&quot;customerId&quot;) String strCustomerId,
+&nbsp;                                     @Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                     @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;customerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        CustomerId customerId = new CustomerId(toUUID(strCustomerId));</b>
+<b class="nc">&nbsp;        Customer customer = checkCustomerId(customerId, Operation.READ);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        checkEdgeId(edgeId, Operation.ASSIGN_TO_CUSTOMER);</b>
+<b class="nc">&nbsp;        return tbEdgeService.assignEdgeToCustomer(getTenantId(), edgeId, customer, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Unassign edge from customer (unassignEdgeFromCustomer)&quot;,
+&nbsp;            notes = &quot;Clears assignment of the edge to customer. Customer will not be able to query edge afterwards.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/customer/edge/{edgeId}&quot;)
+&nbsp;    public Edge unassignEdgeFromCustomer(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                         @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        Edge edge = checkEdgeId(edgeId, Operation.UNASSIGN_FROM_CUSTOMER);</b>
+<b class="nc">&nbsp;        if (edge.getCustomerId() == null || edge.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Edge isn&#39;t assigned to any customer!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Customer customer = checkCustomerId(edge.getCustomerId(), Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbEdgeService.unassignEdgeFromCustomer(edge, customer, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Make edge publicly available (assignEdgeToPublicCustomer)&quot;,
+&nbsp;            notes = &quot;Edge will be available for non-authorized (not logged-in) users. &quot; +
+&nbsp;                    &quot;This is useful to create dashboards that you plan to share/embed on a publicly available website. &quot; +
+&nbsp;                    &quot;However, users that are logged-in and belong to different tenant will not be able to access the edge.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/customer/public/edge/{edgeId}&quot;)
+&nbsp;    public Edge assignEdgeToPublicCustomer(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                           @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        checkEdgeId(edgeId, Operation.ASSIGN_TO_CUSTOMER);</b>
+<b class="nc">&nbsp;        return tbEdgeService.assignEdgeToPublicCustomer(getTenantId(), edgeId, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Tenant Edges (getTenantEdges)&quot;,
+&nbsp;            notes = &quot;Returns a page of edges owned by tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/tenant/edges&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;Edge&gt; getTenantEdges(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = EDGE_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = EDGE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        if (type != null &amp;&amp; !type.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;            return checkNotNull(edgeService.findEdgesByTenantIdAndType(tenantId, type, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return checkNotNull(edgeService.findEdgesByTenantId(tenantId, pageLink));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Tenant Edge Infos (getTenantEdgeInfos)&quot;,
+&nbsp;            notes = &quot;Returns a page of edges info objects owned by tenant. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + EDGE_INFO_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/tenant/edgeInfos&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;EdgeInfo&gt; getTenantEdgeInfos(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = EDGE_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = EDGE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        if (type != null &amp;&amp; !type.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;            return checkNotNull(edgeService.findEdgeInfosByTenantIdAndType(tenantId, type, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return checkNotNull(edgeService.findEdgeInfosByTenantId(tenantId, pageLink));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Tenant Edge (getTenantEdge)&quot;,
+&nbsp;            notes = &quot;Requested edge must be owned by tenant or customer that the user belongs to. &quot; +
+&nbsp;                    &quot;Edge name is an unique property of edge. So it can be used to identify the edge.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/tenant/edges&quot;, params = {&quot;edgeName&quot;})
+&nbsp;    public Edge getTenantEdge(@Parameter(description = &quot;Unique name of the edge&quot;, required = true)
+&nbsp;                              @RequestParam String edgeName) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        return checkNotNull(edgeService.findEdgeByTenantIdAndName(tenantId, edgeName));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Set root rule chain for provided edge (setEdgeRootRuleChain)&quot;,
+&nbsp;            notes = &quot;Change root rule chain of the edge to the new provided rule chain. \n&quot; +
+&nbsp;                    &quot;This operation will send a notification to update root rule chain on remote edge service.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/edge/{edgeId}/{ruleChainId}/root&quot;)
+&nbsp;    public Edge setEdgeRootRuleChain(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                     @PathVariable(EDGE_ID) String strEdgeId,
+&nbsp;                                     @Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                     @PathVariable(&quot;ruleChainId&quot;) String strRuleChainId) throws Exception {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        checkParameter(&quot;ruleChainId&quot;, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        checkRuleChain(ruleChainId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        Edge edge = checkEdgeId(edgeId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE, edge.getId(), edge);</b>
+<b class="nc">&nbsp;        return tbEdgeService.setEdgeRootRuleChain(edge, ruleChainId, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Customer Edges (getCustomerEdges)&quot;,
+&nbsp;            notes = &quot;Returns a page of edges objects assigned to customer. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/customer/{customerId}/edges&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;Edge&gt; getCustomerEdges(
+&nbsp;            @Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(&quot;customerId&quot;) String strCustomerId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = EDGE_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = EDGE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;customerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        CustomerId customerId = new CustomerId(toUUID(strCustomerId));</b>
+<b class="nc">&nbsp;        checkCustomerId(customerId, Operation.READ);</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+&nbsp;        PageData&lt;Edge&gt; result;
+<b class="nc">&nbsp;        if (type != null &amp;&amp; !type.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;            result = edgeService.findEdgesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result = edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return checkNotNull(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Customer Edge Infos (getCustomerEdgeInfos)&quot;,
+&nbsp;            notes = &quot;Returns a page of edges info objects assigned to customer. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + EDGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/customer/{customerId}/edgeInfos&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;EdgeInfo&gt; getCustomerEdgeInfos(
+&nbsp;            @Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(&quot;customerId&quot;) String strCustomerId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = EDGE_TYPE_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String type,
+&nbsp;            @Parameter(description = EDGE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;type&quot;, &quot;label&quot;, &quot;customerTitle&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;customerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        CustomerId customerId = new CustomerId(toUUID(strCustomerId));</b>
+<b class="nc">&nbsp;        checkCustomerId(customerId, Operation.READ);</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+&nbsp;        PageData&lt;EdgeInfo&gt; result;
+<b class="nc">&nbsp;        if (type != null &amp;&amp; !type.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;            result = edgeService.findEdgeInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result = edgeService.findEdgeInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return checkNotNull(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Edges By Ids (getEdgesByIds)&quot;,
+&nbsp;            notes = &quot;Requested edges must be owned by tenant or assigned to customer which user is performing the request.&quot; + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edges&quot;, params = {&quot;edgeIds&quot;})
+&nbsp;    public List&lt;Edge&gt; getEdgesByIds(
+&nbsp;            @Parameter(description = &quot;A list of edges ids, separated by comma &#39;,&#39;&quot;, array = @ArraySchema(schema = @Schema(type = &quot;string&quot;)), required = true)
+&nbsp;            @RequestParam(&quot;edgeIds&quot;) String[] strEdgeIds) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkArrayParameter(&quot;edgeIds&quot;, strEdgeIds);</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        CustomerId customerId = user.getCustomerId();</b>
+<b class="nc">&nbsp;        List&lt;EdgeId&gt; edgeIds = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (String strEdgeId : strEdgeIds) {</b>
+<b class="nc">&nbsp;            edgeIds.add(new EdgeId(toUUID(strEdgeId)));</b>
+&nbsp;        }
+&nbsp;        ListenableFuture&lt;List&lt;Edge&gt;&gt; edgesFuture;
+<b class="nc">&nbsp;        if (customerId == null || customerId.isNullUid()) {</b>
+<b class="nc">&nbsp;            edgesFuture = edgeService.findEdgesByTenantIdAndIdsAsync(tenantId, edgeIds);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            edgesFuture = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;Edge&gt; edges = edgesFuture.get();</b>
+<b class="nc">&nbsp;        return checkNotNull(edges);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Find related edges (findByQuery)&quot;,
+&nbsp;            notes = &quot;Returns all edges that are related to the specific entity. &quot; +
+&nbsp;                    &quot;The entity id, relation type, edge types, depth of the search, and other query parameters defined using complex &#39;EdgeSearchQuery&#39; object. &quot; +
+&nbsp;                    &quot;See &#39;Model&#39; tab of the Parameters for more info.&quot; + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/edges&quot;)
+&nbsp;    public List&lt;Edge&gt; findByQuery(@RequestBody EdgeSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkNotNull(query);</b>
+<b class="nc">&nbsp;        checkNotNull(query.getParameters());</b>
+<b class="nc">&nbsp;        checkNotNull(query.getEdgeTypes());</b>
+<b class="nc">&nbsp;        checkEntityId(query.getParameters().getEntityId(), Operation.READ);</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        List&lt;Edge&gt; edges = checkNotNull(edgeService.findEdgesByQuery(tenantId, query).get());</b>
+<b class="nc">&nbsp;        edges = edges.stream().filter(edge -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                accessControlService.checkPermission(user, Resource.EDGE, Operation.READ, edge.getId(), edge);</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        return edges;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Edge Types (getEdgeTypes)&quot;,
+&nbsp;            notes = &quot;Returns a set of unique edge types based on edges that are either owned by the tenant or assigned to the customer which user is performing the request.&quot;
+&nbsp;                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/types&quot;)
+&nbsp;    public List&lt;EntitySubtype&gt; getEdgeTypes() throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;List&lt;EntitySubtype&gt;&gt; edgeTypes = edgeService.findEdgeTypesByTenantId(tenantId);</b>
+<b class="nc">&nbsp;        return checkNotNull(edgeTypes.get());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Sync edge (syncEdge)&quot;,
+&nbsp;            notes = &quot;Starts synchronization process between edge and cloud. \n&quot; +
+&nbsp;                    &quot;All entities that are assigned to particular edge are going to be send to remote edge service.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/edge/sync/{edgeId}&quot;)
+&nbsp;    public DeferredResult&lt;ResponseEntity&gt; syncEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                                   @PathVariable(&quot;edgeId&quot;) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;edgeId&quot;, strEdgeId);</b>
+<b class="nc">&nbsp;        final DeferredResult&lt;ResponseEntity&gt; response = new DeferredResult&lt;&gt;();</b>
+<b class="nc">&nbsp;        if (isEdgesEnabled() &amp;&amp; edgeRpcServiceOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;            edgeId = checkNotNull(edgeId);</b>
+<b class="nc">&nbsp;            SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;            TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;            edgeRpcServiceOpt.get().processSyncRequest(tenantId, edgeId, fromEdgeSyncResponse -&gt; reply(response, fromEdgeSyncResponse));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Edges support disabled&quot;, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reply(DeferredResult&lt;ResponseEntity&gt; response, FromEdgeSyncResponse fromEdgeSyncResponse) {
+<b class="nc">&nbsp;        if (fromEdgeSyncResponse.isSuccess()) {</b>
+<b class="nc">&nbsp;            response.setResult(new ResponseEntity&lt;&gt;(HttpStatus.OK));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            response.setErrorResult(new ThingsboardException(fromEdgeSyncResponse.getError(), ThingsboardErrorCode.GENERAL));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Find missing rule chains (findMissingToRelatedRuleChains)&quot;,
+&nbsp;            notes = &quot;Returns list of rule chains ids that are not assigned to particular edge, but these rule chains are present in the already assigned rule chains to edge.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/missingToRelatedRuleChains/{edgeId}&quot;)
+&nbsp;    public String findMissingToRelatedRuleChains(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;                                                 @PathVariable(&quot;edgeId&quot;) String strEdgeId) throws ThingsboardException {
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        edgeId = checkNotNull(edgeId);</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = user.getTenantId();</b>
+<b class="nc">&nbsp;        return edgeService.findMissingToRelatedRuleChains(tenantId, edgeId, TbRuleChainInputNode.class.getName());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Import the bulk of edges (processEdgesBulkImport)&quot;,
+&nbsp;            notes = &quot;There&#39;s an ability to import the bulk of edges using the only .csv file.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/edge/bulk_import&quot;)
+&nbsp;    public BulkImportResult&lt;Edge&gt; processEdgesBulkImport(@RequestBody BulkImportRequest request) throws Exception {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(user.getTenantId());</b>
+<b class="nc">&nbsp;        if (edgeTemplateRootRuleChain == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Root edge rule chain is not available!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return edgeBulkImportService.processBulkImport(request, user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Edge Install Instructions (getEdgeInstallInstructions)&quot;,
+&nbsp;            notes = &quot;Get an install instructions for provided edge id.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/instructions/install/{edgeId}/{method}&quot;)
+&nbsp;    public EdgeInstructions getEdgeInstallInstructions(
+&nbsp;            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;edgeId&quot;) String strEdgeId,
+&nbsp;            @Parameter(description = &quot;Installation method (&#39;docker&#39;, &#39;ubuntu&#39; or &#39;centos&#39;)&quot;, schema = @Schema(allowableValues = {&quot;docker&quot;, &quot;ubuntu&quot;, &quot;centos&quot;}))
+&nbsp;            @PathVariable(&quot;method&quot;) String installationMethod,
+&nbsp;            HttpServletRequest request) throws ThingsboardException {
+<b class="nc">&nbsp;        if (isEdgesEnabled() &amp;&amp; edgeInstallServiceOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;            edgeId = checkNotNull(edgeId);</b>
+<b class="nc">&nbsp;            Edge edge = checkEdgeId(edgeId, Operation.READ);</b>
+<b class="nc">&nbsp;            return checkNotNull(edgeInstallServiceOpt.get().getInstallInstructions(edge, installationMethod, request));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Edges support disabled&quot;, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Edge Upgrade Instructions (getEdgeUpgradeInstructions)&quot;,
+&nbsp;            notes = &quot;Get an upgrade instructions for provided edge version.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/instructions/upgrade/{edgeVersion}/{method}&quot;)
+&nbsp;    public EdgeInstructions getEdgeUpgradeInstructions(
+&nbsp;            @Parameter(description = &quot;Edge version&quot;, required = true)
+&nbsp;            @PathVariable(&quot;edgeVersion&quot;) String edgeVersion,
+&nbsp;            @Parameter(description = &quot;Upgrade method (&#39;docker&#39;, &#39;ubuntu&#39; or &#39;centos&#39;)&quot;, schema = @Schema(allowableValues = {&quot;docker&quot;, &quot;ubuntu&quot;, &quot;centos&quot;}))
+&nbsp;            @PathVariable(&quot;method&quot;) String method) throws Exception {
+<b class="nc">&nbsp;        if (isEdgesEnabled() &amp;&amp; edgeUpgradeServiceOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            return checkNotNull(edgeUpgradeServiceOpt.get().getUpgradeInstructions(edgeVersion, method));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Edges support disabled&quot;, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Is edge upgrade enabled (isEdgeUpgradeAvailable)&quot;,
+&nbsp;            notes = &quot;Returns &#39;true&#39; if upgrade available for connected edge, &#39;false&#39; - otherwise.&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/{edgeId}/upgrade/available&quot;)
+&nbsp;    public boolean isEdgeUpgradeAvailable(
+&nbsp;            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;edgeId&quot;) String strEdgeId) throws Exception {
+<b class="nc">&nbsp;        if (isEdgesEnabled() &amp;&amp; edgeUpgradeServiceOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;            edgeId = checkNotNull(edgeId);</b>
+<b class="nc">&nbsp;            Edge edge = checkEdgeId(edgeId, Operation.READ);</b>
+<b class="nc">&nbsp;            return edgeUpgradeServiceOpt.get().isUpgradeAvailable(edge.getTenantId(), edge.getId());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Edges support disabled&quot;, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

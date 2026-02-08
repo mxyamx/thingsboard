@@ -1,0 +1,173 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > UserRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.user</a>
+</div>
+
+<h1>Coverage Summary for Class: UserRepository (org.thingsboard.server.dao.sql.user)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">UserRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.user;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Limit;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.thingsboard.server.common.data.edqs.fields.UserFields;
+&nbsp;import org.thingsboard.server.common.data.security.Authority;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.dao.model.sql.UserEntity;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface UserRepository extends JpaRepository&lt;UserEntity, UUID&gt; {
+&nbsp;
+&nbsp;    UserEntity findByEmail(String email);
+&nbsp;
+&nbsp;    UserEntity findByTenantIdAndEmail(UUID tenantId, String email);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND u.customerId = :customerId AND u.authority = :authority &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(u.email, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;UserEntity&gt; findUsersByAuthority(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                          @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                          @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                          @Param(&quot;authority&quot;) Authority authority,
+&nbsp;                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND u.customerId IN (:customerIds) &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(u.email, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;UserEntity&gt; findTenantAndCustomerUsers(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                @Param(&quot;customerIds&quot;) Collection&lt;UUID&gt; customerIds,
+&nbsp;                                                @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(u.email, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;UserEntity&gt; findByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                    @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                    Pageable pageable);
+&nbsp;
+&nbsp;    Page&lt;UserEntity&gt; findAllByAuthority(Authority authority, Pageable pageable);
+&nbsp;
+&nbsp;    Page&lt;UserEntity&gt; findByAuthorityAndTenantIdIn(Authority authority, Collection&lt;UUID&gt; tenantsIds, Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT u FROM UserEntity u INNER JOIN TenantEntity t ON u.tenantId = t.id AND u.authority = :authority &quot; +
+&nbsp;            &quot;INNER JOIN TenantProfileEntity p ON t.tenantProfileId = p.id &quot; +
+&nbsp;            &quot;WHERE p.id IN :profiles&quot;)
+&nbsp;    Page&lt;UserEntity&gt; findByAuthorityAndTenantProfilesIds(@Param(&quot;authority&quot;) Authority authority,
+&nbsp;                                                         @Param(&quot;profiles&quot;) Collection&lt;UUID&gt; tenantProfilesIds,
+&nbsp;                                                         Pageable pageable);
+&nbsp;
+&nbsp;    Long countByTenantId(UUID tenantId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.edqs.fields.UserFields(u.id, u.createdTime, u.tenantId,&quot; +
+&nbsp;            &quot;u.customerId, u.version, u.firstName, u.lastName, u.email, u.phone, u.additionalInfo) &quot; +
+&nbsp;            &quot;FROM UserEntity u WHERE u.id &gt; :id ORDER BY u.id&quot;)
+&nbsp;    List&lt;UserFields&gt; findNextBatch(@Param(&quot;id&quot;) UUID id, Limit limit);
+&nbsp;
+&nbsp;    int countByTenantIdAndAuthority(UUID tenantId, Authority authority);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.util.TbPair(u, uc.enabled) &quot; +
+&nbsp;            &quot;FROM UserEntity u JOIN UserCredentialsEntity uc ON u.id = uc.userId WHERE u.id = :userId &quot;)
+&nbsp;    TbPair&lt;UserEntity, Boolean&gt; findUserAuthDetailsByUserId(@Param(&quot;userId&quot;) UUID userId);
+&nbsp;
+&nbsp;    List&lt;UserEntity&gt; findUsersByTenantIdAndIdIn(UUID tenantId, List&lt;UUID&gt; userIds);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

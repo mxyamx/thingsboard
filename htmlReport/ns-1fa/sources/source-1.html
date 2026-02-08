@@ -1,0 +1,300 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LwM2MTransportBootstrapService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.bootstrap</a>
+</div>
+
+<h1>Coverage Summary for Class: LwM2MTransportBootstrapService (org.thingsboard.server.transport.lwm2m.bootstrap)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LwM2MTransportBootstrapService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.bootstrap;
+&nbsp;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.californium.elements.config.Configuration;
+&nbsp;import org.eclipse.californium.scandium.config.DtlsConfig;
+&nbsp;import org.eclipse.leshan.core.endpoint.Protocol;
+&nbsp;import org.eclipse.leshan.server.bootstrap.BootstrapSessionManager;
+&nbsp;import org.eclipse.leshan.server.bootstrap.LeshanBootstrapServer;
+&nbsp;import org.eclipse.leshan.server.bootstrap.LeshanBootstrapServerBuilder;
+&nbsp;import org.eclipse.leshan.server.californium.bootstrap.LwM2mBootstrapPskStore;
+&nbsp;import org.eclipse.leshan.server.californium.bootstrap.endpoint.CaliforniumBootstrapServerEndpointsProvider;
+&nbsp;import org.eclipse.leshan.server.californium.bootstrap.endpoint.coap.CoapBootstrapServerProtocolProvider;
+&nbsp;import org.eclipse.leshan.server.californium.bootstrap.endpoint.coaps.CoapsBootstrapServerProtocolProvider;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.common.transport.config.ssl.SslCredentials;
+&nbsp;import org.thingsboard.server.queue.util.TbLwM2mBootstrapTransportComponent;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.secure.LwM2mDefaultBootstrapSessionManager;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.secure.TbLwM2MDtlsBootstrapCertificateVerifier;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.store.LwM2MBootstrapSecurityStore;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.store.LwM2MInMemoryBootstrapConfigStore;
+&nbsp;import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportBootstrapConfig;
+&nbsp;import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
+&nbsp;
+&nbsp;import java.net.InetSocketAddress;
+&nbsp;import java.security.cert.X509Certificate;
+&nbsp;
+&nbsp;import static java.util.concurrent.TimeUnit.MILLISECONDS;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RECOMMENDED_CURVES_ONLY;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RETRANSMISSION_TIMEOUT;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.DefaultLwM2mTransportService.PSK_CIPHER_SUITES;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.DefaultLwM2mTransportService.RPK_OR_X509_CIPHER_SUITES;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.LwM2MNetworkConfig.getCoapConfig;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.setDtlsConnectorConfigCidLength;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@TbLwM2mBootstrapTransportComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class LwM2MTransportBootstrapService {
+&nbsp;
+&nbsp;    private final LwM2MTransportServerConfig serverConfig;
+&nbsp;    private final LwM2MTransportBootstrapConfig bootstrapConfig;
+&nbsp;    private final LwM2MBootstrapSecurityStore lwM2MBootstrapSecurityStore;
+&nbsp;    private final LwM2MInMemoryBootstrapConfigStore lwM2MInMemoryBootstrapConfigStore;
+&nbsp;    private final TransportService transportService;
+&nbsp;    private final TbLwM2MDtlsBootstrapCertificateVerifier certificateVerifier;
+&nbsp;    private LeshanBootstrapServer server;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        log.info(&quot;Starting LwM2M transport bootstrap server...&quot;);</b>
+<b class="nc">&nbsp;        this.server = getLhBootstrapServer();</b>
+<b class="nc">&nbsp;        this.server.start();</b>
+<b class="nc">&nbsp;        log.info(&quot;Started LwM2M transport bootstrap server.&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void shutdown() {
+&nbsp;        try {
+<b class="nc">&nbsp;            log.info(&quot;Stopping LwM2M transport bootstrap server!&quot;);</b>
+<b class="nc">&nbsp;            server.destroy();</b>
+<b class="nc">&nbsp;            log.info(&quot;LwM2M transport bootstrap server stopped!&quot;);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to gracefully stop the LwM2M transport bootstrap server!&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public LeshanBootstrapServer getLhBootstrapServer() {
+<b class="nc">&nbsp;        LeshanBootstrapServerBuilder builder = new LeshanBootstrapServerBuilder();</b>
+&nbsp;
+&nbsp;        // Create Californium Endpoints Provider:
+&nbsp;        // ------------------
+&nbsp;        // Create Server Endpoints Provider
+<b class="nc">&nbsp;        CaliforniumBootstrapServerEndpointsProvider.Builder endpointsBuilder = new CaliforniumBootstrapServerEndpointsProvider.Builder(</b>
+&nbsp;                // Add coap Protocol support
+&nbsp;                new CoapBootstrapServerProtocolProvider(),
+&nbsp;
+&nbsp;                // Add coaps/dtls protocol support
+&nbsp;                new CoapsBootstrapServerProtocolProvider(c -&gt; {
+<b class="nc">&nbsp;                    if (this.bootstrapConfig.getSslCredentials() != null) {</b>
+<b class="nc">&nbsp;                        c.setAdvancedCertificateVerifier(certificateVerifier);</b>
+<b class="nc">&nbsp;                        c.setAsList(DtlsConfig.DTLS_CIPHER_SUITES, RPK_OR_X509_CIPHER_SUITES);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.info(&quot;Unable to load X509 files for LWM2MServer&quot;);</b>
+<b class="nc">&nbsp;                        LwM2mBootstrapPskStore lwM2mBsPskStore = new LwM2mBootstrapPskStore(lwM2MBootstrapSecurityStore);</b>
+<b class="nc">&nbsp;                        c.setAdvancedPskStore(lwM2mBsPskStore);</b>
+<b class="nc">&nbsp;                        c.setAsList(DtlsConfig.DTLS_CIPHER_SUITES, PSK_CIPHER_SUITES);</b>
+&nbsp;                    }
+&nbsp;                }));
+&nbsp;
+&nbsp;
+&nbsp;        // Create Californium Configuration
+<b class="nc">&nbsp;        Configuration serverCoapConfig = endpointsBuilder.createDefaultConfiguration();</b>
+<b class="nc">&nbsp;        getCoapConfig(serverCoapConfig, bootstrapConfig.getPort(), bootstrapConfig.getSecurePort(),serverConfig);</b>
+<b class="nc">&nbsp;        serverCoapConfig.setTransient(DtlsConfig.DTLS_RECOMMENDED_CIPHER_SUITES_ONLY);</b>
+<b class="nc">&nbsp;        serverCoapConfig.set(DtlsConfig.DTLS_RECOMMENDED_CIPHER_SUITES_ONLY, serverConfig.isRecommendedCiphers());</b>
+<b class="nc">&nbsp;        serverCoapConfig.setTransient(DtlsConfig.DTLS_CONNECTION_ID_LENGTH);</b>
+<b class="nc">&nbsp;        serverCoapConfig.set(DTLS_RECOMMENDED_CURVES_ONLY, serverConfig.isRecommendedSupportedGroups());</b>
+<b class="nc">&nbsp;        serverCoapConfig.setTransient(DTLS_RETRANSMISSION_TIMEOUT);</b>
+<b class="nc">&nbsp;        serverCoapConfig.set(DTLS_RETRANSMISSION_TIMEOUT, serverConfig.getDtlsRetransmissionTimeout(), MILLISECONDS);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (serverConfig.getDtlsCidLength() != null) {</b>
+<b class="nc">&nbsp;            setDtlsConnectorConfigCidLength( serverCoapConfig, serverConfig.getDtlsCidLength());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        /* Create DTLS Config */
+<b class="nc">&nbsp;        this.setServerWithCredentials(builder);</b>
+&nbsp;
+&nbsp;        // Set Californium Configuration
+<b class="nc">&nbsp;        endpointsBuilder.setConfiguration(serverCoapConfig);</b>
+<b class="nc">&nbsp;        serverConfig.setCoapConfig(serverCoapConfig);</b>
+&nbsp;
+&nbsp;
+&nbsp;        // Create CoAP endpoint
+<b class="nc">&nbsp;        InetSocketAddress coapAddr = new InetSocketAddress(bootstrapConfig.getHost(), bootstrapConfig.getPort());</b>
+<b class="nc">&nbsp;        endpointsBuilder.addEndpoint(coapAddr, Protocol.COAP);</b>
+&nbsp;
+&nbsp;        // Create CoAP over DTLS endpoint
+<b class="nc">&nbsp;        InetSocketAddress coapsAddr = new InetSocketAddress(bootstrapConfig.getSecureHost(), bootstrapConfig.getSecurePort());</b>
+<b class="nc">&nbsp;        endpointsBuilder.addEndpoint(coapsAddr, Protocol.COAPS);</b>
+&nbsp;
+&nbsp;        /* Set securityStore with new ConfigStore */
+<b class="nc">&nbsp;        builder.setConfigStore(lwM2MInMemoryBootstrapConfigStore);</b>
+&nbsp;
+&nbsp;        /* SecurityStore */
+<b class="nc">&nbsp;        builder.setSecurityStore(lwM2MBootstrapSecurityStore);</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;        BootstrapSessionManager sessionManager = new LwM2mDefaultBootstrapSessionManager(lwM2MBootstrapSecurityStore, lwM2MInMemoryBootstrapConfigStore, transportService);</b>
+<b class="nc">&nbsp;        builder.setSessionManager(sessionManager);</b>
+&nbsp;
+&nbsp;        /* Create BootstrapServer */
+<b class="nc">&nbsp;        builder.setEndpointsProviders(endpointsBuilder.build());</b>
+<b class="nc">&nbsp;        return builder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setServerWithCredentials(LeshanBootstrapServerBuilder builder) {
+<b class="nc">&nbsp;        if (this.bootstrapConfig.getSslCredentials() != null) {</b>
+<b class="nc">&nbsp;            SslCredentials sslCredentials = this.bootstrapConfig.getSslCredentials();</b>
+<b class="nc">&nbsp;            builder.setPublicKey(sslCredentials.getPublicKey());</b>
+<b class="nc">&nbsp;            builder.setPrivateKey(sslCredentials.getPrivateKey());</b>
+<b class="nc">&nbsp;            builder.setCertificateChain(sslCredentials.getCertificateChain());</b>
+&nbsp;        } else {
+&nbsp;            /* by default trust all */
+<b class="nc">&nbsp;            builder.setTrustedCertificates(new X509Certificate[0]);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

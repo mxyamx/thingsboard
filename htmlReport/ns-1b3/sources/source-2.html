@@ -1,0 +1,402 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbCalculatedFieldConsumerService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbCalculatedFieldConsumerService (org.thingsboard.server.service.queue)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbCalculatedFieldConsumerService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/80)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue;
+&nbsp;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import org.apache.commons.collections4.CollectionUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.context.event.EventListener;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.actors.calculatedField.CalculatedFieldEntityActionEventMsg;
+&nbsp;import org.thingsboard.server.actors.calculatedField.CalculatedFieldLinkedTelemetryMsg;
+&nbsp;import org.thingsboard.server.actors.calculatedField.CalculatedFieldTelemetryMsg;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.queue.QueueConfig;
+&nbsp;import org.thingsboard.server.common.msg.cf.CalculatedFieldPartitionChangeMsg;
+&nbsp;import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.dao.resource.TbResourceDataCache;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldLinkedTelemetryMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldTelemetryMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.provider.TbRuleEngineQueueFactory;
+&nbsp;import org.thingsboard.server.queue.util.TbRuleEngineComponent;
+&nbsp;import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+&nbsp;import org.thingsboard.server.service.cf.CalculatedFieldCache;
+&nbsp;import org.thingsboard.server.service.cf.CalculatedFieldStateService;
+&nbsp;import org.thingsboard.server.service.profile.TbAssetProfileCache;
+&nbsp;import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+&nbsp;import org.thingsboard.server.service.queue.processing.AbstractPartitionBasedConsumerService;
+&nbsp;import org.thingsboard.server.service.queue.processing.IdMsgPair;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbRuleEngineComponent
+&nbsp;public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBasedConsumerService&lt;ToCalculatedFieldNotificationMsg&gt; implements TbCalculatedFieldConsumerService {
+&nbsp;
+&nbsp;    @Value(&quot;${queue.calculated_fields.poll_interval:25}&quot;)
+&nbsp;    private long pollInterval;
+&nbsp;    @Value(&quot;${queue.calculated_fields.pack_processing_timeout:60000}&quot;)
+&nbsp;    private long packProcessingTimeout;
+&nbsp;
+&nbsp;    private final TbRuleEngineQueueFactory queueFactory;
+&nbsp;    private final CalculatedFieldStateService stateService;
+&nbsp;
+&nbsp;    public DefaultTbCalculatedFieldConsumerService(TbRuleEngineQueueFactory tbQueueFactory,
+&nbsp;                                                   ActorSystemContext actorContext,
+&nbsp;                                                   TbDeviceProfileCache deviceProfileCache,
+&nbsp;                                                   TbAssetProfileCache assetProfileCache,
+&nbsp;                                                   TbResourceDataCache tbResourceDataCache,
+&nbsp;                                                   TbTenantProfileCache tenantProfileCache,
+&nbsp;                                                   TbApiUsageStateService apiUsageStateService,
+&nbsp;                                                   PartitionService partitionService,
+&nbsp;                                                   ApplicationEventPublisher eventPublisher,
+&nbsp;                                                   JwtSettingsService jwtSettingsService,
+&nbsp;                                                   CalculatedFieldCache calculatedFieldCache,
+&nbsp;                                                   CalculatedFieldStateService stateService) {
+<b class="nc">&nbsp;        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, tbResourceDataCache, calculatedFieldCache, apiUsageStateService, partitionService,</b>
+&nbsp;                eventPublisher, jwtSettingsService);
+<b class="nc">&nbsp;        this.queueFactory = tbQueueFactory;</b>
+<b class="nc">&nbsp;        this.stateService = stateService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onStartUp() {
+<b class="nc">&nbsp;        var queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, DataConstants.CF_QUEUE_NAME);</b>
+<b class="nc">&nbsp;        var eventConsumer = PartitionedQueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt;&gt;create()</b>
+<b class="nc">&nbsp;                .queueKey(queueKey)</b>
+<b class="nc">&nbsp;                .topic(partitionService.getTopic(queueKey))</b>
+<b class="nc">&nbsp;                .pollInterval(pollInterval)</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                .consumerCreator((queueConfig, tpi) -&gt; queueFactory.createToCalculatedFieldMsgConsumer(tpi))</b>
+<b class="nc">&nbsp;                .queueAdmin(queueFactory.getCalculatedFieldQueueAdmin())</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumersExecutor)</b>
+<b class="nc">&nbsp;                .scheduler(scheduler)</b>
+<b class="nc">&nbsp;                .taskExecutor(mgmtExecutor)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        stateService.init(eventConsumer);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        super.destroy();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void startConsumers() {
+<b class="nc">&nbsp;        super.startConsumers();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onPartitionChangeEvent(PartitionChangeEvent event) {
+&nbsp;        try {
+<b class="nc">&nbsp;            event.getNewPartitions().forEach((queueKey, partitions) -&gt; {</b>
+<b class="nc">&nbsp;                if (DataConstants.CF_QUEUE_NAME.equals(queueKey.getQueueName())) {</b>
+<b class="nc">&nbsp;                    stateService.restore(queueKey, partitions);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;            // eventConsumer&#39;s partitions will be updated by stateService
+&nbsp;
+&nbsp;            // Cleanup old entities after corresponding consumers are stopped.
+&nbsp;            // Any periodic tasks need to check that the entity is still managed by the current server before processing.
+<b class="nc">&nbsp;            actorContext.tell(new CalculatedFieldPartitionChangeMsg());</b>
+&nbsp;        } catch (Throwable t) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to process partition change event: {}&quot;, event, t);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsgs(List&lt;TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt;&gt; consumer, Object consumerKey, QueueConfig config) throws Exception {
+<b class="nc">&nbsp;        List&lt;IdMsgPair&lt;ToCalculatedFieldMsg&gt;&gt; orderedMsgList = msgs.stream().map(msg -&gt; new IdMsgPair&lt;&gt;(UUID.randomUUID(), msg)).toList();</b>
+<b class="nc">&nbsp;        ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt;&gt; pendingMap = orderedMsgList.stream().collect(</b>
+<b class="nc">&nbsp;                Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));</b>
+<b class="nc">&nbsp;        CountDownLatch processingTimeoutLatch = new CountDownLatch(1);</b>
+<b class="nc">&nbsp;        TbPackProcessingContext&lt;TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt;&gt; ctx = new TbPackProcessingContext&lt;&gt;(</b>
+&nbsp;                processingTimeoutLatch, pendingMap, new ConcurrentHashMap&lt;&gt;());
+<b class="nc">&nbsp;        PendingMsgHolder&lt;ToCalculatedFieldMsg&gt; pendingMsgHolder = new PendingMsgHolder&lt;&gt;();</b>
+<b class="nc">&nbsp;        Future&lt;?&gt; packSubmitFuture = consumersExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            orderedMsgList.forEach((element) -&gt; {</b>
+<b class="nc">&nbsp;                UUID id = element.getUuid();</b>
+<b class="nc">&nbsp;                TbProtoQueueMsg&lt;ToCalculatedFieldMsg&gt; msg = element.getMsg();</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Creating main callback for message: {}&quot;, id, msg.getValue());</b>
+<b class="nc">&nbsp;                TbCallback callback = new TbPackCallback&lt;&gt;(id, ctx);</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    ToCalculatedFieldMsg toCfMsg = msg.getValue();</b>
+<b class="nc">&nbsp;                    pendingMsgHolder.setMsg(toCfMsg);</b>
+<b class="nc">&nbsp;                    processMsg(toCfMsg, id, callback);</b>
+&nbsp;                } catch (Throwable e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to process message: {}&quot;, id, msg, e);</b>
+<b class="nc">&nbsp;                    callback.onFailure(e);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        });
+<b class="nc">&nbsp;        if (!processingTimeoutLatch.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {</b>
+<b class="nc">&nbsp;            if (!packSubmitFuture.isDone()) {</b>
+<b class="nc">&nbsp;                packSubmitFuture.cancel(true);</b>
+<b class="nc">&nbsp;                log.info(&quot;Timeout to process message: {}&quot;, pendingMsgHolder.getMsg());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            ctx.getAckMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Timeout to process message: {}&quot;, id, msg.getValue()));</b>
+<b class="nc">&nbsp;            ctx.getFailedMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Failed to process message: {}&quot;, id, msg.getValue()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsg(ToCalculatedFieldMsg toCfMsg, UUID id, TbCallback callback) {
+<b class="nc">&nbsp;        if (toCfMsg.hasTelemetryMsg()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding regular telemetry message for processing {}&quot;, id, toCfMsg.getTelemetryMsg());</b>
+<b class="nc">&nbsp;            forwardToActorSystem(toCfMsg.getTelemetryMsg(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCfMsg.hasLinkedTelemetryMsg()) {</b>
+<b class="nc">&nbsp;            forwardToActorSystem(toCfMsg.getLinkedTelemetryMsg(), callback);</b>
+<b class="nc">&nbsp;        } else if (toCfMsg.hasEventMsg()) {</b>
+<b class="nc">&nbsp;            actorContext.tell(CalculatedFieldEntityActionEventMsg.fromProto(toCfMsg.getEventMsg(), callback));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ServiceType getServiceType() {
+<b class="nc">&nbsp;        return ServiceType.TB_RULE_ENGINE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getPrefix() {
+<b class="nc">&nbsp;        return &quot;tb-cf&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPollDuration() {
+<b class="nc">&nbsp;        return pollInterval;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected long getNotificationPackProcessingTimeout() {
+<b class="nc">&nbsp;        return packProcessingTimeout;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected int getMgmtThreadPoolSize() {
+<b class="nc">&nbsp;        return Math.max(Runtime.getRuntime().availableProcessors(), 4);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToCalculatedFieldNotificationMsg&gt;&gt; createNotificationsConsumer() {
+<b class="nc">&nbsp;        return queueFactory.createToCalculatedFieldNotificationMsgConsumer();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void handleNotification(UUID id, TbProtoQueueMsg&lt;ToCalculatedFieldNotificationMsg&gt; msg, TbCallback callback) {
+<b class="nc">&nbsp;        ToCalculatedFieldNotificationMsg toCfNotification = msg.getValue();</b>
+<b class="nc">&nbsp;        if (toCfNotification.hasLinkedTelemetryMsg()) {</b>
+<b class="nc">&nbsp;            forwardToActorSystem(toCfNotification.getLinkedTelemetryMsg(), callback);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener
+&nbsp;    public void handleComponentLifecycleEvent(ComponentLifecycleMsg event) {
+<b class="nc">&nbsp;        if (event.getEntityId().getEntityType() == EntityType.TENANT) {</b>
+<b class="nc">&nbsp;            if (event.getEvent() == ComponentLifecycleEvent.DELETED) {</b>
+<b class="nc">&nbsp;                Set&lt;TopicPartitionInfo&gt; partitions = stateService.getPartitions();</b>
+<b class="nc">&nbsp;                if (CollectionUtils.isEmpty(partitions)) {</b>
+&nbsp;                    return;
+&nbsp;                }
+<b class="nc">&nbsp;                stateService.delete(partitions.stream()</b>
+<b class="nc">&nbsp;                        .filter(tpi -&gt; tpi.getTenantId().isPresent() &amp;&amp; tpi.getTenantId().get().equals(event.getTenantId()))</b>
+<b class="nc">&nbsp;                        .collect(Collectors.toSet()));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToActorSystem(CalculatedFieldTelemetryMsgProto msg, TbCallback callback) {
+<b class="nc">&nbsp;        var tenantId = toTenantId(msg.getTenantIdMSB(), msg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        var entityId = EntityIdFactory.getByTypeAndUuid(msg.getEntityType(), new UUID(msg.getEntityIdMSB(), msg.getEntityIdLSB()));</b>
+<b class="nc">&nbsp;        actorContext.tell(new CalculatedFieldTelemetryMsg(tenantId, entityId, msg, callback));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToActorSystem(CalculatedFieldLinkedTelemetryMsgProto linkedMsg, TbCallback callback) {
+<b class="nc">&nbsp;        var msg = linkedMsg.getMsg();</b>
+<b class="nc">&nbsp;        var tenantId = toTenantId(msg.getTenantIdMSB(), msg.getTenantIdLSB());</b>
+<b class="nc">&nbsp;        var entityId = EntityIdFactory.getByTypeAndUuid(msg.getEntityType(), new UUID(msg.getEntityIdMSB(), msg.getEntityIdLSB()));</b>
+<b class="nc">&nbsp;        actorContext.tell(new CalculatedFieldLinkedTelemetryMsg(tenantId, entityId, linkedMsg, callback));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TenantId toTenantId(long tenantIdMSB, long tenantIdLSB) {
+<b class="nc">&nbsp;        return TenantId.fromUUID(new UUID(tenantIdMSB, tenantIdLSB));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void stopConsumers() {
+<b class="nc">&nbsp;        super.stopConsumers();</b>
+<b class="nc">&nbsp;        stateService.stop(); // eventConsumer will be stopped by stateService</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

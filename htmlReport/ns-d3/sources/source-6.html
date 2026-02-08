@@ -1,0 +1,541 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AssetProfileServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.asset</a>
+</div>
+
+<h1>Coverage Summary for Class: AssetProfileServiceImpl (org.thingsboard.server.dao.asset)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AssetProfileServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/138)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AssetProfileServiceImpl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/141)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.asset;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.hibernate.exception.ConstraintViolationException;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetProfile;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetProfileInfo;
+&nbsp;import org.thingsboard.server.common.data.id.AssetProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.dao.entity.CachedVersionedEntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.resource.ImageService;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;AssetProfileDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class AssetProfileServiceImpl extends CachedVersionedEntityService&lt;AssetProfileCacheKey, AssetProfile, AssetProfileEvictEvent&gt; implements AssetProfileService {</b>
+&nbsp;
+&nbsp;    private static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+&nbsp;    private static final String INCORRECT_ASSET_PROFILE_ID = &quot;Incorrect assetProfileId &quot;;
+&nbsp;
+&nbsp;    private static final String INCORRECT_ASSET_PROFILE_NAME = &quot;Incorrect assetProfileName &quot;;
+&nbsp;
+&nbsp;    private static final String ASSET_PROFILE_WITH_SUCH_NAME_ALREADY_EXISTS = &quot;Asset profile with such name already exists!&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AssetProfileDao assetProfileDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AssetDao assetDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AssetService assetService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;AssetProfile&gt; assetProfileValidator;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ImageService imageService;
+&nbsp;
+&nbsp;    @TransactionalEventListener(classes = AssetProfileEvictEvent.class)
+&nbsp;    @Override
+&nbsp;    public void handleEvictEvent(AssetProfileEvictEvent event) {
+<b class="nc">&nbsp;        List&lt;AssetProfileCacheKey&gt; toEvict = new ArrayList&lt;&gt;(2);</b>
+<b class="nc">&nbsp;        toEvict.add(AssetProfileCacheKey.forName(event.getTenantId(), event.getNewName()));</b>
+<b class="nc">&nbsp;        if (event.getSavedAssetProfile() != null) {</b>
+<b class="nc">&nbsp;            cache.put(AssetProfileCacheKey.forId(event.getSavedAssetProfile().getId()), event.getSavedAssetProfile());</b>
+<b class="nc">&nbsp;        } else if (event.getAssetProfileId() != null) {</b>
+<b class="nc">&nbsp;            toEvict.add(AssetProfileCacheKey.forId(event.getAssetProfileId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (event.isDefaultProfile()) {</b>
+<b class="nc">&nbsp;            toEvict.add(AssetProfileCacheKey.forDefaultProfile(event.getTenantId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(event.getOldName()) &amp;&amp; !event.getOldName().equals(event.getNewName())) {</b>
+<b class="nc">&nbsp;            toEvict.add(AssetProfileCacheKey.forName(event.getTenantId(), event.getOldName()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        cache.evict(toEvict);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile findAssetProfileById(TenantId tenantId, AssetProfileId assetProfileId) {
+<b class="nc">&nbsp;        return findAssetProfileById(tenantId, assetProfileId, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile findAssetProfileById(TenantId tenantId, AssetProfileId assetProfileId, boolean putInCache) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetProfileById [{}]&quot;, assetProfileId);</b>
+<b class="nc">&nbsp;        Validator.validateId(assetProfileId, id -&gt; INCORRECT_ASSET_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        return cache.get(AssetProfileCacheKey.forId(assetProfileId),</b>
+<b class="nc">&nbsp;                () -&gt; assetProfileDao.findById(tenantId, assetProfileId.getId()), putInCache);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile findAssetProfileByName(TenantId tenantId, String profileName) {
+<b class="nc">&nbsp;        return findAssetProfileByName(tenantId, profileName, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile findAssetProfileByName(TenantId tenantId, String profileName, boolean putInCache) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetProfileByName [{}][{}]&quot;, tenantId, profileName);</b>
+<b class="nc">&nbsp;        Validator.validateString(profileName, s -&gt; INCORRECT_ASSET_PROFILE_NAME + s);</b>
+<b class="nc">&nbsp;        return cache.getOrFetchFromDB(AssetProfileCacheKey.forName(tenantId, profileName),</b>
+<b class="nc">&nbsp;                () -&gt; assetProfileDao.findByName(tenantId, profileName), false, putInCache);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfileInfo findAssetProfileInfoById(TenantId tenantId, AssetProfileId assetProfileId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetProfileInfoById [{}]&quot;, assetProfileId);</b>
+<b class="nc">&nbsp;        Validator.validateId(assetProfileId, id -&gt; INCORRECT_ASSET_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        return toAssetProfileInfo(findAssetProfileById(tenantId, assetProfileId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile saveAssetProfile(AssetProfile assetProfile) {
+<b class="nc">&nbsp;        return saveAssetProfile(assetProfile, true, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile saveAssetProfile(AssetProfile assetProfile, boolean doValidate, boolean publishSaveEvent) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveAssetProfile [{}]&quot;, assetProfile);</b>
+<b class="nc">&nbsp;        AssetProfile oldAssetProfile = null;</b>
+<b class="nc">&nbsp;        if (doValidate) {</b>
+<b class="nc">&nbsp;            oldAssetProfile = assetProfileValidator.validate(assetProfile, AssetProfile::getTenantId);</b>
+<b class="nc">&nbsp;        } else if (assetProfile.getId() != null) {</b>
+<b class="nc">&nbsp;            oldAssetProfile = findAssetProfileById(assetProfile.getTenantId(), assetProfile.getId(), false);</b>
+&nbsp;        }
+&nbsp;        AssetProfile savedAssetProfile;
+&nbsp;        try {
+<b class="nc">&nbsp;            imageService.replaceBase64WithImageUrl(assetProfile, &quot;asset profile&quot;);</b>
+<b class="nc">&nbsp;            savedAssetProfile = assetProfileDao.saveAndFlush(assetProfile.getTenantId(), assetProfile);</b>
+&nbsp;
+<b class="nc">&nbsp;            publishEvictEvent(new AssetProfileEvictEvent(savedAssetProfile.getTenantId(), savedAssetProfile.getName(),</b>
+<b class="nc">&nbsp;                    oldAssetProfile != null ? oldAssetProfile.getName() : null, savedAssetProfile.getId(), savedAssetProfile.isDefault(), savedAssetProfile));</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedAssetProfile.getTenantId()).entity(savedAssetProfile)</b>
+<b class="nc">&nbsp;                    .entityId(savedAssetProfile.getId()).created(oldAssetProfile == null).broadcastEvent(publishSaveEvent).build());</b>
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            handleEvictEvent(new AssetProfileEvictEvent(assetProfile.getTenantId(), assetProfile.getName(),</b>
+<b class="nc">&nbsp;                    oldAssetProfile != null ? oldAssetProfile.getName() : null, null, assetProfile.isDefault()));</b>
+<b class="nc">&nbsp;            checkConstraintViolation(t,</b>
+<b class="nc">&nbsp;                    Map.of(&quot;asset_profile_name_unq_key&quot;, ASSET_PROFILE_WITH_SUCH_NAME_ALREADY_EXISTS,</b>
+&nbsp;                            &quot;asset_profile_external_id_unq_key&quot;, &quot;Asset profile with such external id already exists!&quot;));
+&nbsp;            throw t;
+&nbsp;        }
+<b class="nc">&nbsp;        if (oldAssetProfile != null &amp;&amp; !oldAssetProfile.getName().equals(assetProfile.getName())) {</b>
+<b class="nc">&nbsp;            PageLink pageLink = new PageLink(100);</b>
+&nbsp;            PageData&lt;Asset&gt; pageData;
+&nbsp;            do {
+<b class="nc">&nbsp;                pageData = assetDao.findAssetsByTenantIdAndProfileId(assetProfile.getTenantId().getId(), assetProfile.getUuidId(), pageLink);</b>
+<b class="nc">&nbsp;                for (Asset asset : pageData.getData()) {</b>
+<b class="nc">&nbsp;                    asset.setType(assetProfile.getName());</b>
+<b class="nc">&nbsp;                    assetService.saveAsset(asset);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                pageLink = pageLink.nextPageLink();</b>
+<b class="nc">&nbsp;            } while (pageData.hasNext());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return savedAssetProfile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteAssetProfile(TenantId tenantId, AssetProfileId assetProfileId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteAssetProfile [{}]&quot;, assetProfileId);</b>
+<b class="nc">&nbsp;        Validator.validateId(assetProfileId, id -&gt; INCORRECT_ASSET_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        deleteEntity(tenantId, assetProfileId, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        AssetProfile assetProfile = assetProfileDao.findById(tenantId, id.getId());</b>
+<b class="nc">&nbsp;        if (assetProfile == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (!force &amp;&amp; assetProfile.isDefault()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Deletion of Default Asset Profile is prohibited!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        removeAssetProfile(tenantId, assetProfile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeAssetProfile(TenantId tenantId, AssetProfile assetProfile) {
+<b class="nc">&nbsp;        AssetProfileId assetProfileId = assetProfile.getId();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            assetProfileDao.removeById(tenantId, assetProfileId.getId());</b>
+<b class="nc">&nbsp;            publishEvictEvent(new AssetProfileEvictEvent(assetProfile.getTenantId(), assetProfile.getName(),</b>
+<b class="nc">&nbsp;                    null, assetProfile.getId(), assetProfile.isDefault()));</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(assetProfileId).build());</b>
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);</b>
+<b class="nc">&nbsp;            if (e != null &amp;&amp; e.getConstraintName() != null &amp;&amp; e.getConstraintName().equalsIgnoreCase(&quot;fk_asset_profile&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;The asset profile referenced by the assets cannot be deleted!&quot;);</b>
+&nbsp;            } else {
+&nbsp;                throw t;
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetProfile&gt; findAssetProfiles(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetProfiles tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetProfileDao.findAssetProfiles(tenantId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetProfileInfo&gt; findAssetProfileInfos(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetProfileInfos tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetProfileDao.findAssetProfileInfos(tenantId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile findOrCreateAssetProfile(TenantId tenantId, String name) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findOrCreateAssetProfile&quot;);</b>
+<b class="nc">&nbsp;        AssetProfile assetProfile = findAssetProfileByName(tenantId, name, false);</b>
+<b class="nc">&nbsp;        if (assetProfile == null) {</b>
+<b class="nc">&nbsp;            boolean isDefault = &quot;default&quot;.equals(name) &amp;&amp; findDefaultAssetProfile(tenantId) == null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                assetProfile = this.doCreateAssetProfile(tenantId, name, isDefault, true);</b>
+&nbsp;            } catch (DataValidationException e) {
+<b class="nc">&nbsp;                if (ASSET_PROFILE_WITH_SUCH_NAME_ALREADY_EXISTS.equals(e.getMessage())) {</b>
+<b class="nc">&nbsp;                    assetProfile = findAssetProfileByName(tenantId, name, false);</b>
+&nbsp;                } else {
+&nbsp;                    throw e;
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return assetProfile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile createDefaultAssetProfile(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing createDefaultAssetProfile tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        return doCreateAssetProfile(tenantId, &quot;default&quot;, true, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AssetProfile doCreateAssetProfile(TenantId tenantId, String profileName, boolean defaultProfile, boolean publishSaveEvent) {
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        AssetProfile assetProfile = new AssetProfile();</b>
+<b class="nc">&nbsp;        assetProfile.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        assetProfile.setDefault(defaultProfile);</b>
+<b class="nc">&nbsp;        assetProfile.setName(profileName);</b>
+<b class="nc">&nbsp;        assetProfile.setDescription(&quot;Default asset profile&quot;);</b>
+<b class="nc">&nbsp;        return saveAssetProfile(assetProfile, true, publishSaveEvent);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfile findDefaultAssetProfile(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDefaultAssetProfile tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return cache.getAndPutInTransaction(AssetProfileCacheKey.forDefaultProfile(tenantId),</b>
+<b class="nc">&nbsp;                () -&gt; assetProfileDao.findDefaultAssetProfile(tenantId), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfileInfo findDefaultAssetProfileInfo(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findDefaultAssetProfileInfo tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return toAssetProfileInfo(findDefaultAssetProfile(tenantId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean setDefaultAssetProfile(TenantId tenantId, AssetProfileId assetProfileId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing setDefaultAssetProfile [{}]&quot;, assetProfileId);</b>
+<b class="nc">&nbsp;        Validator.validateId(assetProfileId, id -&gt; INCORRECT_ASSET_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        AssetProfile assetProfile = assetProfileDao.findById(tenantId, assetProfileId.getId());</b>
+<b class="nc">&nbsp;        if (!assetProfile.isDefault()) {</b>
+<b class="nc">&nbsp;            assetProfile.setDefault(true);</b>
+<b class="nc">&nbsp;            AssetProfile previousDefaultAssetProfile = findDefaultAssetProfile(tenantId);</b>
+<b class="nc">&nbsp;            boolean changed = false;</b>
+<b class="nc">&nbsp;            if (previousDefaultAssetProfile == null) {</b>
+<b class="nc">&nbsp;                assetProfileDao.save(tenantId, assetProfile);</b>
+<b class="nc">&nbsp;                publishEvictEvent(new AssetProfileEvictEvent(assetProfile.getTenantId(), assetProfile.getName(), null, assetProfile.getId(), true));</b>
+<b class="nc">&nbsp;                changed = true;</b>
+<b class="nc">&nbsp;            } else if (!previousDefaultAssetProfile.getId().equals(assetProfile.getId())) {</b>
+<b class="nc">&nbsp;                previousDefaultAssetProfile.setDefault(false);</b>
+<b class="nc">&nbsp;                assetProfileDao.save(tenantId, previousDefaultAssetProfile);</b>
+<b class="nc">&nbsp;                assetProfileDao.save(tenantId, assetProfile);</b>
+<b class="nc">&nbsp;                publishEvictEvent(new AssetProfileEvictEvent(previousDefaultAssetProfile.getTenantId(), previousDefaultAssetProfile.getName(), null, previousDefaultAssetProfile.getId(), false));</b>
+<b class="nc">&nbsp;                publishEvictEvent(new AssetProfileEvictEvent(assetProfile.getTenantId(), assetProfile.getName(), null, assetProfile.getId(), true));</b>
+<b class="nc">&nbsp;                changed = true;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return changed;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteAssetProfilesByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteAssetProfilesByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        tenantAssetProfilesRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteAssetProfilesByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findAssetProfileById(tenantId, new AssetProfileId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(assetProfileDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.ASSET_PROFILE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityInfo&gt; findAssetProfileNamesByTenantId(TenantId tenantId, boolean activeOnly) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetProfileNamesByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return assetProfileDao.findTenantAssetProfileNames(tenantId.getId(), activeOnly)</b>
+<b class="nc">&nbsp;                .stream().sorted(Comparator.comparing(EntityInfo::getName))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;AssetProfileInfo&gt; findAssetProfilesByIds(TenantId tenantId, List&lt;AssetProfileId&gt; assetProfileIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetProfilesByIds, tenantId [{}], assetProfileIds [{}]&quot;, tenantId, assetProfileIds);</b>
+<b class="nc">&nbsp;        return assetProfileDao.findAssetProfilesByTenantIdAndIds(tenantId.getId(), toUUIDs(assetProfileIds));</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, AssetProfile&gt; tenantAssetProfilesRemover =</b>
+<b class="nc">&nbsp;            new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;                @Override
+&nbsp;                protected PageData&lt;AssetProfile&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;                    return assetProfileDao.findAssetProfiles(id, pageLink);</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                @Override
+&nbsp;                protected void removeEntity(TenantId tenantId, AssetProfile entity) {
+<b class="nc">&nbsp;                    removeAssetProfile(tenantId, entity);</b>
+&nbsp;                }
+&nbsp;            };
+&nbsp;
+&nbsp;    private AssetProfileInfo toAssetProfileInfo(AssetProfile profile) {
+<b class="nc">&nbsp;        return profile == null ? null : new AssetProfileInfo(profile.getId(), profile.getTenantId(), profile.getName(), profile.getImage(),</b>
+<b class="nc">&nbsp;                profile.getDefaultDashboardId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

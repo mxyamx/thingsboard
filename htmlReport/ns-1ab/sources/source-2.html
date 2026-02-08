@@ -1,0 +1,348 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultSlackService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.notification.provider</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultSlackService (org.thingsboard.server.service.notification.provider)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultSlackService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/89)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.notification.provider;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.github.benmanes.caffeine.cache.Cache;
+&nbsp;import com.github.benmanes.caffeine.cache.Caffeine;
+&nbsp;import com.slack.api.Slack;
+&nbsp;import com.slack.api.methods.MethodsClient;
+&nbsp;import com.slack.api.methods.SlackApiRequest;
+&nbsp;import com.slack.api.methods.SlackApiTextResponse;
+&nbsp;import com.slack.api.methods.SlackFilesUploadV2Exception;
+&nbsp;import com.slack.api.methods.request.chat.ChatPostMessageRequest;
+&nbsp;import com.slack.api.methods.request.conversations.ConversationsListRequest;
+&nbsp;import com.slack.api.methods.request.conversations.ConversationsOpenRequest;
+&nbsp;import com.slack.api.methods.request.files.FilesUploadV2Request;
+&nbsp;import com.slack.api.methods.request.users.UsersListRequest;
+&nbsp;import com.slack.api.methods.response.conversations.ConversationsListResponse;
+&nbsp;import com.slack.api.methods.response.users.UsersListResponse;
+&nbsp;import com.slack.api.model.ConversationType;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.notification.SlackService;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+&nbsp;import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
+&nbsp;import org.thingsboard.server.common.data.notification.settings.SlackNotificationDeliveryMethodConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.slack.SlackConversation;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.slack.SlackConversationType;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.slack.SlackFile;
+&nbsp;import org.thingsboard.server.common.data.util.CollectionsUtil;
+&nbsp;import org.thingsboard.server.common.data.util.ThrowingBiFunction;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationSettingsService;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultSlackService implements SlackService {
+&nbsp;
+&nbsp;    private final NotificationSettingsService notificationSettingsService;
+&nbsp;
+&nbsp;    private final Slack slack = Slack.getInstance();
+&nbsp;    private final Cache&lt;String, List&lt;SlackConversation&gt;&gt; cache = Caffeine.newBuilder()
+&nbsp;            .expireAfterWrite(20, TimeUnit.SECONDS)
+&nbsp;            .maximumSize(100)
+&nbsp;            .build();
+&nbsp;    private static final int CONVERSATIONS_LOAD_LIMIT = 1000;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendMessage(TenantId tenantId, String token, String conversationId, String message) {
+<b class="nc">&nbsp;        sendMessage(tenantId, token, conversationId, message, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendMessage(TenantId tenantId, String token, String conversationId, String message, List&lt;SlackFile&gt; files) {
+<b class="nc">&nbsp;        if (CollectionsUtil.isNotEmpty(files)) {</b>
+<b class="nc">&nbsp;            if (conversationId.startsWith(&quot;U&quot;)) { // direct message</b>
+&nbsp;                /*
+&nbsp;                 * files.uploadV2 requires an existing channel ID, while chat.postMessage auto‑opens DMs
+&nbsp;                 * */
+<b class="nc">&nbsp;                conversationId = sendRequest(token, ConversationsOpenRequest.builder()</b>
+<b class="nc">&nbsp;                        .users(List.of(conversationId))</b>
+<b class="nc">&nbsp;                        .build(), MethodsClient::conversationsOpen).getChannel().getId();</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            FilesUploadV2Request request = FilesUploadV2Request.builder()</b>
+<b class="nc">&nbsp;                    .initialComment(message)</b>
+<b class="nc">&nbsp;                    .channel(conversationId)</b>
+<b class="nc">&nbsp;                    .uploadFiles(files.stream()</b>
+<b class="nc">&nbsp;                            .map(file -&gt; FilesUploadV2Request.UploadFile.builder()</b>
+<b class="nc">&nbsp;                                    .filename(file.getName())</b>
+<b class="nc">&nbsp;                                    .title(file.getName())</b>
+<b class="nc">&nbsp;                                    .fileData(file.getData())</b>
+<b class="nc">&nbsp;                                    .build())</b>
+<b class="nc">&nbsp;                            .toList())</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            sendRequest(token, request, MethodsClient::filesUploadV2);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ChatPostMessageRequest request = ChatPostMessageRequest.builder()</b>
+<b class="nc">&nbsp;                    .channel(conversationId)</b>
+<b class="nc">&nbsp;                    .text(message)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            sendRequest(token, request, MethodsClient::chatPostMessage);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;SlackConversation&gt; listConversations(TenantId tenantId, String token, SlackConversationType conversationType) {
+<b class="nc">&nbsp;        return cache.get(conversationType + &quot;:&quot; + token, k -&gt; {</b>
+<b class="nc">&nbsp;            if (conversationType == SlackConversationType.DIRECT) {</b>
+<b class="nc">&nbsp;                UsersListRequest request = UsersListRequest.builder()</b>
+<b class="nc">&nbsp;                        .limit(CONVERSATIONS_LOAD_LIMIT)</b>
+<b class="nc">&nbsp;                        .build();</b>
+&nbsp;
+<b class="nc">&nbsp;                UsersListResponse response = sendRequest(token, request, MethodsClient::usersList);</b>
+<b class="nc">&nbsp;                return response.getMembers().stream()</b>
+<b class="nc">&nbsp;                        .filter(user -&gt; !user.isDeleted() &amp;&amp; !user.isStranger() &amp;&amp; !user.isBot())</b>
+<b class="nc">&nbsp;                        .map(user -&gt; {</b>
+<b class="nc">&nbsp;                            SlackConversation conversation = new SlackConversation();</b>
+<b class="nc">&nbsp;                            conversation.setType(conversationType);</b>
+<b class="nc">&nbsp;                            conversation.setId(user.getId());</b>
+<b class="nc">&nbsp;                            conversation.setName(user.getName());</b>
+<b class="nc">&nbsp;                            conversation.setWholeName(user.getProfile() != null ? user.getProfile().getRealNameNormalized() : user.getRealName());</b>
+<b class="nc">&nbsp;                            conversation.setEmail(user.getProfile() != null ? user.getProfile().getEmail() : null);</b>
+<b class="nc">&nbsp;                            return conversation;</b>
+&nbsp;                        })
+<b class="nc">&nbsp;                        .collect(Collectors.toList());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                ConversationsListRequest request = ConversationsListRequest.builder()</b>
+<b class="nc">&nbsp;                        .types(List.of(conversationType == SlackConversationType.PUBLIC_CHANNEL ?</b>
+<b class="nc">&nbsp;                                ConversationType.PUBLIC_CHANNEL :</b>
+<b class="nc">&nbsp;                                ConversationType.PRIVATE_CHANNEL))</b>
+<b class="nc">&nbsp;                        .limit(CONVERSATIONS_LOAD_LIMIT)</b>
+<b class="nc">&nbsp;                        .excludeArchived(true)</b>
+<b class="nc">&nbsp;                        .build();</b>
+&nbsp;
+<b class="nc">&nbsp;                ConversationsListResponse response = sendRequest(token, request, MethodsClient::conversationsList);</b>
+<b class="nc">&nbsp;                return response.getChannels().stream()</b>
+<b class="nc">&nbsp;                        .filter(channel -&gt; !channel.isArchived())</b>
+<b class="nc">&nbsp;                        .map(channel -&gt; {</b>
+<b class="nc">&nbsp;                            SlackConversation conversation = new SlackConversation();</b>
+<b class="nc">&nbsp;                            conversation.setType(conversationType);</b>
+<b class="nc">&nbsp;                            conversation.setId(channel.getId());</b>
+<b class="nc">&nbsp;                            conversation.setName(channel.getName());</b>
+<b class="nc">&nbsp;                            conversation.setWholeName(channel.getNameNormalized());</b>
+<b class="nc">&nbsp;                            return conversation;</b>
+&nbsp;                        })
+<b class="nc">&nbsp;                        .collect(Collectors.toList());</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getToken(TenantId tenantId) {
+<b class="nc">&nbsp;        NotificationSettings settings = notificationSettingsService.findNotificationSettings(tenantId);</b>
+<b class="nc">&nbsp;        SlackNotificationDeliveryMethodConfig slackConfig = (SlackNotificationDeliveryMethodConfig)</b>
+<b class="nc">&nbsp;                settings.getDeliveryMethodsConfigs().get(NotificationDeliveryMethod.SLACK);</b>
+<b class="nc">&nbsp;        if (slackConfig != null) {</b>
+<b class="nc">&nbsp;            return slackConfig.getBotToken();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T extends SlackApiRequest, R extends SlackApiTextResponse&gt; R sendRequest(String token, T request, ThrowingBiFunction&lt;MethodsClient, T, R&gt; method) {
+<b class="nc">&nbsp;        MethodsClient client = slack.methods(token);</b>
+&nbsp;        R response;
+&nbsp;        try {
+<b class="nc">&nbsp;            response = method.apply(client, request);</b>
+&nbsp;        } catch (SlackFilesUploadV2Exception e) {
+<b class="nc">&nbsp;            if (e.getGetURLResponses() != null) {</b>
+<b class="nc">&nbsp;                e.getGetURLResponses().forEach(this::checkResponse);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (e.getCompleteResponse() != null) {</b>
+<b class="nc">&nbsp;                checkResponse(e.getCompleteResponse());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (e.getFileInfoResponses() != null) {</b>
+<b class="nc">&nbsp;                e.getFileInfoResponses().forEach(this::checkResponse);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Failed to upload Slack file: &quot; + e.toString(), e);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        checkResponse(response);</b>
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private void checkResponse(SlackApiTextResponse response) {
+<b class="nc">&nbsp;        if (response.isOk()) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String error = response.getError();</b>
+<b class="nc">&nbsp;        if (error != null) {</b>
+<b class="nc">&nbsp;            switch (error) {</b>
+&nbsp;                case &quot;missing_scope&quot; -&gt; {
+<b class="nc">&nbsp;                    String neededScope = response.getNeeded();</b>
+<b class="nc">&nbsp;                    error = &quot;bot token scope &#39;&quot; + neededScope + &quot;&#39; is needed&quot;;</b>
+&nbsp;                }
+&nbsp;                case &quot;not_in_channel&quot; -&gt; {
+<b class="nc">&nbsp;                    error = &quot;app needs to be added to the channel&quot;;</b>
+&nbsp;                }
+&nbsp;                default -&gt; {
+<b class="nc">&nbsp;                    error = null;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (error == null) {</b>
+<b class="nc">&nbsp;            ObjectNode responseJson = (ObjectNode) JacksonUtil.valueToTree(response);</b>
+<b class="nc">&nbsp;            responseJson.remove(&quot;httpResponseHeaders&quot;);</b>
+<b class="nc">&nbsp;            error = responseJson.toString();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        throw new RuntimeException(&quot;Slack API error: &quot; + error);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

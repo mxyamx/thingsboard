@@ -1,0 +1,547 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MqttChannelHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.mqtt</a>
+</div>
+
+<h1>Coverage Summary for Class: MqttChannelHandler (org.thingsboard.mqtt)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MqttChannelHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/84)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/166)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">MqttChannelHandler$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">MqttChannelHandler$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/84)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/172)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.mqtt;
+&nbsp;
+&nbsp;import com.google.common.collect.ImmutableSet;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import io.netty.channel.Channel;
+&nbsp;import io.netty.channel.ChannelHandlerContext;
+&nbsp;import io.netty.channel.SimpleChannelInboundHandler;
+&nbsp;import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttConnectMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttConnectPayload;
+&nbsp;import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+&nbsp;import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
+&nbsp;import io.netty.handler.codec.mqtt.MqttFixedHeader;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessageType;
+&nbsp;import io.netty.handler.codec.mqtt.MqttPubAckMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttPublishMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttQoS;
+&nbsp;import io.netty.handler.codec.mqtt.MqttSubAckMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
+&nbsp;import io.netty.util.CharsetUtil;
+&nbsp;import io.netty.util.ReferenceCountUtil;
+&nbsp;import io.netty.util.concurrent.Promise;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;final class MqttChannelHandler extends SimpleChannelInboundHandler&lt;MqttMessage&gt; {
+&nbsp;
+&nbsp;    private final MqttClientImpl client;
+&nbsp;    private final Promise&lt;MqttConnectResult&gt; connectFuture;
+&nbsp;
+<b class="nc">&nbsp;    MqttChannelHandler(MqttClientImpl client, Promise&lt;MqttConnectResult&gt; connectFuture) {</b>
+<b class="nc">&nbsp;        this.client = client;</b>
+<b class="nc">&nbsp;        this.connectFuture = connectFuture;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) {
+<b class="nc">&nbsp;        if (msg.decoderResult().isSuccess()) {</b>
+<b class="nc">&nbsp;            switch (msg.fixedHeader().messageType()) {</b>
+&nbsp;                case CONNACK:
+<b class="nc">&nbsp;                    handleConack(ctx.channel(), (MqttConnAckMessage) msg);</b>
+&nbsp;                    break;
+&nbsp;                case SUBACK:
+<b class="nc">&nbsp;                    handleSubAck((MqttSubAckMessage) msg);</b>
+&nbsp;                    break;
+&nbsp;                case PUBLISH:
+<b class="nc">&nbsp;                    handlePublish(ctx.channel(), (MqttPublishMessage) msg);</b>
+&nbsp;                    break;
+&nbsp;                case UNSUBACK:
+<b class="nc">&nbsp;                    handleUnsuback((MqttUnsubAckMessage) msg);</b>
+&nbsp;                    break;
+&nbsp;                case PUBACK:
+<b class="nc">&nbsp;                    handlePuback((MqttPubAckMessage) msg);</b>
+&nbsp;                    break;
+&nbsp;                case PUBREC:
+<b class="nc">&nbsp;                    handlePubrec(ctx.channel(), msg);</b>
+&nbsp;                    break;
+&nbsp;                case PUBREL:
+<b class="nc">&nbsp;                    handlePubrel(ctx.channel(), msg);</b>
+&nbsp;                    break;
+&nbsp;                case PUBCOMP:
+<b class="nc">&nbsp;                    handlePubcomp(msg);</b>
+&nbsp;                    break;
+&nbsp;                case DISCONNECT:
+<b class="nc">&nbsp;                    handleDisconnect(msg);</b>
+&nbsp;                    break;
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Message decoding failed: {}&quot;, client.getClientConfig().getClientId(), msg.decoderResult().cause().getMessage());</b>
+<b class="nc">&nbsp;            ctx.close();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+<b class="nc">&nbsp;        super.channelActive(ctx);</b>
+&nbsp;
+<b class="nc">&nbsp;        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);</b>
+<b class="nc">&nbsp;        MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getProtocolVersion().protocolName(),  // Protocol Name</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getProtocolVersion().protocolLevel(), // Protocol Level</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getUsername() != null,                // Has Username</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getPassword() != null,                // Has Password</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getLastWill() != null                 // Will Retain</b>
+<b class="nc">&nbsp;                        &amp;&amp; this.client.getClientConfig().getLastWill().isRetain(),</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getLastWill() != null                 // Will QOS</b>
+<b class="nc">&nbsp;                        ? this.client.getClientConfig().getLastWill().getQos().value()</b>
+<b class="nc">&nbsp;                        : 0,</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getLastWill() != null,                // Has Will</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().isCleanSession(),                     // Clean Session</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getTimeoutSeconds()                   // Timeout</b>
+&nbsp;        );
+<b class="nc">&nbsp;        MqttConnectPayload payload = new MqttConnectPayload(</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getClientId(),</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getLastWill() != null ? this.client.getClientConfig().getLastWill().getTopic() : null,</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getLastWill() != null ? this.client.getClientConfig().getLastWill().getMessage().getBytes(CharsetUtil.UTF_8) : null,</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getUsername(),</b>
+<b class="nc">&nbsp;                this.client.getClientConfig().getPassword() != null ? this.client.getClientConfig().getPassword().getBytes(CharsetUtil.UTF_8) : null</b>
+&nbsp;        );
+<b class="nc">&nbsp;        log.debug(&quot;{} Sending CONNECT&quot;, client.getClientConfig().getOwnerId());</b>
+<b class="nc">&nbsp;        ctx.channel().writeAndFlush(new MqttConnectMessage(fixedHeader, variableHeader, payload));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+<b class="nc">&nbsp;        super.channelInactive(ctx);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    ListenableFuture&lt;Void&gt; invokeHandlersForIncomingPublish(MqttPublishMessage message) {
+<b class="nc">&nbsp;        var future = Futures.immediateVoidFuture();</b>
+<b class="nc">&nbsp;        var handlerInvoked = new AtomicBoolean();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            for (MqttSubscription subscription : ImmutableSet.copyOf(this.client.getSubscriptions().values())) {</b>
+<b class="nc">&nbsp;                if (subscription.matches(message.variableHeader().topicName())) {</b>
+<b class="nc">&nbsp;                    future = Futures.transform(future, x -&gt; {</b>
+<b class="nc">&nbsp;                        if (subscription.isOnce() &amp;&amp; subscription.isCalled()) {</b>
+<b class="nc">&nbsp;                            return null;</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        message.payload().markReaderIndex();</b>
+<b class="nc">&nbsp;                        subscription.setCalled(true);</b>
+<b class="nc">&nbsp;                        subscription.getHandler().onMessage(message.variableHeader().topicName(), message.payload());</b>
+<b class="nc">&nbsp;                        if (subscription.isOnce()) {</b>
+<b class="nc">&nbsp;                            this.client.off(subscription.getTopic(), subscription.getHandler());</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        message.payload().resetReaderIndex();</b>
+<b class="nc">&nbsp;                        handlerInvoked.set(true);</b>
+<b class="nc">&nbsp;                        return null;</b>
+<b class="nc">&nbsp;                    }, client.getHandlerExecutor());</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            future = Futures.transform(future, x -&gt; {</b>
+<b class="nc">&nbsp;                if (!handlerInvoked.get() &amp;&amp; client.getDefaultHandler() != null) {</b>
+<b class="nc">&nbsp;                    client.getDefaultHandler().onMessage(message.variableHeader().topicName(), message.payload());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return null;</b>
+<b class="nc">&nbsp;            }, client.getHandlerExecutor());</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            Futures.addCallback(future, new FutureCallback&lt;&gt;() {</b>
+&nbsp;                @Override
+&nbsp;                public void onSuccess(Void result) {
+<b class="nc">&nbsp;                    message.payload().release();</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                @Override
+&nbsp;                public void onFailure(Throwable t) {
+<b class="nc">&nbsp;                    message.payload().release();</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }, MoreExecutors.directExecutor());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return future;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleConack(Channel channel, MqttConnAckMessage message) {
+<b class="nc">&nbsp;        log.debug(&quot;{} Handling CONNACK&quot;, client.getClientConfig().getOwnerId());</b>
+<b class="nc">&nbsp;        switch (message.variableHeader().connectReturnCode()) {</b>
+&nbsp;            case CONNECTION_ACCEPTED:
+<b class="nc">&nbsp;                this.connectFuture.setSuccess(new MqttConnectResult(true, MqttConnectReturnCode.CONNECTION_ACCEPTED, channel.closeFuture()));</b>
+&nbsp;
+<b class="nc">&nbsp;                this.client.getPendingSubscriptions().entrySet().stream().filter((e) -&gt; !e.getValue().isSent()).forEach((e) -&gt; {</b>
+<b class="nc">&nbsp;                    channel.write(e.getValue().getSubscribeMessage());</b>
+<b class="nc">&nbsp;                    e.getValue().setSent(true);</b>
+&nbsp;                });
+&nbsp;
+<b class="nc">&nbsp;                this.client.getPendingPublishes().forEach((id, publish) -&gt; {</b>
+<b class="nc">&nbsp;                    if (publish.isSent()) return;</b>
+<b class="nc">&nbsp;                    channel.write(publish.getMessage());</b>
+<b class="nc">&nbsp;                    publish.setSent(true);</b>
+<b class="nc">&nbsp;                    if (publish.getQos() == MqttQoS.AT_MOST_ONCE) {</b>
+<b class="nc">&nbsp;                        publish.getFuture().setSuccess(null); //We don&#39;t get an ACK for QOS 0</b>
+<b class="nc">&nbsp;                        this.client.getPendingPublishes().remove(publish.getMessageId());</b>
+&nbsp;                    }
+&nbsp;                });
+<b class="nc">&nbsp;                channel.flush();</b>
+<b class="nc">&nbsp;                if (this.client.isReconnect()) {</b>
+<b class="nc">&nbsp;                    this.client.onSuccessfulReconnect();</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;
+&nbsp;            case CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD:
+&nbsp;            case CONNECTION_REFUSED_IDENTIFIER_REJECTED:
+&nbsp;            case CONNECTION_REFUSED_NOT_AUTHORIZED:
+&nbsp;            case CONNECTION_REFUSED_SERVER_UNAVAILABLE:
+&nbsp;            case CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION:
+<b class="nc">&nbsp;                this.connectFuture.setSuccess(new MqttConnectResult(false, message.variableHeader().connectReturnCode(), channel.closeFuture()));</b>
+<b class="nc">&nbsp;                channel.close();</b>
+&nbsp;                // Don&#39;t start reconnect logic here
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        if (this.client.getCallback() != null) {</b>
+<b class="nc">&nbsp;            this.client.getCallback().onConnAck(message);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleSubAck(MqttSubAckMessage message) {
+<b class="nc">&nbsp;        MqttPendingSubscription pendingSubscription = this.client.getPendingSubscriptions().remove(message.variableHeader().messageId());</b>
+<b class="nc">&nbsp;        if (pendingSubscription == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        pendingSubscription.onSubackReceived();</b>
+<b class="nc">&nbsp;        for (MqttPendingSubscription.MqttPendingHandler handler : pendingSubscription.getHandlers()) {</b>
+<b class="nc">&nbsp;            MqttSubscription subscription = new MqttSubscription(pendingSubscription.getTopic(), handler.handler(), handler.once());</b>
+<b class="nc">&nbsp;            this.client.getSubscriptions().put(pendingSubscription.getTopic(), subscription);</b>
+<b class="nc">&nbsp;            this.client.getHandlerToSubscription().put(handler.handler(), subscription);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        this.client.getPendingSubscribeTopics().remove(pendingSubscription.getTopic());</b>
+&nbsp;
+<b class="nc">&nbsp;        this.client.getServerSubscriptions().add(pendingSubscription.getTopic());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!pendingSubscription.getFuture().isDone()) {</b>
+<b class="nc">&nbsp;            pendingSubscription.getFuture().setSuccess(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (this.client.getCallback() != null) {</b>
+<b class="nc">&nbsp;            this.client.getCallback().onSubAck(message);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handlePublish(Channel channel, MqttPublishMessage message) {
+<b class="nc">&nbsp;        switch (message.fixedHeader().qosLevel()) {</b>
+&nbsp;            case AT_MOST_ONCE:
+<b class="nc">&nbsp;                invokeHandlersForIncomingPublish(message);</b>
+&nbsp;                break;
+&nbsp;
+&nbsp;            case AT_LEAST_ONCE:
+<b class="nc">&nbsp;                var future = invokeHandlersForIncomingPublish(message);</b>
+<b class="nc">&nbsp;                if (message.variableHeader().packetId() != -1) {</b>
+<b class="nc">&nbsp;                    future.addListener(() -&gt; {</b>
+<b class="nc">&nbsp;                        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);</b>
+<b class="nc">&nbsp;                        MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(message.variableHeader().packetId());</b>
+<b class="nc">&nbsp;                        channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, variableHeader));</b>
+<b class="nc">&nbsp;                    }, MoreExecutors.directExecutor());</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;
+&nbsp;            case EXACTLY_ONCE:
+<b class="nc">&nbsp;                if (message.variableHeader().packetId() != -1) {</b>
+<b class="nc">&nbsp;                    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREC, false, MqttQoS.AT_MOST_ONCE, false, 0);</b>
+<b class="nc">&nbsp;                    MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(message.variableHeader().packetId());</b>
+<b class="nc">&nbsp;                    MqttMessage pubrecMessage = new MqttMessage(fixedHeader, variableHeader);</b>
+&nbsp;
+<b class="nc">&nbsp;                    MqttIncomingQos2Publish incomingQos2Publish = new MqttIncomingQos2Publish(message);</b>
+<b class="nc">&nbsp;                    this.client.getQos2PendingIncomingPublishes().put(message.variableHeader().packetId(), incomingQos2Publish);</b>
+&nbsp;
+<b class="nc">&nbsp;                    channel.writeAndFlush(pubrecMessage);</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleUnsuback(MqttUnsubAckMessage message) {
+<b class="nc">&nbsp;        MqttPendingUnsubscription unsubscription = this.client.getPendingServerUnsubscribes().get(message.variableHeader().messageId());</b>
+<b class="nc">&nbsp;        if (unsubscription == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        unsubscription.onUnsubackReceived();</b>
+<b class="nc">&nbsp;        this.client.getServerSubscriptions().remove(unsubscription.getTopic());</b>
+<b class="nc">&nbsp;        unsubscription.getFuture().setSuccess(null);</b>
+<b class="nc">&nbsp;        this.client.getPendingServerUnsubscribes().remove(message.variableHeader().messageId());</b>
+<b class="nc">&nbsp;        if (this.client.getCallback() != null) {</b>
+<b class="nc">&nbsp;            this.client.getCallback().onUnsubAck(message);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handlePuback(MqttPubAckMessage message) {
+<b class="nc">&nbsp;        log.trace(&quot;{} Handling PUBACK&quot;, client.getClientConfig().getOwnerId());</b>
+<b class="nc">&nbsp;        client.getPendingPublishes().computeIfPresent(message.variableHeader().messageId(), (__, pendingPublish) -&gt; {</b>
+<b class="nc">&nbsp;            pendingPublish.getFuture().setSuccess(null);</b>
+<b class="nc">&nbsp;            pendingPublish.onPubackReceived();</b>
+<b class="nc">&nbsp;            pendingPublish.getPayload().release();</b>
+<b class="nc">&nbsp;            if (client.getCallback() != null) {</b>
+<b class="nc">&nbsp;                client.getCallback().onPubAck(message);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handlePubrec(Channel channel, MqttMessage message) {
+<b class="nc">&nbsp;        MqttPendingPublish pendingPublish = this.client.getPendingPublishes().get(((MqttMessageIdVariableHeader) message.variableHeader()).messageId());</b>
+<b class="nc">&nbsp;        pendingPublish.onPubackReceived();</b>
+&nbsp;
+<b class="nc">&nbsp;        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false, 0);</b>
+<b class="nc">&nbsp;        MqttMessageIdVariableHeader variableHeader = (MqttMessageIdVariableHeader) message.variableHeader();</b>
+<b class="nc">&nbsp;        MqttMessage pubrelMessage = new MqttMessage(fixedHeader, variableHeader);</b>
+<b class="nc">&nbsp;        channel.writeAndFlush(pubrelMessage);</b>
+&nbsp;
+<b class="nc">&nbsp;        pendingPublish.setPubrelMessage(pubrelMessage);</b>
+<b class="nc">&nbsp;        pendingPublish.startPubrelRetransmissionTimer(this.client.getEventLoop().next(), this.client::sendAndFlushPacket);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handlePubrel(Channel channel, MqttMessage message) {
+<b class="nc">&nbsp;        var future = Futures.immediateVoidFuture();</b>
+<b class="nc">&nbsp;        if (this.client.getQos2PendingIncomingPublishes().containsKey(((MqttMessageIdVariableHeader) message.variableHeader()).messageId())) {</b>
+<b class="nc">&nbsp;            MqttIncomingQos2Publish incomingQos2Publish = this.client.getQos2PendingIncomingPublishes().get(((MqttMessageIdVariableHeader) message.variableHeader()).messageId());</b>
+<b class="nc">&nbsp;            future = invokeHandlersForIncomingPublish(incomingQos2Publish.getIncomingPublish());</b>
+<b class="nc">&nbsp;            future = Futures.transform(future, x -&gt; {</b>
+<b class="nc">&nbsp;                this.client.getQos2PendingIncomingPublishes().remove(incomingQos2Publish.getIncomingPublish().variableHeader().packetId());</b>
+<b class="nc">&nbsp;                return null;</b>
+<b class="nc">&nbsp;            }, MoreExecutors.directExecutor());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        future.addListener(() -&gt; {</b>
+<b class="nc">&nbsp;            MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBCOMP, false, MqttQoS.AT_MOST_ONCE, false, 0);</b>
+<b class="nc">&nbsp;            MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(((MqttMessageIdVariableHeader) message.variableHeader()).messageId());</b>
+<b class="nc">&nbsp;            channel.writeAndFlush(new MqttMessage(fixedHeader, variableHeader));</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handlePubcomp(MqttMessage message) {
+<b class="nc">&nbsp;        MqttMessageIdVariableHeader variableHeader = (MqttMessageIdVariableHeader) message.variableHeader();</b>
+<b class="nc">&nbsp;        MqttPendingPublish pendingPublish = this.client.getPendingPublishes().get(variableHeader.messageId());</b>
+<b class="nc">&nbsp;        pendingPublish.getFuture().setSuccess(null);</b>
+<b class="nc">&nbsp;        this.client.getPendingPublishes().remove(variableHeader.messageId());</b>
+<b class="nc">&nbsp;        pendingPublish.getPayload().release();</b>
+<b class="nc">&nbsp;        pendingPublish.onPubcompReceived();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleDisconnect(MqttMessage message) {
+<b class="nc">&nbsp;        log.debug(&quot;{} Handling DISCONNECT&quot;, client.getClientConfig().getOwnerId());</b>
+<b class="nc">&nbsp;        if (this.client.getCallback() != null) {</b>
+<b class="nc">&nbsp;            this.client.getCallback().onDisconnect(message);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (cause instanceof IOException) {</b>
+<b class="nc">&nbsp;                if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] IOException: &quot;, client.getClientConfig().getOwnerId(), cause);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.info(&quot;[{}] IOException: {}&quot;, client.getClientConfig().getOwnerId(), cause.getMessage());</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] exceptionCaught&quot;, client.getClientConfig().getOwnerId(), cause);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            ReferenceCountUtil.release(cause);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

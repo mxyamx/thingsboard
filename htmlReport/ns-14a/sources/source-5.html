@@ -1,0 +1,410 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbKafkaConsumerTemplate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.kafka</a>
+</div>
+
+<h1>Coverage Summary for Class: TbKafkaConsumerTemplate (org.thingsboard.server.queue.kafka)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbKafkaConsumerTemplate</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/89)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbKafkaConsumerTemplate$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/93)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.kafka;
+&nbsp;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.kafka.clients.consumer.ConsumerConfig;
+&nbsp;import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+&nbsp;import org.apache.kafka.clients.consumer.ConsumerRecord;
+&nbsp;import org.apache.kafka.clients.consumer.ConsumerRecords;
+&nbsp;import org.apache.kafka.clients.consumer.KafkaConsumer;
+&nbsp;import org.apache.kafka.common.TopicPartition;
+&nbsp;import org.springframework.util.StopWatch;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.queue.TbQueueAdmin;
+&nbsp;import org.thingsboard.server.queue.TbQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.AbstractTbQueueConsumerTemplate;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.time.Duration;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Properties;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.IntStream;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 24.09.18.
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbKafkaConsumerTemplate&lt;T extends TbQueueMsg&gt; extends AbstractTbQueueConsumerTemplate&lt;ConsumerRecord&lt;String, byte[]&gt;, T&gt; {
+&nbsp;
+&nbsp;    private final TbKafkaAdmin admin;
+&nbsp;    private final KafkaConsumer&lt;String, byte[]&gt; consumer;
+&nbsp;    private final TbKafkaDecoder&lt;T&gt; decoder;
+&nbsp;
+&nbsp;    private final TbKafkaConsumerStatsService statsService;
+&nbsp;    @Getter
+&nbsp;    private final String groupId;
+&nbsp;
+&nbsp;    @Setter
+&nbsp;    private Function&lt;String, Long&gt; startOffsetProvider;
+&nbsp;    private final boolean readFromBeginning; // reset offset to beginning
+&nbsp;    private final boolean stopWhenRead; // stop consuming when reached end offset remembered on start
+&nbsp;    private int readCount;
+&nbsp;    private Map&lt;Integer, Long&gt; endOffsets; // needed if stopWhenRead is true
+&nbsp;
+&nbsp;    @Builder
+&nbsp;    private TbKafkaConsumerTemplate(TbKafkaSettings settings, TbKafkaDecoder&lt;T&gt; decoder,
+&nbsp;                                    String clientId, String groupId, String topic,
+&nbsp;                                    TbQueueAdmin admin, TbKafkaConsumerStatsService statsService,
+&nbsp;                                    boolean readFromBeginning, boolean stopWhenRead) {
+<b class="nc">&nbsp;        super(topic);</b>
+<b class="nc">&nbsp;        Properties props = settings.toConsumerProps(topic);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.CLIENT_ID_CONFIG, clientId);</b>
+<b class="nc">&nbsp;        if (groupId != null) {</b>
+<b class="nc">&nbsp;            props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        this.statsService = statsService;</b>
+<b class="nc">&nbsp;        this.groupId = groupId;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (statsService != null) {</b>
+<b class="nc">&nbsp;            statsService.registerClientGroup(groupId);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        this.admin = (TbKafkaAdmin) admin;</b>
+<b class="nc">&nbsp;        this.consumer = new KafkaConsumer&lt;&gt;(props);</b>
+<b class="nc">&nbsp;        this.decoder = decoder;</b>
+<b class="nc">&nbsp;        this.readFromBeginning = readFromBeginning;</b>
+<b class="nc">&nbsp;        this.stopWhenRead = stopWhenRead;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void doSubscribe(Set&lt;TopicPartitionInfo&gt; partitions) {
+&nbsp;        Map&lt;String, List&lt;Integer&gt;&gt; topics;
+<b class="nc">&nbsp;        if (partitions == null) {</b>
+<b class="nc">&nbsp;            topics = Collections.emptyMap();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            topics = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            partitions.forEach(tpi -&gt; {</b>
+<b class="nc">&nbsp;                if (tpi.isUseInternalPartition()) {</b>
+<b class="nc">&nbsp;                    topics.computeIfAbsent(tpi.getFullTopicName(), t -&gt; new ArrayList&lt;&gt;()).add(tpi.getPartition().get());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    topics.put(tpi.getFullTopicName(), null);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+<b class="nc">&nbsp;        if (!topics.isEmpty()) {</b>
+<b class="nc">&nbsp;            topics.keySet().forEach(admin::createTopicIfNotExists);</b>
+<b class="nc">&nbsp;            List&lt;String&gt; toSubscribe = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            topics.forEach((topic, kafkaPartitions) -&gt; {</b>
+<b class="nc">&nbsp;                if (kafkaPartitions == null) {</b>
+<b class="nc">&nbsp;                    if (groupId != null) {</b>
+<b class="nc">&nbsp;                        toSubscribe.add(topic);</b>
+&nbsp;                        return;
+&nbsp;                    } else { // if no consumer group management - manually assigning all topic partitions
+<b class="nc">&nbsp;                        kafkaPartitions = IntStream.range(0, admin.getNumPartitions()).boxed().toList();</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                List&lt;TopicPartition&gt; topicPartitions = kafkaPartitions.stream()</b>
+<b class="nc">&nbsp;                        .map(partition -&gt; new TopicPartition(topic, partition))</b>
+<b class="nc">&nbsp;                        .toList();</b>
+<b class="nc">&nbsp;                consumer.assign(topicPartitions);</b>
+<b class="nc">&nbsp;                onPartitionsAssigned(topicPartitions);</b>
+&nbsp;            });
+<b class="nc">&nbsp;            if (!toSubscribe.isEmpty()) {</b>
+<b class="nc">&nbsp;                if (readFromBeginning || stopWhenRead) {</b>
+<b class="nc">&nbsp;                    consumer.subscribe(toSubscribe, new ConsumerRebalanceListener() {</b>
+&nbsp;                        @Override
+<b class="nc">&nbsp;                        public void onPartitionsRevoked(Collection&lt;TopicPartition&gt; partitions) {}</b>
+&nbsp;
+&nbsp;                        @Override
+&nbsp;                        public void onPartitionsAssigned(Collection&lt;TopicPartition&gt; partitions) {
+<b class="nc">&nbsp;                            log.debug(&quot;Handling onPartitionsAssigned {}&quot;, partitions);</b>
+<b class="nc">&nbsp;                            TbKafkaConsumerTemplate.this.onPartitionsAssigned(partitions);</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;                } else {
+<b class="nc">&nbsp;                    consumer.subscribe(toSubscribe);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.info(&quot;unsubscribe due to empty topic list&quot;);</b>
+<b class="nc">&nbsp;            consumer.unsubscribe();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected List&lt;ConsumerRecord&lt;String, byte[]&gt;&gt; doPoll(long durationInMillis) {
+<b class="nc">&nbsp;        StopWatch stopWatch = new StopWatch();</b>
+<b class="nc">&nbsp;        stopWatch.start();</b>
+&nbsp;
+<b class="nc">&nbsp;        log.trace(&quot;poll topic {} maxDuration {}&quot;, getTopic(), durationInMillis);</b>
+&nbsp;
+<b class="nc">&nbsp;        ConsumerRecords&lt;String, byte[]&gt; records = consumer.poll(Duration.ofMillis(durationInMillis));</b>
+&nbsp;
+<b class="nc">&nbsp;        stopWatch.stop();</b>
+<b class="nc">&nbsp;        log.trace(&quot;poll topic {} took {}ms&quot;, getTopic(), stopWatch.getTotalTimeMillis());</b>
+&nbsp;
+&nbsp;        List&lt;ConsumerRecord&lt;String, byte[]&gt;&gt; recordList;
+<b class="nc">&nbsp;        if (records.isEmpty()) {</b>
+<b class="nc">&nbsp;            recordList = Collections.emptyList();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            recordList = new ArrayList&lt;&gt;(256);</b>
+<b class="nc">&nbsp;            records.forEach(record -&gt; {</b>
+<b class="nc">&nbsp;                recordList.add(record);</b>
+<b class="nc">&nbsp;                if (stopWhenRead &amp;&amp; endOffsets != null) {</b>
+<b class="nc">&nbsp;                    readCount++;</b>
+<b class="nc">&nbsp;                    int partition = record.partition();</b>
+<b class="nc">&nbsp;                    Long endOffset = endOffsets.get(partition);</b>
+<b class="nc">&nbsp;                    if (endOffset == null) {</b>
+<b class="nc">&nbsp;                        log.debug(&quot;End offset not found for {} [{}]&quot;, record.topic(), partition);</b>
+&nbsp;                        return;
+&nbsp;                    }
+<b class="nc">&nbsp;                    log.trace(&quot;[{}-{}] Got record offset {}, expected end offset: {}&quot;, record.topic(), partition, record.offset(), endOffset - 1);</b>
+<b class="nc">&nbsp;                    if (record.offset() &gt;= endOffset - 1) {</b>
+<b class="nc">&nbsp;                        endOffsets.remove(partition);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+<b class="nc">&nbsp;        if (stopWhenRead &amp;&amp; endOffsets != null &amp;&amp; endOffsets.isEmpty()) {</b>
+<b class="nc">&nbsp;            log.info(&quot;Finished reading {}, processed {} messages&quot;, partitions, readCount);</b>
+<b class="nc">&nbsp;            stop();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return recordList;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onPartitionsAssigned(Collection&lt;TopicPartition&gt; partitions) {
+<b class="nc">&nbsp;        if (readFromBeginning) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Seeking to beginning for {}&quot;, partitions);</b>
+<b class="nc">&nbsp;            consumer.seekToBeginning(partitions);</b>
+<b class="nc">&nbsp;        } else if (startOffsetProvider != null) {</b>
+<b class="nc">&nbsp;            partitions.forEach(topicPartition -&gt; {</b>
+<b class="nc">&nbsp;                Long offset = startOffsetProvider.apply(topicPartition.topic());</b>
+<b class="nc">&nbsp;                if (offset != null) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;Seeking to offset {} for {}&quot;, offset, topicPartition);</b>
+<b class="nc">&nbsp;                    consumer.seek(topicPartition, offset);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.info(&quot;No start offset provided for {}&quot;, topicPartition);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+<b class="nc">&nbsp;        if (stopWhenRead) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Getting end offsets for {}&quot;, partitions);</b>
+<b class="nc">&nbsp;            endOffsets = consumer.endOffsets(partitions).entrySet().stream()</b>
+<b class="nc">&nbsp;                    .filter(entry -&gt; entry.getValue() &gt; 0)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toMap(entry -&gt; entry.getKey().partition(), Map.Entry::getValue));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public T decode(ConsumerRecord&lt;String, byte[]&gt; record) throws IOException {
+<b class="nc">&nbsp;        return decoder.decode(new KafkaTbQueueMsg(record));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void doCommit() {
+<b class="nc">&nbsp;        if (groupId != null) {</b>
+<b class="nc">&nbsp;            consumer.commitSync();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void doUnsubscribe() {
+<b class="nc">&nbsp;        if (consumer != null) {</b>
+<b class="nc">&nbsp;            consumer.unsubscribe();</b>
+<b class="nc">&nbsp;            consumer.close();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (statsService != null) {</b>
+<b class="nc">&nbsp;            statsService.unregisterClientGroup(groupId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isLongPollingSupported() {
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

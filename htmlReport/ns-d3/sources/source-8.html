@@ -1,0 +1,737 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseAssetService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.asset</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseAssetService (org.thingsboard.server.dao.asset)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseAssetService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/218)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseAssetService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">BaseAssetService$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/224)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.asset;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.NameConflictPolicy;
+&nbsp;import org.thingsboard.server.common.data.NameConflictStrategy;
+&nbsp;import org.thingsboard.server.common.data.ProfileEntityIdInfo;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetInfo;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetProfile;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetSearchQuery;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.id.AssetId;
+&nbsp;import org.thingsboard.server.common.data.id.AssetProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityCountService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.sql.JpaExecutorService;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateIds;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateString;
+&nbsp;
+&nbsp;@Service(&quot;AssetDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class BaseAssetService extends AbstractCachedEntityService&lt;AssetCacheKey, Asset, AssetCacheEvictEvent&gt; implements AssetService {</b>
+&nbsp;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+&nbsp;    public static final String INCORRECT_ASSET_PROFILE_ID = &quot;Incorrect assetProfileId &quot;;
+&nbsp;    public static final String INCORRECT_CUSTOMER_ID = &quot;Incorrect customerId &quot;;
+&nbsp;    public static final String INCORRECT_ASSET_ID = &quot;Incorrect assetId &quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AssetDao assetDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AssetProfileService assetProfileService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;Asset&gt; assetValidator;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityCountService countService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private JpaExecutorService executor;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @TransactionalEventListener
+&nbsp;    public void handleEvictEvent(AssetCacheEvictEvent event) {
+<b class="nc">&nbsp;        List&lt;AssetCacheKey&gt; keys = new ArrayList&lt;&gt;(2);</b>
+<b class="nc">&nbsp;        keys.add(new AssetCacheKey(event.getTenantId(), event.getNewName()));</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(event.getOldName()) &amp;&amp; !event.getOldName().equals(event.getNewName())) {</b>
+<b class="nc">&nbsp;            keys.add(new AssetCacheKey(event.getTenantId(), event.getOldName()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        cache.evict(keys);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetInfo findAssetInfoById(TenantId tenantId, AssetId assetId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetInfoById [{}]&quot;, assetId);</b>
+<b class="nc">&nbsp;        validateId(assetId, id -&gt; INCORRECT_ASSET_ID + id);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetInfoById(tenantId, assetId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset findAssetById(TenantId tenantId, AssetId assetId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetById [{}]&quot;, assetId);</b>
+<b class="nc">&nbsp;        validateId(assetId, id -&gt; INCORRECT_ASSET_ID + id);</b>
+<b class="nc">&nbsp;        return assetDao.findById(tenantId, assetId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Asset&gt; findAssetByIdAsync(TenantId tenantId, AssetId assetId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetByIdAsync [{}]&quot;, assetId);</b>
+<b class="nc">&nbsp;        validateId(assetId, id -&gt; INCORRECT_ASSET_ID + id);</b>
+<b class="nc">&nbsp;        return assetDao.findByIdAsync(tenantId, assetId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset findAssetByTenantIdAndName(TenantId tenantId, String name) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetByTenantIdAndName [{}][{}]&quot;, tenantId, name);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return cache.getAndPutInTransaction(new AssetCacheKey(tenantId, name),</b>
+<b class="nc">&nbsp;                () -&gt; assetDao.findAssetsByTenantIdAndName(tenantId.getId(), name)</b>
+<b class="nc">&nbsp;                        .orElse(null), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Asset&gt; findAssetByTenantIdAndNameAsync(TenantId tenantId, String name) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetByTenantIdAndNameAsync [{}][{}]&quot;, tenantId, name);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return executor.submit(() -&gt; findAssetByTenantIdAndName(tenantId, name));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset saveAsset(Asset asset) {
+<b class="nc">&nbsp;        return saveAsset(asset, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset saveAsset(Asset asset, NameConflictStrategy nameConflictStrategy) {
+<b class="nc">&nbsp;        return saveEntity(asset, () -&gt; saveAsset(asset, true, nameConflictStrategy));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset saveAsset(Asset asset, boolean doValidate) {
+<b class="nc">&nbsp;        return saveEntity(asset, () -&gt; saveAsset(asset, doValidate, NameConflictStrategy.DEFAULT));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Asset saveAsset(Asset asset, boolean doValidate, NameConflictStrategy nameConflictStrategy) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveAsset [{}]&quot;, asset);</b>
+<b class="nc">&nbsp;        Asset oldAsset = (asset.getId() != null) ? assetDao.findById(asset.getTenantId(), asset.getId().getId()) : null;</b>
+<b class="nc">&nbsp;        if (nameConflictStrategy.policy() == NameConflictPolicy.UNIQUIFY &amp;&amp; (oldAsset == null || !oldAsset.getName().equals(asset.getName()))) {</b>
+<b class="nc">&nbsp;            uniquifyEntityName(asset, oldAsset, asset::setName, EntityType.ASSET, nameConflictStrategy);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (doValidate) {</b>
+<b class="nc">&nbsp;            assetValidator.validate(asset, Asset::getTenantId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AssetCacheEvictEvent evictEvent = new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), oldAsset != null ? oldAsset.getName() : null);</b>
+&nbsp;        Asset savedAsset;
+&nbsp;        try {
+&nbsp;            AssetProfile assetProfile;
+<b class="nc">&nbsp;            if (asset.getAssetProfileId() == null) {</b>
+<b class="nc">&nbsp;                if (!StringUtils.isEmpty(asset.getType())) {</b>
+<b class="nc">&nbsp;                    assetProfile = this.assetProfileService.findOrCreateAssetProfile(asset.getTenantId(), asset.getType());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    assetProfile = this.assetProfileService.findDefaultAssetProfile(asset.getTenantId());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                asset.setAssetProfileId(new AssetProfileId(assetProfile.getId().getId()));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                assetProfile = this.assetProfileService.findAssetProfileById(asset.getTenantId(), asset.getAssetProfileId());</b>
+<b class="nc">&nbsp;                if (assetProfile == null) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(&quot;Asset is referencing non existing asset profile!&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (!assetProfile.getTenantId().equals(asset.getTenantId())) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(&quot;Asset can`t be referencing to asset profile from different tenant!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            asset.setType(assetProfile.getName());</b>
+<b class="nc">&nbsp;            savedAsset = assetDao.saveAndFlush(asset.getTenantId(), asset);</b>
+<b class="nc">&nbsp;            publishEvictEvent(evictEvent);</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedAsset.getTenantId()).entityId(savedAsset.getId())</b>
+<b class="nc">&nbsp;                    .entity(savedAsset).oldEntity(oldAsset).created(asset.getId() == null).build());</b>
+<b class="nc">&nbsp;            if (asset.getId() == null) {</b>
+<b class="nc">&nbsp;                countService.publishCountEntityEvictEvent(savedAsset.getTenantId(), EntityType.ASSET);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            handleEvictEvent(evictEvent);</b>
+<b class="nc">&nbsp;            checkConstraintViolation(t,</b>
+&nbsp;                    &quot;asset_name_unq_key&quot;, &quot;Asset with such name already exists!&quot;,
+&nbsp;                    &quot;asset_external_id_unq_key&quot;, &quot;Asset with such external id already exists!&quot;);
+&nbsp;            throw t;
+&nbsp;        }
+<b class="nc">&nbsp;        return savedAsset;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset assignAssetToCustomer(TenantId tenantId, AssetId assetId, CustomerId customerId) {
+<b class="nc">&nbsp;        Asset asset = findAssetById(tenantId, assetId);</b>
+<b class="nc">&nbsp;        if (customerId.equals(asset.getCustomerId())) {</b>
+<b class="nc">&nbsp;            return asset;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        asset.setCustomerId(customerId);</b>
+<b class="nc">&nbsp;        return saveAsset(asset);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset unassignAssetFromCustomer(TenantId tenantId, AssetId assetId) {
+<b class="nc">&nbsp;        Asset asset = findAssetById(tenantId, assetId);</b>
+<b class="nc">&nbsp;        if (asset.getCustomerId() == null) {</b>
+<b class="nc">&nbsp;            return asset;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        asset.setCustomerId(null);</b>
+<b class="nc">&nbsp;        return saveAsset(asset);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteAsset(TenantId tenantId, AssetId assetId) {
+<b class="nc">&nbsp;        validateId(assetId, id -&gt; INCORRECT_ASSET_ID + id);</b>
+<b class="nc">&nbsp;        deleteEntity(tenantId, assetId, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        if (!force &amp;&amp; (entityViewService.existsByTenantIdAndEntityId(tenantId, id) || calculatedFieldService.referencedInAnyCalculatedField(tenantId, id))) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t delete asset that has entity views or is referenced in calculated fields!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Asset asset = assetDao.findById(tenantId, id.getId());</b>
+<b class="nc">&nbsp;        if (asset == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        deleteAsset(tenantId, asset);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteAsset(TenantId tenantId, Asset asset) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteAsset [{}]&quot;, asset.getId());</b>
+<b class="nc">&nbsp;        assetDao.removeById(tenantId, asset.getUuidId());</b>
+&nbsp;
+<b class="nc">&nbsp;        publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));</b>
+<b class="nc">&nbsp;        countService.publishCountEntityEvictEvent(tenantId, EntityType.ASSET);</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(asset.getId()).entity(asset).build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Asset&gt; findAssetsByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantId, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetInfo&gt; findAssetInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetInfosByTenantId, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetInfosByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Asset&gt; findAssetsByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]&quot;, tenantId, type, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateString(type, t -&gt; &quot;Incorrect type &quot; + t);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantIdAndType(tenantId.getId(), type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetInfo&gt; findAssetInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]&quot;, tenantId, type, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateString(type, t -&gt; &quot;Incorrect type &quot; + t);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetInfosByTenantIdAndType(tenantId.getId(), type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetInfo&gt; findAssetInfosByTenantIdAndAssetProfileId(TenantId tenantId, AssetProfileId assetProfileId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetInfosByTenantIdAndAssetProfileId, tenantId [{}], assetProfileId [{}], pageLink [{}]&quot;, tenantId, assetProfileId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(assetProfileId, id -&gt; INCORRECT_ASSET_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetInfosByTenantIdAndAssetProfileId(tenantId.getId(), assetProfileId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;ProfileEntityIdInfo&gt; findProfileEntityIdInfos(PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findProfileEntityIdInfos, pageLink [{}]&quot;, pageLink);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findProfileEntityIdInfos(pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;ProfileEntityIdInfo&gt; findProfileEntityIdInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findProfileEntityIdInfosByTenantId, tenantId[{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findProfileEntityIdInfosByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetId&gt; findAssetIdsByTenantIdAndAssetProfileId(TenantId tenantId, AssetProfileId assetProfileId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetIdsByTenantIdAndAssetProfileId, tenantId [{}], assetProfileId [{}]&quot;, tenantId, assetProfileId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(assetProfileId, id -&gt; INCORRECT_ASSET_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetIdsByTenantIdAndAssetProfileId(tenantId.getId(), assetProfileId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;Asset&gt;&gt; findAssetsByTenantIdAndIdsAsync(TenantId tenantId, List&lt;AssetId&gt; assetIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantIdAndIdsAsync, tenantId [{}], assetIds [{}]&quot;, tenantId, assetIds);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateIds(assetIds, ids -&gt; &quot;Incorrect assetIds &quot; + ids);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(assetIds));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteAssetsByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteAssetsByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        tenantAssetsRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteAssetsByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Asset&gt; findAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]&quot;, tenantId, customerId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetInfo&gt; findAssetInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]&quot;, tenantId, customerId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetInfosByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Asset&gt; findAssetsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]&quot;, tenantId, customerId, type, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validateString(type, t -&gt; &quot;Incorrect type &quot; + t);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetInfo&gt; findAssetInfosByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetInfosByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]&quot;, tenantId, customerId, type, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validateString(type, t -&gt; &quot;Incorrect type &quot; + t);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetInfosByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AssetInfo&gt; findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(TenantId tenantId, CustomerId customerId, AssetProfileId assetProfileId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId, tenantId [{}], customerId [{}], assetProfileId [{}], pageLink [{}]&quot;, tenantId, customerId, assetProfileId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validateId(assetProfileId, id -&gt; INCORRECT_ASSET_PROFILE_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId.getId(), customerId.getId(), assetProfileId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;Asset&gt;&gt; findAssetsByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List&lt;AssetId&gt; assetIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantIdAndCustomerIdAndIdsAsync, tenantId [{}], customerId [{}], assetIds [{}]&quot;, tenantId, customerId, assetIds);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validateIds(assetIds, ids -&gt; &quot;Incorrect assetIds &quot; + ids);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantIdAndCustomerIdAndIdsAsync(tenantId.getId(), customerId.getId(), toUUIDs(assetIds));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void unassignCustomerAssets(TenantId tenantId, CustomerId customerId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing unassignCustomerAssets, tenantId [{}], customerId [{}]&quot;, tenantId, customerId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        customerAssetsUnasigner.removeEntities(tenantId, customerId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;Asset&gt;&gt; findAssetsByQuery(TenantId tenantId, AssetSearchQuery query) {
+<b class="nc">&nbsp;        ListenableFuture&lt;List&lt;EntityRelation&gt;&gt; relations = relationService.findByQuery(tenantId, query.toEntitySearchQuery());</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;List&lt;Asset&gt;&gt; assets = Futures.transformAsync(relations, r -&gt; {</b>
+<b class="nc">&nbsp;            EntitySearchDirection direction = query.toEntitySearchQuery().getParameters().getDirection();</b>
+<b class="nc">&nbsp;            List&lt;ListenableFuture&lt;Asset&gt;&gt; futures = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (EntityRelation relation : r) {</b>
+<b class="nc">&nbsp;                EntityId entityId = direction == EntitySearchDirection.FROM ? relation.getTo() : relation.getFrom();</b>
+<b class="nc">&nbsp;                if (entityId.getEntityType() == EntityType.ASSET) {</b>
+<b class="nc">&nbsp;                    futures.add(findAssetByIdAsync(tenantId, new AssetId(entityId.getId())));</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return Futures.successfulAsList(futures);</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+<b class="nc">&nbsp;        assets = Futures.transform(assets, assetList -&gt;</b>
+<b class="nc">&nbsp;                        assetList == null ?</b>
+<b class="nc">&nbsp;                                Collections.emptyList() :</b>
+<b class="nc">&nbsp;                                assetList.stream()</b>
+<b class="nc">&nbsp;                                        .filter(asset -&gt; query.getAssetTypes().contains(asset.getType()))</b>
+<b class="nc">&nbsp;                                        .collect(Collectors.toList()),</b>
+<b class="nc">&nbsp;                MoreExecutors.directExecutor()</b>
+&nbsp;        );
+<b class="nc">&nbsp;        return assets;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;EntitySubtype&gt;&gt; findAssetTypesByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetTypesByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return assetDao.findTenantAssetTypesAsync(tenantId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset assignAssetToEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId) {
+<b class="nc">&nbsp;        Asset asset = findAssetById(tenantId, assetId);</b>
+<b class="nc">&nbsp;        Edge edge = edgeService.findEdgeById(tenantId, edgeId);</b>
+<b class="nc">&nbsp;        if (edge == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign asset to non-existent edge!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!edge.getTenantId().getId().equals(asset.getTenantId().getId())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign asset to edge from different tenant!&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            createRelation(tenantId, new EntityRelation(edgeId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to create asset relation. Edge Id: [{}]&quot;, assetId, edgeId);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(assetId)</b>
+<b class="nc">&nbsp;                .actionType(ActionType.ASSIGNED_TO_EDGE).build());</b>
+<b class="nc">&nbsp;        return asset;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Asset unassignAssetFromEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId) {
+<b class="nc">&nbsp;        Asset asset = findAssetById(tenantId, assetId);</b>
+<b class="nc">&nbsp;        Edge edge = edgeService.findEdgeById(tenantId, edgeId);</b>
+<b class="nc">&nbsp;        if (edge == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t unassign asset from non-existent edge!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        checkAssignedEntityViewsToEdge(tenantId, assetId, edgeId);</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            deleteRelation(tenantId, new EntityRelation(edgeId, assetId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to delete asset relation. Edge Id: [{}]&quot;, assetId, edgeId);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(assetId)</b>
+<b class="nc">&nbsp;                .actionType(ActionType.UNASSIGNED_FROM_EDGE).build());</b>
+<b class="nc">&nbsp;        return asset;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Asset&gt; findAssetsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]&quot;, tenantId, edgeId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(edgeId, id -&gt; INCORRECT_EDGE_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Asset&gt; findAssetsByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAssetsByTenantIdAndEdgeIdAndType, tenantId [{}], edgeId [{}], type [{}] pageLink [{}]&quot;, tenantId, edgeId, type, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(edgeId, id -&gt; INCORRECT_EDGE_ID + id);</b>
+<b class="nc">&nbsp;        validateString(type, t -&gt; &quot;Incorrect type &quot; + t);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return assetDao.findAssetsByTenantIdAndEdgeIdAndType(tenantId.getId(), edgeId.getId(), type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, Asset&gt; tenantAssetsRemover = new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;Asset&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;            return assetDao.findAssetsByTenantId(id.getId(), pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, Asset asset) {
+<b class="nc">&nbsp;            deleteAsset(tenantId, asset);</b>
+&nbsp;        }
+&nbsp;    };
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;CustomerId, Asset&gt; customerAssetsUnasigner = new PaginatedRemover&lt;CustomerId, Asset&gt;() {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;Asset&gt; findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
+<b class="nc">&nbsp;            return assetDao.findAssetsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, Asset entity) {
+<b class="nc">&nbsp;            unassignAssetFromCustomer(tenantId, new AssetId(entity.getId().getId()));</b>
+&nbsp;        }
+&nbsp;    };
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findAssetById(tenantId, new AssetId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(findAssetByIdAsync(tenantId, new AssetId(entityId.getId())))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        return assetDao.countByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.ASSET;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

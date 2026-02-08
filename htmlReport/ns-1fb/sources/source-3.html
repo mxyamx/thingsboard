@@ -1,0 +1,395 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LwM2mDefaultBootstrapSessionManager</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.bootstrap.secure</a>
+</div>
+
+<h1>Coverage Summary for Class: LwM2mDefaultBootstrapSessionManager (org.thingsboard.server.transport.lwm2m.bootstrap.secure)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LwM2mDefaultBootstrapSessionManager</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/94)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.bootstrap.secure;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.californium.core.coap.Request;
+&nbsp;import org.eclipse.leshan.core.peer.IpPeer;
+&nbsp;import org.eclipse.leshan.core.peer.LwM2mPeer;
+&nbsp;import org.eclipse.leshan.core.peer.PskIdentity;
+&nbsp;import org.eclipse.leshan.core.peer.X509Identity;
+&nbsp;import org.eclipse.leshan.core.request.BootstrapDownlinkRequest;
+&nbsp;import org.eclipse.leshan.core.request.BootstrapFinishRequest;
+&nbsp;import org.eclipse.leshan.core.request.BootstrapRequest;
+&nbsp;import org.eclipse.leshan.core.response.LwM2mResponse;
+&nbsp;import org.eclipse.leshan.server.bootstrap.BootstrapConfigStore;
+&nbsp;import org.eclipse.leshan.server.bootstrap.BootstrapFailureCause;
+&nbsp;import org.eclipse.leshan.server.bootstrap.BootstrapSession;
+&nbsp;import org.eclipse.leshan.server.bootstrap.BootstrapTaskProvider;
+&nbsp;import org.eclipse.leshan.server.bootstrap.DefaultBootstrapSession;
+&nbsp;import org.eclipse.leshan.server.bootstrap.DefaultBootstrapSessionManager;
+&nbsp;import org.eclipse.leshan.server.bootstrap.InvalidConfigurationException;
+&nbsp;import org.eclipse.leshan.server.model.LwM2mBootstrapModelProvider;
+&nbsp;import org.eclipse.leshan.server.model.StandardBootstrapModelProvider;
+&nbsp;import org.eclipse.leshan.server.security.BootstrapSecurityStore;
+&nbsp;import org.eclipse.leshan.server.security.SecurityChecker;
+&nbsp;import org.eclipse.leshan.server.security.SecurityInfo;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.store.LwM2MBootstrapConfigStoreTaskProvider;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.store.LwM2MBootstrapSecurityStore;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.store.LwM2MBootstrapTaskProvider;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2MAuthException;
+&nbsp;
+&nbsp;import java.net.URI;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.LOG_LWM2M_ERROR;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.LOG_LWM2M_INFO;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class LwM2mDefaultBootstrapSessionManager extends DefaultBootstrapSessionManager {
+&nbsp;
+&nbsp;    private final BootstrapSecurityStore bsSecurityStore;
+&nbsp;    private final SecurityChecker securityChecker;
+&nbsp;    private final LwM2MBootstrapTaskProvider tasksProvider;
+&nbsp;    private final LwM2mBootstrapModelProvider modelProvider;
+&nbsp;    private TransportService transportService;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Create a {@link DefaultBootstrapSessionManager} using a default {@link SecurityChecker} to accept or refuse new
+&nbsp;     * {@link BootstrapSession}.
+&nbsp;     *
+&nbsp;     * @param bsSecurityStore the {@link BootstrapSecurityStore} used by default {@link SecurityChecker}.
+&nbsp;     */
+&nbsp;    public LwM2mDefaultBootstrapSessionManager(BootstrapSecurityStore bsSecurityStore, BootstrapConfigStore configStore, TransportService transportService) {
+<b class="nc">&nbsp;        this(bsSecurityStore, configStore, new SecurityChecker(), new LwM2MBootstrapConfigStoreTaskProvider(configStore),</b>
+&nbsp;                new StandardBootstrapModelProvider());
+<b class="nc">&nbsp;        this.transportService = transportService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Create a {@link DefaultBootstrapSessionManager}.
+&nbsp;     *
+&nbsp;     * @param bsSecurityStore the {@link BootstrapSecurityStore} used by {@link SecurityChecker}.
+&nbsp;     * @param securityChecker used to accept or refuse new {@link BootstrapSession}.
+&nbsp;     */
+&nbsp;    public LwM2mDefaultBootstrapSessionManager(BootstrapSecurityStore bsSecurityStore, BootstrapConfigStore configStore, SecurityChecker securityChecker,
+&nbsp;                                               LwM2MBootstrapTaskProvider tasksProvider, LwM2mBootstrapModelProvider modelProvider) {
+<b class="nc">&nbsp;        super(bsSecurityStore, configStore);</b>
+<b class="nc">&nbsp;        this.bsSecurityStore = bsSecurityStore;</b>
+<b class="nc">&nbsp;        this.securityChecker = securityChecker;</b>
+<b class="nc">&nbsp;        this.tasksProvider = tasksProvider;</b>
+<b class="nc">&nbsp;        this.modelProvider = modelProvider;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public BootstrapSession begin(BootstrapRequest request, LwM2mPeer sender, URI endpointUsed) {
+<b class="nc">&nbsp;        boolean authorized = sender.getIdentity().isSecure();</b>
+<b class="nc">&nbsp;        Iterator&lt;SecurityInfo&gt; securityInfos = null;</b>
+&nbsp;          try {
+<b class="nc">&nbsp;            if (bsSecurityStore != null &amp;&amp; securityChecker != null) {</b>
+<b class="nc">&nbsp;                if (((IpPeer) sender).isPSK()) {</b>
+<b class="nc">&nbsp;                    SecurityInfo securityInfo = bsSecurityStore.getByIdentity(((PskIdentity) sender.getIdentity()).getPskIdentity());</b>
+<b class="nc">&nbsp;                    securityInfos = Collections.singletonList(securityInfo).iterator();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                else if (!((IpPeer) sender).isX509()) {</b>
+<b class="nc">&nbsp;                    securityInfos = bsSecurityStore.getAllByEndpoint(request.getEndpointName());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                authorized = this.checkSecurityInfo(request.getEndpointName(), sender, securityInfos);</b>
+&nbsp;            }
+&nbsp;        } catch (LwM2MAuthException e) {
+<b class="nc">&nbsp;            authorized = false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        DefaultBootstrapSession session = new DefaultBootstrapSession(request, sender, authorized, null, endpointUsed);</b>
+<b class="nc">&nbsp;        if (authorized) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                this.tasksProvider.put(session.getEndpoint());</b>
+&nbsp;            } catch (InvalidConfigurationException e){
+<b class="nc">&nbsp;                log.error(&quot;Failed put to lwM2MBootstrapSessionClients by endpoint [{}]&quot;, request.getEndpointName(), e);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String msg = String.format(&quot;Bootstrap session started... %s&quot;, ((Request) request.getCoapRequest()).getLocalAddress().toString());</b>
+<b class="nc">&nbsp;            log.warn(String.format(&quot;%s: %s&quot;, request.getEndpointName(), msg));</b>
+<b class="nc">&nbsp;            this.sendLogs(request.getEndpointName(),</b>
+<b class="nc">&nbsp;                    String.format(&quot;%s: %s&quot;, LOG_LWM2M_INFO, msg));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return session;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean hasConfigFor(BootstrapSession session) {
+<b class="nc">&nbsp;        BootstrapTaskProvider.Tasks firstTasks = this.tasksProvider.getTasks(session, null);</b>
+<b class="nc">&nbsp;        if (firstTasks == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        initTasks(session, firstTasks);</b>
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void initTasks(BootstrapSession bssession, BootstrapTaskProvider.Tasks tasks) {
+<b class="nc">&nbsp;        DefaultBootstrapSession session = (DefaultBootstrapSession) bssession;</b>
+&nbsp;        // set models
+<b class="nc">&nbsp;        if (tasks.supportedObjects != null)</b>
+<b class="nc">&nbsp;            session.setModel(modelProvider.getObjectModel(session, tasks.supportedObjects));</b>
+&nbsp;
+&nbsp;        // set Requests to Send
+<b class="nc">&nbsp;        log.warn(&quot;tasks.requestsToSend = [{}]&quot;, tasks.requestsToSend);</b>
+<b class="nc">&nbsp;        session.setRequests(tasks.requestsToSend);</b>
+&nbsp;
+&nbsp;        // prepare list where we will store Responses
+<b class="nc">&nbsp;        session.setResponses(new ArrayList&lt;LwM2mResponse&gt;(tasks.requestsToSend.size()));</b>
+&nbsp;
+&nbsp;        // is last Tasks ?
+<b class="nc">&nbsp;        session.setMoreTasks(!tasks.last);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public BootstrapDownlinkRequest&lt;? extends LwM2mResponse&gt; getFirstRequest(BootstrapSession bsSession) {
+<b class="nc">&nbsp;        return nextRequest(bsSession);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected BootstrapDownlinkRequest&lt;? extends LwM2mResponse&gt; nextRequest(BootstrapSession bsSession) {
+<b class="nc">&nbsp;        DefaultBootstrapSession session = (DefaultBootstrapSession) bsSession;</b>
+<b class="nc">&nbsp;        List&lt;BootstrapDownlinkRequest&lt;? extends LwM2mResponse&gt;&gt; requestsToSend = session.getRequests();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!requestsToSend.isEmpty()) {</b>
+&nbsp;            // get next requests
+<b class="nc">&nbsp;            return requestsToSend.remove(0);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (session.hasMoreTasks()) {</b>
+<b class="nc">&nbsp;                BootstrapTaskProvider.Tasks nextTasks = this.tasksProvider.getTasks(session, session.getResponses());</b>
+<b class="nc">&nbsp;                if (nextTasks == null) {</b>
+<b class="nc">&nbsp;                    session.setMoreTasks(false);</b>
+<b class="nc">&nbsp;                    return new BootstrapFinishRequest();</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                initTasks(session, nextTasks);</b>
+<b class="nc">&nbsp;                return nextRequest(bsSession);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return new BootstrapFinishRequest();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public BootstrapPolicy onResponseSuccess(BootstrapSession bsSession,
+&nbsp;                                             BootstrapDownlinkRequest&lt;? extends LwM2mResponse&gt; request, LwM2mResponse response) {
+<b class="nc">&nbsp;        if (!(request instanceof BootstrapFinishRequest)) {</b>
+&nbsp;            // store response
+<b class="nc">&nbsp;            DefaultBootstrapSession session = (DefaultBootstrapSession) bsSession;</b>
+<b class="nc">&nbsp;            session.getResponses().add(response);</b>
+<b class="nc">&nbsp;            String msg = String.format(&quot;%s: receives success response for:  %s  %s %s&quot;, LOG_LWM2M_INFO,</b>
+<b class="nc">&nbsp;                    request.getClass().getSimpleName(), request.getPath().toString(), response.toString());</b>
+<b class="nc">&nbsp;            log.warn(msg);</b>
+<b class="nc">&nbsp;            this.sendLogs(bsSession.getEndpoint(), msg);</b>
+&nbsp;
+&nbsp;            // on success for NOT bootstrap finish request we send next request
+<b class="nc">&nbsp;            return BootstrapPolicy.continueWith(nextRequest(bsSession));</b>
+&nbsp;        } else {
+&nbsp;            // on success for bootstrap finish request we stop the session
+<b class="nc">&nbsp;            String msg = String.format(&quot;%s: receives success response for bootstrap finish.&quot;, LOG_LWM2M_INFO);</b>
+<b class="nc">&nbsp;            log.info(msg);</b>
+<b class="nc">&nbsp;            this.sendLogs(bsSession.getEndpoint(), msg);</b>
+<b class="nc">&nbsp;            this.tasksProvider.remove(bsSession.getEndpoint());</b>
+<b class="nc">&nbsp;            return BootstrapPolicy.finished();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public BootstrapPolicy onResponseError(BootstrapSession bsSession,
+&nbsp;                                           BootstrapDownlinkRequest&lt;? extends LwM2mResponse&gt; request, LwM2mResponse response) {
+<b class="nc">&nbsp;        if (!(request instanceof BootstrapFinishRequest)) {</b>
+&nbsp;            // store response
+<b class="nc">&nbsp;            DefaultBootstrapSession session = (DefaultBootstrapSession) bsSession;</b>
+<b class="nc">&nbsp;            session.getResponses().add(response);</b>
+<b class="nc">&nbsp;            this.sendLogs(bsSession.getEndpoint(),</b>
+<b class="nc">&nbsp;                    String.format(&quot;%s: %s %s receives error response %s &quot;, LOG_LWM2M_INFO,</b>
+<b class="nc">&nbsp;                            request.getClass().getSimpleName(),</b>
+<b class="nc">&nbsp;                            request.getPath().toString(), response.toString()));</b>
+&nbsp;            // on response error for NOT bootstrap finish request we continue any sending next request
+<b class="nc">&nbsp;            return BootstrapPolicy.continueWith(nextRequest(bsSession));</b>
+&nbsp;        } else {
+&nbsp;            // on response error for bootstrap finish request we stop the session
+<b class="nc">&nbsp;            this.sendLogs(bsSession.getEndpoint(),</b>
+<b class="nc">&nbsp;                    String.format(&quot;%s: error response for request bootstrap finish. Stop the session: %s&quot;, LOG_LWM2M_ERROR, bsSession.toString()));</b>
+<b class="nc">&nbsp;            this.tasksProvider.remove(bsSession.getEndpoint());</b>
+<b class="nc">&nbsp;            return BootstrapPolicy.failed();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public BootstrapPolicy onRequestFailure(BootstrapSession bsSession,
+&nbsp;                                            BootstrapDownlinkRequest&lt;? extends LwM2mResponse&gt; request, Throwable cause) {
+<b class="nc">&nbsp;        this.sendLogs(bsSession.getEndpoint(),</b>
+<b class="nc">&nbsp;                String.format(&quot;%s: %s %s failed because of %s&quot;, LOG_LWM2M_ERROR, request.getClass().getSimpleName(),</b>
+<b class="nc">&nbsp;                        request.getPath().toString(), cause.toString()));</b>
+<b class="nc">&nbsp;        return BootstrapPolicy.failed();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void end(BootstrapSession bsSession) {
+<b class="nc">&nbsp;        String msg = String.format(&quot;%s: Bootstrap session finished.&quot;, LOG_LWM2M_INFO);</b>
+<b class="nc">&nbsp;        log.warn(msg);</b>
+<b class="nc">&nbsp;        this.sendLogs(bsSession.getEndpoint(), msg);</b>
+<b class="nc">&nbsp;        this.tasksProvider.remove(bsSession.getEndpoint());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void failed(BootstrapSession bsSession, BootstrapFailureCause cause) {
+<b class="nc">&nbsp;        this.sendLogs(bsSession.getEndpoint(), String.format(&quot;%s: Bootstrap session failed because of %s&quot;, LOG_LWM2M_ERROR,</b>
+<b class="nc">&nbsp;                cause.toString()));</b>
+<b class="nc">&nbsp;        this.tasksProvider.remove(bsSession.getEndpoint());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendLogs(String endpointName, String logMsg) {
+<b class="nc">&nbsp;        log.info(&quot;Endpoint: [{}] [{}]&quot;, endpointName, logMsg);</b>
+<b class="nc">&nbsp;        transportService.log(((LwM2MBootstrapSecurityStore) bsSecurityStore).getSessionByEndpoint(endpointName), logMsg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean checkSecurityInfo(String endpoint, LwM2mPeer clientIdentity, Iterator&lt;SecurityInfo&gt; securityInfos) {
+<b class="nc">&nbsp;        if (((IpPeer) clientIdentity).isX509()) {</b>
+<b class="nc">&nbsp;            return ((X509Identity)clientIdentity.getIdentity()).getX509CommonName().equals(endpoint)</b>
+<b class="nc">&nbsp;                    &amp; ((LwM2MBootstrapSecurityStore) bsSecurityStore).getBootstrapConfigByEndpoint(endpoint) != null;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return securityChecker.checkSecurityInfos(endpoint, clientIdentity, securityInfos);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

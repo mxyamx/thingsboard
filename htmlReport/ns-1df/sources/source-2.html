@@ -1,0 +1,457 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SystemPatchApplier</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.system</a>
+</div>
+
+<h1>Coverage Summary for Class: SystemPatchApplier (org.thingsboard.server.service.system)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SystemPatchApplier</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/102)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SystemPatchApplier$VersionInfo</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/103)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.system;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.base.Charsets;
+&nbsp;import com.google.common.hash.Hashing;
+&nbsp;import com.google.common.io.Resources;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.jdbc.core.JdbcTemplate;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetTypeService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.install.DatabaseSchemaSettingsService;
+&nbsp;import org.thingsboard.server.service.install.InstallScripts;
+&nbsp;import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.io.UncheckedIOException;
+&nbsp;import java.net.URL;
+&nbsp;import java.nio.file.Files;
+&nbsp;import java.nio.file.NoSuchFileException;
+&nbsp;import java.nio.file.Path;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;/**
+&nbsp; * Runs at application startup and applies no-downtime data updates
+&nbsp; * when the package PATCH version increases (e.g., 4.2.1.0 -&gt; 4.2.1.1).
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class SystemPatchApplier {
+&nbsp;
+&nbsp;    private static final String SCHEMA_VIEWS_SQL = &quot;sql/schema-views.sql&quot;;
+&nbsp;
+&nbsp;    private static final long ADVISORY_LOCK_ID = 7536891047216478431L;
+&nbsp;
+&nbsp;    private final JdbcTemplate jdbcTemplate;
+&nbsp;    private final InstallScripts installScripts;
+&nbsp;    private final DatabaseSchemaSettingsService schemaSettingsService;
+&nbsp;    private final WidgetTypeService widgetTypeService;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    private void init() {
+<b class="nc">&nbsp;        ExecutorService executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;system-patch-applier&quot;));</b>
+<b class="nc">&nbsp;        executor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                applyPatchIfNeeded();</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to apply system data patch updates&quot;, e);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                executor.shutdown();</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void applyPatchIfNeeded() {
+<b class="nc">&nbsp;        boolean skipVersionCheck = DefaultDataUpdateService.getEnv(&quot;SKIP_PATCH_VERSION_CHECK&quot;, false);</b>
+<b class="nc">&nbsp;        if (!skipVersionCheck &amp;&amp; !isVersionChanged()) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!acquireAdvisoryLock()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Could not acquire advisory lock. Another node is processing patch updates.&quot;);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            updateSqlViews();</b>
+<b class="nc">&nbsp;            log.info(&quot;Updated sql database views&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            int updated = updateWidgetTypes();</b>
+<b class="nc">&nbsp;            log.info(&quot;Updated {} widget types&quot;, updated);</b>
+&nbsp;
+<b class="nc">&nbsp;            schemaSettingsService.updateSchemaVersion();</b>
+<b class="nc">&nbsp;            log.info(&quot;System data patch update completed successfully&quot;);</b>
+&nbsp;
+&nbsp;        } finally {
+<b class="nc">&nbsp;            releaseAdvisoryLock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isVersionChanged() {
+<b class="nc">&nbsp;        String packageVersion = schemaSettingsService.getPackageSchemaVersion();</b>
+<b class="nc">&nbsp;        String dbVersion = schemaSettingsService.getDbSchemaVersion();</b>
+&nbsp;
+<b class="nc">&nbsp;        log.trace(&quot;Package version: {}, DB schema version: {}&quot;, packageVersion, dbVersion);</b>
+&nbsp;
+<b class="nc">&nbsp;        VersionInfo packageVersionInfo = parseVersion(packageVersion);</b>
+<b class="nc">&nbsp;        VersionInfo dbVersionInfo = parseVersion(dbVersion);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (packageVersionInfo == null || dbVersionInfo == null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;Unable to parse versions. Package: {}, DB: {}&quot;, packageVersion, dbVersion);</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!isPatchVersionChanged(packageVersionInfo, dbVersionInfo)) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;Patch version increased from {} to {}. Starting system data update.&quot;, dbVersion, packageVersion);</b>
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isPatchVersionChanged(VersionInfo packageVersion, VersionInfo dbVersion) {
+<b class="nc">&nbsp;        return packageVersion.major == dbVersion.major &amp;&amp; packageVersion.minor == dbVersion.minor</b>
+&nbsp;                &amp;&amp; packageVersion.maintenance == dbVersion.maintenance &amp;&amp; packageVersion.patch &gt; dbVersion.patch;
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateSqlViews() {
+&nbsp;        try {
+<b class="nc">&nbsp;            URL schemaViewsUrl = Resources.getResource(SCHEMA_VIEWS_SQL);</b>
+<b class="nc">&nbsp;            String sql = Resources.toString(schemaViewsUrl, Charsets.UTF_8);</b>
+<b class="nc">&nbsp;            jdbcTemplate.execute(sql);</b>
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Unable to update database views from schema-views.sql&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private int updateWidgetTypes() {
+<b class="nc">&nbsp;        AtomicInteger updated = new AtomicInteger();</b>
+<b class="nc">&nbsp;        Path widgetTypesDir = installScripts.getWidgetTypesDir();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!Files.exists(widgetTypesDir)) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Widget types directory does not exist: {}&quot;, widgetTypesDir);</b>
+<b class="nc">&nbsp;            return 0;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        try (Stream&lt;Path&gt; dirStream = listDir(widgetTypesDir).filter(path -&gt; path.toString().endsWith(InstallScripts.JSON_EXT))) {</b>
+<b class="nc">&nbsp;            dirStream.forEach(</b>
+&nbsp;                    path -&gt; {
+&nbsp;                        try {
+<b class="nc">&nbsp;                            if (updateWidgetTypeFromFile(path)) {</b>
+<b class="nc">&nbsp;                                updated.incrementAndGet();</b>
+&nbsp;                            }
+&nbsp;                        } catch (Exception e) {
+<b class="nc">&nbsp;                            log.error(&quot;Unable to update widget type from json: [{}]&quot;, path.toString());</b>
+<b class="nc">&nbsp;                            throw new RuntimeException(&quot;Unable to update widget type from json&quot;, e);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;            );
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return updated.get();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean updateWidgetTypeFromFile(Path filePath) {
+<b class="nc">&nbsp;        JsonNode json = JacksonUtil.toJsonNode(filePath.toFile());</b>
+<b class="nc">&nbsp;        WidgetTypeDetails fileWidgetType = JacksonUtil.treeToValue(json, WidgetTypeDetails.class);</b>
+<b class="nc">&nbsp;        String fqn = fileWidgetType.getFqn();</b>
+&nbsp;
+<b class="nc">&nbsp;        WidgetTypeDetails existingWidgetType = widgetTypeService.findWidgetTypeDetailsByTenantIdAndFqn(TenantId.SYS_TENANT_ID, fqn);</b>
+<b class="nc">&nbsp;        if (existingWidgetType == null) {</b>
+&nbsp;            // We expect only update here, so it&#39;s probably never happening, but for test purpose leave it like this:
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Widget type not found: &quot; + fqn);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (isWidgetTypeChanged(existingWidgetType, fileWidgetType)) {</b>
+<b class="nc">&nbsp;            existingWidgetType.setDescription(fileWidgetType.getDescription());</b>
+<b class="nc">&nbsp;            existingWidgetType.setName(fileWidgetType.getName());</b>
+<b class="nc">&nbsp;            existingWidgetType.setDescriptor(fileWidgetType.getDescriptor());</b>
+<b class="nc">&nbsp;            widgetTypeService.saveWidgetType(existingWidgetType);</b>
+<b class="nc">&nbsp;            log.trace(&quot;Updated widget type: {}&quot;, fqn);</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.trace(&quot;Widget type unchanged: {}&quot;, fqn);</b>
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isWidgetTypeChanged(WidgetTypeDetails existing, WidgetTypeDetails file) {
+<b class="nc">&nbsp;        if (!isDescriptorEqual(existing.getDescriptor(), file.getDescriptor())) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!Objects.equals(existing.getName(), file.getName())) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return !Objects.equals(existing.getDescription(), file.getDescription());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isDescriptorEqual(JsonNode desc1, JsonNode desc2) {
+<b class="nc">&nbsp;        if (desc1 == null &amp;&amp; desc2 == null) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (desc1 == null || desc2 == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            String hash1 = computeChecksum(desc1);</b>
+<b class="nc">&nbsp;            String hash2 = computeChecksum(desc2);</b>
+<b class="nc">&nbsp;            return Objects.equals(hash1, hash2);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to compare descriptors using checksum, falling back to equals&quot;, e);</b>
+<b class="nc">&nbsp;            return desc1.equals(desc2);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String computeChecksum(JsonNode node) {
+<b class="nc">&nbsp;        String canonicalString = JacksonUtil.toCanonicalString(node);</b>
+<b class="nc">&nbsp;        if (canonicalString == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Hashing.sha256().hashBytes(canonicalString.getBytes()).toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean acquireAdvisoryLock() {
+&nbsp;        try {
+<b class="nc">&nbsp;            Boolean acquired = jdbcTemplate.queryForObject(</b>
+&nbsp;                    &quot;SELECT pg_try_advisory_lock(?)&quot;,
+&nbsp;                    Boolean.class,
+<b class="nc">&nbsp;                    ADVISORY_LOCK_ID</b>
+&nbsp;            );
+<b class="nc">&nbsp;            if (Boolean.TRUE.equals(acquired)) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;Acquired advisory lock&quot;);</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to acquire advisory lock&quot;, e);</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void releaseAdvisoryLock() {
+&nbsp;        try {
+<b class="nc">&nbsp;            jdbcTemplate.queryForObject(</b>
+&nbsp;                    &quot;SELECT pg_advisory_unlock(?)&quot;,
+&nbsp;                    Boolean.class,
+<b class="nc">&nbsp;                    ADVISORY_LOCK_ID</b>
+&nbsp;            );
+<b class="nc">&nbsp;            log.debug(&quot;Released advisory lock&quot;);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to release advisory lock&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private VersionInfo parseVersion(String version) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String[] parts = version.split(&quot;\\.&quot;);</b>
+<b class="nc">&nbsp;            int major = Integer.parseInt(parts[0]);</b>
+<b class="nc">&nbsp;            int minor = parts.length &gt; 1 ? Integer.parseInt(parts[1]) : 0;</b>
+<b class="nc">&nbsp;            int maintenance = parts.length &gt; 2 ? Integer.parseInt(parts[2]) : 0;</b>
+<b class="nc">&nbsp;            int patch = parts.length &gt; 3 ? Integer.parseInt(parts[3]) : 0;</b>
+<b class="nc">&nbsp;            return new VersionInfo(major, minor, maintenance, patch);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to parse version: {}&quot;, version, e);</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Stream&lt;Path&gt; listDir(Path dir) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return Files.list(dir);</b>
+&nbsp;        } catch (NoSuchFileException e) {
+<b class="nc">&nbsp;            return Stream.empty();</b>
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            throw new UncheckedIOException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public record VersionInfo(int major, int minor, int maintenance, int patch) {}</b>
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

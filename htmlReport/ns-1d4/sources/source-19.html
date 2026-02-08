@@ -1,0 +1,463 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbSubscriptionUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.subscription</a>
+</div>
+
+<h1>Coverage Summary for Class: TbSubscriptionUtils (org.thingsboard.server.service.subscription)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbSubscriptionUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/190)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.subscription;
+&nbsp;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAlarmDeleteProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAlarmUpdateProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAttributeDeleteProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbAttributeUpdateProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbEntitySubEventProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbTimeSeriesDeleteProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TbTimeSeriesUpdateProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationsSubscriptionUpdate;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.sub.AlarmSubscriptionUpdate;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.TreeMap;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.util.KvProtoUtil.fromTsValueProtoList;
+&nbsp;import static org.thingsboard.server.common.util.KvProtoUtil.toTsKvProtoBuilder;
+&nbsp;import static org.thingsboard.server.common.util.KvProtoUtil.toTsValueProto;
+&nbsp;
+<b class="nc">&nbsp;public class TbSubscriptionUtils {</b>
+&nbsp;
+&nbsp;    public static ToCoreMsg toSubEventProto(String serviceId, TbEntitySubEvent event) {
+<b class="nc">&nbsp;        SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        var builder = TbEntitySubEventProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setServiceId(serviceId)</b>
+<b class="nc">&nbsp;                .setSeqNumber(event.getSeqNumber())</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(event.getTenantId().getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(event.getTenantId().getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setEntityType(event.getEntityId().getEntityType().name())</b>
+<b class="nc">&nbsp;                .setEntityIdMSB(event.getEntityId().getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setEntityIdLSB(event.getEntityId().getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setType(event.getType().name());</b>
+<b class="nc">&nbsp;        TbSubscriptionsInfo info = event.getInfo();</b>
+<b class="nc">&nbsp;        if (info != null) {</b>
+<b class="nc">&nbsp;            builder.setNotifications(info.notifications)</b>
+<b class="nc">&nbsp;                    .setAlarms(info.alarms)</b>
+<b class="nc">&nbsp;                    .setTsAllKeys(info.tsAllKeys)</b>
+<b class="nc">&nbsp;                    .setAttrAllKeys(info.attrAllKeys);</b>
+<b class="nc">&nbsp;            if (info.tsKeys != null) {</b>
+<b class="nc">&nbsp;                builder.addAllTsKeys(info.tsKeys);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (info.attrKeys != null) {</b>
+<b class="nc">&nbsp;                builder.addAllAttrKeys(info.attrKeys);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        msgBuilder.setSubEvent(builder);</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreNotificationMsg toProto(TenantId tenantId, UUID id, int seqNumber, TbEntityUpdatesInfo update) {
+<b class="nc">&nbsp;        TransportProtos.TbEntitySubEventCallbackProto.Builder updateProto = TransportProtos.TbEntitySubEventCallbackProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setEntityIdMSB(id.getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setEntityIdLSB(id.getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setSeqNumber(seqNumber)</b>
+<b class="nc">&nbsp;                .setAttributesUpdateTs(update.attributesUpdateTs)</b>
+<b class="nc">&nbsp;                .setTimeSeriesUpdateTs(update.timeSeriesUpdateTs);</b>
+<b class="nc">&nbsp;        return ToCoreNotificationMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setToLocalSubscriptionServiceMsg(</b>
+<b class="nc">&nbsp;                        TransportProtos.LocalSubscriptionServiceMsgProto.newBuilder()</b>
+<b class="nc">&nbsp;                                .setSubEventCallback(updateProto)</b>
+<b class="nc">&nbsp;                                .build())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public static TbEntitySubEvent fromProto(TbEntitySubEventProto proto) {
+<b class="nc">&nbsp;        ComponentLifecycleEvent event = ComponentLifecycleEvent.valueOf(proto.getType());</b>
+<b class="nc">&nbsp;        var builder = TbEntitySubEvent.builder()</b>
+<b class="nc">&nbsp;                .tenantId(TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())))</b>
+<b class="nc">&nbsp;                .seqNumber(proto.getSeqNumber())</b>
+<b class="nc">&nbsp;                .entityId(EntityIdFactory.getByTypeAndUuid(proto.getEntityType(), new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB())))</b>
+<b class="nc">&nbsp;                .type(event);</b>
+<b class="nc">&nbsp;        if (!ComponentLifecycleEvent.DELETED.equals(event)) {</b>
+<b class="nc">&nbsp;            builder.info(new TbSubscriptionsInfo(proto.getNotifications(), proto.getAlarms(),</b>
+<b class="nc">&nbsp;                    proto.getTsAllKeys(), proto.getTsKeysCount() &gt; 0 ? new HashSet&lt;&gt;(proto.getTsKeysList()) : null,</b>
+<b class="nc">&nbsp;                    proto.getAttrAllKeys(), proto.getAttrKeysCount() &gt; 0 ? new HashSet&lt;&gt;(proto.getAttrKeysList()) : null,</b>
+<b class="nc">&nbsp;                    proto.getSeqNumber()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return builder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static AlarmSubscriptionUpdate fromProto(TransportProtos.TbAlarmSubUpdateProto proto) {
+<b class="nc">&nbsp;        if (proto.getErrorCode() &gt; 0) {</b>
+<b class="nc">&nbsp;            return new AlarmSubscriptionUpdate(SubscriptionErrorCode.forCode(proto.getErrorCode()), proto.getErrorMsg());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            AlarmInfo alarm = JacksonUtil.fromString(proto.getAlarm(), AlarmInfo.class);</b>
+<b class="nc">&nbsp;            return new AlarmSubscriptionUpdate(alarm, proto.getDeleted());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static NotificationsSubscriptionUpdate fromProto(TransportProtos.NotificationsSubUpdateProto proto) {
+&nbsp;        NotificationsSubscriptionUpdate update;
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(proto.getNotificationUpdate())) {</b>
+<b class="nc">&nbsp;            NotificationUpdate notificationUpdate = JacksonUtil.fromString(proto.getNotificationUpdate(), NotificationUpdate.class);</b>
+<b class="nc">&nbsp;            update = new NotificationsSubscriptionUpdate(notificationUpdate);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            NotificationRequestUpdate notificationRequestUpdate = JacksonUtil.fromString(proto.getNotificationRequestUpdate(), NotificationRequestUpdate.class);</b>
+<b class="nc">&nbsp;            update = new NotificationsSubscriptionUpdate(notificationRequestUpdate);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return update;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreNotificationMsg toAlarmSubUpdateToProto(EntityId entityId, AlarmInfo alarmInfo, boolean deleted) {
+<b class="nc">&nbsp;        TransportProtos.TbAlarmSubUpdateProto.Builder updateProto = TransportProtos.TbAlarmSubUpdateProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setEntityIdMSB(entityId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setAlarm(JacksonUtil.toString(alarmInfo))</b>
+<b class="nc">&nbsp;                .setDeleted(deleted);</b>
+<b class="nc">&nbsp;        return ToCoreNotificationMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setToLocalSubscriptionServiceMsg(</b>
+<b class="nc">&nbsp;                        TransportProtos.LocalSubscriptionServiceMsgProto.newBuilder()</b>
+<b class="nc">&nbsp;                                .setAlarmUpdate(updateProto)</b>
+<b class="nc">&nbsp;                                .build())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreNotificationMsg notificationsSubUpdateToProto(EntityId entityId, NotificationsSubscriptionUpdate update) {
+<b class="nc">&nbsp;        TransportProtos.NotificationsSubUpdateProto.Builder updateProto = TransportProtos.NotificationsSubUpdateProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setEntityIdMSB(entityId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        if (update.getNotificationUpdate() != null) {</b>
+<b class="nc">&nbsp;            updateProto.setNotificationUpdate(JacksonUtil.toString(update.getNotificationUpdate()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (update.getNotificationRequestUpdate() != null) {</b>
+<b class="nc">&nbsp;            updateProto.setNotificationRequestUpdate(JacksonUtil.toString(update.getNotificationRequestUpdate()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ToCoreNotificationMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setToLocalSubscriptionServiceMsg(TransportProtos.LocalSubscriptionServiceMsgProto.newBuilder()</b>
+<b class="nc">&nbsp;                        .setNotificationsUpdate(updateProto)</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreMsg toTimeseriesUpdateProto(TenantId tenantId, EntityId entityId, List&lt;TsKvEntry&gt; ts) {
+<b class="nc">&nbsp;        TbTimeSeriesUpdateProto.Builder builder = TbTimeSeriesUpdateProto.newBuilder();</b>
+<b class="nc">&nbsp;        builder.setEntityType(entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        ts.forEach(v -&gt; builder.addData(toTsKvProtoBuilder(v.getTs(), v).build()));</b>
+<b class="nc">&nbsp;        SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        msgBuilder.setTsUpdate(builder);</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder.build()).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreMsg toTimeseriesDeleteProto(TenantId tenantId, EntityId entityId, List&lt;String&gt; keys) {
+<b class="nc">&nbsp;        TbTimeSeriesDeleteProto.Builder builder = TbTimeSeriesDeleteProto.newBuilder();</b>
+<b class="nc">&nbsp;        builder.setEntityType(entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.addAllKeys(keys);</b>
+<b class="nc">&nbsp;        SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        msgBuilder.setTsDelete(builder);</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder.build()).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreMsg toAttributesUpdateProto(TenantId tenantId, EntityId entityId, String scope, List&lt;AttributeKvEntry&gt; attributes) {
+<b class="nc">&nbsp;        TbAttributeUpdateProto.Builder builder = TbAttributeUpdateProto.newBuilder();</b>
+<b class="nc">&nbsp;        builder.setEntityType(entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setScope(scope);</b>
+<b class="nc">&nbsp;        attributes.forEach(v -&gt; builder.addData(toTsKvProtoBuilder(v.getLastUpdateTs(), v).build()));</b>
+&nbsp;
+<b class="nc">&nbsp;        SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        msgBuilder.setAttrUpdate(builder);</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder.build()).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreMsg toAttributesDeleteProto(TenantId tenantId, EntityId entityId, String scope, List&lt;String&gt; keys) {
+<b class="nc">&nbsp;        TbAttributeDeleteProto.Builder builder = TbAttributeDeleteProto.newBuilder();</b>
+<b class="nc">&nbsp;        builder.setEntityType(entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setScope(scope);</b>
+<b class="nc">&nbsp;        builder.addAllKeys(keys);</b>
+&nbsp;
+<b class="nc">&nbsp;        SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        msgBuilder.setAttrDelete(builder);</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder.build()).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static EntityId toEntityId(String entityType, long entityIdMSB, long entityIdLSB) {
+<b class="nc">&nbsp;        return EntityIdFactory.getByTypeAndUuid(entityType, new UUID(entityIdMSB, entityIdLSB));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreMsg toAlarmUpdateProto(TenantId tenantId, EntityId entityId, AlarmInfo alarm) {
+<b class="nc">&nbsp;        TbAlarmUpdateProto.Builder builder = TbAlarmUpdateProto.newBuilder();</b>
+<b class="nc">&nbsp;        builder.setEntityType(entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setAlarm(JacksonUtil.toString(alarm));</b>
+<b class="nc">&nbsp;        SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        msgBuilder.setAlarmUpdate(builder);</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder.build()).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreMsg toAlarmDeletedProto(TenantId tenantId, EntityId entityId, AlarmInfo alarm) {
+<b class="nc">&nbsp;        TbAlarmDeleteProto.Builder builder = TbAlarmDeleteProto.newBuilder();</b>
+<b class="nc">&nbsp;        builder.setEntityType(entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setAlarm(JacksonUtil.toString(alarm));</b>
+<b class="nc">&nbsp;        SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        msgBuilder.setAlarmDelete(builder);</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder.build()).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreMsg notificationUpdateToProto(TenantId tenantId, UserId recipientId, NotificationUpdate notificationUpdate) {
+<b class="nc">&nbsp;        TransportProtos.NotificationUpdateProto updateProto = TransportProtos.NotificationUpdateProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setRecipientIdMSB(recipientId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setRecipientIdLSB(recipientId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setUpdate(JacksonUtil.toString(notificationUpdate))</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        return ToCoreMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setToSubscriptionMgrMsg(SubscriptionMgrMsgProto.newBuilder()</b>
+<b class="nc">&nbsp;                        .setNotificationUpdate(updateProto)</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ToCoreNotificationMsg notificationRequestUpdateToProto(TenantId tenantId, NotificationRequestUpdate notificationRequestUpdate) {
+<b class="nc">&nbsp;        TransportProtos.NotificationRequestUpdateProto updateProto = TransportProtos.NotificationRequestUpdateProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setUpdate(JacksonUtil.toString(notificationRequestUpdate))</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        return ToCoreNotificationMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setToSubscriptionMgrMsg(SubscriptionMgrMsgProto.newBuilder()</b>
+<b class="nc">&nbsp;                        .setNotificationRequestUpdate(updateProto)</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;TsKvEntry&gt; fromProto(TransportProtos.TbSubUpdateProto proto) {
+<b class="nc">&nbsp;        List&lt;TsKvEntry&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (var p : proto.getDataList()) {</b>
+<b class="nc">&nbsp;            result.addAll(fromTsValueProtoList(p.getKey(), p.getTsValueList()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static ToCoreNotificationMsg toProto(EntityId entityId, List&lt;TsKvEntry&gt; updates) {
+<b class="nc">&nbsp;        return toProto(true, null, entityId, updates);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static ToCoreNotificationMsg toProto(String scope, EntityId entityId, List&lt;TsKvEntry&gt; updates) {
+<b class="nc">&nbsp;        return toProto(false, scope, entityId, updates);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static ToCoreNotificationMsg toProto(boolean timeSeries, String scope, EntityId entityId, List&lt;TsKvEntry&gt; updates) {
+<b class="nc">&nbsp;        TransportProtos.TbSubUpdateProto.Builder builder = TransportProtos.TbSubUpdateProto.newBuilder();</b>
+&nbsp;
+<b class="nc">&nbsp;        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());</b>
+<b class="nc">&nbsp;        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());</b>
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;String, List&lt;TransportProtos.TsValueProto&gt;&gt; data = new TreeMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        for (TsKvEntry tsEntry : updates) {</b>
+<b class="nc">&nbsp;            data.computeIfAbsent(tsEntry.getKey(), k -&gt; new ArrayList&lt;&gt;()).add(toTsValueProto(tsEntry.getTs(), tsEntry));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        data.forEach((key, value) -&gt; {</b>
+<b class="nc">&nbsp;            TransportProtos.TsValueListProto.Builder dataBuilder = TransportProtos.TsValueListProto.newBuilder();</b>
+<b class="nc">&nbsp;            dataBuilder.setKey(key);</b>
+<b class="nc">&nbsp;            dataBuilder.addAllTsValue(value);</b>
+<b class="nc">&nbsp;            builder.addData(dataBuilder.build());</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        var result = TransportProtos.LocalSubscriptionServiceMsgProto.newBuilder();</b>
+<b class="nc">&nbsp;        if (timeSeries) {</b>
+<b class="nc">&nbsp;            result.setTsUpdate(builder);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            builder.setScope(scope);</b>
+<b class="nc">&nbsp;            result.setAttrUpdate(builder);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ToCoreNotificationMsg.newBuilder().setToLocalSubscriptionServiceMsg(result).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TimescaleTimeseriesDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sqlts.timescale</a>
+</div>
+
+<h1>Coverage Summary for Class: TimescaleTimeseriesDao (org.thingsboard.server.dao.sqlts.timescale)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TimescaleTimeseriesDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/102)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TimescaleTimeseriesDao$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/103)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sqlts.timescale;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.data.domain.Sort;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.Aggregation;
+&nbsp;import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.IntervalType;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
+&nbsp;import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
+&nbsp;import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvEntity;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
+&nbsp;import org.thingsboard.server.dao.sqlts.AbstractSqlTimeseriesDao;
+&nbsp;import org.thingsboard.server.dao.sqlts.insert.InsertTsRepository;
+&nbsp;import org.thingsboard.server.dao.timeseries.TimeseriesDao;
+&nbsp;import org.thingsboard.server.dao.util.TimeUtils;
+&nbsp;import org.thingsboard.server.dao.util.TimescaleDBTsDao;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.function.Function;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@TimescaleDBTsDao
+<b class="nc">&nbsp;public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements TimeseriesDao {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TsKvTimescaleRepository tsKvRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AggregationRepository aggregationRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private StatsFactory statsFactory;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected InsertTsRepository&lt;TimescaleTsKvEntity&gt; insertRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected KeyDictionaryDao keyDictionaryDao;
+&nbsp;
+&nbsp;    protected TbSqlBlockingQueueWrapper&lt;TimescaleTsKvEntity, Void&gt; tsQueue;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    protected void init() {
+<b class="nc">&nbsp;        TbSqlBlockingQueueParams tsParams = TbSqlBlockingQueueParams.builder()</b>
+<b class="nc">&nbsp;                .logName(&quot;TS Timescale&quot;)</b>
+<b class="nc">&nbsp;                .batchSize(tsBatchSize)</b>
+<b class="nc">&nbsp;                .maxDelay(tsMaxDelay)</b>
+<b class="nc">&nbsp;                .statsPrintIntervalMs(tsStatsPrintIntervalMs)</b>
+<b class="nc">&nbsp;                .statsNamePrefix(&quot;ts.timescale&quot;)</b>
+<b class="nc">&nbsp;                .batchSortEnabled(batchSortEnabled)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        Function&lt;TimescaleTsKvEntity, Integer&gt; hashcodeFunction = entity -&gt; entity.getEntityId().hashCode();</b>
+<b class="nc">&nbsp;        tsQueue = new TbSqlBlockingQueueWrapper&lt;&gt;(tsParams, hashcodeFunction, timescaleBatchThreads, statsFactory);</b>
+&nbsp;
+<b class="nc">&nbsp;        tsQueue.init(logExecutor, v -&gt; insertRepository.saveOrUpdate(v),</b>
+<b class="nc">&nbsp;                Comparator.comparing((Function&lt;TimescaleTsKvEntity, UUID&gt;) AbstractTsKvEntity::getEntityId)</b>
+<b class="nc">&nbsp;                        .thenComparing(AbstractTsKvEntity::getKey)</b>
+<b class="nc">&nbsp;                        .thenComparing(AbstractTsKvEntity::getTs)</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    protected void destroy() {
+<b class="nc">&nbsp;        if (tsQueue != null) {</b>
+<b class="nc">&nbsp;            tsQueue.destroy();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;ReadTsKvQueryResult&gt;&gt; findAllAsync(TenantId tenantId, EntityId entityId, List&lt;ReadTsKvQuery&gt; queries) {
+<b class="nc">&nbsp;        return processFindAllAsync(tenantId, entityId, queries);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Integer&gt; save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl) {
+<b class="nc">&nbsp;        int dataPointDays = getDataPointDays(tsKvEntry, computeTtl(ttl));</b>
+<b class="nc">&nbsp;        String strKey = tsKvEntry.getKey();</b>
+<b class="nc">&nbsp;        Integer keyId = keyDictionaryDao.getOrSaveKeyId(strKey);</b>
+<b class="nc">&nbsp;        TimescaleTsKvEntity entity = new TimescaleTsKvEntity();</b>
+<b class="nc">&nbsp;        entity.setEntityId(entityId.getId());</b>
+<b class="nc">&nbsp;        entity.setTs(tsKvEntry.getTs());</b>
+<b class="nc">&nbsp;        entity.setKey(keyId);</b>
+<b class="nc">&nbsp;        entity.setStrValue(tsKvEntry.getStrValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setDoubleValue(tsKvEntry.getDoubleValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setLongValue(tsKvEntry.getLongValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setBooleanValue(tsKvEntry.getBooleanValue().orElse(null));</b>
+<b class="nc">&nbsp;        entity.setJsonValue(tsKvEntry.getJsonValue().orElse(null));</b>
+<b class="nc">&nbsp;        log.trace(&quot;Saving entity to timescale db: {}&quot;, entity);</b>
+<b class="nc">&nbsp;        return Futures.transform(tsQueue.add(entity), v -&gt; dataPointDays, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Integer&gt; savePartition(TenantId tenantId, EntityId entityId, long tsKvEntryTs, String key) {
+<b class="nc">&nbsp;        return Futures.immediateFuture(0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Void&gt; remove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        String strKey = query.getKey();</b>
+<b class="nc">&nbsp;        Integer keyId = keyDictionaryDao.getOrSaveKeyId(strKey);</b>
+<b class="nc">&nbsp;        return service.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            tsKvRepository.delete(</b>
+<b class="nc">&nbsp;                    entityId.getId(),</b>
+<b class="nc">&nbsp;                    keyId,</b>
+<b class="nc">&nbsp;                    query.getStartTs(),</b>
+<b class="nc">&nbsp;                    query.getEndTs());</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;ReadTsKvQueryResult&gt; findAllAsync(TenantId tenantId, EntityId entityId, ReadTsKvQuery query) {
+<b class="nc">&nbsp;        var aggParams = query.getAggParameters();</b>
+<b class="nc">&nbsp;        var intervalType = aggParams.getIntervalType();</b>
+<b class="nc">&nbsp;        if (query.getAggregation() == Aggregation.NONE) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(findAllAsyncWithLimit(entityId, query));</b>
+<b class="nc">&nbsp;        } else if (IntervalType.MILLISECONDS.equals(intervalType)) {</b>
+<b class="nc">&nbsp;            long startTs = query.getStartTs();</b>
+<b class="nc">&nbsp;            long endTs = Math.max(query.getStartTs() + 1, query.getEndTs());</b>
+<b class="nc">&nbsp;            long timeBucket = query.getInterval();</b>
+<b class="nc">&nbsp;            List&lt;Optional&lt;? extends AbstractTsKvEntity&gt;&gt; data = findAllAndAggregateAsync(entityId, query.getKey(), startTs, endTs, timeBucket, query.getAggregation());</b>
+<b class="nc">&nbsp;            return getReadTsKvQueryResultFuture(query, Futures.immediateFuture(data));</b>
+&nbsp;        } else {
+&nbsp;            //TODO: @dshvaika improve according to native capabilities of Timescale.
+<b class="nc">&nbsp;            long startPeriod = query.getStartTs();</b>
+<b class="nc">&nbsp;            long endPeriod = Math.max(query.getStartTs() + 1, query.getEndTs());</b>
+<b class="nc">&nbsp;            List&lt;TimescaleTsKvEntity&gt; timescaleTsKvEntities = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            while (startPeriod &lt; endPeriod) {</b>
+<b class="nc">&nbsp;                long startTs = startPeriod;</b>
+<b class="nc">&nbsp;                long endTs = Math.min(TimeUtils.calculateIntervalEnd(startTs, intervalType, aggParams.getTzId()), endPeriod);</b>
+<b class="nc">&nbsp;                timescaleTsKvEntities.addAll(switchAggregation(query.getKey(), startTs, endTs, endTs - startTs, query.getAggregation(), entityId.getId()));</b>
+<b class="nc">&nbsp;                startPeriod = endTs;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return getReadTsKvQueryResultFuture(query, Futures.immediateFuture(toResultList(entityId, query.getKey(), timescaleTsKvEntities)));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void cleanup(long systemTtl) {
+<b class="nc">&nbsp;        super.cleanup(systemTtl);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ReadTsKvQueryResult findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
+<b class="nc">&nbsp;        String strKey = query.getKey();</b>
+<b class="nc">&nbsp;        Integer keyId = keyDictionaryDao.getOrSaveKeyId(strKey);</b>
+<b class="nc">&nbsp;        List&lt;TimescaleTsKvEntity&gt; timescaleTsKvEntities = tsKvRepository.findAllWithLimit(</b>
+<b class="nc">&nbsp;                entityId.getId(),</b>
+<b class="nc">&nbsp;                keyId,</b>
+<b class="nc">&nbsp;                query.getStartTs(),</b>
+<b class="nc">&nbsp;                query.getEndTs(),</b>
+<b class="nc">&nbsp;                PageRequest.ofSize(query.getLimit()).withSort(Sort.Direction.fromString(query.getOrder()), &quot;ts&quot;));</b>
+<b class="nc">&nbsp;        timescaleTsKvEntities.forEach(tsKvEntity -&gt; tsKvEntity.setStrKey(strKey));</b>
+<b class="nc">&nbsp;        var tsKvEntries = DaoUtil.convertDataList(timescaleTsKvEntities);</b>
+<b class="nc">&nbsp;        long lastTs = tsKvEntries.stream().map(TsKvEntry::getTs).max(Long::compare).orElse(query.getStartTs());</b>
+<b class="nc">&nbsp;        return new ReadTsKvQueryResult(query.getId(), tsKvEntries, lastTs);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;Optional&lt;? extends AbstractTsKvEntity&gt;&gt; findAllAndAggregateAsync(EntityId entityId, String key, long startTs, long endTs, long timeBucket, Aggregation aggregation) {
+<b class="nc">&nbsp;        long interval = endTs - startTs;</b>
+<b class="nc">&nbsp;        long remainingPart = interval % timeBucket;</b>
+&nbsp;        List&lt;TimescaleTsKvEntity&gt; timescaleTsKvEntities;
+<b class="nc">&nbsp;        if (remainingPart == 0) {</b>
+<b class="nc">&nbsp;            timescaleTsKvEntities = switchAggregation(key, startTs, endTs, timeBucket, aggregation, entityId.getId());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            interval = interval - remainingPart;</b>
+<b class="nc">&nbsp;            timescaleTsKvEntities = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            timescaleTsKvEntities.addAll(switchAggregation(key, startTs, startTs + interval, timeBucket, aggregation, entityId.getId()));</b>
+<b class="nc">&nbsp;            timescaleTsKvEntities.addAll(switchAggregation(key, startTs + interval, endTs, remainingPart, aggregation, entityId.getId()));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return toResultList(entityId, key, timescaleTsKvEntities);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;Optional&lt;? extends AbstractTsKvEntity&gt;&gt; toResultList(EntityId entityId, String key, List&lt;TimescaleTsKvEntity&gt; timescaleTsKvEntities) {
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(timescaleTsKvEntities)) {</b>
+<b class="nc">&nbsp;            List&lt;Optional&lt;? extends AbstractTsKvEntity&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            timescaleTsKvEntities.forEach(entity -&gt; {</b>
+<b class="nc">&nbsp;                if (entity != null &amp;&amp; entity.isNotEmpty()) {</b>
+<b class="nc">&nbsp;                    entity.setEntityId(entityId.getId());</b>
+<b class="nc">&nbsp;                    entity.setStrKey(key);</b>
+<b class="nc">&nbsp;                    result.add(Optional.of(entity));</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    result.add(Optional.empty());</b>
+&nbsp;                }
+&nbsp;            });
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;TimescaleTsKvEntity&gt; switchAggregation(String key, long startTs, long endTs, long timeBucket, Aggregation aggregation, UUID entityId) {
+<b class="nc">&nbsp;        Integer keyId = keyDictionaryDao.getOrSaveKeyId(key);</b>
+<b class="nc">&nbsp;        switch (aggregation) {</b>
+&nbsp;            case AVG:
+<b class="nc">&nbsp;                return aggregationRepository.findAvg(entityId, keyId, timeBucket, startTs, endTs);</b>
+&nbsp;            case MAX:
+<b class="nc">&nbsp;                return aggregationRepository.findMax(entityId, keyId, timeBucket, startTs, endTs);</b>
+&nbsp;            case MIN:
+<b class="nc">&nbsp;                return aggregationRepository.findMin(entityId, keyId, timeBucket, startTs, endTs);</b>
+&nbsp;            case SUM:
+<b class="nc">&nbsp;                return aggregationRepository.findSum(entityId, keyId, timeBucket, startTs, endTs);</b>
+&nbsp;            case COUNT:
+<b class="nc">&nbsp;                return aggregationRepository.findCount(entityId, keyId, timeBucket, startTs, endTs);</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Not supported aggregation type: &quot; + aggregation);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

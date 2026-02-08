@@ -1,0 +1,1303 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultLwM2mUplinkMsgHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.server.uplink</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultLwM2mUplinkMsgHandler (org.thingsboard.server.transport.lwm2m.server.uplink)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultLwM2mUplinkMsgHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/75)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/219)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/486)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultLwM2mUplinkMsgHandler$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/76)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/219)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/487)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.server.uplink;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.google.gson.GsonBuilder;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.core.ResponseCode;
+&nbsp;import org.eclipse.leshan.core.model.ObjectModel;
+&nbsp;import org.eclipse.leshan.core.model.ResourceModel;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mMultipleResource;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mNode;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mObject;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mObjectInstance;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mPath;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mResource;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mResourceInstance;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mSingleResource;
+&nbsp;import org.eclipse.leshan.core.node.TimestampedLwM2mNodes;
+&nbsp;import org.eclipse.leshan.core.node.codec.LwM2mValueConverter;
+&nbsp;import org.eclipse.leshan.core.observation.Observation;
+&nbsp;import org.eclipse.leshan.core.request.CreateRequest;
+&nbsp;import org.eclipse.leshan.core.request.ObserveRequest;
+&nbsp;import org.eclipse.leshan.core.request.ReadRequest;
+&nbsp;import org.eclipse.leshan.core.request.WriteCompositeRequest;
+&nbsp;import org.eclipse.leshan.core.request.WriteRequest;
+&nbsp;import org.eclipse.leshan.core.request.WriteRequest.Mode;
+&nbsp;import org.eclipse.leshan.core.response.ObserveResponse;
+&nbsp;import org.eclipse.leshan.core.response.ReadCompositeResponse;
+&nbsp;import org.eclipse.leshan.core.response.ReadResponse;
+&nbsp;import org.eclipse.leshan.server.registration.Registration;
+&nbsp;import org.eclipse.leshan.server.registration.RegistrationStore;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.DonAsynchron;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.ObjectAttributes;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.OtherConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryObserveStrategy;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.ota.OtaPackageUtil;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.common.transport.TransportServiceCallback;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+&nbsp;import org.thingsboard.server.queue.util.TbLwM2mTransportComponent;
+&nbsp;import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mOtaConvert;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mTransportContext;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mTransportServerHelper;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mVersionedModelProvider;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.attributes.LwM2MAttributesService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2MClientState;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2MClientStateException;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.ResourceUpdateResult;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.ResultsAddKeyValueProto;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.common.LwM2MExecutorAwareService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.DownlinkRequestCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.LwM2mDownlinkMsgHandler;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MCancelObserveCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MCancelObserveRequest;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MLatchCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MObserveCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MObserveRequest;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MReadCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MReadRequest;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MWriteAttributesCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.TbLwM2MWriteAttributesRequest;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.composite.TbLwM2MObserveCompositeCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.composite.TbLwM2MObserveCompositeRequest;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.composite.TbLwM2MReadCompositeCallback;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.composite.TbLwM2MReadCompositeRequest;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.log.LwM2MTelemetryLogService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.model.LwM2MModelConfig;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.model.LwM2MModelConfigService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.model.ParametersAnalyzeResult;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.model.ParametersObserveAnalyzeResult;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.model.ParametersUpdateAnalyzeResult;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.ota.LwM2MOtaUpdateService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.session.LwM2MSessionManager;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.store.TbLwM2MDtlsSessionStore;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.store.TbLwM2mSecurityStore;
+&nbsp;import org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil;
+&nbsp;import org.thingsboard.server.transport.lwm2m.utils.LwM2mValueConverterImpl;
+&nbsp;
+&nbsp;import java.time.Instant;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Random;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryObserveStrategy.COMPOSITE_BY_OBJECT;
+&nbsp;import static org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryObserveStrategy.SINGLE;
+&nbsp;import static org.thingsboard.server.common.data.lwm2m.LwM2mConstants.LWM2M_SEPARATOR_PATH;
+&nbsp;import static org.thingsboard.server.common.data.util.CollectionsUtil.diffSets;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_3_VER_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_DELIVERY_METHOD;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_NAME_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_RESULT_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_STATE_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_VER_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.SW_3_VER_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.SW_NAME_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.SW_RESULT_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.SW_STATE_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.SW_VER_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.LOG_LWM2M_ERROR;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.LOG_LWM2M_INFO;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.LOG_LWM2M_WARN;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.areArraysStringEqual;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.convertObjectIdToVersionedId;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.convertOtaUpdateValueToString;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.fromVersionedIdToObjectId;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.groupByObjectIdVersionedIds;
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service(&quot;lwM2mUplinkMsgHandler&quot;)
+&nbsp;@TbLwM2mTransportComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultLwM2mUplinkMsgHandler extends LwM2MExecutorAwareService implements LwM2mUplinkMsgHandler {
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private final LwM2mValueConverter converter = LwM2mValueConverterImpl.getInstance();
+&nbsp;
+&nbsp;    private final TransportService transportService;
+&nbsp;    private final LwM2mTransportContext context;
+&nbsp;    @Lazy
+&nbsp;    private final LwM2MAttributesService attributesService;
+&nbsp;    private final LwM2MSessionManager sessionManager;
+&nbsp;    @Lazy
+&nbsp;    private final LwM2MOtaUpdateService otaService;
+&nbsp;    private final LwM2MTransportServerConfig config;
+&nbsp;    private final LwM2MTelemetryLogService logService;
+&nbsp;    private final LwM2mTransportServerHelper helper;
+&nbsp;    private final TbLwM2MDtlsSessionStore sessionStore;
+&nbsp;    private final LwM2mClientContext clientContext;
+&nbsp;    private final LwM2mDownlinkMsgHandler defaultLwM2MDownlinkMsgHandler; //Do not use Lazy because we need live executor to handle msgs
+&nbsp;    private final LwM2mVersionedModelProvider modelProvider;
+&nbsp;    private final RegistrationStore registrationStore;
+&nbsp;    private final TbLwM2mSecurityStore securityStore;
+&nbsp;    private final LwM2MModelConfigService modelConfigService;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        super.init();</b>
+<b class="nc">&nbsp;        this.context.getScheduler().scheduleAtFixedRate(this::reportActivity, new Random().nextInt((int) config.getSessionReportTimeout()), config.getSessionReportTimeout(), TimeUnit.MILLISECONDS);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        log.trace(&quot;Destroying {}&quot;, getClass().getSimpleName());</b>
+<b class="nc">&nbsp;        super.destroy();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getExecutorName() {
+<b class="nc">&nbsp;        return &quot;LwM2M uplink&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected int getExecutorSize() {
+<b class="nc">&nbsp;        return config.getUplinkPoolSize();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Start registration device
+&nbsp;     * Create session: Map&lt;String &lt;registrationId &gt;, LwM2MClient&gt;
+&nbsp;     * 1. replaceNewRegistration -&gt; (solving the problem of incorrect termination of the previous session with this endpoint)
+&nbsp;     * 1.1 When we initialize the registration, we register the session by endpoint.
+&nbsp;     * 1.2 If the server has incomplete requests (canceling the registration of the previous session),
+&nbsp;     * delete the previous session only by the previous registration.getId
+&nbsp;     * 1.2 Add Model (Entity) for client (from registration &amp; observe) by registration.getId
+&nbsp;     * 1.2 Remove from sessions Model by enpPoint
+&nbsp;     * Next -&gt;  Create new LwM2MClient for current session -&gt; setModelClient...
+&nbsp;     *
+&nbsp;     * @param registration         - Registration LwM2M Client
+&nbsp;     * @param previousObservations - may be null
+&nbsp;     */
+&nbsp;    public void onRegistered(Registration registration, Collection&lt;Observation&gt; previousObservations) {
+<b class="nc">&nbsp;        executor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            LwM2mClient lwM2MClient = this.clientContext.getClientByEndpoint(registration.getEndpoint());</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] [{{}] Client: create after Registration&quot;, registration.getEndpoint(), registration.getId());</b>
+<b class="nc">&nbsp;                Optional&lt;SessionInfoProto&gt; oldSessionInfo = this.clientContext.register(lwM2MClient, registration);</b>
+<b class="nc">&nbsp;                if (oldSessionInfo.isPresent()) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;[{}] Closing old session: {}&quot;, registration.getEndpoint(), new UUID(oldSessionInfo.get().getSessionIdMSB(), oldSessionInfo.get().getSessionIdLSB()));</b>
+<b class="nc">&nbsp;                    sessionManager.deregister(oldSessionInfo.get());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                String msgLogService = String.format(&quot;&quot;&quot;</b>
+&nbsp;                %s: Endpoint [%s] Client registered with registration id: [%s] LwM2mVersion: [%s], SupportedObjectIdVer [%s] QueueMode [%s], BindingMode %s
+<b class="nc">&nbsp;                &quot;&quot;&quot;, LOG_LWM2M_INFO,  registration.getEndpoint(), registration.getId(), registration.getLwM2mVersion(), registration.getSupportedObject(), registration.getQueueMode(), registration.getBindingMode());</b>
+<b class="nc">&nbsp;                logService.log(lwM2MClient, msgLogService);</b>
+<b class="nc">&nbsp;                log.debug(msgLogService);</b>
+<b class="nc">&nbsp;                sessionManager.register(lwM2MClient.getSession());</b>
+<b class="nc">&nbsp;                this.initClientTelemetry(lwM2MClient);</b>
+<b class="nc">&nbsp;                this.initAttributes(lwM2MClient, true);</b>
+<b class="nc">&nbsp;                otaService.init(lwM2MClient);</b>
+<b class="nc">&nbsp;                lwM2MClient.getRetryAttempts().set(0);</b>
+&nbsp;            } catch (LwM2MClientStateException stateException) {
+<b class="nc">&nbsp;                if (LwM2MClientState.UNREGISTERED.equals(stateException.getState())) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;[{}] retry registration due to race condition: [{}].&quot;, registration.getEndpoint(), stateException.getState());</b>
+&nbsp;                    // Race condition detected and the client was in progress of unregistration while new registration arrived. Let&#39;s try again.
+<b class="nc">&nbsp;                    if (lwM2MClient.getRetryAttempts().incrementAndGet() &lt;= 5) {</b>
+<b class="nc">&nbsp;                        context.getScheduler().schedule(() -&gt; onRegistered(registration, previousObservations), 1, TimeUnit.SECONDS);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        logService.log(lwM2MClient, LOG_LWM2M_WARN + &quot;: Client registration failed due to retry attempts: &quot; + lwM2MClient.getRetryAttempts().get());</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    logService.log(lwM2MClient, LOG_LWM2M_WARN + &quot;: Client registration failed due to invalid state: &quot; + stateException.getState());</b>
+&nbsp;                }
+&nbsp;            } catch (Throwable t) {
+<b class="nc">&nbsp;                log.error(&quot;Endpoint [{}], Error Unable registration: [{}].&quot;, registration.getEndpoint(), t.getMessage(), t);</b>
+<b class="nc">&nbsp;                logService.log(lwM2MClient, LOG_LWM2M_WARN + &quot;: Client registration failed due to: &quot; + t.getMessage());</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * if sessionInfo removed from sessions, then new registerAsyncSession
+&nbsp;     *
+&nbsp;     * @param registration - Registration LwM2M Client
+&nbsp;     */
+&nbsp;    public void updatedReg(Registration registration) {
+<b class="nc">&nbsp;        executor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            LwM2mClient lwM2MClient = clientContext.getClientByEndpoint(registration.getEndpoint());</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                log.info(&quot;[{}] [{{}] Client: update after Registration&quot;, registration.getEndpoint(), registration.getId());</b>
+<b class="nc">&nbsp;                logService.log(lwM2MClient, String.format(&quot;[%s][%s] Updated registration.&quot;, registration.getId(), registration.getSocketAddress()));</b>
+<b class="nc">&nbsp;                clientContext.updateRegistration(lwM2MClient, registration);</b>
+<b class="nc">&nbsp;                this.reportActivityAndRegister(lwM2MClient.getSession());</b>
+&nbsp;            } catch (LwM2MClientStateException stateException) {
+<b class="nc">&nbsp;                if (LwM2MClientState.REGISTERED.equals(stateException.getState())) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;[{}] update registration failed because client has different registration id: [{}] {}.&quot;, registration.getEndpoint(), stateException.getState(), stateException.getMessage());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    onRegistered(registration, Collections.emptyList());</b>
+&nbsp;                }
+&nbsp;            } catch (Throwable t) {
+<b class="nc">&nbsp;                log.error(&quot;[{}] endpoint [{}] error Unable update registration.&quot;, registration.getEndpoint(), t);</b>
+<b class="nc">&nbsp;                logService.log(lwM2MClient, LOG_LWM2M_ERROR + String.format(&quot;: Client update Registration, %s&quot;, t.getMessage()));</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param registration - Registration LwM2M Client
+&nbsp;     * @param observations - !!! Warn: if have not finishing unReg, then this operation will be finished on next Client`s connect
+&nbsp;     */
+&nbsp;    public void unReg(Registration registration, Collection&lt;Observation&gt; observations) {
+<b class="nc">&nbsp;        executor.submit(() -&gt; doUnReg(registration, clientContext.getClientByEndpoint(registration.getEndpoint())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void doUnReg(Registration registration, LwM2mClient client) {
+&nbsp;        try {
+<b class="nc">&nbsp;            logService.log(client, LOG_LWM2M_INFO + &quot;: Client unRegistration&quot;);</b>
+<b class="nc">&nbsp;            clientContext.unregister(client, registration);</b>
+<b class="nc">&nbsp;            SessionInfoProto sessionInfo = client.getSession();</b>
+<b class="nc">&nbsp;            if (sessionInfo != null) {</b>
+<b class="nc">&nbsp;                sessionManager.deregister(sessionInfo);</b>
+<b class="nc">&nbsp;                sessionStore.remove(registration.getEndpoint());</b>
+<b class="nc">&nbsp;                log.info(&quot;Client close session: [{}] unReg [{}] name  [{}] profile &quot;, registration.getId(), registration.getEndpoint(), sessionInfo.getDeviceType());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.error(&quot;Client close session: [{}] unReg [{}] name  [{}] sessionInfo &quot;, registration.getId(), registration.getEndpoint(), null);</b>
+&nbsp;            }
+&nbsp;        } catch (LwM2MClientStateException stateException) {
+<b class="nc">&nbsp;            log.info(&quot;[{}] delete registration: [{}] {}.&quot;, registration.getEndpoint(), stateException.getState(), stateException.getMessage());</b>
+&nbsp;        } catch (Throwable t) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] endpoint [{}] error Unable un registration.&quot;, registration.getEndpoint(), t);</b>
+<b class="nc">&nbsp;            logService.log(client, LOG_LWM2M_ERROR + String.format(&quot;: Client Unable un Registration, %s&quot;, t.getMessage()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onSleepingDev(Registration registration) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] [{}] Received endpoint sleeping event&quot;, registration.getId(), registration.getEndpoint());</b>
+<b class="nc">&nbsp;        clientContext.asleep(clientContext.getClientByEndpoint(registration.getEndpoint()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sending observe value to thingsboard from ObservationListener.onResponse: object, instance, SingleResource or MultipleResource
+&nbsp;     *
+&nbsp;     * @param registration - Registration LwM2M Client
+&nbsp;     * @param path         - observe
+&nbsp;     * @param response     - observe
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public void onUpdateValueAfterReadResponse(Registration registration, String path, ReadResponse response) {
+<b class="nc">&nbsp;        LwM2mNode content = response.getContent();</b>
+<b class="nc">&nbsp;        if (content != null) {</b>
+<b class="nc">&nbsp;            LwM2mClient lwM2MClient = clientContext.getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;            ObjectModel objectModelVersion = lwM2MClient.getObjectModel(path, modelProvider);</b>
+<b class="nc">&nbsp;            if (objectModelVersion != null) {</b>
+<b class="nc">&nbsp;                ResourceUpdateResult updateResource = new ResourceUpdateResult(lwM2MClient);</b>
+<b class="nc">&nbsp;                int responseCode = response.getCode().getCode();</b>
+<b class="nc">&nbsp;                if (content instanceof LwM2mObject) {</b>
+<b class="nc">&nbsp;                    this.updateObjectResourceValue(updateResource, (LwM2mObject) content, path, responseCode);</b>
+<b class="nc">&nbsp;                } else if (content instanceof LwM2mObjectInstance) {</b>
+<b class="nc">&nbsp;                    this.updateObjectInstanceResourceValue(updateResource, (LwM2mObjectInstance) content, path, responseCode);</b>
+<b class="nc">&nbsp;                } else if (content instanceof LwM2mResource) {</b>
+<b class="nc">&nbsp;                    this.updateResourcesValue(updateResource, (LwM2mResource) content, path, Mode.UPDATE, responseCode);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                this.updateAttrTelemetry(updateResource, null);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            tryAwake(lwM2MClient);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onUpdateValueAfterReadCompositeResponse(Registration registration, ReadCompositeResponse response) {
+<b class="nc">&nbsp;        log.trace(&quot;ReadCompositeResponse before onUpdateValueAfterReadCompositeResponse: [{}]&quot;, response);</b>
+<b class="nc">&nbsp;        if (response.getContent() != null) {</b>
+<b class="nc">&nbsp;            LwM2mClient lwM2MClient = clientContext.getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;            ResourceUpdateResult updateResource = new ResourceUpdateResult(lwM2MClient);</b>
+<b class="nc">&nbsp;            response.getContent().forEach((k, v) -&gt; {</b>
+<b class="nc">&nbsp;                if (v != null) {</b>
+<b class="nc">&nbsp;                    int responseCode = response.getCode().getCode();</b>
+<b class="nc">&nbsp;                    if (v instanceof LwM2mObject) {</b>
+<b class="nc">&nbsp;                        this.updateObjectResourceValue(updateResource, (LwM2mObject) v, k.toString(), responseCode);</b>
+<b class="nc">&nbsp;                    } else if (v instanceof LwM2mObjectInstance) {</b>
+<b class="nc">&nbsp;                        this.updateObjectInstanceResourceValue(updateResource, (LwM2mObjectInstance) v, k.toString(), responseCode);</b>
+<b class="nc">&nbsp;                    } else if (v instanceof LwM2mResource) {</b>
+<b class="nc">&nbsp;                        this.updateResourcesValue(updateResource, (LwM2mResource) v, k.toString(), Mode.UPDATE, responseCode);</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    this.onErrorObservation(registration, k + &quot;: value in composite response is null&quot;);</b>
+&nbsp;                }
+&nbsp;            });
+<b class="nc">&nbsp;            this.updateAttrTelemetry(updateResource, null);</b>
+<b class="nc">&nbsp;            clientContext.update(lwM2MClient);</b>
+<b class="nc">&nbsp;            tryAwake(lwM2MClient);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onErrorObservation(Registration registration, String errorMsg) {
+<b class="nc">&nbsp;        LwM2mClient lwM2MClient = this.clientContext.getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;        logService.log(lwM2MClient, LOG_LWM2M_ERROR + &quot;: &quot; + errorMsg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sending updated value to thingsboard from SendListener.dataReceived: object, instance, SingleResource or MultipleResource
+&nbsp;     *
+&nbsp;     * @param registration - Registration LwM2M Client
+&nbsp;     * @param data  - TimestampedLwM2mNodes (send From Client CollectedValue)
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public void onUpdateValueWithSendRequest(Registration registration, TimestampedLwM2mNodes data) {
+<b class="nc">&nbsp;        for (Instant ts : data.getTimestamps()) {</b>
+<b class="nc">&nbsp;            Map&lt;LwM2mPath, LwM2mNode&gt; nodesAt = data.getNodesAt(ts);</b>
+<b class="nc">&nbsp;            for (var instant : nodesAt.entrySet()) {</b>
+<b class="nc">&nbsp;                LwM2mPath path = instant.getKey();</b>
+<b class="nc">&nbsp;                LwM2mNode node = instant.getValue();</b>
+<b class="nc">&nbsp;                LwM2mClient lwM2MClient = clientContext.getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;                ObjectModel objectModelVersion = lwM2MClient.getObjectModel(convertObjectIdToVersionedId(path.toString(), lwM2MClient), modelProvider);</b>
+<b class="nc">&nbsp;                if (objectModelVersion != null) {</b>
+<b class="nc">&nbsp;                    ResourceUpdateResult updateResource = new ResourceUpdateResult(lwM2MClient);</b>
+<b class="nc">&nbsp;                    if (node instanceof LwM2mObject) {</b>
+<b class="nc">&nbsp;                        this.updateObjectResourceValue(updateResource, (LwM2mObject) node, path.toString(), 0);</b>
+<b class="nc">&nbsp;                    } else if (node instanceof LwM2mObjectInstance) {</b>
+<b class="nc">&nbsp;                        this.updateObjectInstanceResourceValue(updateResource, (LwM2mObjectInstance) node, path.toString(), 0);</b>
+<b class="nc">&nbsp;                    } else if (node instanceof LwM2mResource) {</b>
+<b class="nc">&nbsp;                        this.updateResourcesValue(updateResource, (LwM2mResource) node, path.toString(), Mode.UPDATE, 0);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    this.updateAttrTelemetry(updateResource, ts);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                tryAwake(lwM2MClient);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param sessionInfo   -
+&nbsp;     * @param deviceProfile -
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public void onDeviceProfileUpdate(SessionInfoProto sessionInfo, DeviceProfile deviceProfile) {
+&nbsp;        try {
+&nbsp;
+<b class="nc">&nbsp;            List&lt;LwM2mClient&gt; clients = clientContext.getLwM2mClients()</b>
+<b class="nc">&nbsp;                    .stream().filter(e -&gt; e.getProfileId() != null)</b>
+<b class="nc">&nbsp;                    .filter(e -&gt; e.getProfileId().equals(deviceProfile.getUuidId())).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            clients.forEach(client -&gt; {</b>
+<b class="nc">&nbsp;                client.onDeviceProfileUpdate(deviceProfile);</b>
+&nbsp;            });
+<b class="nc">&nbsp;            if (!clients.isEmpty()) {</b>
+<b class="nc">&nbsp;                var oldProfile = clientContext.getProfile(clients.get(0).getRegistration());</b>
+<b class="nc">&nbsp;                if (oldProfile != null) this.onDeviceProfileUpdate(clients, oldProfile, deviceProfile);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] failed to update profile: {} [{}]&quot;, deviceProfile.getId(), e.getMessage(), deviceProfile);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDeviceUpdate(SessionInfoProto sessionInfo, Device device, Optional&lt;DeviceProfile&gt; newDeviceProfileOpt) {
+&nbsp;        try {
+<b class="nc">&nbsp;            LwM2mClient client = clientContext.getClientByDeviceId(device.getUuidId());</b>
+<b class="nc">&nbsp;            if (client != null) {</b>
+<b class="nc">&nbsp;                if (newDeviceProfileOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                    this.securityStore.remove(client.getEndpoint(), client.getRegistration().getId());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                this.onDeviceUpdate(client, device, newDeviceProfileOpt);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] failed to update device: {} [{}]&quot;, device.getId(), e.getMessage(), device);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onDeviceDelete(DeviceId deviceId) {
+<b class="nc">&nbsp;        clearAndUnregister(clientContext.getClientByDeviceId(deviceId.getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onResourceUpdate(TransportProtos.ResourceUpdateMsg resourceUpdateMsgOpt) {
+<b class="nc">&nbsp;        String idVer = resourceUpdateMsgOpt.getResourceKey();</b>
+<b class="nc">&nbsp;        TenantId tenantId = TenantId.fromUUID(new UUID(resourceUpdateMsgOpt.getTenantIdMSB(), resourceUpdateMsgOpt.getTenantIdLSB()));</b>
+<b class="nc">&nbsp;        modelProvider.evict(tenantId, idVer);</b>
+<b class="nc">&nbsp;        clientContext.getLwM2mClients().forEach(e -&gt; e.updateResourceModel(idVer, modelProvider));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onResourceDelete(TransportProtos.ResourceDeleteMsg resourceDeleteMsgOpt) {
+<b class="nc">&nbsp;        String pathIdVer = resourceDeleteMsgOpt.getResourceKey();</b>
+<b class="nc">&nbsp;        TenantId tenantId = TenantId.fromUUID(new UUID(resourceDeleteMsgOpt.getTenantIdMSB(), resourceDeleteMsgOpt.getTenantIdLSB()));</b>
+<b class="nc">&nbsp;        modelProvider.evict(tenantId, pathIdVer);</b>
+<b class="nc">&nbsp;        clientContext.getLwM2mClients().forEach(e -&gt; e.deleteResources(pathIdVer, modelProvider));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Those methods are called by the protocol stage thread pool, this means that execution MUST be done in a short delay,
+&nbsp;     * * if you need to do long time processing use a dedicated thread pool.
+&nbsp;     *
+&nbsp;     * @param registration -
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public void onAwakeDev(Registration registration) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] [{}] Received endpoint awake event&quot;, registration.getId(), registration.getEndpoint());</b>
+<b class="nc">&nbsp;        clientContext.awake(clientContext.getClientByEndpoint(registration.getEndpoint()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * #1 clientOnlyObserveAfterConnect == true
+&nbsp;     * - Only Observe Request to the client marked as observe from the profile configuration.
+&nbsp;     * #2. clientOnlyObserveAfterConnect == false
+&nbsp;     * - Read Request to the client after registration to read all resource values for all objects
+&nbsp;     * - then Observe Request to the client marked as observe from the profile configuration.
+&nbsp;     *
+&nbsp;     * @param lwM2MClient - object with All parameters off client
+&nbsp;     */
+&nbsp;    private void initClientTelemetry(LwM2mClient lwM2MClient) {
+<b class="nc">&nbsp;        Lwm2mDeviceProfileTransportConfiguration profile = clientContext.getProfile(lwM2MClient.getRegistration());</b>
+<b class="nc">&nbsp;        if (profile != null) {</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; supportedObjects = clientContext.getSupportedIdVerInClient(lwM2MClient);</b>
+<b class="nc">&nbsp;            if (supportedObjects != null &amp;&amp; !supportedObjects.isEmpty()) {</b>
+<b class="nc">&nbsp;                this.sendInitObserveRequests(lwM2MClient, profile, supportedObjects);</b>
+<b class="nc">&nbsp;                this.sendReadRequests(lwM2MClient, profile, supportedObjects);</b>
+<b class="nc">&nbsp;                this.sendWriteAttributeRequests(lwM2MClient, profile, supportedObjects);</b>
+&nbsp;//            Removed. Used only for debug.
+&nbsp;//            this.sendDiscoverRequests(lwM2MClient, profile, supportedObjects);
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to process initClientTelemetry! Profile is null. Update procedure may not have completed after reboot yet&quot;, lwM2MClient.getEndpoint());</b>
+<b class="nc">&nbsp;            logService.log(lwM2MClient, &quot;Failed to process initClientTelemetry. Profile is null. Update procedure may not have completed after reboot yet&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendReadRequests(LwM2mClient lwM2MClient, Lwm2mDeviceProfileTransportConfiguration profile, Set&lt;String&gt; supportedObjects) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Set&lt;String&gt; targetIds = new HashSet&lt;&gt;(profile.getObserveAttr().getAttribute());</b>
+<b class="nc">&nbsp;            Boolean initAttrTelAsObsStrategy = profile.getObserveAttr().getInitAttrTelAsObsStrategy();</b>
+<b class="nc">&nbsp;            targetIds.addAll(profile.getObserveAttr().getTelemetry());</b>
+<b class="nc">&nbsp;            targetIds = diffSets(profile.getObserveAttr().getObserve(), targetIds);</b>
+<b class="nc">&nbsp;            targetIds = targetIds.stream().filter(target -&gt; isSupportedTargetId(supportedObjects, target)).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;            if (!targetIds.isEmpty()) {</b>
+<b class="nc">&nbsp;                TelemetryObserveStrategy observeStrategy = profile.getObserveAttr().getObserveStrategy();</b>
+<b class="nc">&nbsp;                long timeoutMs = config.getTimeout();</b>
+<b class="nc">&nbsp;                if (initAttrTelAsObsStrategy &amp;&amp; observeStrategy != SINGLE) {</b>
+<b class="nc">&nbsp;                    switch (observeStrategy) {</b>
+&nbsp;                        case COMPOSITE_ALL -&gt; {
+<b class="nc">&nbsp;                            sendReadCompositeRequest(lwM2MClient, targetIds.toArray(new String[0]));</b>
+&nbsp;                        }
+&nbsp;                        case COMPOSITE_BY_OBJECT -&gt; {
+<b class="nc">&nbsp;                            Map&lt;Integer, String[]&gt; versionedObjectIds = groupByObjectIdVersionedIds(targetIds);</b>
+<b class="nc">&nbsp;                            versionedObjectIds.forEach((k, v) -&gt; sendReadCompositeRequest(lwM2MClient, v));</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    CountDownLatch latch = new CountDownLatch(targetIds.size());</b>
+<b class="nc">&nbsp;                    targetIds.forEach(versionedId -&gt; sendReadSingleRequest(lwM2MClient, versionedId,</b>
+&nbsp;                            new TbLwM2MLatchCallback&lt;&gt;(latch, new TbLwM2MReadCallback(this, logService, lwM2MClient, versionedId))));
+<b class="nc">&nbsp;                    latch.await(timeoutMs, TimeUnit.MILLISECONDS);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (InterruptedException e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to await Read requests!&quot;, lwM2MClient.getEndpoint(), e);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to process read requests!&quot;, lwM2MClient.getEndpoint(), e);</b>
+<b class="nc">&nbsp;            logService.log(lwM2MClient, &quot;Failed to process read requests. Possible profile misconfiguration.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendInitObserveRequests(LwM2mClient lwM2MClient, Lwm2mDeviceProfileTransportConfiguration profile, Set&lt;String&gt; supportedObjects) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Set&lt;String&gt; targetIds = profile.getObserveAttr().getObserve();</b>
+<b class="nc">&nbsp;            targetIds = targetIds.stream().filter(target -&gt; isSupportedTargetId(supportedObjects, target)).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;            if (!targetIds.isEmpty()) {</b>
+<b class="nc">&nbsp;                TelemetryObserveStrategy observeStrategy = profile.getObserveAttr().getObserveStrategy();</b>
+<b class="nc">&nbsp;                long timeoutMs = config.getTimeout();</b>
+<b class="nc">&nbsp;                switch (observeStrategy) {</b>
+&nbsp;                    case SINGLE -&gt; {
+<b class="nc">&nbsp;                        CountDownLatch latch = new CountDownLatch(targetIds.size());</b>
+<b class="nc">&nbsp;                        targetIds.forEach(targetId -&gt; sendObserveRequest(</b>
+&nbsp;                                lwM2MClient, targetId,
+&nbsp;                                new TbLwM2MLatchCallback&lt;&gt;(latch, new TbLwM2MObserveCallback(this, logService, lwM2MClient, targetId))
+&nbsp;                        ));
+<b class="nc">&nbsp;                        boolean completed = latch.await(timeoutMs, TimeUnit.MILLISECONDS);</b>
+<b class="nc">&nbsp;                        if (!completed) log.trace(&quot;[{}] Timeout occurred during SINGLE observe init&quot;, lwM2MClient.getEndpoint());</b>
+&nbsp;                    }
+&nbsp;                    case COMPOSITE_ALL -&gt; {
+<b class="nc">&nbsp;                        sendObserveCompositeRequest(lwM2MClient, targetIds.toArray(new String[0]));</b>
+&nbsp;                    }
+&nbsp;                    case COMPOSITE_BY_OBJECT -&gt; {
+<b class="nc">&nbsp;                        Map&lt;Integer, String[]&gt; versionedObjectIds = groupByObjectIdVersionedIds(targetIds);</b>
+<b class="nc">&nbsp;                        versionedObjectIds.forEach((k, v) -&gt; sendObserveCompositeRequest(lwM2MClient, v));</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (InterruptedException e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to await Observe requests!&quot;, lwM2MClient.getEndpoint(), e);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to process observe requests!&quot;, lwM2MClient.getEndpoint(), e);</b>
+<b class="nc">&nbsp;            logService.log(lwM2MClient, &quot;Failed to process observe requests. Possible profile misconfiguration.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendWriteAttributeRequests(LwM2mClient lwM2MClient, Lwm2mDeviceProfileTransportConfiguration profile, Set&lt;String&gt; supportedObjects) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Map&lt;String, ObjectAttributes&gt; attributesMap = profile.getObserveAttr().getAttributeLwm2m();</b>
+<b class="nc">&nbsp;            attributesMap = attributesMap.entrySet().stream().filter(target -&gt; isSupportedTargetId(supportedObjects, target.getKey())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</b>
+<b class="nc">&nbsp;            attributesMap.forEach((targetId, params) -&gt; sendWriteAttributesRequest(lwM2MClient, targetId, params));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to process write attribute requests!&quot;, lwM2MClient.getEndpoint(), e);</b>
+<b class="nc">&nbsp;            logService.log(lwM2MClient, &quot;Failed to process write attribute requests. Possible profile misconfiguration.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendReadSingleRequest(LwM2mClient lwM2MClient, String versionedId, DownlinkRequestCallback&lt;ReadRequest, ReadResponse&gt; callback) {
+<b class="nc">&nbsp;        TbLwM2MReadRequest request = TbLwM2MReadRequest.builder().versionedId(versionedId).timeout(clientContext.getRequestTimeout(lwM2MClient)).build();</b>
+<b class="nc">&nbsp;        defaultLwM2MDownlinkMsgHandler.sendReadRequest(lwM2MClient, request, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendReadCompositeRequest(LwM2mClient lwM2MClient, String[] versionedIds) {
+<b class="nc">&nbsp;        TbLwM2MReadCompositeRequest request = TbLwM2MReadCompositeRequest.builder().versionedIds(versionedIds).timeout(clientContext.getRequestTimeout(lwM2MClient)).build();</b>
+<b class="nc">&nbsp;        var mainCallback = new TbLwM2MReadCompositeCallback(this, logService, lwM2MClient, versionedIds);</b>
+<b class="nc">&nbsp;        defaultLwM2MDownlinkMsgHandler.sendReadCompositeRequest(lwM2MClient, request, mainCallback );</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendObserveRequest(LwM2mClient lwM2MClient, String versionedId, DownlinkRequestCallback&lt;ObserveRequest, ObserveResponse&gt; callback) {
+<b class="nc">&nbsp;        TbLwM2MObserveRequest request = TbLwM2MObserveRequest.builder().versionedId(versionedId).timeout(clientContext.getRequestTimeout(lwM2MClient)).build();</b>
+<b class="nc">&nbsp;        defaultLwM2MDownlinkMsgHandler.sendObserveRequest(lwM2MClient, request, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendObserveCompositeRequest(LwM2mClient lwM2MClient, String[] versionedIds) {
+&nbsp;
+<b class="nc">&nbsp;        TbLwM2MObserveCompositeRequest request = TbLwM2MObserveCompositeRequest.builder().versionedIds(versionedIds).timeout(clientContext.getRequestTimeout(lwM2MClient)).build();</b>
+<b class="nc">&nbsp;        var mainCallback = new TbLwM2MObserveCompositeCallback(this, logService, lwM2MClient, versionedIds);</b>
+<b class="nc">&nbsp;        defaultLwM2MDownlinkMsgHandler.sendObserveCompositeRequest(lwM2MClient, request, mainCallback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendWriteAttributesRequest(LwM2mClient lwM2MClient, String targetId, ObjectAttributes params) {
+<b class="nc">&nbsp;        TbLwM2MWriteAttributesRequest request = TbLwM2MWriteAttributesRequest.builder().versionedId(targetId).attributes(params).timeout(clientContext.getRequestTimeout(lwM2MClient)).build();</b>
+<b class="nc">&nbsp;        defaultLwM2MDownlinkMsgHandler.sendWriteAttributesRequest(lwM2MClient, request, new TbLwM2MWriteAttributesCallback(logService, lwM2MClient, targetId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendCancelObserveRequest(String versionedId, LwM2mClient client) {
+<b class="nc">&nbsp;        TbLwM2MCancelObserveRequest request = TbLwM2MCancelObserveRequest.builder().versionedId(versionedId).timeout(clientContext.getRequestTimeout(client)).build();</b>
+<b class="nc">&nbsp;        defaultLwM2MDownlinkMsgHandler.sendCancelObserveRequest(client, request, new TbLwM2MCancelObserveCallback(logService, client, versionedId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateObjectResourceValue(ResourceUpdateResult updateResource, LwM2mObject lwM2mObject, String pathIdVer, int code) {
+<b class="nc">&nbsp;        LwM2mPath pathIds = new LwM2mPath(fromVersionedIdToObjectId(pathIdVer));</b>
+<b class="nc">&nbsp;        lwM2mObject.getInstances().forEach((instanceId, instance) -&gt; {</b>
+<b class="nc">&nbsp;            String pathInstance = pathIds.toString() + &quot;/&quot; + instanceId;</b>
+<b class="nc">&nbsp;            this.updateObjectInstanceResourceValue(updateResource, instance, pathInstance, code);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateObjectInstanceResourceValue(ResourceUpdateResult updateResource, LwM2mObjectInstance lwM2mObjectInstance, String pathIdVer, int code) {
+<b class="nc">&nbsp;        lwM2mObjectInstance.getResources().forEach((resourceId, resource) -&gt; {</b>
+<b class="nc">&nbsp;            String pathRez = pathIdVer + &quot;/&quot; + resourceId;</b>
+<b class="nc">&nbsp;            this.updateResourcesValue(updateResource, resource, pathRez, Mode.UPDATE, code);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sending observe value of resources to thingsboard
+&nbsp;     * #1 Return old Value Resource from LwM2MClient
+&nbsp;     * #2 Update new Resources (replace old Resource Value on new Resource Value)
+&nbsp;     * #3 If fr_update -&gt; UpdateFirmware
+&nbsp;     * #4 updateAttrTelemetry
+&nbsp;     * @param updateResource   - result update resource by LwM2M Client
+&nbsp;     * @param lwM2mResource - LwM2mSingleResource response.getContent()
+&nbsp;     * @param stringPath          - resource
+&nbsp;     * @param mode          - Replace, Update
+&nbsp;     */
+&nbsp;    private void updateResourcesValue(ResourceUpdateResult updateResource, LwM2mResource lwM2mResource, String stringPath, Mode mode, int code) {
+<b class="nc">&nbsp;        LwM2mClient lwM2MClient = updateResource.getLwM2MClient();</b>
+<b class="nc">&nbsp;        String path = convertObjectIdToVersionedId(stringPath, lwM2MClient);</b>
+<b class="nc">&nbsp;        if (path != null &amp;&amp; lwM2MClient.saveResourceValue(path, lwM2mResource, modelProvider, mode)) {</b>
+<b class="nc">&nbsp;            this.updateOtaResource(lwM2MClient, lwM2mResource, path);</b>
+<b class="nc">&nbsp;            if (ResponseCode.BAD_REQUEST.getCode() &gt; code) {</b>
+<b class="nc">&nbsp;                updateResource.getPaths().add(path);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.error(&quot;Fail update path [{}] Resource [{}]&quot;, path, lwM2mResource);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateOtaResource(LwM2mClient lwM2MClient, LwM2mResource lwM2mResource, String path) {
+<b class="nc">&nbsp;        if (path.equals(convertObjectIdToVersionedId(FW_NAME_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentFirmwareNameUpdate(lwM2MClient, (String) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(FW_3_VER_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentFirmwareVersion3Update(lwM2MClient, (String) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(FW_VER_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentFirmwareVersionUpdate(lwM2MClient, (String) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(FW_STATE_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentFirmwareStateUpdate(lwM2MClient, (Long) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(FW_RESULT_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentFirmwareResultUpdate(lwM2MClient, (Long) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(FW_DELIVERY_METHOD, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentFirmwareDeliveryMethodUpdate(lwM2MClient, (Long) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(SW_NAME_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentSoftwareNameUpdate(lwM2MClient, (String) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(SW_VER_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentSoftwareVersionUpdate(lwM2MClient, (String) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(SW_3_VER_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentSoftwareVersion3Update(lwM2MClient, (String) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(SW_STATE_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentSoftwareStateUpdate(lwM2MClient, (Long) lwM2mResource.getValue());</b>
+<b class="nc">&nbsp;        } else if (path.equals(convertObjectIdToVersionedId(SW_RESULT_ID, lwM2MClient))) {</b>
+<b class="nc">&nbsp;            otaService.onCurrentSoftwareResultUpdate(lwM2MClient, (Long) lwM2mResource.getValue());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * send Attribute and Telemetry to Thingsboard
+&nbsp;     * #1 - get AttrName/TelemetryName with value from LwM2MClient:
+&nbsp;     * -- resourceId == path from LwM2MClientProfile.postAttributeProfile/postTelemetryProfile/postObserveProfile
+&nbsp;     * -- AttrName/TelemetryName == resourceName from ModelObject.objectModel, value from ModelObject.instance.resource(resourceId)
+&nbsp;     * #2 - set Attribute/Telemetry
+&nbsp;     *
+&nbsp;     * @param updateResource - updateResource resource of LwM2M Client
+&nbsp;     */
+&nbsp;    public void updateAttrTelemetry(ResourceUpdateResult updateResource, Instant ts) {
+<b class="nc">&nbsp;        log.trace(&quot;UpdateAttrTelemetry paths [{}]&quot;, updateResource.getPaths());</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            ResultsAddKeyValueProto results = this.getParametersFromProfile(updateResource);</b>
+<b class="nc">&nbsp;            SessionInfoProto sessionInfo = this.getSessionInfoOrCloseSession(updateResource.getLwM2MClient().getRegistration());</b>
+<b class="nc">&nbsp;            if (results != null &amp;&amp; sessionInfo != null) {</b>
+<b class="nc">&nbsp;                if (results.getResultAttributes().size() &gt; 0) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;UpdateAttribute paths [{}] value [{}]&quot;, updateResource.getPaths(), results.getResultAttributes().get(0).toString());</b>
+<b class="nc">&nbsp;                    this.helper.sendParametersOnThingsboardAttribute(results.getResultAttributes(), sessionInfo);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (results.getResultTelemetries().size() &gt; 0) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;UpdateTelemetry paths [{}] value [{}] ts [{}]&quot;, updateResource.getPaths(), results.getResultTelemetries().get(0).toString(), ts == null ? &quot;null&quot; : ts.toEpochMilli());</b>
+<b class="nc">&nbsp;                    this.helper.sendParametersOnThingsboardTelemetry(results.getResultTelemetries(), sessionInfo, null, ts);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;UpdateAttrTelemetry&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isSupportedTargetId(Set&lt;String&gt; supportedIds, String targetId) {
+<b class="nc">&nbsp;        String[] targetIdParts = targetId.split(LWM2M_SEPARATOR_PATH);</b>
+<b class="nc">&nbsp;        if (targetIdParts.length &lt;= 1) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String targetIdSearch = targetIdParts[0];</b>
+<b class="nc">&nbsp;        for (int i = 1; i &lt; targetIdParts.length; i++) {</b>
+<b class="nc">&nbsp;            targetIdSearch += &quot;/&quot; + targetIdParts[i];</b>
+<b class="nc">&nbsp;            if (supportedIds.contains(targetIdSearch)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onDeviceUpdate(LwM2mClient lwM2MClient, Device device, Optional&lt;DeviceProfile&gt; deviceProfileOpt) {
+<b class="nc">&nbsp;        var oldProfile = clientContext.getProfile(lwM2MClient.getRegistration());</b>
+<b class="nc">&nbsp;        if (oldProfile != null) {</b>
+<b class="nc">&nbsp;            deviceProfileOpt.ifPresent(deviceProfile -&gt; this.onDeviceProfileUpdate(Collections.singletonList(lwM2MClient), oldProfile, deviceProfile));</b>
+<b class="nc">&nbsp;            lwM2MClient.onDeviceUpdate(device, deviceProfileOpt);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * //     * @param attributes   - new JsonObject
+&nbsp;     * //     * @param telemetry    - new JsonObject
+&nbsp;     *
+&nbsp;     * @param updateResource - updateResource resource of LwM2M Client
+&nbsp;     */
+&nbsp;    private ResultsAddKeyValueProto getParametersFromProfile(ResourceUpdateResult updateResource) {
+<b class="nc">&nbsp;        Registration registration = updateResource.getLwM2MClient().getRegistration();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; paths = updateResource.getPaths();</b>
+<b class="nc">&nbsp;        ResultsAddKeyValueProto results = new ResultsAddKeyValueProto();</b>
+<b class="nc">&nbsp;        var profile = clientContext.getProfile(registration);</b>
+<b class="nc">&nbsp;        if (profile != null) {</b>
+<b class="nc">&nbsp;            List&lt;TransportProtos.KeyValueProto&gt; resultAttributes = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; attributes = profile.getObserveAttr().getAttribute().stream()</b>
+<b class="nc">&nbsp;                    .filter(paths::contains)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;            if (!attributes.isEmpty()) {</b>
+<b class="nc">&nbsp;                attributes.stream()</b>
+<b class="nc">&nbsp;                        .map(attr -&gt; this.getKvToThingsBoard(attr, registration))</b>
+<b class="nc">&nbsp;                        .filter(Objects::nonNull)</b>
+<b class="nc">&nbsp;                        .forEach(resultAttributes::add);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            List&lt;TransportProtos.KeyValueProto&gt; resultTelemetries = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; telemetries = profile.getObserveAttr().getTelemetry().stream()</b>
+<b class="nc">&nbsp;                    .filter(paths::contains)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;            if (!telemetries.isEmpty()) {</b>
+<b class="nc">&nbsp;                telemetries.stream()</b>
+<b class="nc">&nbsp;                        .map(telemetry -&gt; this.getKvToThingsBoard(telemetry, registration))</b>
+<b class="nc">&nbsp;                        .filter(Objects::nonNull)</b>
+<b class="nc">&nbsp;                        .forEach(resultTelemetries::add);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (resultAttributes.size() &gt; 0) {</b>
+<b class="nc">&nbsp;                results.setResultAttributes(resultAttributes);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (resultTelemetries.size() &gt; 0) {</b>
+<b class="nc">&nbsp;                results.setResultTelemetries(resultTelemetries);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return results;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TransportProtos.KeyValueProto getKvToThingsBoard(String pathIdVer, Registration registration) {
+<b class="nc">&nbsp;        LwM2mClient lwM2MClient = this.clientContext.getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;        var clientProfile = clientContext.getProfile(lwM2MClient.getRegistration());</b>
+<b class="nc">&nbsp;        if (clientProfile == null) return null;</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; names = clientProfile.getObserveAttr().getKeyName();</b>
+<b class="nc">&nbsp;        if (names != null &amp;&amp; names.containsKey(pathIdVer)) {</b>
+<b class="nc">&nbsp;            String resourceName = names.get(pathIdVer);</b>
+<b class="nc">&nbsp;            if (resourceName != null &amp;&amp; !resourceName.isEmpty()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    LwM2mResource resourceValue = LwM2MTransportUtil.getResourceValueFromLwM2MClient(lwM2MClient, pathIdVer);</b>
+<b class="nc">&nbsp;                    if (resourceValue != null) {</b>
+<b class="nc">&nbsp;                        ResourceModel.Type currentType = resourceValue.getType();</b>
+<b class="nc">&nbsp;                        ResourceModel.Type expectedType = this.helper.getResourceModelTypeEqualsKvProtoValueType(currentType, pathIdVer);</b>
+<b class="nc">&nbsp;                        Object valueKvProto = null;</b>
+<b class="nc">&nbsp;                        if (resourceValue.isMultiInstances()) {</b>
+<b class="nc">&nbsp;                            valueKvProto = new JsonObject();</b>
+<b class="nc">&nbsp;                            Object finalvalueKvProto = valueKvProto;</b>
+<b class="nc">&nbsp;                            Gson gson = new GsonBuilder().create();</b>
+<b class="nc">&nbsp;                            ResourceModel.Type finalCurrentType = currentType;</b>
+<b class="nc">&nbsp;                            resourceValue.getInstances().forEach((k, v) -&gt; {</b>
+<b class="nc">&nbsp;                                Object val = this.converter.convertValue(v.getValue(), finalCurrentType, expectedType,</b>
+<b class="nc">&nbsp;                                        new LwM2mPath(fromVersionedIdToObjectId(pathIdVer)));</b>
+<b class="nc">&nbsp;                                JsonElement element = gson.toJsonTree(val, val.getClass());</b>
+<b class="nc">&nbsp;                                ((JsonObject) finalvalueKvProto).add(String.valueOf(k), element);</b>
+&nbsp;                            });
+<b class="nc">&nbsp;                            valueKvProto = gson.toJson(valueKvProto);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            valueKvProto = this.converter.convertValue(resourceValue.getValue(), currentType, expectedType,</b>
+<b class="nc">&nbsp;                                    new LwM2mPath(fromVersionedIdToObjectId(pathIdVer)));</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        LwM2mOtaConvert lwM2mOtaConvert = convertOtaUpdateValueToString(pathIdVer, valueKvProto, currentType);</b>
+<b class="nc">&nbsp;                        valueKvProto = lwM2mOtaConvert.getValue();</b>
+<b class="nc">&nbsp;                        currentType = lwM2mOtaConvert.getCurrentType();</b>
+<b class="nc">&nbsp;                        return valueKvProto != null ? this.helper.getKvAttrTelemetryToThingsboard(currentType, resourceName, valueKvProto, resourceValue.isMultiInstances()) : null;</b>
+&nbsp;                    }
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.error(&quot;Failed to add parameters.&quot;, e);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.error(&quot;Failed to add parameters. path: [{}], names: [{}]&quot;, pathIdVer, names);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onWriteResponseOk(LwM2mClient lwM2MClient, String path, WriteRequest request, int code) {
+<b class="nc">&nbsp;        ResourceUpdateResult updateResource = new ResourceUpdateResult(lwM2MClient);</b>
+<b class="nc">&nbsp;        if (request.getNode() instanceof LwM2mResource) {</b>
+<b class="nc">&nbsp;            this.updateResourcesValue(updateResource, ((LwM2mResource) request.getNode()), path, request.isReplaceRequest() ? Mode.REPLACE : Mode.UPDATE, code);</b>
+<b class="nc">&nbsp;        } else if (request.getNode() instanceof LwM2mObjectInstance) {</b>
+<b class="nc">&nbsp;            ((LwM2mObjectInstance) request.getNode()).getResources().forEach((resId, resource) -&gt; {</b>
+<b class="nc">&nbsp;                this.updateResourcesValue(updateResource, resource, path + &quot;/&quot; + resId, request.isReplaceRequest() ? Mode.REPLACE : Mode.UPDATE, code);</b>
+&nbsp;            });
+&nbsp;        }
+<b class="nc">&nbsp;        if (request.getNode() instanceof LwM2mResource || request.getNode() instanceof LwM2mObjectInstance) {</b>
+<b class="nc">&nbsp;            clientContext.update(lwM2MClient);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        this.updateAttrTelemetry(updateResource, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onCreatebjectInstancesResponseOk(LwM2mClient lwM2MClient, String versionId, CreateRequest request) {
+<b class="nc">&nbsp;        if (request.getObjectInstances() != null &amp;&amp; !request.getObjectInstances().isEmpty()) {</b>
+<b class="nc">&nbsp;            ResourceUpdateResult updateResource = new ResourceUpdateResult(lwM2MClient);</b>
+<b class="nc">&nbsp;            request.getObjectInstances().forEach(instance -&gt;</b>
+<b class="nc">&nbsp;                            instance.getResources().forEach((resId, lwM2mResource) -&gt;{</b>
+<b class="nc">&nbsp;                                String path = versionId.endsWith(&quot;/&quot;) ? versionId + resId : versionId + &quot;/&quot; + resId;</b>
+<b class="nc">&nbsp;                                this.updateResourcesValue(updateResource, lwM2mResource, path, Mode.REPLACE, 0);</b>
+&nbsp;                            })
+&nbsp;            );
+<b class="nc">&nbsp;            clientContext.update(lwM2MClient);</b>
+<b class="nc">&nbsp;            this.updateAttrTelemetry(updateResource, null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onWriteCompositeResponseOk(LwM2mClient lwM2MClient, WriteCompositeRequest request, int code) {
+<b class="nc">&nbsp;        log.trace(&quot;ReadCompositeResponse: [{}]&quot;, request.getNodes());</b>
+<b class="nc">&nbsp;        ResourceUpdateResult updateResource = new ResourceUpdateResult(lwM2MClient);</b>
+<b class="nc">&nbsp;        request.getNodes().forEach((k, v) -&gt; {</b>
+<b class="nc">&nbsp;            if (v instanceof LwM2mSingleResource) {</b>
+<b class="nc">&nbsp;                this.updateResourcesValue(updateResource, (LwM2mResource) v, k.toString(), Mode.REPLACE, code);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                LwM2mResourceInstance resourceInstance = (LwM2mResourceInstance) v;</b>
+<b class="nc">&nbsp;                LwM2mMultipleResource multipleResource = new LwM2mMultipleResource(((LwM2mResourceInstance) v).getId(), resourceInstance.getType(), resourceInstance);</b>
+<b class="nc">&nbsp;                this.updateResourcesValue(updateResource, multipleResource, k.toString(), Mode.REPLACE, code);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        this.updateAttrTelemetry(updateResource, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onDeviceProfileUpdate(List&lt;LwM2mClient&gt; clients, Lwm2mDeviceProfileTransportConfiguration oldProfileTransportConfiguration, DeviceProfile deviceProfile) {
+<b class="nc">&nbsp;        if (clientContext.profileUpdate(deviceProfile) != null) {</b>
+<b class="nc">&nbsp;            var newProfileTransportConfiguration = clientContext.getProfile(clients.get(0).getRegistration());</b>
+<b class="nc">&nbsp;            if (newProfileTransportConfiguration != null) {</b>
+<b class="nc">&nbsp;                ParametersUpdateAnalyzeResult parametersUpdate = getParametersUpdate(oldProfileTransportConfiguration, newProfileTransportConfiguration);</b>
+<b class="nc">&nbsp;                ParametersObserveAnalyzeResult parametersObserve = getParametersObserve(oldProfileTransportConfiguration.getObserveAttr(), newProfileTransportConfiguration.getObserveAttr(), deviceProfile.getId().getId());</b>
+<b class="nc">&nbsp;                compareAndSetWriteAttributesObservations(clients, parametersUpdate, parametersObserve);</b>
+<b class="nc">&nbsp;                updateValueOta(clients, newProfileTransportConfiguration, oldProfileTransportConfiguration);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ParametersUpdateAnalyzeResult getParametersUpdate(Lwm2mDeviceProfileTransportConfiguration oldProfile, Lwm2mDeviceProfileTransportConfiguration newProfile){
+<b class="nc">&nbsp;        TelemetryMappingConfiguration newTelemetryParams = newProfile.getObserveAttr();</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; keyNameNew = newTelemetryParams.getKeyName();</b>
+<b class="nc">&nbsp;        Map&lt;String, ObjectAttributes&gt; attributeLwm2mNew = newTelemetryParams.getAttributeLwm2m();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; attributeSetNew = newTelemetryParams.getAttribute();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; telemetrySetNew = newTelemetryParams.getTelemetry();</b>
+&nbsp;
+<b class="nc">&nbsp;        TelemetryMappingConfiguration oldTelemetryParams = oldProfile.getObserveAttr();</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; keyNameOld = oldTelemetryParams.getKeyName();</b>
+<b class="nc">&nbsp;        Map&lt;String, ObjectAttributes&gt; attributeLwm2mOld = oldTelemetryParams.getAttributeLwm2m();</b>
+<b class="nc">&nbsp;        ParametersAnalyzeResult analyzerParameters = getAttributesAnalyzer(attributeLwm2mOld, attributeLwm2mNew);</b>
+&nbsp;
+&nbsp;            //         analyze Read
+<b class="nc">&nbsp;        Set&lt;String&gt; newObjectsToRead = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; newObjectsToCancelRead = new HashSet&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;String&gt; attributeSetOld = oldTelemetryParams.getAttribute();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; telemetrySetOld = oldTelemetryParams.getTelemetry();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!attributeSetOld.equals(attributeSetNew)) {</b>
+<b class="nc">&nbsp;            newObjectsToRead.addAll(diffSets(attributeSetOld, attributeSetNew));</b>
+<b class="nc">&nbsp;            newObjectsToCancelRead.addAll(diffSets(attributeSetNew, attributeSetOld));</b>
+&nbsp;
+&nbsp;        }
+<b class="nc">&nbsp;        if (!telemetrySetOld.equals(telemetrySetNew)) {</b>
+<b class="nc">&nbsp;            newObjectsToRead.addAll(diffSets(telemetrySetOld, telemetrySetNew));</b>
+<b class="nc">&nbsp;            newObjectsToCancelRead.addAll(diffSets(telemetrySetNew, telemetrySetOld));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!keyNameOld.equals(keyNameNew)) {</b>
+<b class="nc">&nbsp;            ParametersAnalyzeResult keyNameChange = this.getAnalyzerKeyName(keyNameOld, keyNameNew);</b>
+<b class="nc">&nbsp;            newObjectsToRead.addAll(keyNameChange.getPathPostParametersAdd());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new ParametersUpdateAnalyzeResult(analyzerParameters, newObjectsToRead, newObjectsToCancelRead, attributeLwm2mNew);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ParametersAnalyzeResult getAnalyzerKeyName(Map&lt;String, String&gt; keyNameOld, Map&lt;String, String&gt; keyNameNew) {
+<b class="nc">&nbsp;        ParametersAnalyzeResult analyzerParameters = new ParametersAnalyzeResult();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; paths = keyNameNew.entrySet()</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .filter(e -&gt; !e.getValue().equals(keyNameOld.get(e.getKey())))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).keySet();</b>
+<b class="nc">&nbsp;        analyzerParameters.setPathPostParametersAdd(paths);</b>
+<b class="nc">&nbsp;        return analyzerParameters;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ParametersObserveAnalyzeResult getParametersObserve(TelemetryMappingConfiguration oldTelemetryParams, TelemetryMappingConfiguration newTelemetryParams, UUID profileId){
+&nbsp;        try {
+<b class="nc">&nbsp;            TelemetryObserveStrategy observeStrategyOld = oldTelemetryParams.getObserveStrategy();</b>
+<b class="nc">&nbsp;            TelemetryObserveStrategy observeStrategyNew = newTelemetryParams.getObserveStrategy();</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; observeOld = oldTelemetryParams.getObserve();</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; observeNew = newTelemetryParams.getObserve();</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; observeSingleToNew = diffSets(observeOld, observeNew);</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; observeSingleToCancel = diffSets(observeNew, observeOld);</b>
+<b class="nc">&nbsp;            if (!observeSingleToNew.isEmpty() || !observeSingleToCancel.isEmpty()) {</b>
+<b class="nc">&nbsp;                ParametersObserveAnalyzeResult observeAnalyzeResult = new ParametersObserveAnalyzeResult(observeSingleToCancel,</b>
+&nbsp;                        observeSingleToNew, observeStrategyOld, observeStrategyNew);
+<b class="nc">&nbsp;                if (SINGLE.equals(observeStrategyOld) &amp;&amp; SINGLE.equals(observeStrategyNew)) {</b>
+<b class="nc">&nbsp;                    return observeAnalyzeResult;</b>
+<b class="nc">&nbsp;                } else if (COMPOSITE_BY_OBJECT.equals(observeStrategyOld) &amp;&amp; COMPOSITE_BY_OBJECT.equals(observeStrategyNew)) {</b>
+<b class="nc">&nbsp;                    Map&lt;Integer, String[]&gt; observeByObjectToCancel = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;                    Map&lt;Integer, String[]&gt; observeByObjectToNew =  new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;                    Map&lt;Integer, String[]&gt; observeByObjectOld = groupByObjectIdVersionedIds(observeOld);</b>
+<b class="nc">&nbsp;                    Map&lt;Integer, String[]&gt; observeByObjectNew = groupByObjectIdVersionedIds(observeNew);</b>
+<b class="nc">&nbsp;                    for (Map.Entry&lt;Integer, String[]&gt; entry : observeByObjectNew.entrySet()) {</b>
+<b class="nc">&nbsp;                        Integer key = entry.getKey();</b>
+<b class="nc">&nbsp;                        String[] newValue = entry.getValue();</b>
+<b class="nc">&nbsp;                        if (observeByObjectOld.containsKey(key)) {</b>
+<b class="nc">&nbsp;                            String[] oldValue = observeByObjectOld.get(key);</b>
+<b class="nc">&nbsp;                            if (!areArraysStringEqual(oldValue, newValue)) {</b>
+<b class="nc">&nbsp;                                observeByObjectToCancel.put(key, oldValue);</b>
+<b class="nc">&nbsp;                                observeByObjectToNew.put(key, newValue);</b>
+&nbsp;                            }
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            observeByObjectToNew.put(key, newValue);</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    observeAnalyzeResult.setObserveByObjectToCancel(observeByObjectToCancel);</b>
+<b class="nc">&nbsp;                    observeAnalyzeResult.setObserveByObjectToNew(observeByObjectToNew);</b>
+<b class="nc">&nbsp;                    return observeAnalyzeResult;</b>
+&nbsp;                } else {
+&nbsp;                    // Observe Cancel All
+<b class="nc">&nbsp;                    observeAnalyzeResult.setObserveSingleToCancel(observeOld);</b>
+&nbsp;                    // Observe All new
+<b class="nc">&nbsp;                    observeAnalyzeResult.setObserveSingleToNew(observeNew);</b>
+<b class="nc">&nbsp;                    return observeAnalyzeResult;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return new ParametersObserveAnalyzeResult();</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            log.error(&quot;Error lwm2m on Profile Update id: [{}]. Failed observe Strategy: [{}]&quot;, profileId, e.getMessage());</b>
+<b class="nc">&nbsp;            return new ParametersObserveAnalyzeResult();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ParametersAnalyzeResult getAttributesAnalyzer(Map&lt;String, ObjectAttributes&gt; attributeLwm2mOld, Map&lt;String, ObjectAttributes&gt; attributeLwm2mNew) {
+<b class="nc">&nbsp;        ParametersAnalyzeResult analyzerParameters = new ParametersAnalyzeResult();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; pathOld = attributeLwm2mOld.keySet();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; pathNew = attributeLwm2mNew.keySet();</b>
+<b class="nc">&nbsp;        analyzerParameters.setPathPostParametersAdd(pathNew</b>
+<b class="nc">&nbsp;                .stream().filter(p -&gt; !pathOld.contains(p)).collect(Collectors.toSet()));</b>
+<b class="nc">&nbsp;        analyzerParameters.setPathPostParametersDel(pathOld</b>
+<b class="nc">&nbsp;                .stream().filter(p -&gt; !pathNew.contains(p)).collect(Collectors.toSet()));</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; pathCommon = pathNew</b>
+<b class="nc">&nbsp;                .stream().filter(pathOld::contains).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; pathCommonChange = pathCommon</b>
+<b class="nc">&nbsp;                .stream().filter(p -&gt; !attributeLwm2mOld.get(p).equals(attributeLwm2mNew.get(p))).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;        analyzerParameters.getPathPostParametersAdd().addAll(pathCommonChange);</b>
+<b class="nc">&nbsp;        return analyzerParameters;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void compareAndSetWriteAttributesObservations(List&lt;LwM2mClient&gt; clients, ParametersUpdateAnalyzeResult parametersUpdate, ParametersObserveAnalyzeResult parametersObserve) {
+<b class="nc">&nbsp;        clients.forEach(client -&gt; {</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; clientObjects = clientContext.getSupportedIdVerInClient(client);</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; pathToAdd = parametersUpdate.getAnalyzerParameters().getPathPostParametersAdd().stream().filter(target -&gt; clientObjects.contains(&quot;/&quot; + target.split(LWM2M_SEPARATOR_PATH)[1]))</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toUnmodifiableSet());</b>
+<b class="nc">&nbsp;            Map&lt;String, ObjectAttributes&gt; attributesToAdd = pathToAdd.stream().collect(Collectors.toMap(t -&gt; t, parametersUpdate.getAttributeLwm2mNew()::get));</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; attributesToRemove = parametersUpdate.getAnalyzerParameters().getPathPostParametersDel().stream().filter(target -&gt; clientObjects.contains(&quot;/&quot; + target.split(LWM2M_SEPARATOR_PATH)[1]))</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toUnmodifiableSet());</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; toRead = diffSets(parametersObserve.getObserveSingleToNew(), parametersUpdate.getNewObjectsToRead());</b>
+<b class="nc">&nbsp;            LwM2MModelConfig modelConfig = new LwM2MModelConfig(client.getEndpoint(),  attributesToAdd, attributesToRemove, parametersObserve.getObserveSingleToNew(),</b>
+<b class="nc">&nbsp;                    parametersObserve.getObserveSingleToCancel(), parametersObserve.getObserveByObjectToNew(), parametersObserve.getObserveByObjectToCancel(),</b>
+<b class="nc">&nbsp;                    toRead, parametersObserve.getObserveStrategyOld(), parametersObserve.getObserveStrategyNew());</b>
+<b class="nc">&nbsp;            modelConfig.getToCancelRead().addAll(parametersUpdate.getNewObjectsToCancelRead());</b>
+<b class="nc">&nbsp;            modelConfigService.sendUpdates(client, modelConfig);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void  updateValueOta(List&lt;LwM2mClient&gt; clients, Lwm2mDeviceProfileTransportConfiguration newProfile, Lwm2mDeviceProfileTransportConfiguration oldProfile) {
+<b class="nc">&nbsp;        OtherConfiguration newLwM2mSettings = newProfile.getClientLwM2mSettings();</b>
+<b class="nc">&nbsp;        OtherConfiguration oldLwM2mSettings = oldProfile.getClientLwM2mSettings();</b>
+<b class="nc">&nbsp;        if (!newLwM2mSettings.getFwUpdateStrategy().equals(oldLwM2mSettings.getFwUpdateStrategy())</b>
+<b class="nc">&nbsp;                || (StringUtils.isNotEmpty(newLwM2mSettings.getFwUpdateResource()) &amp;&amp;</b>
+<b class="nc">&nbsp;                !newLwM2mSettings.getFwUpdateResource().equals(oldLwM2mSettings.getFwUpdateResource()))) {</b>
+<b class="nc">&nbsp;            clients.forEach(lwM2MClient -&gt; otaService.onFirmwareStrategyUpdate(lwM2MClient, newLwM2mSettings));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!newLwM2mSettings.getSwUpdateStrategy().equals(oldLwM2mSettings.getSwUpdateStrategy())</b>
+<b class="nc">&nbsp;                || (StringUtils.isNotEmpty(newLwM2mSettings.getSwUpdateResource()) &amp;&amp;</b>
+<b class="nc">&nbsp;                !newLwM2mSettings.getSwUpdateResource().equals(oldLwM2mSettings.getSwUpdateResource()))) {</b>
+<b class="nc">&nbsp;            clients.forEach(lwM2MClient -&gt; otaService.onCurrentSoftwareStrategyUpdate(lwM2MClient, newLwM2mSettings));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param sessionInfo
+&nbsp;     * @param updateCredentials - Credentials include config only security Client (without config attr/telemetry...)
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public void onToTransportUpdateCredentials(SessionInfoProto sessionInfo, TransportProtos.ToTransportUpdateCredentialsProto updateCredentials) {
+<b class="nc">&nbsp;        log.info(&quot;[{}] updateCredentials&quot;, sessionInfo);</b>
+<b class="nc">&nbsp;        clearAndUnregister(clientContext.getClientBySessionInfo(sessionInfo));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param lwM2MClient -
+&nbsp;     * @return SessionInfoProto -
+&nbsp;     */
+&nbsp;    private SessionInfoProto getSessionInfo(LwM2mClient lwM2MClient) {
+<b class="nc">&nbsp;        if (lwM2MClient != null &amp;&amp; lwM2MClient.getSession() != null) {</b>
+<b class="nc">&nbsp;            return lwM2MClient.getSession();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param registration - Registration LwM2M Client
+&nbsp;     * @return - sessionInfo after access connect client
+&nbsp;     */
+&nbsp;    public SessionInfoProto getSessionInfoOrCloseSession(Registration registration) {
+<b class="nc">&nbsp;        return getSessionInfo(clientContext.getClientByEndpoint(registration.getEndpoint()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * if sessionInfo removed from sessions, then new registerAsyncSession
+&nbsp;     *
+&nbsp;     * @param sessionInfo -
+&nbsp;     */
+&nbsp;    private void reportActivityAndRegister(SessionInfoProto sessionInfo) {
+<b class="nc">&nbsp;        if (sessionInfo != null &amp;&amp; !transportService.hasSession(sessionInfo)) {</b>
+<b class="nc">&nbsp;            sessionManager.register(sessionInfo);</b>
+<b class="nc">&nbsp;            this.reportActivitySubscription(sessionInfo);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportActivity() {
+<b class="nc">&nbsp;        clientContext.getLwM2mClients().forEach(client -&gt; reportActivityAndRegister(client.getSession()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * #1. !!!  sharedAttr === profileAttr  !!!
+&nbsp;     * - If there is a difference in values between the current resource values and the shared attribute values
+&nbsp;     * - when the client connects to the server
+&nbsp;     * #1.1 get attributes name from profile include name resources in ModelObject if resource  isWritable
+&nbsp;     * #1.2 #1 size &gt; 0 =&gt; send Request getAttributes to thingsboard
+&nbsp;     * #2. FirmwareAttribute subscribe:
+&nbsp;     *
+&nbsp;     * @param lwM2MClient - LwM2M Client
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public void initAttributes(LwM2mClient lwM2MClient, boolean logFailedUpdateOfNonChangedValue) {
+<b class="nc">&nbsp;        Map&lt;String, String&gt; keyNamesMap = this.getNamesFromProfileForSharedAttributes(lwM2MClient);</b>
+<b class="nc">&nbsp;        if (!keyNamesMap.isEmpty()) {</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; keysToFetch = new HashSet&lt;&gt;(keyNamesMap.values());</b>
+<b class="nc">&nbsp;            keysToFetch.removeAll(OtaPackageUtil.ALL_FW_ATTRIBUTE_KEYS);</b>
+<b class="nc">&nbsp;            keysToFetch.removeAll(OtaPackageUtil.ALL_SW_ATTRIBUTE_KEYS);</b>
+<b class="nc">&nbsp;            DonAsynchron.withCallback(attributesService.getSharedAttributes(lwM2MClient, keysToFetch),</b>
+<b class="nc">&nbsp;                    v -&gt; attributesService.onAttributesUpdate(lwM2MClient, v, logFailedUpdateOfNonChangedValue),</b>
+<b class="nc">&nbsp;                    t -&gt; log.error(&quot;[{}] Failed to get attributes&quot;, lwM2MClient.getEndpoint(), t),</b>
+&nbsp;                    executor);
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to process initAttributes! Profile is null. Update procedure may not have completed after reboot yet&quot;, lwM2MClient.getEndpoint());</b>
+<b class="nc">&nbsp;            logService.log(lwM2MClient, &quot;Failed to process initAttributes. Profile is null. Update procedure may not have completed after reboot yet&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public LwM2mClientContext getClientContext() {
+<b class="nc">&nbsp;        return this.clientContext;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, String&gt; getNamesFromProfileForSharedAttributes(LwM2mClient lwM2MClient) {
+<b class="nc">&nbsp;        Lwm2mDeviceProfileTransportConfiguration profile = clientContext.getProfile(lwM2MClient.getRegistration());</b>
+<b class="nc">&nbsp;        return profile != null ? profile.getObserveAttr().getKeyName() : Collections.emptyMap();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LwM2MTransportServerConfig getConfig() {
+<b class="nc">&nbsp;        return this.config;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportActivitySubscription(SessionInfoProto sessionInfo) {
+<b class="nc">&nbsp;        transportService.process(sessionInfo, TransportProtos.SubscriptionInfoProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setAttributeSubscription(true)</b>
+<b class="nc">&nbsp;                .setRpcSubscription(true)</b>
+<b class="nc">&nbsp;                .setLastActivityTime(System.currentTimeMillis())</b>
+<b class="nc">&nbsp;                .build(), TransportServiceCallback.EMPTY);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void clearAndUnregister(LwM2mClient client) {
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            Registration registration = client.getRegistration();</b>
+<b class="nc">&nbsp;            doUnReg(registration, client);</b>
+<b class="nc">&nbsp;            securityStore.remove(registration.getEndpoint(), registration.getId());</b>
+<b class="nc">&nbsp;            registrationStore.removeRegistration(registration.getId());</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void tryAwake(LwM2mClient lwM2MClient) {
+<b class="nc">&nbsp;        if (clientContext.awake(lwM2MClient)) {</b>
+&nbsp;            // clientContext.awake calls clientContext.update
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Device is awake&quot;, lwM2MClient.getEndpoint());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            clientContext.update(lwM2MClient);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

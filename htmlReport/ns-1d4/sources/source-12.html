@@ -1,0 +1,371 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbEntityDataSubCtx</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.subscription</a>
+</div>
+
+<h1>Coverage Summary for Class: TbEntityDataSubCtx (org.thingsboard.server.service.subscription)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbEntityDataSubCtx</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/60)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/96)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.subscription;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.kv.Aggregation;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.query.TsValue;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketService;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketSessionRef;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.LatestValueCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.v2.TimeSeriesCmd;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbEntityDataSubCtx extends TbAbstractDataSubCtx&lt;EntityDataQuery&gt; {
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Setter
+&nbsp;    private volatile boolean initialDataSent;
+&nbsp;    private TimeSeriesCmd curTsCmd;
+&nbsp;    private LatestValueCmd latestValueCmd;
+&nbsp;    @Getter
+&nbsp;    private final int maxEntitiesPerDataSubscription;
+&nbsp;    private Map&lt;EntityId, Map&lt;String, TsValue&gt;&gt; latestTsEntityData;
+&nbsp;
+&nbsp;    public TbEntityDataSubCtx(String serviceId, WebSocketService wsService, EntityService entityService,
+&nbsp;                              TbLocalSubscriptionService localSubscriptionService, AttributesService attributesService,
+&nbsp;                              SubscriptionServiceStatistics stats, WebSocketSessionRef sessionRef, int cmdId, int maxEntitiesPerDataSubscription) {
+<b class="nc">&nbsp;        super(serviceId, wsService, entityService, localSubscriptionService, attributesService, stats, sessionRef, cmdId);</b>
+<b class="nc">&nbsp;        this.maxEntitiesPerDataSubscription = maxEntitiesPerDataSubscription;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void fetchData() {
+<b class="nc">&nbsp;        super.fetchData();</b>
+<b class="nc">&nbsp;        this.updateLatestTsData(this.data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void sendWsMsg(String sessionId, TelemetrySubscriptionUpdate subscriptionUpdate, EntityKeyType keyType, boolean resultToLatestValues) {
+<b class="nc">&nbsp;        EntityId entityId = subToEntityIdMap.get(subscriptionUpdate.getSubscriptionId());</b>
+<b class="nc">&nbsp;        if (entityId != null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}][{}][{}] Received subscription update: {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), keyType, subscriptionUpdate);</b>
+<b class="nc">&nbsp;            if (resultToLatestValues) {</b>
+<b class="nc">&nbsp;                sendLatestWsMsg(entityId, sessionId, subscriptionUpdate, keyType);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                sendTsWsMsg(entityId, sessionId, subscriptionUpdate, keyType);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}][{}][{}] Received stale subscription update: {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), keyType, subscriptionUpdate);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Aggregation getCurrentAggregation() {
+<b class="nc">&nbsp;        return (this.curTsCmd == null || this.curTsCmd.getAgg() == null) ? Aggregation.NONE : this.curTsCmd.getAgg();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendLatestWsMsg(EntityId entityId, String sessionId, TelemetrySubscriptionUpdate subscriptionUpdate, EntityKeyType keyType) {
+<b class="nc">&nbsp;        Map&lt;String, TsValue&gt; latestUpdate = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        subscriptionUpdate.getValues().forEach((key, values) -&gt; {</b>
+<b class="nc">&nbsp;            latestUpdate.put(key, getLatest(values));</b>
+&nbsp;        });
+<b class="nc">&nbsp;        EntityData entityData = getDataForEntity(entityId);</b>
+<b class="nc">&nbsp;        if (entityData != null &amp;&amp; entityData.getLatest() != null) {</b>
+<b class="nc">&nbsp;            Map&lt;String, TsValue&gt; latestCtxValues = entityData.getLatest().computeIfAbsent(keyType, __ -&gt; new HashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}][{}] Going to compare update with {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), latestCtxValues);</b>
+<b class="nc">&nbsp;            latestCtxValues.forEach((k, v) -&gt; {</b>
+<b class="nc">&nbsp;                TsValue update = latestUpdate.get(k);</b>
+<b class="nc">&nbsp;                if (update != null) {</b>
+&nbsp;                    //Ignore notifications about deleted keys
+<b class="nc">&nbsp;                    if (!(update.getTs() == 0 &amp;&amp; (update.getValue() == null || update.getValue().isEmpty()))) {</b>
+<b class="nc">&nbsp;                        if (update.getTs() &lt; v.getTs()) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] Removed stale update for key: {} and ts: {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), k, update.getTs());</b>
+<b class="nc">&nbsp;                            latestUpdate.remove(k);</b>
+<b class="nc">&nbsp;                        } else if ((update.getTs() == v.getTs() &amp;&amp; update.getValue().equals(v.getValue()))) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] Removed duplicate update for key: {} and ts: {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), k, update.getTs());</b>
+<b class="nc">&nbsp;                            latestUpdate.remove(k);</b>
+&nbsp;                        }
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.trace(&quot;[{}][{}][{}] Received deleted notification for: {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), k);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            });
+&nbsp;            //Setting new values
+<b class="nc">&nbsp;            latestCtxValues.putAll(latestUpdate);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!latestUpdate.isEmpty()) {</b>
+<b class="nc">&nbsp;            Map&lt;EntityKeyType, Map&lt;String, TsValue&gt;&gt; latestMap = Collections.singletonMap(keyType, latestUpdate);</b>
+<b class="nc">&nbsp;            entityData = new EntityData(entityId, latestMap, null);</b>
+<b class="nc">&nbsp;            sendWsMsg(new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendTsWsMsg(EntityId entityId, String sessionId, TelemetrySubscriptionUpdate subscriptionUpdate, EntityKeyType keyType) {
+<b class="nc">&nbsp;        Map&lt;String, List&lt;TsValue&gt;&gt; tsUpdate = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        subscriptionUpdate.getValues().forEach((key, values) -&gt; {</b>
+<b class="nc">&nbsp;            tsUpdate.put(key, new ArrayList&lt;&gt;(values));</b>
+&nbsp;        });
+<b class="nc">&nbsp;        Map&lt;String, TsValue&gt; latestCtxValues = getLatestTsValuesForEntity(entityId);</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}][{}] Going to compare update with {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), latestCtxValues);</b>
+<b class="nc">&nbsp;        if (latestCtxValues != null) {</b>
+<b class="nc">&nbsp;            latestCtxValues.forEach((key, latest) -&gt; {</b>
+<b class="nc">&nbsp;                List&lt;TsValue&gt; updateList = tsUpdate.get(key);</b>
+<b class="nc">&nbsp;                if (updateList != null) {</b>
+<b class="nc">&nbsp;                    for (TsValue update : new ArrayList&lt;&gt;(updateList)) {</b>
+<b class="nc">&nbsp;                        if (update.getTs() &lt; latest.getTs()) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] Removed stale update for key: {} and ts: {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), key, update.getTs());</b>
+&nbsp;                            // Looks like this is redundant feature and our UI is ready to merge the updates.
+&nbsp;                            //updateList.remove(update);
+<b class="nc">&nbsp;                        } else if ((update.getTs() == latest.getTs() &amp;&amp; update.getValue().equals(latest.getValue()))) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] Removed duplicate update for key: {} and ts: {}&quot;, sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), key, update.getTs());</b>
+<b class="nc">&nbsp;                            updateList.remove(update);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        if (updateList.isEmpty()) {</b>
+<b class="nc">&nbsp;                            tsUpdate.remove(key);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            });
+&nbsp;            //Setting new values
+<b class="nc">&nbsp;            tsUpdate.forEach((key, values) -&gt; {</b>
+<b class="nc">&nbsp;                values.stream().max(Comparator.comparingLong(TsValue::getTs))</b>
+<b class="nc">&nbsp;                        .ifPresent(latest -&gt; latestCtxValues.put(key, latest));</b>
+&nbsp;            });
+&nbsp;        }
+<b class="nc">&nbsp;        if (!tsUpdate.isEmpty()) {</b>
+<b class="nc">&nbsp;            Map&lt;String, TsValue[]&gt; tsMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            tsUpdate.forEach((key, values) -&gt; tsMap.put(key, values.toArray(new TsValue[0])));</b>
+<b class="nc">&nbsp;            EntityData entityData = new EntityData(entityId, null, tsMap);</b>
+<b class="nc">&nbsp;            sendWsMsg(new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityData getDataForEntity(EntityId entityId) {
+<b class="nc">&nbsp;        return data.getData().stream().filter(item -&gt; item.getEntityId().equals(entityId)).findFirst().orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, TsValue&gt; getLatestTsValuesForEntity(EntityId entityId) {
+<b class="nc">&nbsp;        return latestTsEntityData.get(entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateLatestTsData(PageData&lt;EntityData&gt; data) {
+<b class="nc">&nbsp;        latestTsEntityData = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        data.getData().stream().forEach(entityData -&gt; {</b>
+<b class="nc">&nbsp;            Map&lt;String, TsValue&gt; latestTsMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            latestTsEntityData.put(entityData.getEntityId(), latestTsMap);</b>
+<b class="nc">&nbsp;            if (entityData.getLatest() != null) {</b>
+<b class="nc">&nbsp;                Map&lt;String, TsValue&gt; latestTsValues = entityData.getLatest().get(EntityKeyType.TIME_SERIES);</b>
+<b class="nc">&nbsp;                if (latestTsValues != null) {</b>
+<b class="nc">&nbsp;                    latestTsValues.forEach(latestTsMap::put);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public synchronized void doUpdate(Map&lt;EntityId, EntityData&gt; newDataMap) {
+<b class="nc">&nbsp;        this.updateLatestTsData(this.data);</b>
+<b class="nc">&nbsp;        List&lt;Integer&gt; subIdsToCancel = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;TbSubscription&gt; subsToAdd = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        Set&lt;EntityId&gt; currentSubs = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        subToEntityIdMap.forEach((subId, entityId) -&gt; {</b>
+<b class="nc">&nbsp;            if (!newDataMap.containsKey(entityId)) {</b>
+<b class="nc">&nbsp;                subIdsToCancel.add(subId);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                currentSubs.add(entityId);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}] Subscriptions that are invalid: {}&quot;, sessionRef.getSessionId(), cmdId, subIdsToCancel);</b>
+<b class="nc">&nbsp;        subIdsToCancel.forEach(subToEntityIdMap::remove);</b>
+<b class="nc">&nbsp;        List&lt;EntityData&gt; newSubsList = newDataMap.entrySet().stream().filter(entry -&gt; !currentSubs.contains(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        if (!newSubsList.isEmpty()) {</b>
+&nbsp;            // NOTE: We ignore the TS subscriptions for new entities here, because widgets will re-init it&#39;s content and will create new subscriptions.
+<b class="nc">&nbsp;            if (curTsCmd == null &amp;&amp; latestValueCmd != null) {</b>
+<b class="nc">&nbsp;                List&lt;EntityKey&gt; keys = latestValueCmd.getKeys();</b>
+<b class="nc">&nbsp;                if (keys != null &amp;&amp; !keys.isEmpty()) {</b>
+<b class="nc">&nbsp;                    Map&lt;EntityKeyType, List&lt;EntityKey&gt;&gt; keysByType = getEntityKeyByTypeMap(keys);</b>
+<b class="nc">&nbsp;                    newSubsList.forEach(</b>
+&nbsp;                            entity -&gt; {
+<b class="nc">&nbsp;                                log.trace(&quot;[{}][{}] Found new subscription for entity: {}&quot;, sessionRef.getSessionId(), cmdId, entity.getEntityId());</b>
+<b class="nc">&nbsp;                                subsToAdd.addAll(addSubscriptions(entity, keysByType, true, 0, 0));</b>
+&nbsp;                            }
+&nbsp;                    );
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        subIdsToCancel.forEach(subId -&gt; localSubscriptionService.cancelSubscription(getTenantId(), getSessionId(), subId));</b>
+<b class="nc">&nbsp;        subsToAdd.forEach(subscription -&gt; localSubscriptionService.addSubscription(subscription, sessionRef));</b>
+<b class="nc">&nbsp;        sendWsMsg(new EntityDataUpdate(cmdId, data, null, maxEntitiesPerDataSubscription));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCurrentCmd(EntityDataCmd cmd) {
+<b class="nc">&nbsp;        curTsCmd = cmd.getTsCmd();</b>
+<b class="nc">&nbsp;        latestValueCmd = cmd.getLatestCmd();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected EntityDataQuery buildEntityDataQuery() {
+<b class="nc">&nbsp;        return query;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ComponentDescriptorController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: ComponentDescriptorController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ComponentDescriptorController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMethod;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.ResponseBody;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+<b class="nc">&nbsp;public class ComponentDescriptorController extends BaseController {</b>
+&nbsp;
+&nbsp;    private static final String COMPONENT_DESCRIPTOR_DEFINITION = &quot;Each Component Descriptor represents configuration of specific rule node (e.g. &#39;Save Timeseries&#39; or &#39;Send Email&#39;.). &quot; +
+&nbsp;            &quot;The Component Descriptors are used by the rule chain Web UI to build the configuration forms for the rule nodes. &quot; +
+&nbsp;            &quot;The Component Descriptors are discovered at runtime by scanning the class path and searching for @RuleNode annotation. &quot; +
+&nbsp;            &quot;Once discovered, the up to date list of descriptors is persisted to the database.&quot;;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Component Descriptor (getComponentDescriptorByClazz)&quot;,
+&nbsp;            notes = &quot;Gets the Component Descriptor object using class name from the path parameters. &quot; +
+&nbsp;                    COMPONENT_DESCRIPTOR_DEFINITION + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;,&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/component/{componentDescriptorClazz:.+}&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public ComponentDescriptor getComponentDescriptorByClazz(
+&nbsp;            @Parameter(description = &quot;Component Descriptor class name&quot;, required = true)
+&nbsp;            @PathVariable(&quot;componentDescriptorClazz&quot;) String strComponentDescriptorClazz) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;strComponentDescriptorClazz&quot;, strComponentDescriptorClazz);</b>
+<b class="nc">&nbsp;        return checkComponentDescriptorByClazz(strComponentDescriptorClazz);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Component Descriptors (getComponentDescriptorsByType)&quot;,
+&nbsp;            notes = &quot;Gets the Component Descriptors using rule node type and optional rule chain type request parameters. &quot; +
+&nbsp;                    COMPONENT_DESCRIPTOR_DEFINITION + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;,&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/components/{componentType}&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public List&lt;ComponentDescriptor&gt; getComponentDescriptorsByType(
+&nbsp;            @Parameter(description = &quot;Type of the Rule Node&quot;, schema = @Schema(allowableValues = {&quot;ENRICHMENT&quot;, &quot;FILTER&quot;, &quot;TRANSFORMATION&quot;, &quot;ACTION&quot;, &quot;EXTERNAL&quot;}, requiredMode = Schema.RequiredMode.REQUIRED))
+&nbsp;            @PathVariable(&quot;componentType&quot;) String strComponentType,
+&nbsp;            @Parameter(description = &quot;Type of the Rule Chain&quot;, schema = @Schema(allowableValues = {&quot;CORE&quot;, &quot;EDGE&quot;}))
+&nbsp;            @RequestParam(value = &quot;ruleChainType&quot;, required = false) String strRuleChainType) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;componentType&quot;, strComponentType);</b>
+<b class="nc">&nbsp;        return checkComponentDescriptorsByType(ComponentType.valueOf(strComponentType), getRuleChainType(strRuleChainType));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Component Descriptors (getComponentDescriptorsByTypes)&quot;,
+&nbsp;            notes = &quot;Gets the Component Descriptors using coma separated list of rule node types and optional rule chain type request parameters. &quot; +
+&nbsp;                    COMPONENT_DESCRIPTOR_DEFINITION + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;,&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/components&quot;, params = {&quot;componentTypes&quot;}, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public List&lt;ComponentDescriptor&gt; getComponentDescriptorsByTypes(
+&nbsp;            @Parameter(description = &quot;List of types of the Rule Nodes, (ENRICHMENT, FILTER, TRANSFORMATION, ACTION or EXTERNAL)&quot;, array = @ArraySchema(schema = @Schema(type = &quot;string&quot;)), required = true)
+&nbsp;            @RequestParam(&quot;componentTypes&quot;) String[] strComponentTypes,
+&nbsp;            @Parameter(description = &quot;Type of the Rule Chain&quot;, schema = @Schema(allowableValues = {&quot;CORE&quot;, &quot;EDGE&quot;}))
+&nbsp;            @RequestParam(value = &quot;ruleChainType&quot;, required = false) String strRuleChainType) throws ThingsboardException {
+<b class="nc">&nbsp;        checkArrayParameter(&quot;componentTypes&quot;, strComponentTypes);</b>
+<b class="nc">&nbsp;        Set&lt;ComponentType&gt; componentTypes = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (String strComponentType : strComponentTypes) {</b>
+<b class="nc">&nbsp;            componentTypes.add(ComponentType.valueOf(strComponentType));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return checkComponentDescriptorsByTypes(componentTypes, getRuleChainType(strRuleChainType));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private RuleChainType getRuleChainType(String strRuleChainType) {
+&nbsp;        RuleChainType ruleChainType;
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(strRuleChainType)) {</b>
+<b class="nc">&nbsp;            ruleChainType = RuleChainType.CORE;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ruleChainType = RuleChainType.valueOf(strRuleChainType);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ruleChainType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

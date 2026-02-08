@@ -1,0 +1,669 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultNotificationCenter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.notification</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultNotificationCenter (org.thingsboard.server.service.notification)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultNotificationCenter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/79)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/228)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultNotificationCenter$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/79)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/229)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.notification;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.rule.engine.api.NotificationCenter;
+&nbsp;import org.thingsboard.server.cache.limits.RateLimitService;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationRequestId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationRuleId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationTargetId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.limit.LimitedApi;
+&nbsp;import org.thingsboard.server.common.data.notification.AlreadySentException;
+&nbsp;import org.thingsboard.server.common.data.notification.Notification;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequest;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestStats;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationStatus;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationType;
+&nbsp;import org.thingsboard.server.common.data.notification.info.GeneralNotificationInfo;
+&nbsp;import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+&nbsp;import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
+&nbsp;import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
+&nbsp;import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.MicrosoftTeamsNotificationTargetConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.slack.SlackNotificationTargetConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.WebDeliveryMethodNotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.page.PageDataIterable;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRequestService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationSettingsService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationTargetService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationTemplateService;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.discovery.TopicService;
+&nbsp;import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+&nbsp;import org.thingsboard.server.service.executors.NotificationExecutorService;
+&nbsp;import org.thingsboard.server.service.notification.channels.NotificationChannel;
+&nbsp;import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
+&nbsp;import org.thingsboard.server.service.telemetry.AbstractSubscriptionService;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
+&nbsp;import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.notification.NotificationDeliveryMethod.WEB;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;@SuppressWarnings({&quot;rawtypes&quot;})
+&nbsp;public class DefaultNotificationCenter extends AbstractSubscriptionService implements NotificationCenter, NotificationChannel&lt;User, WebDeliveryMethodNotificationTemplate&gt; {
+&nbsp;
+&nbsp;    private final NotificationTargetService notificationTargetService;
+&nbsp;    private final NotificationRequestService notificationRequestService;
+&nbsp;    private final NotificationService notificationService;
+&nbsp;    private final NotificationTemplateService notificationTemplateService;
+&nbsp;    private final NotificationSettingsService notificationSettingsService;
+&nbsp;    private final NotificationExecutorService notificationExecutor;
+&nbsp;    private final TopicService topicService;
+&nbsp;    private final TbQueueProducerProvider producerProvider;
+&nbsp;    private final RateLimitService rateLimitService;
+&nbsp;
+&nbsp;    private Map&lt;NotificationDeliveryMethod, NotificationChannel&gt; channels;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationRequest processNotificationRequest(TenantId tenantId, NotificationRequest request, FutureCallback&lt;NotificationRequestStats&gt; callback) {
+<b class="nc">&nbsp;        if (request.getRuleId() == null) {</b>
+<b class="nc">&nbsp;            if (!rateLimitService.checkRateLimit(LimitedApi.NOTIFICATION_REQUESTS, tenantId)) {</b>
+<b class="nc">&nbsp;                throw new TbRateLimitsException(EntityType.TENANT);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        NotificationTemplate notificationTemplate;
+<b class="nc">&nbsp;        if (request.getTemplateId() != null) {</b>
+<b class="nc">&nbsp;            notificationTemplate = notificationTemplateService.findNotificationTemplateById(tenantId, request.getTemplateId());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            notificationTemplate = request.getTemplate();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (notificationTemplate == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Template is missing&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        NotificationType notificationType = notificationTemplate.getNotificationType();</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;NotificationDeliveryMethod&gt; deliveryMethods = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;NotificationTarget&gt; targets = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (UUID targetId : request.getTargets()) {</b>
+<b class="nc">&nbsp;            NotificationTarget target = notificationTargetService.findNotificationTargetById(tenantId, new NotificationTargetId(targetId));</b>
+<b class="nc">&nbsp;            if (target != null) {</b>
+<b class="nc">&nbsp;                targets.add(target);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;Unknown notification target {} in request {}&quot;, targetId, request);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (targets.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;No recipients chosen&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        NotificationRuleId ruleId = request.getRuleId();</b>
+<b class="nc">&nbsp;        notificationTemplate.getConfiguration().getDeliveryMethodsTemplates().forEach((deliveryMethod, template) -&gt; {</b>
+<b class="nc">&nbsp;            if (!template.isEnabled()) return;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                channels.get(deliveryMethod).check(tenantId);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                if (ruleId == null &amp;&amp; !notificationType.isSystem()) {</b>
+<b class="nc">&nbsp;                    throw new IllegalArgumentException(e.getMessage());</b>
+&nbsp;                } else {
+&nbsp;                    return; // if originated by rule or notification type is system - just ignore delivery method
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (ruleId == null &amp;&amp; !notificationType.isSystem()) {</b>
+<b class="nc">&nbsp;                if (targets.stream().noneMatch(target -&gt; target.getConfiguration().getType().getSupportedDeliveryMethods().contains(deliveryMethod))) {</b>
+<b class="nc">&nbsp;                    throw new IllegalArgumentException(&quot;Recipients for &quot; + deliveryMethod.getName() + &quot; delivery method not chosen&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            deliveryMethods.add(deliveryMethod);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        if (deliveryMethods.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;No delivery methods to send notification with&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (request.getAdditionalConfig() != null) {</b>
+<b class="nc">&nbsp;            NotificationRequestConfig config = request.getAdditionalConfig();</b>
+<b class="nc">&nbsp;            if (config.getSendingDelayInSec() &gt; 0 &amp;&amp; request.getId() == null) {</b>
+<b class="nc">&nbsp;                request.setStatus(NotificationRequestStatus.SCHEDULED);</b>
+<b class="nc">&nbsp;                request = notificationRequestService.saveNotificationRequest(tenantId, request);</b>
+<b class="nc">&nbsp;                forwardToNotificationSchedulerService(tenantId, request.getId());</b>
+<b class="nc">&nbsp;                return request;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        NotificationSettings settings = notificationSettingsService.findNotificationSettings(tenantId);</b>
+<b class="nc">&nbsp;        NotificationSettings systemSettings = tenantId.isSysTenantId() ? settings : notificationSettingsService.findNotificationSettings(TenantId.SYS_TENANT_ID);</b>
+&nbsp;
+<b class="nc">&nbsp;        log.debug(&quot;Processing notification request (tenantId: {}, targets: {})&quot;, tenantId, request.getTargets());</b>
+<b class="nc">&nbsp;        request.setStatus(NotificationRequestStatus.PROCESSING);</b>
+<b class="nc">&nbsp;        request = notificationRequestService.saveNotificationRequest(tenantId, request);</b>
+&nbsp;
+<b class="nc">&nbsp;        NotificationProcessingContext ctx = NotificationProcessingContext.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .request(request)</b>
+<b class="nc">&nbsp;                .deliveryMethods(deliveryMethods)</b>
+<b class="nc">&nbsp;                .template(notificationTemplate)</b>
+<b class="nc">&nbsp;                .settings(settings)</b>
+<b class="nc">&nbsp;                .systemSettings(systemSettings)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        processNotificationRequestAsync(ctx, targets, callback);</b>
+<b class="nc">&nbsp;        return request;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendGeneralWebNotification(TenantId tenantId, UsersFilter recipients, NotificationTemplate template, GeneralNotificationInfo info) {
+<b class="nc">&nbsp;        NotificationTarget target = new NotificationTarget();</b>
+<b class="nc">&nbsp;        target.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();</b>
+<b class="nc">&nbsp;        targetConfig.setUsersFilter(recipients);</b>
+<b class="nc">&nbsp;        target.setConfiguration(targetConfig);</b>
+&nbsp;
+<b class="nc">&nbsp;        NotificationRequest notificationRequest = NotificationRequest.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .template(template)</b>
+<b class="nc">&nbsp;                .targets(List.of(EntityId.NULL_UUID)) // this is temporary and will be removed when &#39;create from scratch&#39; functionality is implemented for recipients</b>
+<b class="nc">&nbsp;                .info(info)</b>
+<b class="nc">&nbsp;                .status(NotificationRequestStatus.PROCESSING)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            notificationRequest = notificationRequestService.saveNotificationRequest(tenantId, notificationRequest);</b>
+<b class="nc">&nbsp;            NotificationProcessingContext ctx = NotificationProcessingContext.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .request(notificationRequest)</b>
+<b class="nc">&nbsp;                    .deliveryMethods(Set.of(WEB))</b>
+<b class="nc">&nbsp;                    .template(template)</b>
+<b class="nc">&nbsp;                    .build();</b>
+&nbsp;
+<b class="nc">&nbsp;            processNotificationRequestAsync(ctx, List.of(target), null);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to process notification request for recipients {} for template &#39;{}&#39;&quot;, recipients, template.getName(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendSystemNotification(TenantId tenantId, NotificationTargetId targetId, NotificationType type, NotificationInfo info) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Sending {} system notification to {}: {}&quot;, tenantId, type, targetId, info);</b>
+<b class="nc">&nbsp;        NotificationTemplate notificationTemplate = notificationTemplateService.findTenantOrSystemNotificationTemplate(tenantId, type)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;No notification template found for type &quot; + type));</b>
+<b class="nc">&nbsp;        NotificationRequest notificationRequest = NotificationRequest.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .targets(List.of(targetId.getId()))</b>
+<b class="nc">&nbsp;                .templateId(notificationTemplate.getId())</b>
+<b class="nc">&nbsp;                .info(info)</b>
+<b class="nc">&nbsp;                .originatorEntityId(TenantId.SYS_TENANT_ID)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        processNotificationRequest(tenantId, notificationRequest, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processNotificationRequestAsync(NotificationProcessingContext ctx, List&lt;NotificationTarget&gt; targets, FutureCallback&lt;NotificationRequestStats&gt; callback) {
+<b class="nc">&nbsp;        notificationExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            long startTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            NotificationRequestId requestId = ctx.getRequest().getId();</b>
+<b class="nc">&nbsp;            for (NotificationTarget target : targets) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    processForTarget(target, ctx);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.error(&quot;[{}] Failed to process notification request for target {}&quot;, requestId, target.getId(), e);</b>
+<b class="nc">&nbsp;                    ctx.getStats().setError(e.getMessage());</b>
+<b class="nc">&nbsp;                    updateRequestStats(ctx, requestId, ctx.getStats());</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (callback != null) {</b>
+<b class="nc">&nbsp;                        callback.onFailure(e);</b>
+&nbsp;                    }
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            NotificationRequestStats stats = ctx.getStats();</b>
+<b class="nc">&nbsp;            long time = System.currentTimeMillis() - startTs;</b>
+<b class="nc">&nbsp;            int sent = stats.getTotalSent().get();</b>
+<b class="nc">&nbsp;            int errors = stats.getTotalErrors().get();</b>
+<b class="nc">&nbsp;            if (errors &gt; 0) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}][{}] Notification request processing finished in {} ms (sent: {}, errors: {})&quot;, ctx.getTenantId(), requestId, time, sent, errors);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}][{}] Notification request processing finished in {} ms (sent: {})&quot;, ctx.getTenantId(), requestId, time, sent);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            updateRequestStats(ctx, requestId, stats);</b>
+<b class="nc">&nbsp;            if (callback != null) {</b>
+<b class="nc">&nbsp;                callback.onSuccess(stats);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateRequestStats(NotificationProcessingContext ctx, NotificationRequestId requestId, NotificationRequestStats stats) {
+&nbsp;        try {
+<b class="nc">&nbsp;            notificationRequestService.updateNotificationRequest(ctx.getTenantId(), requestId, NotificationRequestStatus.SENT, stats);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to update stats for notification request&quot;, requestId, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processForTarget(NotificationTarget target, NotificationProcessingContext ctx) {
+&nbsp;        Iterable&lt;? extends NotificationRecipient&gt; recipients;
+<b class="nc">&nbsp;        switch (target.getConfiguration().getType()) {</b>
+&nbsp;            case PLATFORM_USERS -&gt; {
+<b class="nc">&nbsp;                PlatformUsersNotificationTargetConfig targetConfig = (PlatformUsersNotificationTargetConfig) target.getConfiguration();</b>
+<b class="nc">&nbsp;                if (targetConfig.getUsersFilter().getType().isForRules() &amp;&amp; ctx.getRequest().getInfo() instanceof RuleOriginatedNotificationInfo) {</b>
+<b class="nc">&nbsp;                    recipients = new PageDataIterable&lt;&gt;(pageLink -&gt; {</b>
+<b class="nc">&nbsp;                        return notificationTargetService.findRecipientsForRuleNotificationTargetConfig(ctx.getTenantId(), targetConfig, (RuleOriginatedNotificationInfo) ctx.getRequest().getInfo(), pageLink);</b>
+&nbsp;                    }, 256);
+&nbsp;                } else {
+<b class="nc">&nbsp;                    recipients = new PageDataIterable&lt;&gt;(pageLink -&gt; {</b>
+<b class="nc">&nbsp;                        return notificationTargetService.findRecipientsForNotificationTargetConfig(target.getTenantId(), targetConfig, pageLink);</b>
+&nbsp;                    }, 256);
+&nbsp;                }
+&nbsp;            }
+&nbsp;            case SLACK -&gt; {
+<b class="nc">&nbsp;                SlackNotificationTargetConfig targetConfig = (SlackNotificationTargetConfig) target.getConfiguration();</b>
+<b class="nc">&nbsp;                recipients = List.of(targetConfig.getConversation());</b>
+&nbsp;            }
+&nbsp;            case MICROSOFT_TEAMS -&gt; {
+<b class="nc">&nbsp;                MicrosoftTeamsNotificationTargetConfig targetConfig = (MicrosoftTeamsNotificationTargetConfig) target.getConfiguration();</b>
+<b class="nc">&nbsp;                recipients = List.of(targetConfig);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            default -&gt; recipients = Collections.emptyList();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;NotificationDeliveryMethod&gt; deliveryMethods = new HashSet&lt;&gt;(ctx.getDeliveryMethods());</b>
+<b class="nc">&nbsp;        deliveryMethods.removeIf(deliveryMethod -&gt; !target.getConfiguration().getType().getSupportedDeliveryMethods().contains(deliveryMethod));</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Processing notification request for {} target ({}) for delivery methods {}&quot;, ctx.getRequest().getId(), target.getConfiguration().getType(), target.getId(), deliveryMethods);</b>
+<b class="nc">&nbsp;        if (deliveryMethods.isEmpty()) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        for (NotificationRecipient recipient : recipients) {</b>
+<b class="nc">&nbsp;            for (NotificationDeliveryMethod deliveryMethod : deliveryMethods) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    processForRecipient(deliveryMethod, recipient, ctx);</b>
+<b class="nc">&nbsp;                    ctx.getStats().reportSent(deliveryMethod, recipient);</b>
+&nbsp;                } catch (Exception error) {
+<b class="nc">&nbsp;                    ctx.getStats().reportError(deliveryMethod, error, recipient);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processForRecipient(NotificationDeliveryMethod deliveryMethod, NotificationRecipient recipient, NotificationProcessingContext ctx) throws Exception {
+<b class="nc">&nbsp;        if (ctx.getStats().contains(deliveryMethod, recipient.getId())) {</b>
+<b class="nc">&nbsp;            throw new AlreadySentException();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ctx.getStats().reportProcessed(deliveryMethod, recipient.getId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (recipient instanceof User) {</b>
+<b class="nc">&nbsp;            UserNotificationSettings settings = notificationSettingsService.getUserNotificationSettings(ctx.getTenantId(), ((User) recipient).getId(), false);</b>
+<b class="nc">&nbsp;            if (!settings.isEnabled(ctx.getNotificationType(), deliveryMethod)) {</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;User disabled &quot; + deliveryMethod.getName() + &quot; notifications of this type&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        NotificationChannel notificationChannel = channels.get(deliveryMethod);</b>
+<b class="nc">&nbsp;        DeliveryMethodNotificationTemplate processedTemplate = ctx.getProcessedTemplate(deliveryMethod, recipient);</b>
+&nbsp;
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Sending {} notification for recipient {}&quot;, ctx.getRequest().getId(), deliveryMethod, recipient);</b>
+<b class="nc">&nbsp;        notificationChannel.sendNotification(recipient, processedTemplate, ctx);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendNotification(User recipient, WebDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) throws Exception {
+<b class="nc">&nbsp;        NotificationRequest request = ctx.getRequest();</b>
+<b class="nc">&nbsp;        Notification notification = Notification.builder()</b>
+<b class="nc">&nbsp;                .requestId(request.getId())</b>
+<b class="nc">&nbsp;                .recipientId(recipient.getId())</b>
+<b class="nc">&nbsp;                .type(ctx.getNotificationType())</b>
+<b class="nc">&nbsp;                .deliveryMethod(WEB)</b>
+<b class="nc">&nbsp;                .subject(processedTemplate.getSubject())</b>
+<b class="nc">&nbsp;                .text(processedTemplate.getBody())</b>
+<b class="nc">&nbsp;                .additionalConfig(processedTemplate.getAdditionalConfig())</b>
+<b class="nc">&nbsp;                .info(request.getInfo())</b>
+<b class="nc">&nbsp;                .status(NotificationStatus.SENT)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            notification = notificationService.saveNotification(recipient.getTenantId(), notification);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to create notification for recipient {}&quot;, recipient.getId(), e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        NotificationUpdate update = NotificationUpdate.builder()</b>
+<b class="nc">&nbsp;                .created(true)</b>
+<b class="nc">&nbsp;                .notification(notification)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        onNotificationUpdate(recipient.getTenantId(), recipient.getId(), update);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void markNotificationAsRead(TenantId tenantId, UserId recipientId, NotificationId notificationId) {
+<b class="nc">&nbsp;        boolean updated = notificationService.markNotificationAsRead(tenantId, recipientId, notificationId);</b>
+<b class="nc">&nbsp;        if (updated) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Marked notification {} as read (recipient id: {}, tenant id: {})&quot;, notificationId, recipientId, tenantId);</b>
+<b class="nc">&nbsp;            Notification notification = notificationService.findNotificationById(tenantId, notificationId);</b>
+<b class="nc">&nbsp;            if (notification.getDeliveryMethod() == WEB) {</b>
+<b class="nc">&nbsp;                NotificationUpdate update = NotificationUpdate.builder()</b>
+<b class="nc">&nbsp;                        .updated(true)</b>
+<b class="nc">&nbsp;                        .notificationId(notificationId.getId())</b>
+<b class="nc">&nbsp;                        .notificationType(notification.getType())</b>
+<b class="nc">&nbsp;                        .newStatus(NotificationStatus.READ)</b>
+<b class="nc">&nbsp;                        .build();</b>
+<b class="nc">&nbsp;                onNotificationUpdate(tenantId, recipientId, update);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void markAllNotificationsAsRead(TenantId tenantId, NotificationDeliveryMethod deliveryMethod, UserId recipientId) {
+<b class="nc">&nbsp;        int updatedCount = notificationService.markAllNotificationsAsRead(tenantId, deliveryMethod, recipientId);</b>
+<b class="nc">&nbsp;        if (updatedCount &gt; 0 &amp;&amp; deliveryMethod == WEB) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Marked all notifications as read (recipient id: {}, tenant id: {})&quot;, recipientId, tenantId);</b>
+<b class="nc">&nbsp;            NotificationUpdate update = NotificationUpdate.builder()</b>
+<b class="nc">&nbsp;                    .updated(true)</b>
+<b class="nc">&nbsp;                    .allNotifications(true)</b>
+<b class="nc">&nbsp;                    .newStatus(NotificationStatus.READ)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            onNotificationUpdate(tenantId, recipientId, update);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteNotification(TenantId tenantId, UserId recipientId, NotificationId notificationId) {
+<b class="nc">&nbsp;        Notification notification = notificationService.findNotificationById(tenantId, notificationId);</b>
+<b class="nc">&nbsp;        boolean deleted = notificationService.deleteNotification(tenantId, recipientId, notificationId);</b>
+<b class="nc">&nbsp;        if (deleted &amp;&amp; notification.getDeliveryMethod() == WEB) {</b>
+<b class="nc">&nbsp;            NotificationUpdate update = NotificationUpdate.builder()</b>
+<b class="nc">&nbsp;                    .deleted(true)</b>
+<b class="nc">&nbsp;                    .notification(notification)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            onNotificationUpdate(tenantId, recipientId, update);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;NotificationDeliveryMethod&gt; getAvailableDeliveryMethods(TenantId tenantId) {
+<b class="nc">&nbsp;        return channels.values().stream()</b>
+<b class="nc">&nbsp;                .filter(channel -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        channel.check(tenantId);</b>
+<b class="nc">&nbsp;                        return true;</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        return false;</b>
+&nbsp;                    }
+&nbsp;                })
+<b class="nc">&nbsp;                .map(NotificationChannel::getDeliveryMethod)</b>
+<b class="nc">&nbsp;                .sorted().toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void check(TenantId tenantId) throws Exception {
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteNotificationRequest(TenantId tenantId, NotificationRequestId notificationRequestId) {
+<b class="nc">&nbsp;        log.debug(&quot;Deleting notification request {}&quot;, notificationRequestId);</b>
+<b class="nc">&nbsp;        NotificationRequest notificationRequest = notificationRequestService.findNotificationRequestById(tenantId, notificationRequestId);</b>
+<b class="nc">&nbsp;        notificationRequestService.deleteNotificationRequest(tenantId, notificationRequest);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (notificationRequest.isSent()) {</b>
+&nbsp;            // TODO: no need to send request update for other than PLATFORM_USERS target type
+<b class="nc">&nbsp;            onNotificationRequestUpdate(tenantId, NotificationRequestUpdate.builder()</b>
+<b class="nc">&nbsp;                    .notificationRequestId(notificationRequestId)</b>
+<b class="nc">&nbsp;                    .deleted(true)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardToNotificationSchedulerService(TenantId tenantId, NotificationRequestId notificationRequestId) {
+<b class="nc">&nbsp;        TransportProtos.NotificationSchedulerServiceMsg.Builder msg = TransportProtos.NotificationSchedulerServiceMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setRequestIdMSB(notificationRequestId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setRequestIdLSB(notificationRequestId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setTs(System.currentTimeMillis());</b>
+<b class="nc">&nbsp;        TransportProtos.ToCoreMsg toCoreMsg = TransportProtos.ToCoreMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setNotificationSchedulerServiceMsg(msg)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        clusterService.pushMsgToCore(tenantId, notificationRequestId, toCoreMsg, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onNotificationUpdate(TenantId tenantId, UserId recipientId, NotificationUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;Submitting notification update for recipient {}: {}&quot;, recipientId, update);</b>
+<b class="nc">&nbsp;        forwardToSubscriptionManagerService(tenantId, recipientId, subscriptionManagerService -&gt; {</b>
+<b class="nc">&nbsp;            subscriptionManagerService.onNotificationUpdate(tenantId, recipientId, update, TbCallback.EMPTY);</b>
+<b class="nc">&nbsp;        }, () -&gt; TbSubscriptionUtils.notificationUpdateToProto(tenantId, recipientId, update));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onNotificationRequestUpdate(TenantId tenantId, NotificationRequestUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;Submitting notification request update: {}&quot;, update);</b>
+<b class="nc">&nbsp;        wsCallBackExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            TransportProtos.ToCoreNotificationMsg notificationRequestUpdateProto = TbSubscriptionUtils.notificationRequestUpdateToProto(tenantId, update);</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; coreServices = new HashSet&lt;&gt;(partitionService.getAllServiceIds(ServiceType.TB_CORE));</b>
+<b class="nc">&nbsp;            for (String serviceId : coreServices) {</b>
+<b class="nc">&nbsp;                TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, serviceId);</b>
+<b class="nc">&nbsp;                producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg&lt;&gt;(UUID.randomUUID(), notificationRequestUpdateProto), null);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationDeliveryMethod getDeliveryMethod() {
+<b class="nc">&nbsp;        return WEB;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getExecutorPrefix() {
+<b class="nc">&nbsp;        return &quot;notification&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setChannels(List&lt;NotificationChannel&gt; channels, NotificationCenter webNotificationChannel) {
+<b class="nc">&nbsp;        this.channels = channels.stream().collect(Collectors.toMap(NotificationChannel::getDeliveryMethod, c -&gt; c));</b>
+<b class="nc">&nbsp;        this.channels.put(WEB, (NotificationChannel) webNotificationChannel);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

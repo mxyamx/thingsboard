@@ -1,0 +1,411 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SqlTimeseriesLatestDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sqlts</a>
+</div>
+
+<h1>Coverage Summary for Class: SqlTimeseriesLatestDao (org.thingsboard.server.dao.sqlts)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SqlTimeseriesLatestDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sqlts;
+&nbsp;
+&nbsp;import com.google.common.collect.Lists;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.Aggregation;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
+&nbsp;import org.thingsboard.server.common.data.kv.StringDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
+&nbsp;import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
+&nbsp;import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestCompositeKey;
+&nbsp;import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
+&nbsp;import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
+&nbsp;import org.thingsboard.server.dao.sql.TbSqlQueueElement;
+&nbsp;import org.thingsboard.server.dao.sqlts.insert.latest.InsertLatestTsRepository;
+&nbsp;import org.thingsboard.server.dao.sqlts.latest.SearchTsKvLatestRepository;
+&nbsp;import org.thingsboard.server.dao.sqlts.latest.TsKvLatestRepository;
+&nbsp;import org.thingsboard.server.dao.timeseries.TimeseriesLatestDao;
+&nbsp;import org.thingsboard.server.dao.util.SqlTsLatestAnyDao;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.function.Function;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@SqlTsLatestAnyDao
+<b class="nc">&nbsp;public class SqlTimeseriesLatestDao extends BaseAbstractSqlTimeseriesDao implements TimeseriesLatestDao {</b>
+&nbsp;
+&nbsp;    private static final String DESC_ORDER = &quot;DESC&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TsKvLatestRepository tsKvLatestRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AggregationTimeseriesDao aggregationTimeseriesDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private SearchTsKvLatestRepository searchTsKvLatestRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private InsertLatestTsRepository insertLatestTsRepository;
+&nbsp;
+&nbsp;    private TbSqlBlockingQueueWrapper&lt;TsKvLatestEntity, Long&gt; tsLatestQueue;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.ts_latest.batch_size:1000}&quot;)
+&nbsp;    private int tsLatestBatchSize;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.ts_latest.batch_max_delay:100}&quot;)
+&nbsp;    private long tsLatestMaxDelay;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.ts_latest.stats_print_interval_ms:1000}&quot;)
+&nbsp;    private long tsLatestStatsPrintIntervalMs;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.ts_latest.batch_threads:4}&quot;)
+&nbsp;    private int tsLatestBatchThreads;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.batch_sort:true}&quot;)
+&nbsp;    protected boolean batchSortEnabled;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ScheduledLogExecutorComponent logExecutor;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private StatsFactory statsFactory;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private KeyDictionaryDao keyDictionaryDao;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    protected void init() {
+<b class="nc">&nbsp;        TbSqlBlockingQueueParams tsLatestParams = TbSqlBlockingQueueParams.builder()</b>
+<b class="nc">&nbsp;                .logName(&quot;TS Latest&quot;)</b>
+<b class="nc">&nbsp;                .batchSize(tsLatestBatchSize)</b>
+<b class="nc">&nbsp;                .maxDelay(tsLatestMaxDelay)</b>
+<b class="nc">&nbsp;                .statsPrintIntervalMs(tsLatestStatsPrintIntervalMs)</b>
+<b class="nc">&nbsp;                .statsNamePrefix(&quot;ts.latest&quot;)</b>
+<b class="nc">&nbsp;                .batchSortEnabled(batchSortEnabled)</b>
+<b class="nc">&nbsp;                .withResponse(true)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        java.util.function.Function&lt;TsKvLatestEntity, Integer&gt; hashcodeFunction = entity -&gt; entity.getEntityId().hashCode();</b>
+<b class="nc">&nbsp;        tsLatestQueue = new TbSqlBlockingQueueWrapper&lt;&gt;(tsLatestParams, hashcodeFunction, tsLatestBatchThreads, statsFactory);</b>
+&nbsp;
+<b class="nc">&nbsp;        tsLatestQueue.init(logExecutor,</b>
+<b class="nc">&nbsp;                v -&gt; insertLatestTsRepository.saveOrUpdate(v),</b>
+<b class="nc">&nbsp;                Comparator.comparing((Function&lt;TsKvLatestEntity, UUID&gt;) AbstractTsKvEntity::getEntityId)</b>
+<b class="nc">&nbsp;                        .thenComparingInt(AbstractTsKvEntity::getKey),</b>
+&nbsp;                v -&gt; {
+<b class="nc">&nbsp;                    Map&lt;TsKey, TbSqlQueueElement&lt;TsKvLatestEntity, Long&gt;&gt; trueLatest = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;                    v.forEach(element -&gt; {</b>
+<b class="nc">&nbsp;                        var entity = element.getEntity();</b>
+<b class="nc">&nbsp;                        TsKey key = new TsKey(entity.getEntityId(), entity.getKey());</b>
+<b class="nc">&nbsp;                        trueLatest.merge(key, element, (oldElement, newElement) -&gt; oldElement.getEntity().getTs() &lt;= newElement.getEntity().getTs() ? newElement : oldElement);</b>
+&nbsp;                    });
+<b class="nc">&nbsp;                    return new ArrayList&lt;&gt;(trueLatest.values());</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    protected void destroy() {
+<b class="nc">&nbsp;        if (tsLatestQueue != null) {</b>
+<b class="nc">&nbsp;            tsLatestQueue.destroy();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Long&gt; saveLatest(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
+<b class="nc">&nbsp;        return getSaveLatestFuture(entityId, tsKvEntry);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TsKvLatestRemovingResult&gt; removeLatest(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        return getRemoveLatestFuture(tenantId, entityId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Optional&lt;TsKvEntry&gt;&gt; findLatestOpt(TenantId tenantId, EntityId entityId, String key) {
+<b class="nc">&nbsp;        return service.submit(() -&gt; Optional.ofNullable(doFindLatestSync(entityId, key)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TsKvEntry&gt; findLatest(TenantId tenantId, EntityId entityId, String key) {
+<b class="nc">&nbsp;        log.trace(&quot;findLatest [{}][{}][{}]&quot;, tenantId, entityId, key);</b>
+<b class="nc">&nbsp;        return service.submit(() -&gt; wrapNullTsKvEntry(key, doFindLatestSync(entityId, key)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; findAllLatest(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return getFindAllLatestFuture(entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId) {
+<b class="nc">&nbsp;        if (deviceProfileId != null) {</b>
+<b class="nc">&nbsp;            return tsKvLatestRepository.getKeysByDeviceProfileId(tenantId.getId(), deviceProfileId.getId());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return tsKvLatestRepository.getKeysByTenantId(tenantId.getId());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByEntityIds(TenantId tenantId, List&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        return tsKvLatestRepository.findAllKeysByEntityIds(entityIds.stream().map(EntityId::getId).toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;String&gt;&gt; findAllKeysByEntityIdsAsync(TenantId tenantId, List&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        return service.submit(() -&gt; findAllKeysByEntityIds(tenantId, entityIds));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TsKvLatestRemovingResult&gt; getNewLatestEntryFuture(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query, Long version) {
+<b class="nc">&nbsp;        ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; future = findNewLatestEntryFuture(tenantId, entityId, query);</b>
+<b class="nc">&nbsp;        return Futures.transformAsync(future, entryList -&gt; {</b>
+<b class="nc">&nbsp;            if (entryList.size() == 1) {</b>
+<b class="nc">&nbsp;                TsKvEntry entry = entryList.get(0);</b>
+<b class="nc">&nbsp;                return Futures.transform(getSaveLatestFuture(entityId, entry), v -&gt; new TsKvLatestRemovingResult(entry, v), MoreExecutors.directExecutor());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;Could not find new latest value for [{}], key - {}&quot;, entityId, query.getKey());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return Futures.immediateFuture(new TsKvLatestRemovingResult(query.getKey(), true, version));</b>
+&nbsp;        }, service);
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; findNewLatestEntryFuture(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        long startTs = 0;</b>
+<b class="nc">&nbsp;        long endTs = query.getStartTs() - 1;</b>
+<b class="nc">&nbsp;        ReadTsKvQuery findNewLatestQuery = new BaseReadTsKvQuery(query.getKey(), startTs, endTs, endTs - startTs, 1,</b>
+&nbsp;                Aggregation.NONE, DESC_ORDER);
+<b class="nc">&nbsp;        return Futures.transform(aggregationTimeseriesDao.findAllAsync(tenantId, entityId, findNewLatestQuery),</b>
+<b class="nc">&nbsp;                ReadTsKvQueryResult::getData, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected TsKvEntry doFindLatestSync(EntityId entityId, String key) {
+<b class="nc">&nbsp;        TsKvLatestCompositeKey compositeKey =</b>
+&nbsp;                new TsKvLatestCompositeKey(
+<b class="nc">&nbsp;                        entityId.getId(),</b>
+<b class="nc">&nbsp;                        keyDictionaryDao.getOrSaveKeyId(key));</b>
+<b class="nc">&nbsp;        Optional&lt;TsKvLatestEntity&gt; entry = tsKvLatestRepository.findById(compositeKey);</b>
+<b class="nc">&nbsp;        if (entry.isPresent()) {</b>
+<b class="nc">&nbsp;            TsKvLatestEntity tsKvLatestEntity = entry.get();</b>
+<b class="nc">&nbsp;            tsKvLatestEntity.setStrKey(key);</b>
+<b class="nc">&nbsp;            return DaoUtil.getData(tsKvLatestEntity);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;TsKvLatestRemovingResult&gt; getRemoveLatestFuture(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        ListenableFuture&lt;TsKvEntry&gt; latestFuture = service.submit(() -&gt; doFindLatestSync(entityId, query.getKey()));</b>
+<b class="nc">&nbsp;        return Futures.transformAsync(latestFuture, latest -&gt; {</b>
+<b class="nc">&nbsp;            if (latest == null) {</b>
+<b class="nc">&nbsp;                return Futures.immediateFuture(new TsKvLatestRemovingResult(query.getKey(), false));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            boolean isRemoved = false;</b>
+<b class="nc">&nbsp;            Long version = null;</b>
+<b class="nc">&nbsp;            long ts = latest.getTs();</b>
+<b class="nc">&nbsp;            if (ts &gt;= query.getStartTs() &amp;&amp; ts &lt; query.getEndTs()) {</b>
+<b class="nc">&nbsp;                version = transactionTemplate.execute(status -&gt; jdbcTemplate.query(&quot;DELETE FROM ts_kv_latest WHERE entity_id = ? &quot; +</b>
+&nbsp;                                &quot;AND key = ? RETURNING nextval(&#39;ts_kv_latest_version_seq&#39;)&quot;,
+<b class="nc">&nbsp;                        rs -&gt; rs.next() ? rs.getLong(1) : null, entityId.getId(), keyDictionaryDao.getOrSaveKeyId(query.getKey())));</b>
+<b class="nc">&nbsp;                isRemoved = true;</b>
+<b class="nc">&nbsp;                if (query.getRewriteLatestIfDeleted()) {</b>
+<b class="nc">&nbsp;                    return getNewLatestEntryFuture(tenantId, entityId, query, version);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return Futures.immediateFuture(new TsKvLatestRemovingResult(query.getKey(), isRemoved, version));</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; getFindAllLatestFuture(EntityId entityId) {
+<b class="nc">&nbsp;        return service.submit(() -&gt;</b>
+<b class="nc">&nbsp;                DaoUtil.convertDataList(Lists.newArrayList(</b>
+<b class="nc">&nbsp;                        searchTsKvLatestRepository.findAllByEntityId(entityId.getId()))));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;Long&gt; getSaveLatestFuture(EntityId entityId, TsKvEntry tsKvEntry) {
+<b class="nc">&nbsp;        TsKvLatestEntity latestEntity = new TsKvLatestEntity();</b>
+<b class="nc">&nbsp;        latestEntity.setEntityId(entityId.getId());</b>
+<b class="nc">&nbsp;        latestEntity.setTs(tsKvEntry.getTs());</b>
+<b class="nc">&nbsp;        latestEntity.setKey(keyDictionaryDao.getOrSaveKeyId(tsKvEntry.getKey()));</b>
+<b class="nc">&nbsp;        latestEntity.setStrValue(tsKvEntry.getStrValue().orElse(null));</b>
+<b class="nc">&nbsp;        latestEntity.setDoubleValue(tsKvEntry.getDoubleValue().orElse(null));</b>
+<b class="nc">&nbsp;        latestEntity.setLongValue(tsKvEntry.getLongValue().orElse(null));</b>
+<b class="nc">&nbsp;        latestEntity.setBooleanValue(tsKvEntry.getBooleanValue().orElse(null));</b>
+<b class="nc">&nbsp;        latestEntity.setJsonValue(tsKvEntry.getJsonValue().orElse(null));</b>
+&nbsp;
+<b class="nc">&nbsp;        return tsLatestQueue.add(latestEntity);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected TsKvEntry wrapNullTsKvEntry(final String key, final TsKvEntry latest) {
+<b class="nc">&nbsp;        if (latest == null) {</b>
+<b class="nc">&nbsp;            return new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry(key, null));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return latest;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

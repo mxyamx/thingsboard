@@ -1,0 +1,364 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbMsgGeneratorNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.debug</a>
+</div>
+
+<h1>Coverage Summary for Class: TbMsgGeneratorNode (org.thingsboard.rule.engine.debug)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbMsgGeneratorNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.debug;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.TbStopWatch;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.ScriptEngine;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.script.ScriptLanguage;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
+&nbsp;
+&nbsp;import java.util.EnumSet;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;
+&nbsp;import static org.thingsboard.common.util.DonAsynchron.withCallback;
+&nbsp;import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.ACTION,
+&nbsp;        name = &quot;generator&quot;,
+&nbsp;        configClazz = TbMsgGeneratorNodeConfiguration.class,
+&nbsp;        version = 2,
+&nbsp;        hasQueueName = true,
+&nbsp;        nodeDescription = &quot;Periodically generates messages&quot;,
+&nbsp;        nodeDetails = &quot;Generates messages with configurable period. Javascript function used for message generation.&quot;,
+&nbsp;        inEnabled = false,
+&nbsp;        configDirective = &quot;tbActionNodeGeneratorConfig&quot;,
+&nbsp;        icon = &quot;repeat&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/action/generator/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbMsgGeneratorNode implements TbNode {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final Set&lt;EntityType&gt; supportedEntityTypes = EnumSet.of(EntityType.DEVICE, EntityType.ASSET, EntityType.ENTITY_VIEW,</b>
+&nbsp;            EntityType.TENANT, EntityType.CUSTOMER, EntityType.USER, EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_NODE);
+&nbsp;
+&nbsp;    private TbMsgGeneratorNodeConfiguration config;
+&nbsp;    private ScriptEngine scriptEngine;
+&nbsp;    private long delay;
+&nbsp;    private long lastScheduledTs;
+&nbsp;    private int currentMsgCount;
+&nbsp;    private EntityId originatorId;
+&nbsp;    private UUID nextTickId;
+&nbsp;    private TbMsg prevMsg;
+<b class="nc">&nbsp;    private final AtomicBoolean initialized = new AtomicBoolean(false);</b>
+&nbsp;    private String queueName;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, TbMsgGeneratorNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        this.delay = TimeUnit.SECONDS.toMillis(config.getPeriodInSeconds());</b>
+<b class="nc">&nbsp;        this.currentMsgCount = 0;</b>
+<b class="nc">&nbsp;        this.queueName = ctx.getQueueName();</b>
+<b class="nc">&nbsp;        if (!supportedEntityTypes.contains(config.getOriginatorType())) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Originator type &#39;&quot; + config.getOriginatorType() + &quot;&#39; is not supported.&quot;, true);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        originatorId = getOriginatorId(ctx);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Initializing generator with config {}&quot;, originatorId, configuration);</b>
+<b class="nc">&nbsp;        updateGeneratorState(ctx);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onPartitionChangeMsg(TbContext ctx, PartitionChangeMsg msg) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Handling partition change msg: {}&quot;, originatorId, msg);</b>
+<b class="nc">&nbsp;        updateGeneratorState(ctx);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateGeneratorState(TbContext ctx) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Updating generator state, config {}&quot;, originatorId, config);</b>
+<b class="nc">&nbsp;        if (ctx.isLocalEntity(originatorId)) {</b>
+<b class="nc">&nbsp;            if (initialized.compareAndSet(false, true)) {</b>
+<b class="nc">&nbsp;                this.scriptEngine = ctx.createScriptEngine(config.getScriptLang(),</b>
+<b class="nc">&nbsp;                        ScriptLanguage.TBEL.equals(config.getScriptLang()) ? config.getTbelScript() : config.getJsScript(), &quot;prevMsg&quot;, &quot;prevMetadata&quot;, &quot;prevMsgType&quot;);</b>
+<b class="nc">&nbsp;                scheduleTickMsg(ctx, null);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (initialized.compareAndSet(true, false)) {</b>
+<b class="nc">&nbsp;            destroy();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] onMsg. Expected msg id: {}, msg: {}, config: {}&quot;, originatorId, nextTickId, msg, config);</b>
+<b class="nc">&nbsp;        if (initialized.get() &amp;&amp; msg.isTypeOf(TbMsgType.GENERATOR_NODE_SELF_MSG) &amp;&amp; msg.getId().equals(nextTickId)) {</b>
+<b class="nc">&nbsp;            TbStopWatch sw = TbStopWatch.create();</b>
+<b class="nc">&nbsp;            withCallback(generate(ctx, msg),</b>
+&nbsp;                    m -&gt; {
+<b class="nc">&nbsp;                        log.trace(&quot;onMsg onSuccess callback, took {}ms, config {}, msg {}&quot;, sw.stopAndGetTotalTimeMillis(), config, msg);</b>
+<b class="nc">&nbsp;                        if (initialized.get() &amp;&amp; (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount &lt; config.getMsgCount())) {</b>
+<b class="nc">&nbsp;                            ctx.enqueueForTellNext(m, TbNodeConnectionType.SUCCESS);</b>
+<b class="nc">&nbsp;                            scheduleTickMsg(ctx, msg);</b>
+<b class="nc">&nbsp;                            currentMsgCount++;</b>
+&nbsp;                        }
+&nbsp;                    },
+&nbsp;                    t -&gt; {
+<b class="nc">&nbsp;                        log.trace(&quot;onMsg onFailure callback, took {}ms, config {}, msg {}&quot;, sw.stopAndGetTotalTimeMillis(), config, msg, t);</b>
+<b class="nc">&nbsp;                        if (initialized.get() &amp;&amp; (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount &lt; config.getMsgCount())) {</b>
+<b class="nc">&nbsp;                            ctx.tellFailure(msg, t);</b>
+<b class="nc">&nbsp;                            scheduleTickMsg(ctx, msg);</b>
+<b class="nc">&nbsp;                            currentMsgCount++;</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void scheduleTickMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        long curTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        if (lastScheduledTs == 0L) {</b>
+<b class="nc">&nbsp;            lastScheduledTs = curTs;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        lastScheduledTs = lastScheduledTs + delay;</b>
+<b class="nc">&nbsp;        long curDelay = Math.max(0L, (lastScheduledTs - curTs));</b>
+<b class="nc">&nbsp;        TbMsg tickMsg = ctx.newMsg(queueName, TbMsgType.GENERATOR_NODE_SELF_MSG, ctx.getSelfId(),</b>
+<b class="nc">&nbsp;                getCustomerIdFromMsg(msg), TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);</b>
+<b class="nc">&nbsp;        nextTickId = tickMsg.getId();</b>
+<b class="nc">&nbsp;        ctx.tellSelf(tickMsg, curDelay);</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Scheduled tick msg with delay {}, msg: {}, config: {}&quot;, originatorId, curDelay, tickMsg, config);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbMsg&gt; generate(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        log.trace(&quot;generate, config {}&quot;, config);</b>
+<b class="nc">&nbsp;        if (prevMsg == null) {</b>
+<b class="nc">&nbsp;            prevMsg = ctx.newMsg(queueName, TbMsg.EMPTY_STRING, originatorId, msg.getCustomerId(), TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (initialized.get()) {</b>
+<b class="nc">&nbsp;            return Futures.transformAsync(scriptEngine.executeGenerateAsync(prevMsg), generated -&gt; {</b>
+<b class="nc">&nbsp;                log.trace(&quot;generate process response, generated {}, config {}&quot;, generated, config);</b>
+<b class="nc">&nbsp;                prevMsg = ctx.newMsg(queueName, generated.getType(), originatorId, msg.getCustomerId(), generated.getMetaData(), generated.getData());</b>
+<b class="nc">&nbsp;                return Futures.immediateFuture(prevMsg);</b>
+<b class="nc">&nbsp;            }, MoreExecutors.directExecutor()); //usually it runs on js-executor-remote-callback thread pool</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.immediateFuture(prevMsg);</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private CustomerId getCustomerIdFromMsg(TbMsg msg) {
+<b class="nc">&nbsp;        return msg != null ? msg.getCustomerId() : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityId getOriginatorId(TbContext ctx) throws TbNodeException {
+<b class="nc">&nbsp;        if (EntityType.RULE_NODE.equals(config.getOriginatorType())) {</b>
+<b class="nc">&nbsp;            return ctx.getSelfId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (EntityType.TENANT.equals(config.getOriginatorType())) {</b>
+<b class="nc">&nbsp;            return ctx.getTenantId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (StringUtils.isBlank(config.getOriginatorId())) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Originator entity must be selected.&quot;, true);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var entityId = EntityIdFactory.getByTypeAndUuid(config.getOriginatorType(), config.getOriginatorId());</b>
+<b class="nc">&nbsp;        ctx.checkTenantEntity(entityId);</b>
+<b class="nc">&nbsp;        return entityId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Stopping generator&quot;, originatorId);</b>
+<b class="nc">&nbsp;        initialized.set(false);</b>
+<b class="nc">&nbsp;        prevMsg = null;</b>
+<b class="nc">&nbsp;        nextTickId = null;</b>
+<b class="nc">&nbsp;        lastScheduledTs = 0;</b>
+<b class="nc">&nbsp;        if (scriptEngine != null) {</b>
+<b class="nc">&nbsp;            scriptEngine.destroy();</b>
+<b class="nc">&nbsp;            scriptEngine = null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        switch (fromVersion) {</b>
+&nbsp;            case 0:
+<b class="nc">&nbsp;                if (oldConfiguration.has(QUEUE_NAME)) {</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+<b class="nc">&nbsp;                    ((ObjectNode) oldConfiguration).remove(QUEUE_NAME);</b>
+&nbsp;                }
+&nbsp;            case 1:
+<b class="nc">&nbsp;                String originatorType = &quot;originatorType&quot;;</b>
+<b class="nc">&nbsp;                String originatorId = &quot;originatorId&quot;;</b>
+<b class="nc">&nbsp;                boolean hasType = oldConfiguration.hasNonNull(originatorType);</b>
+<b class="nc">&nbsp;                boolean hasOriginatorId = oldConfiguration.hasNonNull(originatorId) &amp;&amp;</b>
+<b class="nc">&nbsp;                        StringUtils.isNotBlank(oldConfiguration.get(originatorId).asText());</b>
+<b class="nc">&nbsp;                boolean hasOriginatorFields = hasType &amp;&amp; hasOriginatorId;</b>
+<b class="nc">&nbsp;                if (!hasOriginatorFields) {</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+<b class="nc">&nbsp;                    ((ObjectNode) oldConfiguration).put(originatorType, EntityType.RULE_NODE.name());</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            default:
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

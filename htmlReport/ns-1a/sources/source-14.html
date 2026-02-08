@@ -1,0 +1,235 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbMsgCountNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.action</a>
+</div>
+
+<h1>Coverage Summary for Class: TbMsgCountNode (org.thingsboard.rule.engine.action)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbMsgCountNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.action;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicLong;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.ACTION,
+&nbsp;        name = &quot;message count&quot;,
+&nbsp;        configClazz = TbMsgCountNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Count incoming messages&quot;,
+&nbsp;        nodeDetails = &quot;Count incoming messages for specified interval and produces POST_TELEMETRY_REQUEST msg with messages count&quot;,
+&nbsp;        icon = &quot;functions&quot;,
+&nbsp;        configDirective = &quot;tbActionNodeMsgCountConfig&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/action/message-count/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbMsgCountNode implements TbNode {</b>
+&nbsp;
+<b class="nc">&nbsp;    private AtomicLong messagesProcessed = new AtomicLong(0);</b>
+<b class="nc">&nbsp;    private final Gson gson = new Gson();</b>
+&nbsp;    private UUID nextTickId;
+&nbsp;    private long delay;
+&nbsp;    private String telemetryPrefix;
+&nbsp;    private long lastScheduledTs;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        TbMsgCountNodeConfiguration config = TbNodeUtils.convert(configuration, TbMsgCountNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        this.delay = TimeUnit.SECONDS.toMillis(config.getInterval());</b>
+<b class="nc">&nbsp;        this.telemetryPrefix = config.getTelemetryPrefix();</b>
+<b class="nc">&nbsp;        scheduleTickMsg(ctx, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        if (msg.isTypeOf(TbMsgType.MSG_COUNT_SELF_MSG) &amp;&amp; msg.getId().equals(nextTickId)) {</b>
+<b class="nc">&nbsp;            JsonObject telemetryJson = new JsonObject();</b>
+<b class="nc">&nbsp;            telemetryJson.addProperty(this.telemetryPrefix + &quot;_&quot; + ctx.getServiceId(), messagesProcessed.longValue());</b>
+&nbsp;
+<b class="nc">&nbsp;            messagesProcessed = new AtomicLong(0);</b>
+&nbsp;
+<b class="nc">&nbsp;            TbMsgMetaData metaData = new TbMsgMetaData();</b>
+<b class="nc">&nbsp;            metaData.putValue(&quot;delta&quot;, Long.toString(System.currentTimeMillis() - lastScheduledTs + delay));</b>
+&nbsp;
+<b class="nc">&nbsp;            TbMsg tbMsg = TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                    .queueName(msg.getQueueName())</b>
+<b class="nc">&nbsp;                    .type(TbMsgType.POST_TELEMETRY_REQUEST)</b>
+<b class="nc">&nbsp;                    .originator(ctx.getTenantId())</b>
+<b class="nc">&nbsp;                    .customerId(msg.getCustomerId())</b>
+<b class="nc">&nbsp;                    .copyMetaData(metaData)</b>
+<b class="nc">&nbsp;                    .data(gson.toJson(telemetryJson))</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            ctx.enqueueForTellNext(tbMsg, TbNodeConnectionType.SUCCESS);</b>
+<b class="nc">&nbsp;            scheduleTickMsg(ctx, tbMsg);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            messagesProcessed.incrementAndGet();</b>
+<b class="nc">&nbsp;            ctx.ack(msg);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void scheduleTickMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        long curTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        if (lastScheduledTs == 0L) {</b>
+<b class="nc">&nbsp;            lastScheduledTs = curTs;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        lastScheduledTs = lastScheduledTs + delay;</b>
+<b class="nc">&nbsp;        long curDelay = Math.max(0L, (lastScheduledTs - curTs));</b>
+<b class="nc">&nbsp;        TbMsg tickMsg = ctx.newMsg(null, TbMsgType.MSG_COUNT_SELF_MSG, ctx.getSelfId(), msg != null ? msg.getCustomerId() : null, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);</b>
+<b class="nc">&nbsp;        nextTickId = tickMsg.getId();</b>
+<b class="nc">&nbsp;        ctx.tellSelf(tickMsg, curDelay);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

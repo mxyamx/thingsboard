@@ -1,0 +1,227 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SystemUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.common.util</a>
+</div>
+
+<h1>Coverage Summary for Class: SystemUtil (org.thingsboard.common.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SystemUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.common.util;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import oshi.SystemInfo;
+&nbsp;import oshi.hardware.GlobalMemory;
+&nbsp;import oshi.hardware.HardwareAbstractionLayer;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;import java.math.RoundingMode;
+&nbsp;import java.nio.file.FileStore;
+&nbsp;import java.nio.file.Files;
+&nbsp;import java.nio.file.Paths;
+&nbsp;import java.util.Optional;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class SystemUtil {</b>
+&nbsp;
+&nbsp;    private static final HardwareAbstractionLayer HARDWARE;
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        HARDWARE = new SystemInfo().getHardware();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Optional&lt;Integer&gt; getMemoryUsage() {
+&nbsp;        try {
+<b class="nc">&nbsp;            GlobalMemory memory = HARDWARE.getMemory();</b>
+<b class="nc">&nbsp;            long total = memory.getTotal();</b>
+<b class="nc">&nbsp;            long available = memory.getAvailable();</b>
+<b class="nc">&nbsp;            return Optional.of(toPercent(total - available, total));</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to get memory usage!!!&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Optional&lt;Long&gt; getTotalMemory() {
+&nbsp;        try {
+<b class="nc">&nbsp;            return Optional.of(HARDWARE.getMemory().getTotal());</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to get total memory!!!&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Optional&lt;Integer&gt; getCpuUsage() {
+&nbsp;        try {
+<b class="nc">&nbsp;            return Optional.of((int) (HARDWARE.getProcessor().getSystemCpuLoad(1000) * 100.0));</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to get cpu usage!!!&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Optional&lt;Integer&gt; getCpuCount() {
+&nbsp;        try {
+<b class="nc">&nbsp;            return Optional.of(HARDWARE.getProcessor().getLogicalProcessorCount());</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to get total cpu count!!!&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Optional&lt;Integer&gt; getDiscSpaceUsage() {
+&nbsp;        try {
+<b class="nc">&nbsp;            FileStore store = Files.getFileStore(Paths.get(&quot;/&quot;));</b>
+<b class="nc">&nbsp;            long total = store.getTotalSpace();</b>
+<b class="nc">&nbsp;            long available = store.getUsableSpace();</b>
+<b class="nc">&nbsp;            return Optional.of(toPercent(total - available, total));</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to get free disc space!!!&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Optional&lt;Long&gt; getTotalDiscSpace() {
+&nbsp;        try {
+<b class="nc">&nbsp;            FileStore store = Files.getFileStore(Paths.get(&quot;/&quot;));</b>
+<b class="nc">&nbsp;            return Optional.of(store.getTotalSpace());</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to get total disc space!!!&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static int toPercent(long used, long total) {
+<b class="nc">&nbsp;        BigDecimal u = new BigDecimal(used);</b>
+<b class="nc">&nbsp;        BigDecimal t = new BigDecimal(total);</b>
+<b class="nc">&nbsp;        BigDecimal i = new BigDecimal(100);</b>
+<b class="nc">&nbsp;        return u.multiply(i).divide(t, RoundingMode.HALF_UP).intValue();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

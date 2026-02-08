@@ -1,0 +1,335 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CQLStatementsParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.install.cql</a>
+</div>
+
+<h1>Coverage Summary for Class: CQLStatementsParser (org.thingsboard.server.service.install.cql)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CQLStatementsParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/62)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CQLStatementsParser$State</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/68)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.install.cql;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.nio.file.Files;
+&nbsp;import java.nio.file.Path;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class CQLStatementsParser {
+&nbsp;
+<b class="nc">&nbsp;    enum State {</b>
+<b class="nc">&nbsp;        DEFAULT,</b>
+<b class="nc">&nbsp;        INSINGLELINECOMMENT,</b>
+<b class="nc">&nbsp;        INMULTILINECOMMENT,</b>
+<b class="nc">&nbsp;        INQUOTESTRING,</b>
+<b class="nc">&nbsp;        INSQUOTESTRING,</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private String text;
+&nbsp;    private State state;
+&nbsp;    private int pos;
+&nbsp;    private List&lt;String&gt; statements;
+&nbsp;
+<b class="nc">&nbsp;    public CQLStatementsParser(Path cql) throws IOException {</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            List&lt;String&gt; lines = Files.readAllLines(cql);</b>
+<b class="nc">&nbsp;            StringBuilder t = new StringBuilder();</b>
+<b class="nc">&nbsp;            for (String l : lines) {</b>
+<b class="nc">&nbsp;                t.append(l.trim());</b>
+<b class="nc">&nbsp;                t.append(&#39;\n&#39;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            text = t.toString();</b>
+<b class="nc">&nbsp;            pos = 0;</b>
+<b class="nc">&nbsp;            state = State.DEFAULT;</b>
+<b class="nc">&nbsp;            parseStatements();</b>
+&nbsp;        }
+&nbsp;        catch (IOException e) {
+<b class="nc">&nbsp;            log.error(&quot;Unable to parse CQL file [{}]!&quot;, cql);</b>
+<b class="nc">&nbsp;            log.error(&quot;Exception&quot;, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;String&gt; getStatements() {
+<b class="nc">&nbsp;        return this.statements;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void parseStatements() {
+<b class="nc">&nbsp;        this.statements = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        StringBuilder statementUnderConstruction = new StringBuilder();</b>
+&nbsp;
+&nbsp;        char c;
+<b class="nc">&nbsp;        while ((c = getChar()) != 0) {</b>
+<b class="nc">&nbsp;            switch (state) {</b>
+&nbsp;                case DEFAULT:
+<b class="nc">&nbsp;                    processDefaultState(c, statementUnderConstruction);</b>
+&nbsp;                    break;
+&nbsp;                case INSINGLELINECOMMENT:
+<b class="nc">&nbsp;                    if (c == &#39;\n&#39;) {</b>
+<b class="nc">&nbsp;                        state = State.DEFAULT;</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;
+&nbsp;                case INMULTILINECOMMENT:
+<b class="nc">&nbsp;                    if (c == &#39;*&#39; &amp;&amp; peekAhead() == &#39;/&#39;) {</b>
+<b class="nc">&nbsp;                        state = State.DEFAULT;</b>
+<b class="nc">&nbsp;                        advance();</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;
+&nbsp;                case INQUOTESTRING:
+<b class="nc">&nbsp;                    processInQuoteStringState(c, statementUnderConstruction);</b>
+&nbsp;                    break;
+&nbsp;                case INSQUOTESTRING:
+<b class="nc">&nbsp;                    processInSQuoteStringState(c, statementUnderConstruction);</b>
+&nbsp;                    break;
+&nbsp;            }
+&nbsp;
+&nbsp;        }
+<b class="nc">&nbsp;        String tmp = statementUnderConstruction.toString().trim();</b>
+<b class="nc">&nbsp;        if (tmp.length() &gt; 0) {</b>
+<b class="nc">&nbsp;            this.statements.add(tmp);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processDefaultState(char c, StringBuilder statementUnderConstruction) {
+<b class="nc">&nbsp;        if ((c == &#39;/&#39; &amp;&amp; peekAhead() == &#39;/&#39;) || (c == &#39;-&#39; &amp;&amp; peekAhead() == &#39;-&#39;)) {</b>
+<b class="nc">&nbsp;            state = State.INSINGLELINECOMMENT;</b>
+<b class="nc">&nbsp;            advance();</b>
+<b class="nc">&nbsp;        } else if (c == &#39;/&#39; &amp;&amp; peekAhead() == &#39;*&#39;) {</b>
+<b class="nc">&nbsp;            state = State.INMULTILINECOMMENT;</b>
+<b class="nc">&nbsp;            advance();</b>
+<b class="nc">&nbsp;        } else if (c == &#39;\n&#39;) {</b>
+<b class="nc">&nbsp;            statementUnderConstruction.append(&#39; &#39;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            statementUnderConstruction.append(c);</b>
+<b class="nc">&nbsp;            if (c == &#39;\&quot;&#39;) {</b>
+<b class="nc">&nbsp;                state = State.INQUOTESTRING;</b>
+<b class="nc">&nbsp;            } else if (c == &#39;\&#39;&#39;) {</b>
+<b class="nc">&nbsp;                state = State.INSQUOTESTRING;</b>
+<b class="nc">&nbsp;            } else if (c == &#39;;&#39;) {</b>
+<b class="nc">&nbsp;                statements.add(statementUnderConstruction.toString().trim());</b>
+<b class="nc">&nbsp;                statementUnderConstruction.setLength(0);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processInQuoteStringState(char c, StringBuilder statementUnderConstruction) {
+<b class="nc">&nbsp;        statementUnderConstruction.append(c);</b>
+<b class="nc">&nbsp;        if (c == &#39;&quot;&#39;) {</b>
+<b class="nc">&nbsp;            if (peekAhead() == &#39;&quot;&#39;) {</b>
+<b class="nc">&nbsp;                statementUnderConstruction.append(getChar());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                state = State.DEFAULT;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processInSQuoteStringState(char c, StringBuilder statementUnderConstruction) {
+<b class="nc">&nbsp;        statementUnderConstruction.append(c);</b>
+<b class="nc">&nbsp;        if (c == &#39;\&#39;&#39;) {</b>
+<b class="nc">&nbsp;            if (peekAhead() == &#39;\&#39;&#39;) {</b>
+<b class="nc">&nbsp;                statementUnderConstruction.append(getChar());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                state = State.DEFAULT;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private char getChar() {
+<b class="nc">&nbsp;        if (pos &lt; text.length())</b>
+<b class="nc">&nbsp;            return text.charAt(pos++);</b>
+&nbsp;        else
+<b class="nc">&nbsp;            return 0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private char peekAhead() {
+<b class="nc">&nbsp;        if (pos &lt; text.length())</b>
+<b class="nc">&nbsp;            return text.charAt(pos);  // don&#39;t advance</b>
+&nbsp;        else
+<b class="nc">&nbsp;            return 0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void advance() {
+<b class="nc">&nbsp;        pos++;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

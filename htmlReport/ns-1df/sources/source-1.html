@@ -1,0 +1,468 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultSystemInfoService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.system</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultSystemInfoService (org.thingsboard.server.service.system)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultSystemInfoService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/104)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultSystemInfoService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DefaultSystemInfoService$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/108)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.system;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.protobuf.ProtocolStringList;
+&nbsp;import jakarta.annotation.Nullable;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.rule.engine.api.MailService;
+&nbsp;import org.thingsboard.rule.engine.api.SmsService;
+&nbsp;import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
+&nbsp;import org.thingsboard.server.common.data.AdminSettings;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageState;
+&nbsp;import org.thingsboard.server.common.data.FeaturesInfo;
+&nbsp;import org.thingsboard.server.common.data.SystemInfo;
+&nbsp;import org.thingsboard.server.common.data.SystemInfoData;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.JsonDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.LongDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.ResourcesShortageTrigger;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.ResourcesShortageTrigger.Resource;
+&nbsp;import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+&nbsp;import org.thingsboard.server.dao.domain.DomainService;
+&nbsp;import org.thingsboard.server.dao.settings.AdminSettingsService;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
+&nbsp;import org.thingsboard.server.queue.discovery.DiscoveryService;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;import static org.thingsboard.common.util.SystemUtil.getCpuCount;
+&nbsp;import static org.thingsboard.common.util.SystemUtil.getCpuUsage;
+&nbsp;import static org.thingsboard.common.util.SystemUtil.getDiscSpaceUsage;
+&nbsp;import static org.thingsboard.common.util.SystemUtil.getMemoryUsage;
+&nbsp;import static org.thingsboard.common.util.SystemUtil.getTotalDiscSpace;
+&nbsp;import static org.thingsboard.common.util.SystemUtil.getTotalMemory;
+&nbsp;
+&nbsp;@TbCoreComponent
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultSystemInfoService extends TbApplicationEventListener&lt;PartitionChangeEvent&gt; implements SystemInfoService {
+&nbsp;
+<b class="nc">&nbsp;    public static final FutureCallback&lt;Void&gt; CALLBACK = new FutureCallback&lt;&gt;() {</b>
+&nbsp;        @Override
+&nbsp;        public void onSuccess(@Nullable Void result) {
+<b class="nc">&nbsp;        }</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onFailure(Throwable t) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to persist system info&quot;, t);</b>
+&nbsp;        }
+&nbsp;    };
+&nbsp;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final PartitionService partitionService;
+&nbsp;    private final DiscoveryService discoveryService;
+&nbsp;    private final TelemetrySubscriptionService telemetryService;
+&nbsp;    private final TbApiUsageStateClient apiUsageStateClient;
+&nbsp;    private final AdminSettingsService adminSettingsService;
+&nbsp;    private final DomainService domainService;
+&nbsp;    private final MailService mailService;
+&nbsp;    private final SmsService smsService;
+&nbsp;    private final NotificationRuleProcessor notificationRuleProcessor;
+&nbsp;    private volatile ScheduledExecutorService scheduler;
+&nbsp;
+&nbsp;    @Value(&quot;${metrics.system_info.persist_frequency:60}&quot;)
+&nbsp;    private int systemInfoPersistFrequencySeconds;
+&nbsp;    @Value(&quot;#{${metrics.system_info.ttl:7} * 86400}&quot;)
+&nbsp;    private int systemInfoTtlSeconds;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+<b class="nc">&nbsp;        if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {</b>
+<b class="nc">&nbsp;            boolean myPartition = partitionService.resolve(ServiceType.TB_CORE, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID).isMyPartition();</b>
+<b class="nc">&nbsp;            synchronized (this) {</b>
+<b class="nc">&nbsp;                if (myPartition) {</b>
+<b class="nc">&nbsp;                    if (scheduler == null) {</b>
+<b class="nc">&nbsp;                        scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor(&quot;tb-system-info-scheduler&quot;);</b>
+<b class="nc">&nbsp;                        scheduler.scheduleWithFixedDelay(this::saveCurrentSystemInfo, 0, systemInfoPersistFrequencySeconds, TimeUnit.SECONDS);</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    destroy();</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SystemInfo getSystemInfo() {
+<b class="nc">&nbsp;        SystemInfo systemInfo = new SystemInfo();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (discoveryService.isMonolith()) {</b>
+<b class="nc">&nbsp;            systemInfo.setMonolith(true);</b>
+<b class="nc">&nbsp;            systemInfo.setSystemData(Collections.singletonList(createSystemInfoData(serviceInfoProvider.generateNewServiceInfoWithCurrentSystemInfo())));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            systemInfo.setSystemData(getSystemData(serviceInfoProvider.getServiceInfo()));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return systemInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void saveCurrentSystemInfo() {
+<b class="nc">&nbsp;        if (discoveryService.isMonolith()) {</b>
+<b class="nc">&nbsp;            saveCurrentMonolithSystemInfo();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            saveCurrentClusterSystemInfo();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FeaturesInfo getFeaturesInfo() {
+<b class="nc">&nbsp;        FeaturesInfo featuresInfo = new FeaturesInfo();</b>
+<b class="nc">&nbsp;        featuresInfo.setEmailEnabled(isEmailEnabled());</b>
+<b class="nc">&nbsp;        featuresInfo.setSmsEnabled(smsService.isConfigured(TenantId.SYS_TENANT_ID));</b>
+<b class="nc">&nbsp;        featuresInfo.setOauthEnabled(domainService.isOauth2Enabled(TenantId.SYS_TENANT_ID));</b>
+<b class="nc">&nbsp;        featuresInfo.setTwoFaEnabled(isTwoFaEnabled());</b>
+<b class="nc">&nbsp;        featuresInfo.setNotificationEnabled(isSlackEnabled());</b>
+<b class="nc">&nbsp;        return featuresInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isEmailEnabled() {
+&nbsp;        try {
+<b class="nc">&nbsp;            mailService.testConnection(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isTwoFaEnabled() {
+<b class="nc">&nbsp;        AdminSettings twoFaSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, &quot;twoFaSettings&quot;);</b>
+<b class="nc">&nbsp;        if (twoFaSettings != null) {</b>
+<b class="nc">&nbsp;            var providers = twoFaSettings.getJsonValue().get(&quot;providers&quot;);</b>
+<b class="nc">&nbsp;            if (providers != null) {</b>
+<b class="nc">&nbsp;                return !providers.isEmpty();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isSlackEnabled() {
+<b class="nc">&nbsp;        AdminSettings notifications = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, &quot;notifications&quot;);</b>
+<b class="nc">&nbsp;        if (notifications != null) {</b>
+<b class="nc">&nbsp;            return notifications.getJsonValue().get(&quot;deliveryMethodsConfigs&quot;).has(&quot;SLACK&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void saveCurrentClusterSystemInfo() {
+<b class="nc">&nbsp;        long ts = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        List&lt;SystemInfoData&gt; clusterSystemData = getSystemData(serviceInfoProvider.getServiceInfo());</b>
+<b class="nc">&nbsp;        clusterSystemData.forEach(data -&gt; {</b>
+<b class="nc">&nbsp;            Arrays.stream(Resource.values()).forEach(resource -&gt; {</b>
+<b class="nc">&nbsp;                notificationRuleProcessor.process(ResourcesShortageTrigger.builder()</b>
+<b class="nc">&nbsp;                        .resource(resource)</b>
+<b class="nc">&nbsp;                        .serviceId(data.getServiceId())</b>
+<b class="nc">&nbsp;                        .serviceType(data.getServiceType())</b>
+<b class="nc">&nbsp;                        .usage(extractResourceUsage(data, resource))</b>
+<b class="nc">&nbsp;                        .build());</b>
+&nbsp;            });
+&nbsp;        });
+<b class="nc">&nbsp;        BasicTsKvEntry clusterDataKv = new BasicTsKvEntry(ts, new JsonDataEntry(&quot;clusterSystemData&quot;, JacksonUtil.toString(clusterSystemData)));</b>
+<b class="nc">&nbsp;        doSave(Arrays.asList(new BasicTsKvEntry(ts, new BooleanDataEntry(&quot;clusterMode&quot;, true)), clusterDataKv));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void saveCurrentMonolithSystemInfo() {
+<b class="nc">&nbsp;        long ts = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        List&lt;TsKvEntry&gt; tsList = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        tsList.add(new BasicTsKvEntry(ts, new BooleanDataEntry(&quot;clusterMode&quot;, false)));</b>
+<b class="nc">&nbsp;        getCpuUsage().ifPresent(v -&gt; {</b>
+<b class="nc">&nbsp;            long value = (long) v;</b>
+<b class="nc">&nbsp;            tsList.add(new BasicTsKvEntry(ts, new LongDataEntry(&quot;cpuUsage&quot;, value)));</b>
+<b class="nc">&nbsp;            notificationRuleProcessor.process(ResourcesShortageTrigger.builder().resource(Resource.CPU).usage(value).serviceId(serviceInfoProvider.getServiceId()).serviceType(serviceInfoProvider.getServiceType()).build());</b>
+&nbsp;        });
+<b class="nc">&nbsp;        getMemoryUsage().ifPresent(v -&gt; {</b>
+<b class="nc">&nbsp;            long value = (long) v;</b>
+<b class="nc">&nbsp;            tsList.add(new BasicTsKvEntry(ts, new LongDataEntry(&quot;memoryUsage&quot;, value)));</b>
+<b class="nc">&nbsp;            notificationRuleProcessor.process(ResourcesShortageTrigger.builder().resource(Resource.RAM).usage(value).serviceId(serviceInfoProvider.getServiceId()).serviceType(serviceInfoProvider.getServiceType()).build());</b>
+&nbsp;        });
+<b class="nc">&nbsp;        getDiscSpaceUsage().ifPresent(v -&gt; {</b>
+<b class="nc">&nbsp;            long value = (long) v;</b>
+<b class="nc">&nbsp;            tsList.add(new BasicTsKvEntry(ts, new LongDataEntry(&quot;discUsage&quot;, value)));</b>
+<b class="nc">&nbsp;            notificationRuleProcessor.process(ResourcesShortageTrigger.builder().resource(Resource.STORAGE).usage(value).serviceId(serviceInfoProvider.getServiceId()).serviceType(serviceInfoProvider.getServiceType()).build());</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        getCpuCount().ifPresent(v -&gt; tsList.add(new BasicTsKvEntry(ts, new LongDataEntry(&quot;cpuCount&quot;, (long) v))));</b>
+<b class="nc">&nbsp;        getTotalMemory().ifPresent(v -&gt; tsList.add(new BasicTsKvEntry(ts, new LongDataEntry(&quot;totalMemory&quot;, v))));</b>
+<b class="nc">&nbsp;        getTotalDiscSpace().ifPresent(v -&gt; tsList.add(new BasicTsKvEntry(ts, new LongDataEntry(&quot;totalDiscSpace&quot;, v))));</b>
+&nbsp;
+<b class="nc">&nbsp;        doSave(tsList);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void doSave(List&lt;TsKvEntry&gt; telemetry) {
+<b class="nc">&nbsp;        ApiUsageState apiUsageState = apiUsageStateClient.getApiUsageState(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;        telemetryService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()</b>
+<b class="nc">&nbsp;                .tenantId(TenantId.SYS_TENANT_ID)</b>
+<b class="nc">&nbsp;                .entityId(apiUsageState.getId())</b>
+<b class="nc">&nbsp;                .entries(telemetry)</b>
+<b class="nc">&nbsp;                .ttl(systemInfoTtlSeconds)</b>
+<b class="nc">&nbsp;                .callback(CALLBACK)</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;SystemInfoData&gt; getSystemData(ServiceInfo serviceInfo) {
+<b class="nc">&nbsp;        List&lt;SystemInfoData&gt; clusterSystemData = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        clusterSystemData.add(createSystemInfoData(serviceInfo));</b>
+<b class="nc">&nbsp;        this.discoveryService.getOtherServers()</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(this::createSystemInfoData)</b>
+<b class="nc">&nbsp;                .forEach(clusterSystemData::add);</b>
+<b class="nc">&nbsp;        return clusterSystemData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private SystemInfoData createSystemInfoData(ServiceInfo serviceInfo) {
+<b class="nc">&nbsp;        ProtocolStringList serviceTypes = serviceInfo.getServiceTypesList();</b>
+<b class="nc">&nbsp;        SystemInfoData infoData = new SystemInfoData();</b>
+<b class="nc">&nbsp;        infoData.setServiceId(serviceInfo.getServiceId());</b>
+<b class="nc">&nbsp;        infoData.setServiceType(serviceTypes.size() &gt; 1 ? &quot;MONOLITH&quot; : serviceTypes.get(0));</b>
+&nbsp;
+<b class="nc">&nbsp;        infoData.setCpuUsage(serviceInfo.getSystemInfo().getCpuUsage());</b>
+<b class="nc">&nbsp;        infoData.setMemoryUsage(serviceInfo.getSystemInfo().getMemoryUsage());</b>
+<b class="nc">&nbsp;        infoData.setDiscUsage(serviceInfo.getSystemInfo().getDiskUsage());</b>
+&nbsp;
+<b class="nc">&nbsp;        infoData.setCpuCount(serviceInfo.getSystemInfo().getCpuCount());</b>
+<b class="nc">&nbsp;        infoData.setTotalMemory(serviceInfo.getSystemInfo().getTotalMemory());</b>
+<b class="nc">&nbsp;        infoData.setTotalDiscSpace(serviceInfo.getSystemInfo().getTotalDiscSpace());</b>
+&nbsp;
+<b class="nc">&nbsp;        return infoData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Long extractResourceUsage(SystemInfoData info, Resource resource) {
+<b class="nc">&nbsp;        return switch (resource) {</b>
+<b class="nc">&nbsp;            case CPU -&gt; info.getCpuUsage();</b>
+<b class="nc">&nbsp;            case RAM -&gt; info.getMemoryUsage();</b>
+<b class="nc">&nbsp;            case STORAGE -&gt; info.getDiscUsage();</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void destroy() {
+<b class="nc">&nbsp;        if (scheduler != null) {</b>
+<b class="nc">&nbsp;            scheduler.shutdownNow();</b>
+<b class="nc">&nbsp;            scheduler = null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

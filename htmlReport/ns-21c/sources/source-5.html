@@ -1,0 +1,697 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SnmpTransportService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.snmp.service</a>
+</div>
+
+<h1>Coverage Summary for Class: SnmpTransportService (org.thingsboard.server.transport.snmp.service)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SnmpTransportService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/62)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/205)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SnmpTransportService$RequestContext</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">SnmpTransportService$ResponseDataMapper</td>
+  </tr>
+  <tr>
+    <td class="name">SnmpTransportService$ResponseProcessor</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/64)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/213)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.snmp.service;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableScheduledFuture;
+&nbsp;import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.snmp4j.CommandResponder;
+&nbsp;import org.snmp4j.CommandResponderEvent;
+&nbsp;import org.snmp4j.PDU;
+&nbsp;import org.snmp4j.Snmp;
+&nbsp;import org.snmp4j.TransportMapping;
+&nbsp;import org.snmp4j.event.ResponseEvent;
+&nbsp;import org.snmp4j.mp.MPv3;
+&nbsp;import org.snmp4j.security.SecurityModels;
+&nbsp;import org.snmp4j.security.SecurityProtocols;
+&nbsp;import org.snmp4j.security.USM;
+&nbsp;import org.snmp4j.smi.IpAddress;
+&nbsp;import org.snmp4j.smi.OctetString;
+&nbsp;import org.snmp4j.smi.TcpAddress;
+&nbsp;import org.snmp4j.smi.UdpAddress;
+&nbsp;import org.snmp4j.transport.DefaultTcpTransportMapping;
+&nbsp;import org.snmp4j.transport.DefaultUdpTransportMapping;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.server.common.adaptor.JsonConverter;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.TbTransportService;
+&nbsp;import org.thingsboard.server.common.data.kv.DataType;
+&nbsp;import org.thingsboard.server.common.data.transport.snmp.SnmpCommunicationSpec;
+&nbsp;import org.thingsboard.server.common.data.transport.snmp.SnmpMapping;
+&nbsp;import org.thingsboard.server.common.data.transport.snmp.SnmpMethod;
+&nbsp;import org.thingsboard.server.common.data.transport.snmp.config.RepeatingQueryingSnmpCommunicationConfig;
+&nbsp;import org.thingsboard.server.common.data.transport.snmp.config.SnmpCommunicationConfig;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.util.TbSnmpTransportComponent;
+&nbsp;import org.thingsboard.server.transport.snmp.SnmpTransportContext;
+&nbsp;import org.thingsboard.server.transport.snmp.session.DeviceSessionContext;
+&nbsp;import org.thingsboard.server.transport.snmp.session.ScheduledTask;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.net.InetAddress;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.EnumMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@TbSnmpTransportComponent
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;@SuppressWarnings(&quot;UnstableApiUsage&quot;)
+&nbsp;public class SnmpTransportService implements TbTransportService, CommandResponder {
+&nbsp;    private final TransportService transportService;
+&nbsp;    private final PduService pduService;
+&nbsp;    @Autowired @Lazy
+&nbsp;    private SnmpTransportContext transportContext;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private Snmp snmp;
+&nbsp;    private ListeningScheduledExecutorService scheduler;
+&nbsp;    private ExecutorService executor;
+&nbsp;
+&nbsp;    private final Map&lt;SnmpCommunicationSpec, ResponseDataMapper&gt; responseDataMappers = new EnumMap&lt;&gt;(SnmpCommunicationSpec.class);
+&nbsp;    private final Map&lt;SnmpCommunicationSpec, ResponseProcessor&gt; responseProcessors = new EnumMap&lt;&gt;(SnmpCommunicationSpec.class);
+&nbsp;
+&nbsp;    @Value(&quot;${transport.snmp.bind_port:0}&quot;)
+&nbsp;    private Integer snmpBindPort;
+&nbsp;    @Value(&quot;${transport.snmp.bind_address:0.0.0.0}&quot;)
+&nbsp;    private String snmpBindAddress;
+&nbsp;    @Value(&quot;${transport.snmp.response_processing.parallelism_level:4}&quot;)
+&nbsp;    private int responseProcessingThreadPoolSize;
+&nbsp;    @Value(&quot;${transport.snmp.scheduler_thread_pool_size:4}&quot;)
+&nbsp;    private int schedulerThreadPoolSize;
+&nbsp;    @Value(&quot;${transport.snmp.underlying_protocol}&quot;)
+&nbsp;    private String snmpUnderlyingProtocol;
+&nbsp;    @Value(&quot;${transport.snmp.request_chunk_delay_ms:100}&quot;)
+&nbsp;    private int requestChunkDelayMs;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    private void init() throws IOException {
+<b class="nc">&nbsp;        scheduler = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newScheduledThreadPool(schedulerThreadPoolSize, &quot;snmp-querying&quot;));</b>
+<b class="nc">&nbsp;        executor = ThingsBoardExecutors.newWorkStealingPool(responseProcessingThreadPoolSize, &quot;snmp-response-processing&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        initializeSnmp();</b>
+<b class="nc">&nbsp;        configureResponseDataMappers();</b>
+<b class="nc">&nbsp;        configureResponseProcessors();</b>
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;SNMP transport service initialized&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        if (scheduler != null) {</b>
+<b class="nc">&nbsp;            scheduler.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (executor != null) {</b>
+<b class="nc">&nbsp;            executor.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void initializeSnmp() throws IOException {
+&nbsp;        TransportMapping&lt;?&gt; transportMapping;
+<b class="nc">&nbsp;        switch (snmpUnderlyingProtocol) {</b>
+&nbsp;            case &quot;udp&quot;:
+<b class="nc">&nbsp;                transportMapping = new DefaultUdpTransportMapping(new UdpAddress(InetAddress.getByName(snmpBindAddress), snmpBindPort));</b>
+&nbsp;                break;
+&nbsp;            case &quot;tcp&quot;:
+<b class="nc">&nbsp;                transportMapping = new DefaultTcpTransportMapping(new TcpAddress(InetAddress.getByName(snmpBindAddress), snmpBindPort));</b>
+&nbsp;                break;
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Underlying protocol &quot; + snmpUnderlyingProtocol + &quot; for SNMP is not supported&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        snmp = new Snmp(transportMapping);</b>
+<b class="nc">&nbsp;        snmp.addNotificationListener(transportMapping, transportMapping.getListenAddress(), this);</b>
+<b class="nc">&nbsp;        snmp.listen();</b>
+&nbsp;
+<b class="nc">&nbsp;        SecurityProtocols.getInstance().addPredefinedProtocolSet(SecurityProtocols.SecurityProtocolSet.maxCompatibility);</b>
+<b class="nc">&nbsp;        USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);</b>
+<b class="nc">&nbsp;        SecurityModels.getInstance().addSecurityModel(usm);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void createQueryingTasks(DeviceSessionContext sessionContext) {
+<b class="nc">&nbsp;        sessionContext.getProfileTransportConfiguration().getCommunicationConfigs().stream()</b>
+<b class="nc">&nbsp;                .filter(communicationConfig -&gt; communicationConfig instanceof RepeatingQueryingSnmpCommunicationConfig)</b>
+<b class="nc">&nbsp;                .forEach(config -&gt; {</b>
+<b class="nc">&nbsp;                    RepeatingQueryingSnmpCommunicationConfig repeatingCommunicationConfig = (RepeatingQueryingSnmpCommunicationConfig) config;</b>
+<b class="nc">&nbsp;                    Long queryingFrequency = repeatingCommunicationConfig.getQueryingFrequencyMs();</b>
+&nbsp;
+<b class="nc">&nbsp;                    ScheduledTask scheduledTask = new ScheduledTask();</b>
+<b class="nc">&nbsp;                    scheduledTask.init(() -&gt; {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            if (sessionContext.isActive()) {</b>
+<b class="nc">&nbsp;                                return sendRequest(sessionContext, repeatingCommunicationConfig);</b>
+&nbsp;                            }
+&nbsp;                        } catch (Exception e) {
+<b class="nc">&nbsp;                            log.error(&quot;Failed to send SNMP request for device {}: {}&quot;, sessionContext.getDeviceId(), e.toString());</b>
+<b class="nc">&nbsp;                            transportService.errorEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), config.getSpec().getLabel(), e);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        return Futures.immediateVoidFuture();</b>
+<b class="nc">&nbsp;                    }, queryingFrequency, scheduler);</b>
+<b class="nc">&nbsp;                    sessionContext.getQueryingTasks().add(scheduledTask);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    public void cancelQueryingTasks(DeviceSessionContext sessionContext) {
+<b class="nc">&nbsp;        sessionContext.getQueryingTasks().forEach(ScheduledTask::cancel);</b>
+<b class="nc">&nbsp;        sessionContext.getQueryingTasks().clear();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; sendRequest(DeviceSessionContext sessionContext, SnmpCommunicationConfig communicationConfig) {
+<b class="nc">&nbsp;        return sendRequest(sessionContext, communicationConfig, Collections.emptyMap());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; sendRequest(DeviceSessionContext sessionContext, SnmpCommunicationConfig communicationConfig, Map&lt;String, String&gt; values) {
+<b class="nc">&nbsp;        List&lt;PDU&gt; request = pduService.createPdus(sessionContext, communicationConfig, values);</b>
+<b class="nc">&nbsp;        RequestContext requestContext = RequestContext.builder()</b>
+<b class="nc">&nbsp;                .communicationSpec(communicationConfig.getSpec())</b>
+<b class="nc">&nbsp;                .method(communicationConfig.getMethod())</b>
+<b class="nc">&nbsp;                .responseMappings(communicationConfig.getAllMappings())</b>
+<b class="nc">&nbsp;                .requestSize(request.size())</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        return sendRequest(sessionContext, request, requestContext);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; sendRequest(DeviceSessionContext sessionContext, List&lt;PDU&gt; request, RequestContext requestContext) {
+<b class="nc">&nbsp;        if (request.size() &lt;= 1 || requestChunkDelayMs == 0) {</b>
+<b class="nc">&nbsp;            for (PDU pdu : request) {</b>
+<b class="nc">&nbsp;                sendPdu(pdu, requestContext, sessionContext);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return Futures.immediateVoidFuture();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;?&gt;&gt; futures = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (int i = 0, delay = 0; i &lt; request.size(); i++, delay += requestChunkDelayMs) {</b>
+<b class="nc">&nbsp;            PDU pdu = request.get(i);</b>
+<b class="nc">&nbsp;            if (delay == 0) {</b>
+<b class="nc">&nbsp;                sendPdu(pdu, requestContext, sessionContext);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                ListenableScheduledFuture&lt;?&gt; future = scheduler.schedule(() -&gt; {</b>
+<b class="nc">&nbsp;                    sendPdu(pdu, requestContext, sessionContext);</b>
+&nbsp;                }, delay, TimeUnit.MILLISECONDS);
+<b class="nc">&nbsp;                futures.add(future);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.whenAllComplete(futures).call(() -&gt; null, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendPdu(PDU pdu, RequestContext requestContext, DeviceSessionContext sessionContext) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Sending SNMP request with {} variable bindings to {}&quot;, sessionContext.getDeviceId(), pdu.size(), sessionContext.getTarget().getAddress());</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            snmp.send(pdu, sessionContext.getTarget(), requestContext, sessionContext);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to send SNMP request&quot;, sessionContext.getDeviceId(), e);</b>
+<b class="nc">&nbsp;            transportService.errorEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), requestContext.getCommunicationSpec().getLabel(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onAttributeUpdate(DeviceSessionContext sessionContext, TransportProtos.AttributeUpdateNotificationMsg attributeUpdateNotification) {
+<b class="nc">&nbsp;        sessionContext.getProfileTransportConfiguration().getCommunicationConfigs().stream()</b>
+<b class="nc">&nbsp;                .filter(config -&gt; config.getSpec() == SnmpCommunicationSpec.SHARED_ATTRIBUTES_SETTING)</b>
+<b class="nc">&nbsp;                .findFirst()</b>
+<b class="nc">&nbsp;                .ifPresent(communicationConfig -&gt; {</b>
+<b class="nc">&nbsp;                    Map&lt;String, String&gt; sharedAttributes = JsonConverter.toJson(attributeUpdateNotification).entrySet().stream()</b>
+<b class="nc">&nbsp;                            .collect(Collectors.toMap(</b>
+&nbsp;                                    Map.Entry::getKey,
+<b class="nc">&nbsp;                                    entry -&gt; entry.getValue().isJsonPrimitive() ? entry.getValue().getAsString() : entry.getValue().toString()</b>
+&nbsp;                            ));
+<b class="nc">&nbsp;                    sendRequest(sessionContext, communicationConfig, sharedAttributes);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onToDeviceRpcRequest(DeviceSessionContext sessionContext, TransportProtos.ToDeviceRpcRequestMsg toDeviceRpcRequestMsg) {
+<b class="nc">&nbsp;        SnmpMethod snmpMethod = SnmpMethod.valueOf(toDeviceRpcRequestMsg.getMethodName());</b>
+<b class="nc">&nbsp;        JsonObject params = JsonConverter.parse(toDeviceRpcRequestMsg.getParams()).getAsJsonObject();</b>
+&nbsp;
+<b class="nc">&nbsp;        String key = Optional.ofNullable(params.get(&quot;key&quot;)).map(JsonElement::getAsString).orElse(null);</b>
+<b class="nc">&nbsp;        String value = Optional.ofNullable(params.get(&quot;value&quot;)).map(JsonElement::getAsString).orElse(null);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (value == null &amp;&amp; snmpMethod == SnmpMethod.SET) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Value must be specified for SNMP method &#39;SET&#39;&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        SnmpCommunicationConfig communicationConfig = sessionContext.getProfileTransportConfiguration().getCommunicationConfigs().stream()</b>
+<b class="nc">&nbsp;                .filter(config -&gt; config.getSpec() == SnmpCommunicationSpec.TO_DEVICE_RPC_REQUEST)</b>
+<b class="nc">&nbsp;                .findFirst()</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;No communication config found with RPC spec&quot;));</b>
+<b class="nc">&nbsp;        SnmpMapping snmpMapping = communicationConfig.getAllMappings().stream()</b>
+<b class="nc">&nbsp;                .filter(mapping -&gt; mapping.getKey().equals(key))</b>
+<b class="nc">&nbsp;                .findFirst()</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;No SNMP mapping found in the config for specified key&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        String oid = snmpMapping.getOid();</b>
+<b class="nc">&nbsp;        DataType dataType = snmpMapping.getDataType();</b>
+&nbsp;
+<b class="nc">&nbsp;        PDU request = pduService.createSingleVariablePdu(sessionContext, snmpMethod, oid, value, dataType);</b>
+<b class="nc">&nbsp;        RequestContext requestContext = RequestContext.builder()</b>
+<b class="nc">&nbsp;                .requestId(toDeviceRpcRequestMsg.getRequestId())</b>
+<b class="nc">&nbsp;                .communicationSpec(communicationConfig.getSpec())</b>
+<b class="nc">&nbsp;                .method(snmpMethod)</b>
+<b class="nc">&nbsp;                .responseMappings(communicationConfig.getAllMappings())</b>
+<b class="nc">&nbsp;                .requestSize(1)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        sendRequest(sessionContext, List.of(request), requestContext);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public void processResponseEvent(DeviceSessionContext sessionContext, ResponseEvent event) {
+<b class="nc">&nbsp;        ((Snmp) event.getSource()).cancel(event.getRequest(), sessionContext);</b>
+<b class="nc">&nbsp;        RequestContext requestContext = (RequestContext) event.getUserObject();</b>
+<b class="nc">&nbsp;        if (event.getError() != null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}] SNMP response error: {}&quot;, sessionContext.getDeviceId(), event.getError().toString());</b>
+<b class="nc">&nbsp;            transportService.errorEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), requestContext.getCommunicationSpec().getLabel(), new RuntimeException(event.getError()));</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        PDU responsePdu = event.getResponse();</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Received PDU: {}&quot;, sessionContext.getDeviceId(), responsePdu);</b>
+&nbsp;
+&nbsp;        List&lt;PDU&gt; response;
+<b class="nc">&nbsp;        if (requestContext.getRequestSize() == 1) {</b>
+<b class="nc">&nbsp;            if (responsePdu == null) {</b>
+<b class="nc">&nbsp;                if (requestContext.getMethod() == SnmpMethod.GET) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;[{}][{}] Empty response from device&quot;, sessionContext.getDeviceId(), event.getRequest().getRequestID());</b>
+<b class="nc">&nbsp;                    transportService.errorEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), requestContext.getCommunicationSpec().getLabel(), new RuntimeException(&quot;No response from device&quot;));</b>
+&nbsp;                }
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            response = List.of(responsePdu);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            List&lt;PDU&gt; responseParts = requestContext.getResponseParts();</b>
+<b class="nc">&nbsp;            responseParts.add(responsePdu);</b>
+<b class="nc">&nbsp;            if (responseParts.size() == requestContext.getRequestSize()) {</b>
+<b class="nc">&nbsp;                response = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;                for (PDU responsePart : responseParts) {</b>
+<b class="nc">&nbsp;                    if (responsePart != null) {</b>
+<b class="nc">&nbsp;                        response.add(responsePart);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                log.debug(&quot;[{}] All {} response parts are collected for request&quot;, sessionContext.getDeviceId(), responseParts.size());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Awaiting other response parts for request&quot;, sessionContext.getDeviceId());</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        executor.execute(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                processResponse(sessionContext, response, requestContext);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                transportService.errorEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), requestContext.getCommunicationSpec().getLabel(), e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /*
+&nbsp;     * SNMP notifications handler
+&nbsp;     *
+&nbsp;     * TODO: add check for host uniqueness when saving device (for backward compatibility - only for the ones using from-device RPC requests)
+&nbsp;     *
+&nbsp;     * NOTE: SNMP TRAPs support won&#39;t work properly when there is more than one SNMP transport,
+&nbsp;     *  due to load-balancing of requests from devices: session might not be on this instance
+&nbsp;     * */
+&nbsp;    @Override
+&nbsp;    public void processPdu(CommandResponderEvent event) {
+<b class="nc">&nbsp;        IpAddress sourceAddress = (IpAddress) event.getPeerAddress();</b>
+<b class="nc">&nbsp;        List&lt;DeviceSessionContext&gt; sessions = transportContext.getSessions().stream()</b>
+<b class="nc">&nbsp;                .filter(session -&gt; ((IpAddress) session.getTarget().getAddress()).getInetAddress().equals(sourceAddress.getInetAddress()))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        if (sessions.isEmpty()) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;Couldn&#39;t find device session for SNMP TRAP for address {}&quot;, sourceAddress);</b>
+&nbsp;            return;
+<b class="nc">&nbsp;        } else if (sessions.size() &gt; 1) {</b>
+<b class="nc">&nbsp;            for (DeviceSessionContext sessionContext : sessions) {</b>
+<b class="nc">&nbsp;                transportService.errorEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(), SnmpCommunicationSpec.TO_SERVER_RPC_REQUEST.getLabel(),</b>
+<b class="nc">&nbsp;                        new IllegalStateException(&quot;Found multiple devices for host &quot; + sourceAddress.getInetAddress().getHostAddress()));</b>
+&nbsp;            }
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        DeviceSessionContext sessionContext = sessions.get(0);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            processIncomingTrap(sessionContext, event);</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            transportService.errorEvent(sessionContext.getTenantId(), sessionContext.getDeviceId(),</b>
+<b class="nc">&nbsp;                    SnmpCommunicationSpec.TO_SERVER_RPC_REQUEST.getLabel(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processIncomingTrap(DeviceSessionContext sessionContext, CommandResponderEvent event) {
+<b class="nc">&nbsp;        PDU pdu = event.getPDU();</b>
+<b class="nc">&nbsp;        if (pdu == null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Received empty SNMP trap&quot;, sessionContext.getDeviceId());</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Received TRAP with no data&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Processing SNMP trap: {}&quot;, sessionContext.getDeviceId(), pdu);</b>
+<b class="nc">&nbsp;        SnmpCommunicationConfig communicationConfig = sessionContext.getProfileTransportConfiguration().getCommunicationConfigs().stream()</b>
+<b class="nc">&nbsp;                .filter(config -&gt; config.getSpec() == SnmpCommunicationSpec.TO_SERVER_RPC_REQUEST).findFirst()</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;No config found for to-server RPC requests&quot;));</b>
+<b class="nc">&nbsp;        RequestContext requestContext = RequestContext.builder()</b>
+<b class="nc">&nbsp;                .communicationSpec(communicationConfig.getSpec())</b>
+<b class="nc">&nbsp;                .responseMappings(communicationConfig.getAllMappings())</b>
+<b class="nc">&nbsp;                .method(SnmpMethod.TRAP)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        executor.execute(() -&gt; {</b>
+<b class="nc">&nbsp;            processResponse(sessionContext, List.of(pdu), requestContext);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processResponse(DeviceSessionContext sessionContext, List&lt;PDU&gt; response, RequestContext requestContext) {
+<b class="nc">&nbsp;        ResponseProcessor responseProcessor = responseProcessors.get(requestContext.getCommunicationSpec());</b>
+<b class="nc">&nbsp;        if (responseProcessor == null) return;</b>
+&nbsp;
+<b class="nc">&nbsp;        JsonObject responseData = responseDataMappers.get(requestContext.getCommunicationSpec()).map(response, requestContext);</b>
+<b class="nc">&nbsp;        if (responseData.size() == 0) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}] No values in the response&quot;, sessionContext.getDeviceId());</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;No values in the response&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        responseProcessor.process(responseData, requestContext, sessionContext);</b>
+<b class="nc">&nbsp;        reportActivity(sessionContext.getSessionInfo());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void configureResponseDataMappers() {
+<b class="nc">&nbsp;        responseDataMappers.put(SnmpCommunicationSpec.TO_DEVICE_RPC_REQUEST, (pdus, requestContext) -&gt; {</b>
+<b class="nc">&nbsp;            JsonObject responseData = new JsonObject();</b>
+<b class="nc">&nbsp;            pduService.processPdus(pdus).forEach((oid, value) -&gt; {</b>
+<b class="nc">&nbsp;                requestContext.getResponseMappings().stream()</b>
+<b class="nc">&nbsp;                        .filter(snmpMapping -&gt; snmpMapping.getOid().equals(oid.toDottedString()))</b>
+<b class="nc">&nbsp;                        .findFirst()</b>
+<b class="nc">&nbsp;                        .ifPresent(snmpMapping -&gt; {</b>
+<b class="nc">&nbsp;                            pduService.processValue(snmpMapping.getKey(), snmpMapping.getDataType(), value, responseData);</b>
+&nbsp;                        });
+&nbsp;            });
+<b class="nc">&nbsp;            return responseData;</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        ResponseDataMapper defaultResponseDataMapper = (pdus, requestContext) -&gt; {</b>
+<b class="nc">&nbsp;            return pduService.processPdus(pdus, requestContext.getResponseMappings());</b>
+&nbsp;        };
+<b class="nc">&nbsp;        Arrays.stream(SnmpCommunicationSpec.values())</b>
+<b class="nc">&nbsp;                .forEach(communicationSpec -&gt; {</b>
+<b class="nc">&nbsp;                    responseDataMappers.putIfAbsent(communicationSpec, defaultResponseDataMapper);</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void configureResponseProcessors() {
+<b class="nc">&nbsp;        responseProcessors.put(SnmpCommunicationSpec.TELEMETRY_QUERYING, (responseData, requestContext, sessionContext) -&gt; {</b>
+<b class="nc">&nbsp;            TransportProtos.PostTelemetryMsg postTelemetryMsg = JsonConverter.convertToTelemetryProto(responseData);</b>
+<b class="nc">&nbsp;            transportService.process(sessionContext.getSessionInfo(), postTelemetryMsg, null);</b>
+<b class="nc">&nbsp;            log.debug(&quot;Posted telemetry for SNMP device {}: {}&quot;, sessionContext.getDeviceId(), responseData);</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        responseProcessors.put(SnmpCommunicationSpec.CLIENT_ATTRIBUTES_QUERYING, (responseData, requestContext, sessionContext) -&gt; {</b>
+<b class="nc">&nbsp;            TransportProtos.PostAttributeMsg postAttributesMsg = JsonConverter.convertToAttributesProto(responseData);</b>
+<b class="nc">&nbsp;            transportService.process(sessionContext.getSessionInfo(), postAttributesMsg, null);</b>
+<b class="nc">&nbsp;            log.debug(&quot;Posted attributes for SNMP device {}: {}&quot;, sessionContext.getDeviceId(), responseData);</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        responseProcessors.put(SnmpCommunicationSpec.TO_DEVICE_RPC_REQUEST, (responseData, requestContext, sessionContext) -&gt; {</b>
+<b class="nc">&nbsp;            TransportProtos.ToDeviceRpcResponseMsg rpcResponseMsg = TransportProtos.ToDeviceRpcResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                    .setRequestId(requestContext.getRequestId())</b>
+<b class="nc">&nbsp;                    .setPayload(JsonConverter.toJson(responseData))</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            transportService.process(sessionContext.getSessionInfo(), rpcResponseMsg, null);</b>
+<b class="nc">&nbsp;            log.debug(&quot;Posted RPC response {} for device {}&quot;, responseData, sessionContext.getDeviceId());</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        responseProcessors.put(SnmpCommunicationSpec.TO_SERVER_RPC_REQUEST, (responseData, requestContext, sessionContext) -&gt; {</b>
+<b class="nc">&nbsp;            TransportProtos.ToServerRpcRequestMsg toServerRpcRequestMsg = TransportProtos.ToServerRpcRequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                    .setRequestId(0)</b>
+<b class="nc">&nbsp;                    .setMethodName(requestContext.getMethod().name())</b>
+<b class="nc">&nbsp;                    .setParams(JsonConverter.toJson(responseData))</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            transportService.process(sessionContext.getSessionInfo(), toServerRpcRequestMsg, null);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportActivity(TransportProtos.SessionInfoProto sessionInfo) {
+<b class="nc">&nbsp;        transportService.recordActivity(sessionInfo);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getName() {
+<b class="nc">&nbsp;        return DataConstants.SNMP_TRANSPORT_NAME;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void shutdown() {
+<b class="nc">&nbsp;        log.info(&quot;Stopping SNMP transport!&quot;);</b>
+<b class="nc">&nbsp;        if (scheduler != null) {</b>
+<b class="nc">&nbsp;            scheduler.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (executor != null) {</b>
+<b class="nc">&nbsp;            executor.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (snmp != null) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                snmp.close();</b>
+&nbsp;            } catch (IOException e) {
+<b class="nc">&nbsp;                log.error(e.getMessage(), e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        log.info(&quot;SNMP transport stopped!&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Data
+&nbsp;    private static class RequestContext {
+&nbsp;        private final Integer requestId;
+&nbsp;        private final SnmpCommunicationSpec communicationSpec;
+&nbsp;        private final SnmpMethod method;
+&nbsp;        private final List&lt;SnmpMapping&gt; responseMappings;
+&nbsp;
+&nbsp;        private final int requestSize;
+&nbsp;        private List&lt;PDU&gt; responseParts;
+&nbsp;
+&nbsp;        @Builder
+<b class="nc">&nbsp;        public RequestContext(Integer requestId, SnmpCommunicationSpec communicationSpec, SnmpMethod method, List&lt;SnmpMapping&gt; responseMappings, int requestSize) {</b>
+<b class="nc">&nbsp;            this.requestId = requestId;</b>
+<b class="nc">&nbsp;            this.communicationSpec = communicationSpec;</b>
+<b class="nc">&nbsp;            this.method = method;</b>
+<b class="nc">&nbsp;            this.responseMappings = responseMappings;</b>
+<b class="nc">&nbsp;            this.requestSize = requestSize;</b>
+<b class="nc">&nbsp;            if (requestSize &gt; 1) {</b>
+<b class="nc">&nbsp;                this.responseParts = Collections.synchronizedList(new ArrayList&lt;&gt;());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private interface ResponseDataMapper {
+&nbsp;        JsonObject map(List&lt;PDU&gt; pdus, RequestContext requestContext);
+&nbsp;    }
+&nbsp;
+&nbsp;    private interface ResponseProcessor {
+&nbsp;        void process(JsonObject responseData, RequestContext requestContext, DeviceSessionContext sessionContext);
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

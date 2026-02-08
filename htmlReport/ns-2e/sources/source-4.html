@@ -1,0 +1,549 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbMathNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.math</a>
+</div>
+
+<h1>Coverage Summary for Class: TbMathNode (org.thingsboard.rule.engine.math)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbMathNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/158)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbMathNode$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/161)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.math;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import com.google.common.util.concurrent.SettableFuture;
+&nbsp;import net.objecthunter.exp4j.Expression;
+&nbsp;import org.springframework.util.ConcurrentReferenceHashMap;
+&nbsp;import org.thingsboard.common.util.ExpressionUtils;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.AttributesSaveRequest;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.util.SemaphoreWithTbMsgQueue;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.DoubleDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.KvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.LongDataEntry;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;import java.math.RoundingMode;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.function.BiFunction;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.rule.engine.math.TbMathArgumentType.CONSTANT;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.ACTION,
+&nbsp;        name = &quot;math function&quot;,
+&nbsp;        configClazz = TbMathNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Apply math function and save the result into the message and/or database&quot;,
+&nbsp;        nodeDetails = &quot;Supports math operations like: ADD, SUB, MULT, DIV, etc and functions: SIN, COS, TAN, SEC, etc. &quot; +
+&nbsp;                &quot;Use &#39;CUSTOM&#39; operation to specify complex math expressions.&quot; +
+&nbsp;                &quot;&lt;br/&gt;&lt;br/&gt;&quot; +
+&nbsp;                &quot;You may use constant, message field, metadata field, attribute, and latest time-series as an arguments values. &quot; +
+&nbsp;                &quot;The result of the function may be also stored to message field, metadata field, attribute or time-series value.&quot; +
+&nbsp;                &quot;&lt;br/&gt;&lt;br/&gt;&quot; +
+&nbsp;                &quot;Primary use case for this rule node is to take one or more values from the database and modify them based on data from the message. &quot; +
+&nbsp;                &quot;For example, you may increase `totalWaterConsumption` based on the `deltaWaterConsumption` reported by device.&quot; +
+&nbsp;                &quot;&lt;br/&gt;&lt;br/&gt;&quot; +
+&nbsp;                &quot;Alternative use case is the replacement of simple JS `script` nodes with more light-weight and performant implementation. &quot; +
+&nbsp;                &quot;For example, you may transform Fahrenheit to Celsius (C = (F - 32) / 1.8) using CUSTOM operation and expression: (x - 32) / 1.8).&quot; +
+&nbsp;                &quot;&lt;br/&gt;&lt;br/&gt;&quot; +
+&nbsp;                &quot;The execution is synchronized in scope of message originator (e.g. device) and server node. &quot; +
+&nbsp;                &quot;If you have rule nodes in different rule chains, they will process messages from the same originator synchronously in the scope of the server node.&quot;,
+&nbsp;        configDirective = &quot;tbActionNodeMathFunctionConfig&quot;,
+&nbsp;        icon = &quot;calculate&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/action/math-function/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbMathNode implements TbNode {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final ConcurrentMap&lt;EntityId, SemaphoreWithTbMsgQueue&gt; locks = new ConcurrentReferenceHashMap&lt;&gt;(16, ConcurrentReferenceHashMap.ReferenceType.WEAK);</b>
+<b class="nc">&nbsp;    private final ThreadLocal&lt;Expression&gt; customExpression = new ThreadLocal&lt;&gt;();</b>
+&nbsp;    private TbMathNodeConfiguration config;
+&nbsp;    private boolean msgBodyToJsonConversionRequired;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, TbMathNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        var operation = config.getOperation();</b>
+<b class="nc">&nbsp;        var argsCount = config.getArguments().size();</b>
+<b class="nc">&nbsp;        if (argsCount &lt; operation.getMinArgs() || argsCount &gt; operation.getMaxArgs()) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Args count: &quot; + argsCount + &quot; does not match operation: &quot; + operation.name());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (TbRuleNodeMathFunctionType.CUSTOM.equals(operation)) {</b>
+<b class="nc">&nbsp;            if (StringUtils.isBlank(config.getCustomFunction())) {</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Custom function is blank!&quot;);</b>
+<b class="nc">&nbsp;            } else if (config.getCustomFunction().length() &gt; 256) {</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Custom function is too complex (length &gt; 256)!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        msgBodyToJsonConversionRequired = config.getArguments().stream().anyMatch(arg -&gt; TbMathArgumentType.MESSAGE_BODY.equals(arg.getType()));</b>
+<b class="nc">&nbsp;        msgBodyToJsonConversionRequired = msgBodyToJsonConversionRequired || TbMathArgumentType.MESSAGE_BODY.equals(config.getResult().getType());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        locks.computeIfAbsent(msg.getOriginator(), SemaphoreWithTbMsgQueue::new)</b>
+<b class="nc">&nbsp;                .addToQueueAndTryProcess(msg, ctx, this::processMsgAsync);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    ListenableFuture&lt;TbMsg&gt; processMsgAsync(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        var arguments = config.getArguments();</b>
+<b class="nc">&nbsp;        Optional&lt;ObjectNode&gt; msgBodyOpt = convertMsgBodyIfRequired(msg);</b>
+<b class="nc">&nbsp;        var argumentValues = Futures.allAsList(arguments.stream()</b>
+<b class="nc">&nbsp;                .map(arg -&gt; resolveArguments(ctx, msg, msgBodyOpt, arg)).collect(Collectors.toList()));</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;TbMsg&gt; resultMsgFuture = Futures.transformAsync(argumentValues, args -&gt;</b>
+<b class="nc">&nbsp;                updateMsgAndDb(ctx, msg, msgBodyOpt, calculateResult(args)), ctx.getDbCallbackExecutor());</b>
+<b class="nc">&nbsp;        return resultMsgFuture;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbMsg&gt; updateMsgAndDb(TbContext ctx, TbMsg msg, Optional&lt;ObjectNode&gt; msgBodyOpt, double result) {
+<b class="nc">&nbsp;        TbMathResult mathResultDef = config.getResult();</b>
+<b class="nc">&nbsp;        String mathResultKey = getKeyFromTemplate(msg, mathResultDef.getType(), mathResultDef.getKey());</b>
+<b class="nc">&nbsp;        switch (mathResultDef.getType()) {</b>
+&nbsp;            case MESSAGE_BODY:
+<b class="nc">&nbsp;                return Futures.immediateFuture(addToBody(msg, mathResultDef, mathResultKey, msgBodyOpt, result));</b>
+&nbsp;            case MESSAGE_METADATA:
+<b class="nc">&nbsp;                return Futures.immediateFuture(addToMeta(msg, mathResultDef, mathResultKey, result));</b>
+&nbsp;            case ATTRIBUTE:
+<b class="nc">&nbsp;                ListenableFuture&lt;Void&gt; attrSave = saveAttribute(ctx, msg, result, mathResultDef);</b>
+<b class="nc">&nbsp;                return Futures.transform(attrSave, attr -&gt; addToBodyAndMeta(msg, msgBodyOpt, result, mathResultDef, mathResultKey), ctx.getDbCallbackExecutor());</b>
+&nbsp;            case TIME_SERIES:
+<b class="nc">&nbsp;                ListenableFuture&lt;Void&gt; tsSave = saveTimeSeries(ctx, msg, result, mathResultDef);</b>
+<b class="nc">&nbsp;                return Futures.transform(tsSave, ts -&gt; addToBodyAndMeta(msg, msgBodyOpt, result, mathResultDef, mathResultKey), ctx.getDbCallbackExecutor());</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Result type is not supported: &quot; + mathResultDef.getType() + &quot;!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; saveTimeSeries(TbContext ctx, TbMsg msg, double result, TbMathResult mathResultDef) {
+<b class="nc">&nbsp;        final BasicTsKvEntry basicTsKvEntry = new BasicTsKvEntry(System.currentTimeMillis(), new DoubleDataEntry(mathResultDef.getKey(), result));</b>
+<b class="nc">&nbsp;        SettableFuture&lt;Void&gt; future = SettableFuture.create();</b>
+<b class="nc">&nbsp;        ctx.getTelemetryService().saveTimeseries(TimeseriesSaveRequest.builder()</b>
+<b class="nc">&nbsp;                .tenantId(ctx.getTenantId())</b>
+<b class="nc">&nbsp;                .entityId(msg.getOriginator())</b>
+<b class="nc">&nbsp;                .entry(basicTsKvEntry)</b>
+<b class="nc">&nbsp;                .future(future)</b>
+<b class="nc">&nbsp;                .build());</b>
+<b class="nc">&nbsp;        return future;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; saveAttribute(TbContext ctx, TbMsg msg, double result, TbMathResult mathResultDef) {
+<b class="nc">&nbsp;        AttributeScope attributeScope = getAttributeScope(mathResultDef.getAttributeScope());</b>
+&nbsp;        KvEntry kvEntry;
+<b class="nc">&nbsp;        if (isIntegerResult(mathResultDef, config.getOperation())) {</b>
+<b class="nc">&nbsp;            var value = toIntValue(result);</b>
+<b class="nc">&nbsp;            kvEntry = new LongDataEntry(mathResultDef.getKey(), value);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            var value = toDoubleValue(mathResultDef, result);</b>
+<b class="nc">&nbsp;            kvEntry = new DoubleDataEntry(mathResultDef.getKey(), value);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        SettableFuture&lt;Void&gt; future = SettableFuture.create();</b>
+<b class="nc">&nbsp;        ctx.getTelemetryService().saveAttributes(AttributesSaveRequest.builder()</b>
+<b class="nc">&nbsp;                .tenantId(ctx.getTenantId())</b>
+<b class="nc">&nbsp;                .entityId(msg.getOriginator())</b>
+<b class="nc">&nbsp;                .scope(attributeScope)</b>
+<b class="nc">&nbsp;                .entry(kvEntry)</b>
+<b class="nc">&nbsp;                .future(future)</b>
+<b class="nc">&nbsp;                .build());</b>
+<b class="nc">&nbsp;        return future;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isIntegerResult(TbMathResult mathResultDef, TbRuleNodeMathFunctionType function) {
+<b class="nc">&nbsp;        return function.isIntegerResult() || mathResultDef.getResultValuePrecision() == 0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private long toIntValue(double value) {
+<b class="nc">&nbsp;        return (long) value;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private double toDoubleValue(TbMathResult mathResultDef, double value) {
+<b class="nc">&nbsp;        return BigDecimal.valueOf(value).setScale(mathResultDef.getResultValuePrecision(), RoundingMode.HALF_UP).doubleValue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;ObjectNode&gt; convertMsgBodyIfRequired(TbMsg msg) {
+&nbsp;        Optional&lt;ObjectNode&gt; msgBodyOpt;
+<b class="nc">&nbsp;        if (msgBodyToJsonConversionRequired) {</b>
+<b class="nc">&nbsp;            var jsonNode = JacksonUtil.toJsonNode(msg.getData());</b>
+<b class="nc">&nbsp;            if (jsonNode.isObject()) {</b>
+<b class="nc">&nbsp;                msgBodyOpt = Optional.of((ObjectNode) jsonNode);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Message body is not a JSON object!&quot;);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            msgBodyOpt = Optional.empty();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return msgBodyOpt;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg addToBodyAndMeta(TbMsg msg, Optional&lt;ObjectNode&gt; msgBodyOpt, double result, TbMathResult mathResultDef, String mathResultKey) {
+<b class="nc">&nbsp;        TbMsg tmpMsg = msg;</b>
+<b class="nc">&nbsp;        if (mathResultDef.isAddToBody()) {</b>
+<b class="nc">&nbsp;            tmpMsg = addToBody(tmpMsg, mathResultDef, mathResultKey, msgBodyOpt, result);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (mathResultDef.isAddToMetadata()) {</b>
+<b class="nc">&nbsp;            tmpMsg = addToMeta(tmpMsg, mathResultDef, mathResultKey, result);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return tmpMsg;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg addToBody(TbMsg msg, TbMathResult mathResultDef, String mathResultKey, Optional&lt;ObjectNode&gt; msgBodyOpt, double result) {
+<b class="nc">&nbsp;        ObjectNode body = msgBodyOpt.get();</b>
+<b class="nc">&nbsp;        if (isIntegerResult(mathResultDef, config.getOperation())) {</b>
+<b class="nc">&nbsp;            body.put(mathResultKey, toIntValue(result));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            body.put(mathResultKey, toDoubleValue(mathResultDef, result));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return msg.transform()</b>
+<b class="nc">&nbsp;                .data(JacksonUtil.toString(body))</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg addToMeta(TbMsg msg, TbMathResult mathResultDef, String mathResultKey, double result) {
+<b class="nc">&nbsp;        var md = msg.getMetaData();</b>
+<b class="nc">&nbsp;        if (isIntegerResult(mathResultDef, config.getOperation())) {</b>
+<b class="nc">&nbsp;            md.putValue(mathResultKey, Long.toString(toIntValue(result)));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            md.putValue(mathResultKey, Double.toString(toDoubleValue(mathResultDef, result)));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return msg.transform()</b>
+<b class="nc">&nbsp;                .metaData(md)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private double calculateResult(List&lt;TbMathArgumentValue&gt; args) {
+<b class="nc">&nbsp;        switch (config.getOperation()) {</b>
+&nbsp;            case ADD:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), Double::sum);</b>
+&nbsp;            case SUB:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), (a, b) -&gt; a - b);</b>
+&nbsp;            case MULT:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), (a, b) -&gt; a * b);</b>
+&nbsp;            case DIV:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), (a, b) -&gt; a / b);</b>
+&nbsp;            case SIN:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::sin);</b>
+&nbsp;            case SINH:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::sinh);</b>
+&nbsp;            case COS:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::cos);</b>
+&nbsp;            case COSH:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::cosh);</b>
+&nbsp;            case TAN:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::tan);</b>
+&nbsp;            case TANH:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::tanh);</b>
+&nbsp;            case ACOS:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::acos);</b>
+&nbsp;            case ASIN:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::asin);</b>
+&nbsp;            case ATAN:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::atan);</b>
+&nbsp;            case ATAN2:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), Math::atan2);</b>
+&nbsp;            case EXP:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::exp);</b>
+&nbsp;            case EXPM1:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::expm1);</b>
+&nbsp;            case SQRT:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::sqrt);</b>
+&nbsp;            case CBRT:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::cbrt);</b>
+&nbsp;            case GET_EXP:
+<b class="nc">&nbsp;                return apply(args.get(0), (x) -&gt; (double) Math.getExponent(x));</b>
+&nbsp;            case HYPOT:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), Math::hypot);</b>
+&nbsp;            case LOG:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::log);</b>
+&nbsp;            case LOG10:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::log10);</b>
+&nbsp;            case LOG1P:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::log1p);</b>
+&nbsp;            case CEIL:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::ceil);</b>
+&nbsp;            case FLOOR:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::floor);</b>
+&nbsp;            case FLOOR_DIV:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), (a, b) -&gt; (double) Math.floorDiv(a.longValue(), b.longValue()));</b>
+&nbsp;            case FLOOR_MOD:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), (a, b) -&gt; (double) Math.floorMod(a.longValue(), b.longValue()));</b>
+&nbsp;            case ABS:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::abs);</b>
+&nbsp;            case MIN:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), Math::min);</b>
+&nbsp;            case MAX:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), Math::max);</b>
+&nbsp;            case POW:
+<b class="nc">&nbsp;                return apply(args.get(0), args.get(1), Math::pow);</b>
+&nbsp;            case SIGNUM:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::signum);</b>
+&nbsp;            case RAD:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::toRadians);</b>
+&nbsp;            case DEG:
+<b class="nc">&nbsp;                return apply(args.get(0), Math::toDegrees);</b>
+&nbsp;            case CUSTOM:
+<b class="nc">&nbsp;                var expr = customExpression.get();</b>
+<b class="nc">&nbsp;                if (expr == null) {</b>
+<b class="nc">&nbsp;                    expr = ExpressionUtils.createExpression(config.getCustomFunction(), config.getArguments().stream()</b>
+<b class="nc">&nbsp;                            .map(TbMathArgument::getName).collect(Collectors.toSet()));</b>
+<b class="nc">&nbsp;                    customExpression.set(expr);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                for (int i = 0; i &lt; config.getArguments().size(); i++) {</b>
+<b class="nc">&nbsp;                    expr.setVariable(config.getArguments().get(i).getName(), args.get(i).getValue());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return expr.evaluate();</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Not supported operation: &quot; + config.getOperation());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private double apply(TbMathArgumentValue arg, Function&lt;Double, Double&gt; function) {
+<b class="nc">&nbsp;        return function.apply(arg.getValue());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private double apply(TbMathArgumentValue arg1, TbMathArgumentValue arg2, BiFunction&lt;Double, Double, Double&gt; function) {
+<b class="nc">&nbsp;        return function.apply(arg1.getValue(), arg2.getValue());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    ListenableFuture&lt;TbMathArgumentValue&gt; resolveArguments(TbContext ctx, TbMsg msg, Optional&lt;ObjectNode&gt; msgBodyOpt, TbMathArgument arg) {
+<b class="nc">&nbsp;        String argKey = getKeyFromTemplate(msg, arg.getType(), arg.getKey());</b>
+<b class="nc">&nbsp;        switch (arg.getType()) {</b>
+&nbsp;            case CONSTANT:
+<b class="nc">&nbsp;                return Futures.immediateFuture(TbMathArgumentValue.constant(arg));</b>
+&nbsp;            case MESSAGE_BODY:
+<b class="nc">&nbsp;                return Futures.immediateFuture(TbMathArgumentValue.fromMessageBody(arg, argKey, msgBodyOpt));</b>
+&nbsp;            case MESSAGE_METADATA:
+<b class="nc">&nbsp;                return Futures.immediateFuture(TbMathArgumentValue.fromMessageMetadata(arg, argKey, msg.getMetaData()));</b>
+&nbsp;            case ATTRIBUTE:
+<b class="nc">&nbsp;                AttributeScope scope = getAttributeScope(arg.getAttributeScope());</b>
+<b class="nc">&nbsp;                return Futures.transform(ctx.getAttributesService().find(ctx.getTenantId(), msg.getOriginator(), scope, argKey),</b>
+<b class="nc">&nbsp;                        opt -&gt; getTbMathArgumentValue(arg, opt, &quot;Attribute: &quot; + argKey + &quot; with scope: &quot; + scope + &quot; not found for entity: &quot; + msg.getOriginator())</b>
+<b class="nc">&nbsp;                        , MoreExecutors.directExecutor());</b>
+&nbsp;            case TIME_SERIES:
+<b class="nc">&nbsp;                return Futures.transform(ctx.getTimeseriesService().findLatest(ctx.getTenantId(), msg.getOriginator(), argKey),</b>
+<b class="nc">&nbsp;                        opt -&gt; getTbMathArgumentValue(arg, opt, &quot;Time-series: &quot; + argKey + &quot; not found for entity: &quot; + msg.getOriginator())</b>
+<b class="nc">&nbsp;                        , MoreExecutors.directExecutor());</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Unsupported argument type: &quot; + arg.getType() + &quot;!&quot;);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getKeyFromTemplate(TbMsg msg, TbMathArgumentType type, String keyPattern) {
+<b class="nc">&nbsp;        return CONSTANT.equals(type) ? keyPattern : TbNodeUtils.processPattern(keyPattern, msg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AttributeScope getAttributeScope(String attrScope) {
+<b class="nc">&nbsp;        return StringUtils.isEmpty(attrScope) ? AttributeScope.SERVER_SCOPE : AttributeScope.valueOf(attrScope);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMathArgumentValue getTbMathArgumentValue(TbMathArgument arg, Optional&lt;? extends KvEntry&gt; kvOpt, String error) {
+<b class="nc">&nbsp;        if (kvOpt != null &amp;&amp; kvOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            var kv = kvOpt.get();</b>
+<b class="nc">&nbsp;            switch (kv.getDataType()) {</b>
+&nbsp;                case LONG:
+<b class="nc">&nbsp;                    return TbMathArgumentValue.fromLong(kv.getLongValue().get());</b>
+&nbsp;                case DOUBLE:
+<b class="nc">&nbsp;                    return TbMathArgumentValue.fromDouble(kv.getDoubleValue().get());</b>
+&nbsp;                default:
+<b class="nc">&nbsp;                    return TbMathArgumentValue.fromString(kv.getValueAsString());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (arg.getDefaultValue() != null) {</b>
+<b class="nc">&nbsp;                return TbMathArgumentValue.fromDouble(arg.getDefaultValue());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new RuntimeException(error);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

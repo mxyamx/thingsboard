@@ -1,0 +1,327 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTwoFactorAuthService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.security.auth.mfa</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTwoFactorAuthService (org.thingsboard.server.service.security.auth.mfa)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTwoFactorAuthService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/67)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.security.auth.mfa;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.apache.commons.lang3.tuple.Pair;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.security.authentication.LockedException;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.cache.limits.RateLimitService;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.limit.LimitedApi;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.platform.SystemLevelUsersFilter;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettings;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.account.TwoFaAccountConfig;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderConfig;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.auth.mfa.config.TwoFaConfigManager;
+&nbsp;import org.thingsboard.server.service.security.auth.mfa.provider.TwoFaProvider;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.system.SystemSecurityService;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.EnumMap;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;@TbCoreComponent
+&nbsp;public class DefaultTwoFactorAuthService implements TwoFactorAuthService {
+&nbsp;
+&nbsp;    private final TwoFaConfigManager configManager;
+&nbsp;    private final SystemSecurityService systemSecurityService;
+&nbsp;    private final UserService userService;
+&nbsp;    private final RateLimitService rateLimitService;
+&nbsp;    private final Map&lt;TwoFaProviderType, TwoFaProvider&lt;TwoFaProviderConfig, TwoFaAccountConfig&gt;&gt; providers = new EnumMap&lt;&gt;(TwoFaProviderType.class);
+&nbsp;
+<b class="nc">&nbsp;    private static final ThingsboardException ACCOUNT_NOT_CONFIGURED_ERROR = new ThingsboardException(&quot;2FA is not configured for account&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;    private static final ThingsboardException PROVIDER_NOT_CONFIGURED_ERROR = new ThingsboardException(&quot;2FA provider is not configured&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;    private static final ThingsboardException PROVIDER_NOT_AVAILABLE_ERROR = new ThingsboardException(&quot;2FA provider is not available&quot;, ThingsboardErrorCode.GENERAL);</b>
+<b class="nc">&nbsp;    private static final ThingsboardException TOO_MANY_REQUESTS_ERROR = new ThingsboardException(&quot;Too many requests&quot;, ThingsboardErrorCode.TOO_MANY_REQUESTS);</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isTwoFaEnabled(TenantId tenantId, User user) {
+<b class="nc">&nbsp;        return configManager.getAccountTwoFaSettings(tenantId, user)</b>
+<b class="nc">&nbsp;                .map(settings -&gt; !settings.getConfigs().isEmpty())</b>
+<b class="nc">&nbsp;                .orElse(false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isEnforceTwoFaEnabled(TenantId tenantId, User user) {
+<b class="nc">&nbsp;        SystemLevelUsersFilter enforcedUsersFilter = configManager.getPlatformTwoFaSettings(TenantId.SYS_TENANT_ID, true)</b>
+<b class="nc">&nbsp;                .filter(PlatformTwoFaSettings::isEnforceTwoFa)</b>
+<b class="nc">&nbsp;                .map(PlatformTwoFaSettings::getEnforcedUsersFilter)</b>
+<b class="nc">&nbsp;                .orElse(null);</b>
+<b class="nc">&nbsp;        if (enforcedUsersFilter == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return userService.matchesFilter(tenantId, enforcedUsersFilter, user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void checkProvider(TenantId tenantId, TwoFaProviderType providerType) throws ThingsboardException {
+<b class="nc">&nbsp;        getTwoFaProvider(providerType).check(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void prepareVerificationCode(SecurityUser user, TwoFaProviderType providerType, boolean checkLimits) throws Exception {
+<b class="nc">&nbsp;        TwoFaAccountConfig accountConfig = configManager.getTwoFaAccountConfig(user.getTenantId(), user, providerType)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; ACCOUNT_NOT_CONFIGURED_ERROR);</b>
+<b class="nc">&nbsp;        prepareVerificationCode(user, accountConfig, checkLimits);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void prepareVerificationCode(SecurityUser user, TwoFaAccountConfig accountConfig, boolean checkLimits) throws ThingsboardException {
+<b class="nc">&nbsp;        PlatformTwoFaSettings twoFaSettings = configManager.getPlatformTwoFaSettings(user.getTenantId(), true)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; PROVIDER_NOT_CONFIGURED_ERROR);</b>
+<b class="nc">&nbsp;        if (checkLimits) {</b>
+<b class="nc">&nbsp;            Integer minVerificationCodeSendPeriod = twoFaSettings.getMinVerificationCodeSendPeriod();</b>
+<b class="nc">&nbsp;            String rateLimit = null;</b>
+<b class="nc">&nbsp;            if (minVerificationCodeSendPeriod != null &amp;&amp; minVerificationCodeSendPeriod &gt; 4) {</b>
+<b class="nc">&nbsp;                rateLimit = &quot;1:&quot; + minVerificationCodeSendPeriod;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!rateLimitService.checkRateLimit(LimitedApi.TWO_FA_VERIFICATION_CODE_SEND,</b>
+<b class="nc">&nbsp;                    Pair.of(user.getId(), accountConfig.getProviderType()), rateLimit)) {</b>
+<b class="nc">&nbsp;                throw TOO_MANY_REQUESTS_ERROR;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TwoFaProviderConfig providerConfig = twoFaSettings.getProviderConfig(accountConfig.getProviderType())</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; PROVIDER_NOT_CONFIGURED_ERROR);</b>
+<b class="nc">&nbsp;        getTwoFaProvider(accountConfig.getProviderType()).prepareVerificationCode(user, providerConfig, accountConfig);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean checkVerificationCode(SecurityUser user, TwoFaProviderType providerType, String verificationCode, boolean checkLimits) throws ThingsboardException {
+<b class="nc">&nbsp;        TwoFaAccountConfig accountConfig = configManager.getTwoFaAccountConfig(user.getTenantId(), user, providerType)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; ACCOUNT_NOT_CONFIGURED_ERROR);</b>
+<b class="nc">&nbsp;        return checkVerificationCode(user, verificationCode, accountConfig, checkLimits);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean checkVerificationCode(SecurityUser user, String verificationCode, TwoFaAccountConfig accountConfig, boolean checkLimits) throws ThingsboardException {
+<b class="nc">&nbsp;        if (!userService.findUserCredentialsByUserId(user.getTenantId(), user.getId()).isEnabled()) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;User is disabled&quot;, ThingsboardErrorCode.AUTHENTICATION);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        PlatformTwoFaSettings twoFaSettings = configManager.getPlatformTwoFaSettings(user.getTenantId(), true)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; PROVIDER_NOT_CONFIGURED_ERROR);</b>
+<b class="nc">&nbsp;        if (checkLimits) {</b>
+<b class="nc">&nbsp;            if (!rateLimitService.checkRateLimit(LimitedApi.TWO_FA_VERIFICATION_CODE_CHECK,</b>
+<b class="nc">&nbsp;                    Pair.of(user.getId(), accountConfig.getProviderType()), twoFaSettings.getVerificationCodeCheckRateLimit())) {</b>
+<b class="nc">&nbsp;                throw TOO_MANY_REQUESTS_ERROR;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        TwoFaProviderConfig providerConfig = twoFaSettings.getProviderConfig(accountConfig.getProviderType())</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; PROVIDER_NOT_CONFIGURED_ERROR);</b>
+&nbsp;
+<b class="nc">&nbsp;        boolean verificationSuccess = false;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotBlank(verificationCode)) {</b>
+<b class="nc">&nbsp;            if (StringUtils.isNumeric(verificationCode) || accountConfig.getProviderType() == TwoFaProviderType.BACKUP_CODE) {</b>
+<b class="nc">&nbsp;                verificationSuccess = getTwoFaProvider(accountConfig.getProviderType()).checkVerificationCode(user, verificationCode, providerConfig, accountConfig);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (checkLimits) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                systemSecurityService.validateTwoFaVerification(user, verificationSuccess, twoFaSettings);</b>
+&nbsp;            } catch (LockedException e) {
+<b class="nc">&nbsp;                cleanUpRateLimits(user.getId());</b>
+<b class="nc">&nbsp;                throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.AUTHENTICATION);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (verificationSuccess) {</b>
+<b class="nc">&nbsp;                cleanUpRateLimits(user.getId());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return verificationSuccess;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TwoFaAccountConfig generateNewAccountConfig(User user, TwoFaProviderType providerType) throws ThingsboardException {
+<b class="nc">&nbsp;        TwoFaProviderConfig providerConfig = getTwoFaProviderConfig(user.getTenantId(), providerType);</b>
+<b class="nc">&nbsp;        return getTwoFaProvider(providerType).generateNewAccountConfig(user, providerConfig);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanUpRateLimits(UserId userId) {
+<b class="nc">&nbsp;        for (TwoFaProviderType providerType : TwoFaProviderType.values()) {</b>
+<b class="nc">&nbsp;            rateLimitService.cleanUp(LimitedApi.TWO_FA_VERIFICATION_CODE_SEND, Pair.of(userId, providerType));</b>
+<b class="nc">&nbsp;            rateLimitService.cleanUp(LimitedApi.TWO_FA_VERIFICATION_CODE_CHECK, Pair.of(userId, providerType));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TwoFaProviderConfig getTwoFaProviderConfig(TenantId tenantId, TwoFaProviderType providerType) throws ThingsboardException {
+<b class="nc">&nbsp;        return configManager.getPlatformTwoFaSettings(tenantId, true)</b>
+<b class="nc">&nbsp;                .flatMap(twoFaSettings -&gt; twoFaSettings.getProviderConfig(providerType))</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; PROVIDER_NOT_CONFIGURED_ERROR);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TwoFaProvider&lt;TwoFaProviderConfig, TwoFaAccountConfig&gt; getTwoFaProvider(TwoFaProviderType providerType) throws ThingsboardException {
+<b class="nc">&nbsp;        return Optional.ofNullable(providers.get(providerType))</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; PROVIDER_NOT_AVAILABLE_ERROR);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private void setProviders(Collection&lt;TwoFaProvider&gt; providers) {
+<b class="nc">&nbsp;        providers.forEach(provider -&gt; {</b>
+<b class="nc">&nbsp;            this.providers.put(provider.getType(), provider);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

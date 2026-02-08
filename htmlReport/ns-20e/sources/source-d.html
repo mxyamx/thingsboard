@@ -1,0 +1,251 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbRedisLwM2MClientStore</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.server.store</a>
+</div>
+
+<h1>Coverage Summary for Class: TbRedisLwM2MClientStore (org.thingsboard.server.transport.lwm2m.server.store)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbRedisLwM2MClientStore</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.server.store;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.codec.binary.Hex;
+&nbsp;import org.springframework.data.redis.connection.RedisClusterConnection;
+&nbsp;import org.springframework.data.redis.connection.RedisConnectionFactory;
+&nbsp;import org.springframework.data.redis.core.Cursor;
+&nbsp;import org.springframework.data.redis.core.ScanOptions;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2MClientState;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.store.util.LwM2MClientSerDes.deserialize;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.store.util.LwM2MClientSerDes.serialize;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbRedisLwM2MClientStore implements TbLwM2MClientStore {
+&nbsp;
+&nbsp;    private static final String CLIENT_EP = &quot;CLIENT#EP#&quot;;
+&nbsp;    private final RedisConnectionFactory connectionFactory;
+&nbsp;
+<b class="nc">&nbsp;    public TbRedisLwM2MClientStore(RedisConnectionFactory redisConnectionFactory) {</b>
+<b class="nc">&nbsp;        this.connectionFactory = redisConnectionFactory;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public LwM2mClient get(String endpoint) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            byte[] data = connection.get(getKey(endpoint));</b>
+<b class="nc">&nbsp;            if (data == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            } else {
+&nbsp;                try {
+<b class="nc">&nbsp;                    return deserialize(data);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to deserialize client from data: {}&quot;, endpoint, Hex.encodeHexString(data), e);</b>
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;LwM2mClient&gt; getAll() {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            Set&lt;LwM2mClient&gt; clients = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;            ScanOptions scanOptions = ScanOptions.scanOptions().count(100).match(CLIENT_EP + &quot;*&quot;).build();</b>
+<b class="nc">&nbsp;            List&lt;Cursor&lt;byte[]&gt;&gt; scans = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            if (connection instanceof RedisClusterConnection) {</b>
+<b class="nc">&nbsp;                ((RedisClusterConnection) connection).clusterGetNodes().forEach(node -&gt; {</b>
+<b class="nc">&nbsp;                    scans.add(((RedisClusterConnection) connection).scan(node, scanOptions));</b>
+&nbsp;                });
+&nbsp;            } else {
+<b class="nc">&nbsp;                scans.add(connection.scan(scanOptions));</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            scans.forEach(scan -&gt; {</b>
+<b class="nc">&nbsp;                scan.forEachRemaining(key -&gt; {</b>
+<b class="nc">&nbsp;                    byte[] element = connection.get(key);</b>
+<b class="nc">&nbsp;                    if (element != null) {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            clients.add(deserialize(element));</b>
+&nbsp;                        } catch (Exception e) {
+<b class="nc">&nbsp;                            log.warn(&quot;[{}] Failed to deserialize client from data: {}&quot;, Hex.encodeHexString(key), Hex.encodeHexString(element), e);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                });
+&nbsp;            });
+<b class="nc">&nbsp;            return clients;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void put(LwM2mClient client) {
+<b class="nc">&nbsp;        if (client.getState().equals(LwM2MClientState.UNREGISTERED)) {</b>
+<b class="nc">&nbsp;            log.error(&quot;[{}] Client is in invalid state: {}!&quot;, client.getEndpoint(), client.getState(), new Exception());</b>
+&nbsp;        } else {
+&nbsp;            try {
+<b class="nc">&nbsp;                byte[] clientSerialized = serialize(client);</b>
+<b class="nc">&nbsp;                try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;                    connection.getSet(getKey(client.getEndpoint()), clientSerialized);</b>
+&nbsp;                }
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to serialize client: {}&quot;, client, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void remove(String endpoint) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            connection.del(getKey(endpoint));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] getKey(String endpoint) {
+<b class="nc">&nbsp;        return (CLIENT_EP + endpoint).getBytes();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

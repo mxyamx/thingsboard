@@ -1,0 +1,223 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ProtoTransportEntityService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.snmp.service</a>
+</div>
+
+<h1>Coverage Summary for Class: ProtoTransportEntityService (org.thingsboard.server.transport.snmp.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ProtoTransportEntityService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.snmp.service;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.device.data.DeviceData;
+&nbsp;import org.thingsboard.server.common.data.device.data.DeviceTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.security.DeviceCredentials;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.common.util.ProtoUtils;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.util.TbSnmpTransportComponent;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@TbSnmpTransportComponent
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class ProtoTransportEntityService {
+&nbsp;    private final TransportService transportService;
+&nbsp;
+&nbsp;    public Device getDeviceById(DeviceId id) {
+<b class="nc">&nbsp;        TransportProtos.GetDeviceResponseMsg deviceProto = transportService.getDevice(TransportProtos.GetDeviceRequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setDeviceIdMSB(id.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setDeviceIdLSB(id.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (deviceProto == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(</b>
+<b class="nc">&nbsp;                deviceProto.getDeviceProfileIdMSB(), deviceProto.getDeviceProfileIdLSB())</b>
+&nbsp;        );
+&nbsp;
+<b class="nc">&nbsp;        Device device = new Device();</b>
+<b class="nc">&nbsp;        device.setId(id);</b>
+<b class="nc">&nbsp;        device.setDeviceProfileId(deviceProfileId);</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceTransportConfiguration deviceTransportConfiguration = JacksonUtil.fromBytes(</b>
+<b class="nc">&nbsp;                deviceProto.getDeviceTransportConfiguration().toByteArray(), DeviceTransportConfiguration.class);</b>
+&nbsp;
+<b class="nc">&nbsp;        DeviceData deviceData = new DeviceData();</b>
+<b class="nc">&nbsp;        deviceData.setTransportConfiguration(deviceTransportConfiguration);</b>
+<b class="nc">&nbsp;        device.setDeviceData(deviceData);</b>
+&nbsp;
+<b class="nc">&nbsp;        return device;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public DeviceCredentials getDeviceCredentialsByDeviceId(DeviceId deviceId) {
+<b class="nc">&nbsp;        TransportProtos.GetDeviceCredentialsResponseMsg deviceCredentialsResponse = transportService.getDeviceCredentials(</b>
+<b class="nc">&nbsp;                TransportProtos.GetDeviceCredentialsRequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                        .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                        .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                        .build()</b>
+&nbsp;        );
+&nbsp;
+<b class="nc">&nbsp;        if (deviceCredentialsResponse.hasDeviceCredentialsData()) {</b>
+<b class="nc">&nbsp;            return ProtoUtils.fromProto(deviceCredentialsResponse.getDeviceCredentialsData());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Device credentials not found&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public TransportProtos.GetSnmpDevicesResponseMsg getSnmpDevicesIds(int page, int pageSize) {
+<b class="nc">&nbsp;        TransportProtos.GetSnmpDevicesRequestMsg requestMsg = TransportProtos.GetSnmpDevicesRequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setPage(page)</b>
+<b class="nc">&nbsp;                .setPageSize(pageSize)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        return transportService.getSnmpDevicesIds(requestMsg);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

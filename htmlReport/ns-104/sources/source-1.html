@@ -1,0 +1,253 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AttributeKvInsertRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.attributes</a>
+</div>
+
+<h1>Coverage Summary for Class: AttributeKvInsertRepository (org.thingsboard.server.dao.sql.attributes)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AttributeKvInsertRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.attributes;
+&nbsp;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.thingsboard.server.dao.AbstractVersionedInsertRepository;
+&nbsp;import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
+&nbsp;
+&nbsp;import java.sql.PreparedStatement;
+&nbsp;import java.sql.SQLException;
+&nbsp;import java.sql.Types;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Repository
+<b class="nc">&nbsp;public class AttributeKvInsertRepository extends AbstractVersionedInsertRepository&lt;AttributeKvEntity&gt; {</b>
+&nbsp;
+&nbsp;    private static final String BATCH_UPDATE = &quot;UPDATE attribute_kv SET str_v = ?, long_v = ?, dbl_v = ?, bool_v = ?, json_v =  cast(? AS json), last_update_ts = ?, version = nextval(&#39;attribute_kv_version_seq&#39;) &quot; +
+&nbsp;            &quot;WHERE entity_id = ? and attribute_type =? and attribute_key = ? RETURNING version;&quot;;
+&nbsp;
+&nbsp;    private static final String INSERT_OR_UPDATE =
+&nbsp;            &quot;INSERT INTO attribute_kv (entity_id, attribute_type, attribute_key, str_v, long_v, dbl_v, bool_v, json_v, last_update_ts, version) &quot; +
+&nbsp;                    &quot;VALUES(?, ?, ?, ?, ?, ?, ?,  cast(? AS json), ?, nextval(&#39;attribute_kv_version_seq&#39;)) &quot; +
+&nbsp;                    &quot;ON CONFLICT (entity_id, attribute_type, attribute_key) &quot; +
+&nbsp;                    &quot;DO UPDATE SET str_v = ?, long_v = ?, dbl_v = ?, bool_v = ?, json_v =  cast(? AS json), last_update_ts = ?, version = nextval(&#39;attribute_kv_version_seq&#39;) RETURNING version;&quot;;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void setOnBatchUpdateValues(PreparedStatement ps, int i, List&lt;AttributeKvEntity&gt; entities) throws SQLException {
+<b class="nc">&nbsp;        AttributeKvEntity kvEntity = entities.get(i);</b>
+<b class="nc">&nbsp;        ps.setString(1, replaceNullChars(kvEntity.getStrValue()));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (kvEntity.getLongValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setLong(2, kvEntity.getLongValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(2, Types.BIGINT);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (kvEntity.getDoubleValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setDouble(3, kvEntity.getDoubleValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(3, Types.DOUBLE);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (kvEntity.getBooleanValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setBoolean(4, kvEntity.getBooleanValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(4, Types.BOOLEAN);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ps.setString(5, replaceNullChars(kvEntity.getJsonValue()));</b>
+&nbsp;
+<b class="nc">&nbsp;        ps.setLong(6, kvEntity.getLastUpdateTs());</b>
+<b class="nc">&nbsp;        ps.setObject(7, kvEntity.getId().getEntityId());</b>
+<b class="nc">&nbsp;        ps.setInt(8, kvEntity.getId().getAttributeType());</b>
+<b class="nc">&nbsp;        ps.setInt(9, kvEntity.getId().getAttributeKey());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void setOnInsertOrUpdateValues(PreparedStatement ps, int i, List&lt;AttributeKvEntity&gt; insertEntities) throws SQLException {
+<b class="nc">&nbsp;        AttributeKvEntity kvEntity = insertEntities.get(i);</b>
+<b class="nc">&nbsp;        ps.setObject(1, kvEntity.getId().getEntityId());</b>
+<b class="nc">&nbsp;        ps.setInt(2, kvEntity.getId().getAttributeType());</b>
+<b class="nc">&nbsp;        ps.setInt(3, kvEntity.getId().getAttributeKey());</b>
+&nbsp;
+<b class="nc">&nbsp;        ps.setString(4, replaceNullChars(kvEntity.getStrValue()));</b>
+<b class="nc">&nbsp;        ps.setString(10, replaceNullChars(kvEntity.getStrValue()));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (kvEntity.getLongValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setLong(5, kvEntity.getLongValue());</b>
+<b class="nc">&nbsp;            ps.setLong(11, kvEntity.getLongValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(5, Types.BIGINT);</b>
+<b class="nc">&nbsp;            ps.setNull(11, Types.BIGINT);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (kvEntity.getDoubleValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setDouble(6, kvEntity.getDoubleValue());</b>
+<b class="nc">&nbsp;            ps.setDouble(12, kvEntity.getDoubleValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(6, Types.DOUBLE);</b>
+<b class="nc">&nbsp;            ps.setNull(12, Types.DOUBLE);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (kvEntity.getBooleanValue() != null) {</b>
+<b class="nc">&nbsp;            ps.setBoolean(7, kvEntity.getBooleanValue());</b>
+<b class="nc">&nbsp;            ps.setBoolean(13, kvEntity.getBooleanValue());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ps.setNull(7, Types.BOOLEAN);</b>
+<b class="nc">&nbsp;            ps.setNull(13, Types.BOOLEAN);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ps.setString(8, replaceNullChars(kvEntity.getJsonValue()));</b>
+<b class="nc">&nbsp;        ps.setString(14, replaceNullChars(kvEntity.getJsonValue()));</b>
+&nbsp;
+<b class="nc">&nbsp;        ps.setLong(9, kvEntity.getLastUpdateTs());</b>
+<b class="nc">&nbsp;        ps.setLong(15, kvEntity.getLastUpdateTs());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getBatchUpdateQuery() {
+<b class="nc">&nbsp;        return BATCH_UPDATE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getInsertOrUpdateQuery() {
+<b class="nc">&nbsp;        return INSERT_OR_UPDATE;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

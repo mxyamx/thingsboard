@@ -1,0 +1,165 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JobRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.job</a>
+</div>
+
+<h1>Coverage Summary for Class: JobRepository (org.thingsboard.server.dao.sql.job)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">JobRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.job;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Limit;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Modifying;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.common.data.job.JobStatus;
+&nbsp;import org.thingsboard.server.common.data.job.JobType;
+&nbsp;import org.thingsboard.server.dao.model.sql.JobEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@Repository
+&nbsp;public interface JobRepository extends JpaRepository&lt;JobEntity, UUID&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;SELECT j FROM JobEntity j WHERE j.tenantId = :tenantId &quot; +
+&nbsp;           &quot;AND (:types IS NULL OR j.type IN (:types)) &quot; +
+&nbsp;           &quot;AND (:statuses IS NULL OR j.status IN (:statuses)) &quot; +
+&nbsp;           &quot;AND (:entities IS NULL OR j.entityId IN :entities) &quot; +
+&nbsp;           &quot;AND (:startTime &lt;= 0 OR j.createdTime &gt;= :startTime) &quot; +
+&nbsp;           &quot;AND (:endTime &lt;= 0 OR j.createdTime &lt;= :endTime) &quot; +
+&nbsp;           &quot;AND (:searchText IS NULL OR ilike(j.key, concat(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;JobEntity&gt; findByTenantIdAndTypesAndStatusesAndEntitiesAndTimeAndSearchText(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                                     @Param(&quot;types&quot;) List&lt;JobType&gt; types,
+&nbsp;                                                                                     @Param(&quot;statuses&quot;) List&lt;JobStatus&gt; statuses,
+&nbsp;                                                                                     @Param(&quot;entities&quot;) List&lt;UUID&gt; entities,
+&nbsp;                                                                                     @Param(&quot;startTime&quot;) long startTime,
+&nbsp;                                                                                     @Param(&quot;endTime&quot;) long endTime,
+&nbsp;                                                                                     @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                                                     Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT * FROM job j WHERE j.id = :id FOR UPDATE&quot;, nativeQuery = true)
+&nbsp;    JobEntity findByIdForUpdate(UUID id);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT j FROM JobEntity j WHERE j.tenantId = :tenantId AND j.key = :key &quot; +
+&nbsp;           &quot;ORDER BY j.createdTime DESC&quot;)
+&nbsp;    JobEntity findLatestByTenantIdAndKey(@Param(&quot;tenantId&quot;) UUID tenantId, @Param(&quot;key&quot;) String key, Limit limit);
+&nbsp;
+&nbsp;    boolean existsByTenantIdAndKeyAndStatusIn(UUID tenantId, String key, List&lt;JobStatus&gt; statuses);
+&nbsp;
+&nbsp;    boolean existsByTenantIdAndTypeAndStatusIn(UUID tenantId, JobType type, List&lt;JobStatus&gt; statuses);
+&nbsp;
+&nbsp;    boolean existsByTenantIdAndEntityIdAndStatusIn(UUID tenantId, UUID entityId, List&lt;JobStatus&gt; statuses);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT * FROM job j WHERE j.tenant_id = :tenantId AND j.type = :type &quot; +
+&nbsp;                   &quot;AND j.status = :status ORDER BY j.created_time ASC, j.id ASC LIMIT 1 FOR UPDATE&quot;, nativeQuery = true)
+&nbsp;    JobEntity findOldestByTenantIdAndTypeAndStatusForUpdate(UUID tenantId, String type, String status);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying
+&nbsp;    @Query(&quot;DELETE FROM JobEntity j WHERE j.tenantId = :tenantId&quot;)
+&nbsp;    void deleteByTenantId(UUID tenantId);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying
+&nbsp;    @Query(&quot;DELETE FROM JobEntity j WHERE j.entityId = :entityId&quot;)
+&nbsp;    int deleteByEntityId(UUID entityId);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

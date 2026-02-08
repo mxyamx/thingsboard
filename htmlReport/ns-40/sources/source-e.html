@@ -1,0 +1,501 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbelCfTsRollingArg</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api.tbel</a>
+</div>
+
+<h1>Coverage Summary for Class: TbelCfTsRollingArg (org.thingsboard.script.api.tbel)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbelCfTsRollingArg</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/116)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/156)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api.tbel;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonCreator;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import com.fasterxml.jackson.annotation.JsonProperty;
+&nbsp;import lombok.Getter;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.TreeSet;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;import static org.thingsboard.script.api.tbel.TbelCfTsDoubleVal.OBJ_SIZE;
+&nbsp;
+&nbsp;public class TbelCfTsRollingArg implements TbelCfArg, Iterable&lt;TbelCfTsDoubleVal&gt; {
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private final TbTimeWindow timeWindow;
+&nbsp;    @Getter
+&nbsp;    private final List&lt;TbelCfTsDoubleVal&gt; values;
+&nbsp;
+&nbsp;    @JsonCreator
+&nbsp;    public TbelCfTsRollingArg(
+&nbsp;            @JsonProperty(&quot;timeWindow&quot;) TbTimeWindow timeWindow,
+&nbsp;            @JsonProperty(&quot;values&quot;) List&lt;TbelCfTsDoubleVal&gt; values
+<b class="nc">&nbsp;    ) {</b>
+<b class="nc">&nbsp;        this.timeWindow = timeWindow;</b>
+<b class="nc">&nbsp;        this.values = Collections.unmodifiableList(values);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbelCfTsRollingArg(long timeWindow, List&lt;TbelCfTsDoubleVal&gt; values) {</b>
+<b class="nc">&nbsp;        long ts = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        this.timeWindow = new TbTimeWindow(ts - timeWindow, ts);</b>
+<b class="nc">&nbsp;        this.values = Collections.unmodifiableList(values);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long memorySize() {
+<b class="nc">&nbsp;        return 12 + values.size() * OBJ_SIZE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    public List&lt;TbelCfTsDoubleVal&gt; getValue() {
+<b class="nc">&nbsp;        return values;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double max() {
+<b class="nc">&nbsp;        return max(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double max(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        double max = Double.MIN_VALUE;</b>
+<b class="nc">&nbsp;        for (TbelCfTsDoubleVal value : values) {</b>
+<b class="nc">&nbsp;            double val = value.getValue();</b>
+<b class="nc">&nbsp;            if (!ignoreNaN &amp;&amp; Double.isNaN(val)) {</b>
+<b class="nc">&nbsp;                return val;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (max &lt; val) {</b>
+<b class="nc">&nbsp;                max = val;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return max;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double min() {
+<b class="nc">&nbsp;        return min(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double min(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        double min = Double.MAX_VALUE;</b>
+<b class="nc">&nbsp;        for (TbelCfTsDoubleVal value : values) {</b>
+<b class="nc">&nbsp;            double val = value.getValue();</b>
+<b class="nc">&nbsp;            if (!ignoreNaN &amp;&amp; Double.isNaN(val)) {</b>
+<b class="nc">&nbsp;                return Double.NaN;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (min &gt; val) {</b>
+<b class="nc">&nbsp;                min = val;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return min;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double avg() {
+<b class="nc">&nbsp;        return avg(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double avg(boolean ignoreNaN) {
+<b class="nc">&nbsp;        return mean(ignoreNaN);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double mean() {
+<b class="nc">&nbsp;        return mean(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double mean(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return sum(ignoreNaN) / count(ignoreNaN);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double std() {
+<b class="nc">&nbsp;        return std(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double std(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        double mean = mean(ignoreNaN);</b>
+<b class="nc">&nbsp;        if (!ignoreNaN &amp;&amp; Double.isNaN(mean)) {</b>
+<b class="nc">&nbsp;            return Double.NaN;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        double sum = 0;</b>
+<b class="nc">&nbsp;        for (TbelCfTsDoubleVal value : values) {</b>
+<b class="nc">&nbsp;            double val = value.getValue();</b>
+<b class="nc">&nbsp;            if (Double.isNaN(val)) {</b>
+<b class="nc">&nbsp;                if (!ignoreNaN) {</b>
+<b class="nc">&nbsp;                    return Double.NaN;</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                sum += Math.pow(val - mean, 2);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return Math.sqrt(sum / count(ignoreNaN));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double median() {
+<b class="nc">&nbsp;        return median(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double median(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;Double&gt; sortedValues = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (TbelCfTsDoubleVal value : values) {</b>
+<b class="nc">&nbsp;            double val = value.getValue();</b>
+<b class="nc">&nbsp;            if (Double.isNaN(val)) {</b>
+<b class="nc">&nbsp;                if (!ignoreNaN) {</b>
+<b class="nc">&nbsp;                    return Double.NaN;</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                sortedValues.add(val);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        Collections.sort(sortedValues);</b>
+&nbsp;
+<b class="nc">&nbsp;        int size = sortedValues.size();</b>
+<b class="nc">&nbsp;        return (size % 2 == 1)</b>
+<b class="nc">&nbsp;                ? sortedValues.get(size / 2)</b>
+<b class="nc">&nbsp;                : (sortedValues.get(size / 2 - 1) + sortedValues.get(size / 2)) / 2.0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int count() {
+<b class="nc">&nbsp;        return count(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int count(boolean ignoreNaN) {
+<b class="nc">&nbsp;        int count = 0;</b>
+<b class="nc">&nbsp;        if (ignoreNaN) {</b>
+<b class="nc">&nbsp;            for (TbelCfTsDoubleVal value : values) {</b>
+<b class="nc">&nbsp;                if (!Double.isNaN(value.getValue())) {</b>
+<b class="nc">&nbsp;                    count++;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return count;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return values.size();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double last() {
+<b class="nc">&nbsp;        return last(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double last(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        double value = values.get(values.size() - 1).getValue();</b>
+<b class="nc">&nbsp;        if (!Double.isNaN(value) || !ignoreNaN) {</b>
+<b class="nc">&nbsp;            return value;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (int i = values.size() - 2; i &gt;= 0; i--) {</b>
+<b class="nc">&nbsp;            double prevValue = values.get(i).getValue();</b>
+<b class="nc">&nbsp;            if (!Double.isNaN(prevValue)) {</b>
+<b class="nc">&nbsp;                return prevValue;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double first() {
+<b class="nc">&nbsp;        return first(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double first(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        double firstValue = values.get(0).getValue();</b>
+<b class="nc">&nbsp;        if (!Double.isNaN(firstValue) || !ignoreNaN) {</b>
+<b class="nc">&nbsp;            return firstValue;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (int i = 1; i &lt; values.size(); i++) {</b>
+<b class="nc">&nbsp;            double nextValue = values.get(i).getValue();</b>
+<b class="nc">&nbsp;            if (!Double.isNaN(nextValue)) {</b>
+<b class="nc">&nbsp;                return nextValue;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double sum() {
+<b class="nc">&nbsp;        return sum(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double sum(boolean ignoreNaN) {
+<b class="nc">&nbsp;        if (values.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Rolling argument values are empty.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        double sum = 0;</b>
+<b class="nc">&nbsp;        for (TbelCfTsDoubleVal value : values) {</b>
+<b class="nc">&nbsp;            double val = value.getValue();</b>
+<b class="nc">&nbsp;            if (Double.isNaN(val)) {</b>
+<b class="nc">&nbsp;                if (!ignoreNaN) {</b>
+<b class="nc">&nbsp;                    return Double.NaN;</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                sum += val;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return sum;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbelCfTsRollingData merge(TbelCfTsRollingArg other) {
+<b class="nc">&nbsp;        return mergeAll(Collections.singletonList(other), null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbelCfTsRollingData merge(TbelCfTsRollingArg other, Map&lt;String, Object&gt; settings) {
+<b class="nc">&nbsp;        return mergeAll(Collections.singletonList(other), settings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbelCfTsRollingData mergeAll(List&lt;TbelCfTsRollingArg&gt; others) {
+<b class="nc">&nbsp;        return mergeAll(others, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbelCfTsRollingData mergeAll(List&lt;TbelCfTsRollingArg&gt; others, Map&lt;String, Object&gt; settings) {
+<b class="nc">&nbsp;        List&lt;TbelCfTsRollingArg&gt; args = new ArrayList&lt;&gt;(others.size() + 1);</b>
+<b class="nc">&nbsp;        args.add(this);</b>
+<b class="nc">&nbsp;        args.addAll(others);</b>
+&nbsp;
+<b class="nc">&nbsp;        boolean ignoreNaN = true;</b>
+<b class="nc">&nbsp;        if (settings != null &amp;&amp; settings.containsKey(&quot;ignoreNaN&quot;)) {</b>
+<b class="nc">&nbsp;            ignoreNaN = Boolean.parseBoolean(settings.get(&quot;ignoreNaN&quot;).toString());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TbTimeWindow timeWindow = null;</b>
+<b class="nc">&nbsp;        if (settings != null &amp;&amp; settings.containsKey(&quot;timeWindow&quot;)) {</b>
+<b class="nc">&nbsp;            var twVar = settings.get(&quot;timeWindow&quot;);</b>
+<b class="nc">&nbsp;            if (twVar instanceof TbTimeWindow) {</b>
+<b class="nc">&nbsp;                timeWindow = (TbTimeWindow) settings.get(&quot;timeWindow&quot;);</b>
+<b class="nc">&nbsp;            } else if (twVar instanceof Map twMap) {</b>
+<b class="nc">&nbsp;                timeWindow = new TbTimeWindow(Long.valueOf(twMap.get(&quot;startTs&quot;).toString()), Long.valueOf(twMap.get(&quot;endTs&quot;).toString()));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                timeWindow = JacksonUtil.fromString(settings.get(&quot;timeWindow&quot;).toString(), TbTimeWindow.class);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TreeSet&lt;Long&gt; allTimestamps = new TreeSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        long startTs = Long.MAX_VALUE;</b>
+<b class="nc">&nbsp;        long endTs = Long.MIN_VALUE;</b>
+<b class="nc">&nbsp;        for (TbelCfTsRollingArg arg : args) {</b>
+<b class="nc">&nbsp;            for (TbelCfTsDoubleVal val : arg.getValues()) {</b>
+<b class="nc">&nbsp;                allTimestamps.add(val.getTs());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            startTs = Math.min(startTs, arg.getTimeWindow().getStartTs());</b>
+<b class="nc">&nbsp;            endTs = Math.max(endTs, arg.getTimeWindow().getEndTs());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;TbelCfTsMultiDoubleVal&gt; data = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        int[] lastIndex = new int[args.size()];</b>
+<b class="nc">&nbsp;        double[] result = new double[args.size()];</b>
+<b class="nc">&nbsp;        Arrays.fill(result, Double.NaN);</b>
+&nbsp;
+<b class="nc">&nbsp;        for (long ts : allTimestamps) {</b>
+<b class="nc">&nbsp;            for (int i = 0; i &lt; args.size(); i++) {</b>
+<b class="nc">&nbsp;                var arg = args.get(i);</b>
+<b class="nc">&nbsp;                var values = arg.getValues();</b>
+<b class="nc">&nbsp;                while (lastIndex[i] &lt; values.size() &amp;&amp; values.get(lastIndex[i]).getTs() &lt;= ts) {</b>
+<b class="nc">&nbsp;                    result[i] = values.get(lastIndex[i]).getValue();</b>
+<b class="nc">&nbsp;                    lastIndex[i]++;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (timeWindow == null || timeWindow.matches(ts)) {</b>
+<b class="nc">&nbsp;                if (ignoreNaN) {</b>
+<b class="nc">&nbsp;                    boolean skip = false;</b>
+<b class="nc">&nbsp;                    for (int i = 0; i &lt; args.size(); i++) {</b>
+<b class="nc">&nbsp;                        if (Double.isNaN(result[i])) {</b>
+<b class="nc">&nbsp;                            skip = true;</b>
+&nbsp;                            break;
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (!skip) {</b>
+<b class="nc">&nbsp;                        data.add(new TbelCfTsMultiDoubleVal(ts, Arrays.copyOf(result, result.length)));</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    data.add(new TbelCfTsMultiDoubleVal(ts, Arrays.copyOf(result, result.length)));</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return new TbelCfTsRollingData(timeWindow != null ? timeWindow : new TbTimeWindow(startTs, endTs), data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    public int getSize() {
+<b class="nc">&nbsp;        return values.size();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Iterator&lt;TbelCfTsDoubleVal&gt; iterator() {
+<b class="nc">&nbsp;        return values.iterator();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getType() {
+<b class="nc">&nbsp;        return &quot;TS_ROLLING&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

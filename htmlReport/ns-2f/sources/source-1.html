@@ -1,0 +1,381 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CalculateDeltaNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.metadata</a>
+</div>
+
+<h1>Coverage Summary for Class: CalculateDeltaNode (org.thingsboard.rule.engine.metadata)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CalculateDeltaNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/71)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CalculateDeltaNode$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CalculateDeltaNode$ValueWithTs</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/73)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.metadata;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import org.springframework.util.ConcurrentReferenceHashMap;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.util.SemaphoreWithTbMsgQueue;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;import java.math.RoundingMode;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.ENRICHMENT,
+&nbsp;        name = &quot;calculate delta&quot;,
+&nbsp;        version = 1,
+&nbsp;        relationTypes = {TbNodeConnectionType.SUCCESS, TbNodeConnectionType.FAILURE, TbNodeConnectionType.OTHER},
+&nbsp;        configClazz = CalculateDeltaNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Calculates delta and amount of time passed between previous timeseries key reading &quot; +
+&nbsp;                &quot;and current value for this key from the incoming message&quot;,
+&nbsp;        nodeDetails = &quot;Useful for metering use cases, when you need to calculate consumption based on pulse counter reading.&lt;br&gt;&lt;br&gt;&quot; +
+&nbsp;                &quot;Output connections: &lt;code&gt;Success&lt;/code&gt;, &lt;code&gt;Other&lt;/code&gt; or &lt;code&gt;Failure&lt;/code&gt;.&quot;,
+&nbsp;        configDirective = &quot;tbEnrichmentNodeCalculateDeltaConfig&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/enrichment/calculate-delta/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class CalculateDeltaNode implements TbNode {</b>
+&nbsp;
+&nbsp;    private Map&lt;EntityId, ValueWithTs&gt; cache;
+&nbsp;    private Map&lt;EntityId, SemaphoreWithTbMsgQueue&gt; locks;
+&nbsp;
+&nbsp;    private CalculateDeltaNodeConfiguration config;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, CalculateDeltaNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        if (StringUtils.isBlank(config.getInputValueKey())) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Input value key should be specified!&quot;, true);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (StringUtils.isBlank(config.getOutputValueKey())) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Output value key should be specified!&quot;, true);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (config.isAddPeriodBetweenMsgs() &amp;&amp; StringUtils.isBlank(config.getPeriodValueKey())) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Period value key should be specified!&quot;, true);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        locks = new ConcurrentReferenceHashMap&lt;&gt;(16, ConcurrentReferenceHashMap.ReferenceType.WEAK);</b>
+<b class="nc">&nbsp;        if (config.isUseCache()) {</b>
+<b class="nc">&nbsp;            cache = new ConcurrentReferenceHashMap&lt;&gt;(16, ConcurrentReferenceHashMap.ReferenceType.SOFT);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        if (!msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST)) {</b>
+<b class="nc">&nbsp;            ctx.tellNext(msg, TbNodeConnectionType.OTHER);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        JsonNode msgData = JacksonUtil.toJsonNode(msg.getData());</b>
+<b class="nc">&nbsp;        if (msgData == null || !msgData.has(config.getInputValueKey())) {</b>
+<b class="nc">&nbsp;            ctx.tellNext(msg, TbNodeConnectionType.OTHER);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        locks.computeIfAbsent(msg.getOriginator(), SemaphoreWithTbMsgQueue::new)</b>
+<b class="nc">&nbsp;                .addToQueueAndTryProcess(msg, ctx, this::processMsgAsync);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        locks.clear();</b>
+<b class="nc">&nbsp;        if (config.isUseCache()) {</b>
+<b class="nc">&nbsp;            cache.clear();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        switch (fromVersion) {</b>
+&nbsp;            case 0:
+<b class="nc">&nbsp;                String excludeZeroDeltas = &quot;excludeZeroDeltas&quot;;</b>
+<b class="nc">&nbsp;                if (!oldConfiguration.has(excludeZeroDeltas)) {</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+<b class="nc">&nbsp;                    ((ObjectNode) oldConfiguration).put(excludeZeroDeltas, false);</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            default:
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;ValueWithTs&gt; fetchLatestValueAsync(TbContext ctx, EntityId entityId) {
+<b class="nc">&nbsp;        return Futures.transform(ctx.getTimeseriesService().findLatest(ctx.getTenantId(), entityId, config.getInputValueKey()),</b>
+<b class="nc">&nbsp;                tsKvEntryOpt -&gt; tsKvEntryOpt.map(this::extractValue).orElse(null), MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ValueWithTs extractValue(TsKvEntry kvEntry) {
+<b class="nc">&nbsp;        if (kvEntry == null || kvEntry.getValue() == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        double result = 0.0;</b>
+<b class="nc">&nbsp;        long ts = kvEntry.getTs();</b>
+<b class="nc">&nbsp;        switch (kvEntry.getDataType()) {</b>
+<b class="nc">&nbsp;            case LONG -&gt; result = kvEntry.getLongValue().get();</b>
+<b class="nc">&nbsp;            case DOUBLE -&gt; result = kvEntry.getDoubleValue().get();</b>
+&nbsp;            case STRING -&gt; {
+&nbsp;                try {
+<b class="nc">&nbsp;                    result = Double.parseDouble(kvEntry.getStrValue().get());</b>
+&nbsp;                } catch (NumberFormatException e) {
+<b class="nc">&nbsp;                    throw new IllegalArgumentException(&quot;Calculation failed. Unable to parse value [&quot; + kvEntry.getStrValue().get() + &quot;]&quot; +</b>
+<b class="nc">&nbsp;                            &quot; of telemetry [&quot; + kvEntry.getKey() + &quot;] to Double&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            case BOOLEAN -&gt; throw new IllegalArgumentException(&quot;Calculation failed. Boolean values are not supported!&quot;);</b>
+<b class="nc">&nbsp;            case JSON -&gt; throw new IllegalArgumentException(&quot;Calculation failed. JSON values are not supported!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new ValueWithTs(ts, result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected ListenableFuture&lt;TbMsg&gt; processMsgAsync(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        ListenableFuture&lt;ValueWithTs&gt; latestValueFuture = getLatestFromCacheOrFetchFromDb(ctx, msg);</b>
+<b class="nc">&nbsp;        return Futures.transform(latestValueFuture, previousData -&gt; {</b>
+<b class="nc">&nbsp;            ObjectNode json = (ObjectNode) JacksonUtil.toJsonNode(msg.getData());</b>
+<b class="nc">&nbsp;            double currentValue = json.get(config.getInputValueKey()).asDouble();</b>
+<b class="nc">&nbsp;            if (config.isUseCache()) {</b>
+<b class="nc">&nbsp;                cache.put(msg.getOriginator(), new ValueWithTs(msg.getMetaDataTs(), currentValue));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            BigDecimal delta = BigDecimal.valueOf(previousData != null ? currentValue - previousData.value : 0.0);</b>
+<b class="nc">&nbsp;            if (config.isTellFailureIfDeltaIsNegative() &amp;&amp; delta.doubleValue() &lt; 0) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Delta value is negative!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (config.isExcludeZeroDeltas() &amp;&amp; delta.doubleValue() == 0) {</b>
+<b class="nc">&nbsp;                return msg;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (config.getRound() != null) {</b>
+<b class="nc">&nbsp;                delta = delta.setScale(config.getRound(), RoundingMode.HALF_UP);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (delta.stripTrailingZeros().scale() &gt; 0) {</b>
+<b class="nc">&nbsp;                json.put(config.getOutputValueKey(), delta.doubleValue());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                json.put(config.getOutputValueKey(), delta.longValueExact());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (config.isAddPeriodBetweenMsgs()) {</b>
+<b class="nc">&nbsp;                long period = previousData != null ? msg.getMetaDataTs() - previousData.ts : 0;</b>
+<b class="nc">&nbsp;                json.put(config.getPeriodValueKey(), period);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return msg.transform()</b>
+<b class="nc">&nbsp;                    .data(JacksonUtil.toString(json))</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;ValueWithTs&gt; getLatestFromCacheOrFetchFromDb(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        EntityId originator = msg.getOriginator();</b>
+<b class="nc">&nbsp;        if (config.isUseCache()) {</b>
+<b class="nc">&nbsp;            ValueWithTs valueWithTs = cache.get(msg.getOriginator());</b>
+<b class="nc">&nbsp;            return valueWithTs != null ? Futures.immediateFuture(valueWithTs) : fetchLatestValueAsync(ctx, originator);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return fetchLatestValueAsync(ctx, originator);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private record ValueWithTs(long ts, double value) {}</b>
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

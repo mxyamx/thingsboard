@@ -1,0 +1,251 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HousekeeperReprocessingService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.housekeeper</a>
+</div>
+
+<h1>Coverage Summary for Class: HousekeeperReprocessingService (org.thingsboard.server.service.housekeeper)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HousekeeperReprocessingService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.housekeeper;
+&nbsp;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.HousekeeperTaskProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.TbQueueProducer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.housekeeper.HousekeeperConfig;
+&nbsp;import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;
+&nbsp;@TbCoreComponent
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class HousekeeperReprocessingService {
+&nbsp;
+&nbsp;    private final HousekeeperConfig config;
+&nbsp;    private final HousekeeperService housekeeperService;
+&nbsp;    private final QueueConsumerManager&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; consumer;
+&nbsp;    private final TbQueueProducer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; producer;
+&nbsp;    private final TopicPartitionInfo submitTpi;
+&nbsp;
+<b class="nc">&nbsp;    private final ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;housekeeper-reprocessing-consumer&quot;));</b>
+&nbsp;
+&nbsp;    public HousekeeperReprocessingService(HousekeeperConfig config,
+&nbsp;                                          @Lazy HousekeeperService housekeeperService,
+<b class="nc">&nbsp;                                          TbCoreQueueFactory queueFactory) {</b>
+<b class="nc">&nbsp;        this.config = config;</b>
+<b class="nc">&nbsp;        this.housekeeperService = housekeeperService;</b>
+<b class="nc">&nbsp;        this.consumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .name(&quot;Housekeeper reprocessing&quot;)</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                .pollInterval(config.getPollInterval())</b>
+<b class="nc">&nbsp;                .consumerCreator(queueFactory::createHousekeeperReprocessingMsgConsumer)</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumerExecutor)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        this.producer = queueFactory.createHousekeeperReprocessingMsgProducer();</b>
+<b class="nc">&nbsp;        this.submitTpi = TopicPartitionInfo.builder().topic(producer.getDefaultTopic()).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
+&nbsp;    public void afterStartUp() {
+<b class="nc">&nbsp;        consumer.subscribe(); // Kafka topic for tasks reprocessing has only 1 partition, so only one TB Core will reprocess tasks</b>
+<b class="nc">&nbsp;        consumer.launch();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsgs(List&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; consumer) throws Exception {
+<b class="nc">&nbsp;        Thread.sleep(config.getTaskReprocessingDelay());</b>
+&nbsp;
+<b class="nc">&nbsp;        for (TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt; msg : msgs) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Reprocessing task: {}&quot;, msg);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                housekeeperService.processTask(msg.getValue());</b>
+&nbsp;            } catch (InterruptedException e) {
+&nbsp;                return;
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.error(&quot;Unexpected error during message reprocessing [{}]&quot;, msg, e);</b>
+<b class="nc">&nbsp;                submitForReprocessing(msg.getValue(), e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void submitForReprocessing(ToHousekeeperServiceMsg msg, Throwable error) {
+<b class="nc">&nbsp;        HousekeeperTaskProto task = msg.getTask();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; errors = new LinkedHashSet&lt;&gt;(task.getErrorsList());</b>
+<b class="nc">&nbsp;        errors.add(StringUtils.truncate(ExceptionUtils.getStackTrace(error), 1024));</b>
+<b class="nc">&nbsp;        msg = msg.toBuilder()</b>
+<b class="nc">&nbsp;                .setTask(task.toBuilder()</b>
+<b class="nc">&nbsp;                        .setAttempt(task.getAttempt() + 1)</b>
+<b class="nc">&nbsp;                        .clearErrors().addAllErrors(errors)</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        log.trace(&quot;Submitting for reprocessing: {}&quot;, msg);</b>
+<b class="nc">&nbsp;        producer.send(submitTpi, new TbProtoQueueMsg&lt;&gt;(UUID.randomUUID(), msg), null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void stop() {
+<b class="nc">&nbsp;        consumer.stop();</b>
+<b class="nc">&nbsp;        consumerExecutor.shutdownNow();</b>
+<b class="nc">&nbsp;        log.info(&quot;Stopped Housekeeper reprocessing service&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JobController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: JobController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JobController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.rule.engine.api.JobManager;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.JobId;
+&nbsp;import org.thingsboard.server.common.data.job.Job;
+&nbsp;import org.thingsboard.server.common.data.job.JobFilter;
+&nbsp;import org.thingsboard.server.common.data.job.JobStatus;
+&nbsp;import org.thingsboard.server.common.data.job.JobType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class JobController extends BaseController {
+&nbsp;
+&nbsp;    private final JobManager jobManager;
+&nbsp;
+&nbsp;    @GetMapping(&quot;/job/{id}&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public Job getJobById(@PathVariable UUID id) throws ThingsboardException {
+<b class="nc">&nbsp;        JobId jobId = new JobId(id);</b>
+<b class="nc">&nbsp;        return checkJobId(jobId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/jobs&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public PageData&lt;Job&gt; getJobs(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;                                 @RequestParam int pageSize,
+&nbsp;                                 @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;                                 @RequestParam int page,
+&nbsp;                                 @Parameter(description = &quot;Case-insensitive &#39;substring&#39; filter based on job&#39;s description&quot;)
+&nbsp;                                 @RequestParam(required = false) String textSearch,
+&nbsp;                                 @Parameter(description = SORT_PROPERTY_DESCRIPTION)
+&nbsp;                                 @RequestParam(required = false) String sortProperty,
+&nbsp;                                 @Parameter(description = SORT_ORDER_DESCRIPTION)
+&nbsp;                                 @RequestParam(required = false) String sortOrder,
+&nbsp;                                 @RequestParam(required = false) List&lt;JobType&gt; types,
+&nbsp;                                 @RequestParam(required = false) List&lt;JobStatus&gt; statuses,
+&nbsp;                                 @RequestParam(required = false) List&lt;UUID&gt; entities,
+&nbsp;                                 @RequestParam(required = false) Long startTime,
+&nbsp;                                 @RequestParam(required = false) Long endTime) throws ThingsboardException {
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        JobFilter filter = JobFilter.builder()</b>
+<b class="nc">&nbsp;                .types(types)</b>
+<b class="nc">&nbsp;                .statuses(statuses)</b>
+<b class="nc">&nbsp;                .entities(entities)</b>
+<b class="nc">&nbsp;                .startTime(startTime)</b>
+<b class="nc">&nbsp;                .endTime(endTime)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        return jobService.findJobsByFilter(getTenantId(), filter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/job/{id}/cancel&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public void cancelJob(@PathVariable UUID id) throws ThingsboardException {
+<b class="nc">&nbsp;        JobId jobId = new JobId(id);</b>
+<b class="nc">&nbsp;        checkJobId(jobId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        jobManager.cancelJob(getTenantId(), jobId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/job/{id}/reprocess&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public void reprocessJob(@PathVariable UUID id) throws ThingsboardException {
+<b class="nc">&nbsp;        JobId jobId = new JobId(id);</b>
+<b class="nc">&nbsp;        checkJobId(jobId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        jobManager.reprocessJob(getTenantId(), jobId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @DeleteMapping(&quot;/job/{id}&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public void deleteJob(@PathVariable UUID id) throws ThingsboardException {
+<b class="nc">&nbsp;        JobId jobId = new JobId(id);</b>
+<b class="nc">&nbsp;        checkJobId(jobId, Operation.DELETE);</b>
+<b class="nc">&nbsp;        jobService.deleteJob(getTenantId(), jobId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RuleChainDataValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.service.validator</a>
+</div>
+
+<h1>Coverage Summary for Class: RuleChainDataValidator (org.thingsboard.server.dao.service.validator)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RuleChainDataValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.service.validator;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.collections4.CollectionUtils;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNode;
+&nbsp;import org.thingsboard.server.common.data.util.ReflectionUtils;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainService;
+&nbsp;import org.thingsboard.server.dao.service.ConstraintValidator;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class RuleChainDataValidator extends DataValidator&lt;RuleChain&gt; {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private RuleChainService ruleChainService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TenantService tenantService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void validateCreate(TenantId tenantId, RuleChain data) {
+<b class="nc">&nbsp;        validateNumberOfEntitiesPerTenant(tenantId, EntityType.RULE_CHAIN);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void validateDataImpl(TenantId tenantId, RuleChain ruleChain) {
+<b class="nc">&nbsp;        validateString(&quot;Rule chain name&quot;, ruleChain.getName());</b>
+<b class="nc">&nbsp;        if (ruleChain.getType() == null) {</b>
+<b class="nc">&nbsp;            ruleChain.setType(RuleChainType.CORE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (ruleChain.getTenantId() == null || ruleChain.getTenantId().isNullUid()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Rule chain should be assigned to tenant!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!tenantService.tenantExists(ruleChain.getTenantId())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Rule chain is referencing to non-existent tenant!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (ruleChain.isRoot() &amp;&amp; RuleChainType.CORE.equals(ruleChain.getType())) {</b>
+<b class="nc">&nbsp;            RuleChain rootRuleChain = ruleChainService.getRootTenantRuleChain(ruleChain.getTenantId());</b>
+<b class="nc">&nbsp;            if (rootRuleChain != null &amp;&amp; !rootRuleChain.getId().equals(ruleChain.getId())) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Another root rule chain is present in scope of current tenant!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (ruleChain.isRoot() &amp;&amp; RuleChainType.EDGE.equals(ruleChain.getType())) {</b>
+<b class="nc">&nbsp;            RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ruleChain.getTenantId());</b>
+<b class="nc">&nbsp;            if (edgeTemplateRootRuleChain != null &amp;&amp; !edgeTemplateRootRuleChain.getId().equals(ruleChain.getId())) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Another edge template root rule chain is present in scope of current tenant!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;Throwable&gt; validateMetaData(RuleChainMetaData ruleChainMetaData) {
+<b class="nc">&nbsp;        validateMetaDataFieldsAndConnections(ruleChainMetaData);</b>
+<b class="nc">&nbsp;        return ruleChainMetaData.getNodes().stream()</b>
+<b class="nc">&nbsp;                .map(RuleChainDataValidator::validateRuleNode)</b>
+<b class="nc">&nbsp;                .filter(Objects::nonNull)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void validateMetaDataFieldsAndConnections(RuleChainMetaData ruleChainMetaData) {
+<b class="nc">&nbsp;        ConstraintValidator.validateFields(ruleChainMetaData);</b>
+<b class="nc">&nbsp;        if (CollectionUtils.isNotEmpty(ruleChainMetaData.getConnections())) {</b>
+<b class="nc">&nbsp;            validateCircles(ruleChainMetaData.getConnections());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Throwable validateRuleNode(RuleNode ruleNode) {
+<b class="nc">&nbsp;        String errorPrefix = &quot;&#39;&quot; + ruleNode.getName() + &quot;&#39; node configuration is invalid: &quot;;</b>
+<b class="nc">&nbsp;        ConstraintValidator.validateFields(ruleNode, errorPrefix);</b>
+&nbsp;        Object nodeConfig;
+&nbsp;        try {
+<b class="nc">&nbsp;            Class&lt;Object&gt; nodeConfigType = ReflectionUtils.getAnnotationProperty(ruleNode.getType(),</b>
+&nbsp;                    &quot;org.thingsboard.rule.engine.api.RuleNode&quot;, &quot;configClazz&quot;);
+<b class="nc">&nbsp;            nodeConfig = JacksonUtil.treeToValue(ruleNode.getConfiguration(), nodeConfigType);</b>
+&nbsp;        } catch (Throwable t) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to validate node configuration: {}&quot;, ExceptionUtils.getRootCauseMessage(t));</b>
+<b class="nc">&nbsp;            return t;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ConstraintValidator.validateFields(nodeConfig, errorPrefix);</b>
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validateCircles(List&lt;NodeConnectionInfo&gt; connectionInfos) {
+<b class="nc">&nbsp;        Map&lt;Integer, Set&lt;Integer&gt;&gt; connectionsMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (NodeConnectionInfo nodeConnection : connectionInfos) {</b>
+<b class="nc">&nbsp;            if (nodeConnection.getFromIndex() == nodeConnection.getToIndex()) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Can&#39;t create the relation to yourself.&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            connectionsMap</b>
+<b class="nc">&nbsp;                    .computeIfAbsent(nodeConnection.getFromIndex(), from -&gt; new HashSet&lt;&gt;())</b>
+<b class="nc">&nbsp;                    .add(nodeConnection.getToIndex());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        connectionsMap.keySet().forEach(key -&gt; validateCircles(key, connectionsMap.get(key), connectionsMap));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validateCircles(int from, Set&lt;Integer&gt; toList, Map&lt;Integer, Set&lt;Integer&gt;&gt; connectionsMap) {
+<b class="nc">&nbsp;        if (toList == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        for (Integer to : toList) {</b>
+<b class="nc">&nbsp;            if (from == to) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Can&#39;t create circling relations in rule chain.&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            validateCircles(from, connectionsMap.get(to), connectionsMap);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

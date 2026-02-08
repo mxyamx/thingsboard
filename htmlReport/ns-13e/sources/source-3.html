@@ -1,0 +1,320 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ThingsboardInstallService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.install</a>
+</div>
+
+<h1>Coverage Summary for Class: ThingsboardInstallService (org.thingsboard.server.install)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ThingsboardInstallService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/55)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.install;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.SpringApplication;
+&nbsp;import org.springframework.context.ApplicationContext;
+&nbsp;import org.springframework.context.annotation.Profile;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.service.component.ComponentDiscoveryService;
+&nbsp;import org.thingsboard.server.service.install.DatabaseEntitiesUpgradeService;
+&nbsp;import org.thingsboard.server.service.install.DatabaseSchemaSettingsService;
+&nbsp;import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
+&nbsp;import org.thingsboard.server.service.install.InstallScripts;
+&nbsp;import org.thingsboard.server.service.install.NoSqlKeyspaceService;
+&nbsp;import org.thingsboard.server.service.install.SystemDataLoaderService;
+&nbsp;import org.thingsboard.server.service.install.TsDatabaseSchemaService;
+&nbsp;import org.thingsboard.server.service.install.TsLatestDatabaseSchemaService;
+&nbsp;import org.thingsboard.server.service.install.migrate.TsLatestMigrateService;
+&nbsp;import org.thingsboard.server.service.install.update.CacheCleanupService;
+&nbsp;import org.thingsboard.server.service.install.update.DataUpdateService;
+&nbsp;
+&nbsp;@Service
+&nbsp;@Profile(&quot;install&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class ThingsboardInstallService {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${install.upgrade:false}&quot;)
+&nbsp;    private Boolean isUpgrade;
+&nbsp;
+&nbsp;    @Value(&quot;${install.upgrade.from_version:}&quot;)
+&nbsp;    private String upgradeFromVersion;
+&nbsp;
+&nbsp;    @Value(&quot;${install.load_demo:false}&quot;)
+&nbsp;    private Boolean loadDemo;
+&nbsp;
+&nbsp;    @Value(&quot;${state.persistToTelemetry:false}&quot;)
+&nbsp;    private boolean persistToTelemetry;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityDatabaseSchemaService entityDatabaseSchemaService;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private NoSqlKeyspaceService noSqlKeyspaceService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TsDatabaseSchemaService tsDatabaseSchemaService;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private TsLatestDatabaseSchemaService tsLatestDatabaseSchemaService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DatabaseEntitiesUpgradeService databaseEntitiesUpgradeService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ComponentDiscoveryService componentDiscoveryService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ApplicationContext context;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private SystemDataLoaderService systemDataLoaderService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataUpdateService dataUpdateService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private CacheCleanupService cacheCleanupService;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private TsLatestMigrateService latestMigrateService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private InstallScripts installScripts;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DatabaseSchemaSettingsService databaseSchemaVersionService;
+&nbsp;
+&nbsp;    public void performInstall() {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (isUpgrade) {</b>
+<b class="nc">&nbsp;                if (&quot;cassandra-latest-to-postgres&quot;.equals(upgradeFromVersion)) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...&quot;);</b>
+<b class="nc">&nbsp;                    latestMigrateService.migrate();</b>
+&nbsp;                } else {
+&nbsp;                    // TODO DON&#39;T FORGET to update SUPPORTED_VERSIONS_FROM in DefaultDatabaseSchemaSettingsService
+<b class="nc">&nbsp;                    databaseSchemaVersionService.validateSchemaSettings();</b>
+<b class="nc">&nbsp;                    String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();</b>
+<b class="nc">&nbsp;                    String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();</b>
+<b class="nc">&nbsp;                    log.info(&quot;Upgrading ThingsBoard from version {} to {} ...&quot;, fromVersion, toVersion);</b>
+<b class="nc">&nbsp;                    cacheCleanupService.clearCache();</b>
+&nbsp;                    // Apply the schema_update.sql script. The script may include DDL statements to change structure
+&nbsp;                    // of *existing* tables and DML statements to manipulate the DB records.
+<b class="nc">&nbsp;                    databaseEntitiesUpgradeService.upgradeDatabase();</b>
+&nbsp;                    // All new tables that do not have any data will be automatically created here.
+<b class="nc">&nbsp;                    entityDatabaseSchemaService.createDatabaseSchema(false);</b>
+&nbsp;                    // Re-create all views, functions.
+<b class="nc">&nbsp;                    entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();</b>
+<b class="nc">&nbsp;                    entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);</b>
+&nbsp;                    // Creates missing indexes.
+<b class="nc">&nbsp;                    entityDatabaseSchemaService.createDatabaseIndexes();</b>
+&nbsp;
+&nbsp;                    // TODO: cleanup update code after each release
+&nbsp;
+&nbsp;                    // Runs upgrade scripts that are not possible in plain SQL.
+<b class="nc">&nbsp;                    dataUpdateService.updateData();</b>
+<b class="nc">&nbsp;                    log.info(&quot;Updating system data...&quot;);</b>
+<b class="nc">&nbsp;                    dataUpdateService.upgradeRuleNodes();</b>
+<b class="nc">&nbsp;                    systemDataLoaderService.loadSystemWidgets();</b>
+<b class="nc">&nbsp;                    installScripts.loadSystemLwm2mResources();</b>
+<b class="nc">&nbsp;                    installScripts.loadSystemImagesAndResources();</b>
+<b class="nc">&nbsp;                    databaseSchemaVersionService.updateSchemaVersion();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                log.info(&quot;Upgrade finished successfully!&quot;);</b>
+&nbsp;
+&nbsp;            } else {
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;Starting ThingsBoard Installation...&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;Installing DataBase schema for entities...&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                entityDatabaseSchemaService.createDatabaseSchema();</b>
+<b class="nc">&nbsp;                databaseSchemaVersionService.createSchemaSettings();</b>
+&nbsp;
+<b class="nc">&nbsp;                entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();</b>
+<b class="nc">&nbsp;                entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);</b>
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;Installing DataBase schema for timeseries...&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (noSqlKeyspaceService != null) {</b>
+<b class="nc">&nbsp;                    noSqlKeyspaceService.createDatabaseSchema();</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                tsDatabaseSchemaService.createDatabaseSchema();</b>
+&nbsp;
+<b class="nc">&nbsp;                if (tsLatestDatabaseSchemaService != null) {</b>
+<b class="nc">&nbsp;                    tsLatestDatabaseSchemaService.createDatabaseSchema();</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;Loading system data...&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                componentDiscoveryService.discoverComponents();</b>
+&nbsp;
+<b class="nc">&nbsp;                systemDataLoaderService.createSysAdmin();</b>
+<b class="nc">&nbsp;                systemDataLoaderService.createDefaultTenantProfiles();</b>
+<b class="nc">&nbsp;                systemDataLoaderService.createAdminSettings();</b>
+<b class="nc">&nbsp;                systemDataLoaderService.createRandomJwtSettings();</b>
+<b class="nc">&nbsp;                systemDataLoaderService.loadSystemWidgets();</b>
+<b class="nc">&nbsp;                systemDataLoaderService.createOAuth2Templates();</b>
+<b class="nc">&nbsp;                systemDataLoaderService.createQueues();</b>
+<b class="nc">&nbsp;                systemDataLoaderService.createDefaultNotificationConfigs();</b>
+&nbsp;
+&nbsp;//                systemDataLoaderService.loadSystemPlugins();
+&nbsp;//                systemDataLoaderService.loadSystemRules();
+<b class="nc">&nbsp;                installScripts.loadSystemLwm2mResources();</b>
+<b class="nc">&nbsp;                installScripts.loadSystemImagesAndResources();</b>
+&nbsp;
+<b class="nc">&nbsp;                if (loadDemo) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;Loading demo data...&quot;);</b>
+<b class="nc">&nbsp;                    systemDataLoaderService.loadDemoData();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                log.info(&quot;Installation finished successfully!&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Unexpected error during ThingsBoard installation!&quot;, e);</b>
+<b class="nc">&nbsp;            throw new ThingsboardInstallException(&quot;Unexpected error during ThingsBoard installation!&quot;, e);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            SpringApplication.exit(context);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

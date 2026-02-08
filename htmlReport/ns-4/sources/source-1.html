@@ -1,0 +1,238 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TranslationPruner</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.client.tools.i18n</a>
+</div>
+
+<h1>Coverage Summary for Class: TranslationPruner (org.thingsboard.client.tools.i18n)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TranslationPruner</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.client.tools.i18n;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+&nbsp;import com.fasterxml.jackson.core.util.Separators;
+&nbsp;import com.fasterxml.jackson.core.util.Separators.Spacing;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;
+&nbsp;import java.io.File;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;public class TranslationPruner {</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Recursively collect all JSON keys in dot notation from the given node.
+&nbsp;     */
+&nbsp;    private static void collectKeys(JsonNode node, String prefix, Set&lt;String&gt; keys) {
+<b class="nc">&nbsp;        if (!node.isObject()) return;</b>
+<b class="nc">&nbsp;        Iterator&lt;Map.Entry&lt;String, JsonNode&gt;&gt; fields = node.fields();</b>
+<b class="nc">&nbsp;        while (fields.hasNext()) {</b>
+<b class="nc">&nbsp;            Map.Entry&lt;String, JsonNode&gt; entry = fields.next();</b>
+<b class="nc">&nbsp;            String key = entry.getKey();</b>
+<b class="nc">&nbsp;            String fullKey = prefix.isEmpty() ? key : prefix + &quot;.&quot; + key;</b>
+<b class="nc">&nbsp;            keys.add(fullKey);</b>
+<b class="nc">&nbsp;            collectKeys(entry.getValue(), fullKey, keys);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Prune the translation ObjectNode, keeping only fields whose dot-keys are in the valid set.
+&nbsp;     */
+&nbsp;    private static ObjectNode pruneNode(ObjectNode node, Set&lt;String&gt; keys, String prefix, ObjectMapper mapper) {
+<b class="nc">&nbsp;        ObjectNode pruned = mapper.createObjectNode();</b>
+<b class="nc">&nbsp;        Iterator&lt;Map.Entry&lt;String, JsonNode&gt;&gt; fields = node.fields();</b>
+<b class="nc">&nbsp;        while (fields.hasNext()) {</b>
+<b class="nc">&nbsp;            Map.Entry&lt;String, JsonNode&gt; entry = fields.next();</b>
+<b class="nc">&nbsp;            String key = entry.getKey();</b>
+<b class="nc">&nbsp;            JsonNode value = entry.getValue();</b>
+<b class="nc">&nbsp;            String fullKey = prefix.isEmpty() ? key : prefix + &quot;.&quot; + key;</b>
+<b class="nc">&nbsp;            if (keys.contains(fullKey)) {</b>
+<b class="nc">&nbsp;                if (value.isObject()) {</b>
+<b class="nc">&nbsp;                    ObjectNode child = pruneNode((ObjectNode) value, keys, fullKey, mapper);</b>
+<b class="nc">&nbsp;                    pruned.set(key, child);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    pruned.set(key, value);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return pruned;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void main(String[] args) {
+<b class="nc">&nbsp;        if (args.length &lt; 2) {</b>
+<b class="nc">&nbsp;            System.err.println(&quot;Usage: `java TranslationPruner &lt;source folder&gt; &lt;dest folder&gt;`, where dest folder must contain the locale.constant-en_US.json for reference structure.&quot;);</b>
+<b class="nc">&nbsp;            System.exit(1);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            File sourceFolder = new File(args[0]);</b>
+<b class="nc">&nbsp;            File destFolder = new File(args[1]);</b>
+&nbsp;
+<b class="nc">&nbsp;            File referenceFile = new File(destFolder, &quot;locale.constant-en_US.json&quot;);</b>
+<b class="nc">&nbsp;            ObjectMapper mapper = new ObjectMapper();</b>
+<b class="nc">&nbsp;            JsonNode usRoot = mapper.readTree(referenceFile);</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; validKeys = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;            collectKeys(usRoot, &quot;&quot;, validKeys);</b>
+<b class="nc">&nbsp;            for (File sourceFile : sourceFolder.listFiles()) {</b>
+<b class="nc">&nbsp;                File destFile = new File(destFolder, sourceFile.getName());</b>
+<b class="nc">&nbsp;                JsonNode sourceRoot = mapper.readTree(sourceFile);</b>
+<b class="nc">&nbsp;                if (!sourceRoot.isObject()) {</b>
+<b class="nc">&nbsp;                    throw new IllegalArgumentException(&quot;Source JSON must be an object at root&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                ObjectNode pruned = pruneNode((ObjectNode) sourceRoot, validKeys, &quot;&quot;, mapper);</b>
+<b class="nc">&nbsp;                Separators seps = Separators.createDefaultInstance()</b>
+<b class="nc">&nbsp;                        .withObjectFieldValueSpacing(Spacing.AFTER);</b>
+<b class="nc">&nbsp;                mapper.writer(new DefaultPrettyPrinter().withSeparators(seps)).writeValue(destFile, pruned);</b>
+<b class="nc">&nbsp;                System.out.println(&quot;Pruned translation written to &quot; + destFile.getPath());</b>
+&nbsp;            }
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            e.printStackTrace();</b>
+<b class="nc">&nbsp;            System.exit(2);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

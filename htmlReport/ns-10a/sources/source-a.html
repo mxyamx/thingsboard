@@ -1,0 +1,302 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DeviceRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.device</a>
+</div>
+
+<h1>Coverage Summary for Class: DeviceRepository (org.thingsboard.server.dao.sql.device)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">DeviceRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.device;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Limit;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.thingsboard.server.common.data.DeviceTransportType;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.edqs.fields.DeviceFields;
+&nbsp;import org.thingsboard.server.dao.ExportableEntityRepository;
+&nbsp;import org.thingsboard.server.dao.model.sql.DeviceEntity;
+&nbsp;import org.thingsboard.server.dao.model.sql.DeviceInfoEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface DeviceRepository extends JpaRepository&lt;DeviceEntity, UUID&gt;, ExportableEntityRepository&lt;DeviceEntity&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceInfoEntity d WHERE d.id = :deviceId&quot;)
+&nbsp;    DeviceInfoEntity findDeviceInfoById(@Param(&quot;deviceId&quot;) UUID deviceId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndCustomerId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                   @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                   @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                   Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.deviceProfileId = :profileId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndProfileId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                  @Param(&quot;profileId&quot;) UUID profileId,
+&nbsp;                                                  @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                  Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceInfoEntity d &quot; +
+&nbsp;            &quot;WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceInfoEntity&gt; findDeviceInfosByTenantIdAndCustomerId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                  @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                                  @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                                  Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                      Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                      @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                      Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                             @Param(&quot;type&quot;) String type,
+&nbsp;                                             @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                             Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.deviceProfileId = :deviceProfileId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.type, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;UUID&gt; findIdsByTenantIdAndDeviceProfileId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                   @Param(&quot;deviceProfileId&quot;) UUID deviceProfileId,
+&nbsp;                                                   @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                   Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.deviceProfileId = :deviceProfileId &quot; +
+&nbsp;            &quot;AND d.firmwareId IS NULL&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndTypeAndFirmwareIdIsNull(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                @Param(&quot;deviceProfileId&quot;) UUID deviceProfileId,
+&nbsp;                                                                Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.deviceProfileId = :deviceProfileId &quot; +
+&nbsp;            &quot;AND d.softwareId IS NULL&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndTypeAndSoftwareIdIsNull(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                @Param(&quot;deviceProfileId&quot;) UUID deviceProfileId,
+&nbsp;                                                                Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT count(*) FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.deviceProfileId = :deviceProfileId &quot; +
+&nbsp;            &quot;AND d.firmwareId IS NULL&quot;)
+&nbsp;    Long countByTenantIdAndDeviceProfileIdAndFirmwareIdIsNull(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                              @Param(&quot;deviceProfileId&quot;) UUID deviceProfileId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT count(*) FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.deviceProfileId = :deviceProfileId &quot; +
+&nbsp;            &quot;AND d.softwareId IS NULL&quot;)
+&nbsp;    Long countByTenantIdAndDeviceProfileIdAndSoftwareIdIsNull(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                              @Param(&quot;deviceProfileId&quot;) UUID deviceProfileId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.customerId = :customerId &quot; +
+&nbsp;            &quot;AND d.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndCustomerIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                          @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                          @Param(&quot;type&quot;) String type,
+&nbsp;                                                          @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceInfoEntity d &quot; +
+&nbsp;            &quot;WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:customerId IS NULL OR d.customerId = :customerId) &quot; +
+&nbsp;            &quot;AND (:edgeId IS NULL OR d.id IN (SELECT re.toId FROM RelationEntity re WHERE re.toType = &#39;DEVICE&#39; AND re.relationTypeGroup = &#39;EDGE&#39; AND re.relationType = &#39;Contains&#39; AND re.fromType = &#39;EDGE&#39; AND re.fromId = :edgeId)) &quot; +
+&nbsp;            &quot;AND ((:deviceType) IS NULL OR d.type = :deviceType) &quot; +
+&nbsp;            &quot;AND (:deviceProfileId IS NULL OR d.deviceProfileId = :deviceProfileId) &quot; +
+&nbsp;            &quot;AND ((:filterByActive) = FALSE OR d.active = :deviceActive) &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.type, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.customerTitle, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceInfoEntity&gt; findDeviceInfosByFilter(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                   @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                   @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                                   @Param(&quot;deviceType&quot;) String type,
+&nbsp;                                                   @Param(&quot;deviceProfileId&quot;) UUID deviceProfileId,
+&nbsp;                                                   @Param(&quot;filterByActive&quot;) boolean filterByActive,
+&nbsp;                                                   @Param(&quot;deviceActive&quot;) boolean active,
+&nbsp;                                                   @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                   Pageable pageable);
+&nbsp;
+&nbsp;    DeviceEntity findByTenantIdAndName(UUID tenantId, String name);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.EntityInfo(a.id, &#39;DEVICE&#39;, a.name) &quot; +
+&nbsp;            &quot;FROM DeviceEntity a WHERE a.tenantId = :tenantId AND a.name LIKE CONCAT(:prefix, &#39;%&#39;)&quot;)
+&nbsp;    List&lt;EntityInfo&gt; findEntityInfosByNamePrefix(UUID tenantId, String prefix);
+&nbsp;
+&nbsp;    List&lt;DeviceEntity&gt; findDevicesByTenantIdAndCustomerIdAndIdIn(UUID tenantId, UUID customerId, List&lt;UUID&gt; deviceIds);
+&nbsp;
+&nbsp;    List&lt;DeviceEntity&gt; findDevicesByTenantIdAndIdIn(UUID tenantId, List&lt;UUID&gt; deviceIds);
+&nbsp;
+&nbsp;    List&lt;DeviceEntity&gt; findDevicesByIdIn(List&lt;UUID&gt; deviceIds);
+&nbsp;
+&nbsp;    DeviceEntity findByTenantIdAndId(UUID tenantId, UUID id);
+&nbsp;
+&nbsp;    Long countByDeviceProfileId(UUID deviceProfileId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d, RelationEntity re WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.id = re.toId AND re.toType = &#39;DEVICE&#39; AND re.relationTypeGroup = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :edgeId AND re.fromType = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndEdgeId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                               @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                               @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                               Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d FROM DeviceEntity d, RelationEntity re WHERE d.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND d.id = re.toId AND re.toType = &#39;DEVICE&#39; AND re.relationTypeGroup = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :edgeId AND re.fromType = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND d.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(d.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(d.label, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;DeviceEntity&gt; findByTenantIdAndEdgeIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                      @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                                      @Param(&quot;type&quot;) String type,
+&nbsp;                                                      @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                      Pageable pageable);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Count devices by tenantId.
+&nbsp;     * Custom query applied because default QueryDSL produces slow count(id).
+&nbsp;     *
+&nbsp;     * There is two way to count devices.
+&nbsp;     * OPTIMAL: count(*)
+&nbsp;     * - returns _row_count_ and use index-only scan (super fast).
+&nbsp;     * SLOW: count(id)
+&nbsp;     * - returns _NON_NULL_id_count and performs table scan to verify isNull for each id in filtered rows.
+&nbsp;     */
+&nbsp;    @Query(&quot;SELECT count(*) FROM DeviceEntity d WHERE d.tenantId = :tenantId&quot;)
+&nbsp;    Long countByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT d.id FROM DeviceEntity d &quot; +
+&nbsp;            &quot;INNER JOIN DeviceProfileEntity p ON d.deviceProfileId = p.id &quot; +
+&nbsp;            &quot;WHERE p.transportType = :transportType&quot;)
+&nbsp;    Page&lt;UUID&gt; findIdsByDeviceProfileTransportType(@Param(&quot;transportType&quot;) DeviceTransportType transportType, Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT externalId FROM DeviceEntity WHERE id = :id&quot;)
+&nbsp;    UUID getExternalIdById(@Param(&quot;id&quot;) UUID id);
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.edqs.fields.DeviceFields(d.id, d.createdTime, d.tenantId, d.customerId,&quot; +
+&nbsp;            &quot;d.name, d.version, d.type, d.label, d.deviceProfileId, d.additionalInfo) FROM DeviceEntity d WHERE d.id &gt; :id ORDER BY d.id&quot;)
+&nbsp;    List&lt;DeviceFields&gt; findNextBatch(@Param(&quot;id&quot;) UUID id, Limit limit);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

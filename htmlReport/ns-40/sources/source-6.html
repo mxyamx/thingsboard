@@ -1,0 +1,1704 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api.tbel</a>
+</div>
+
+<h1>Coverage Summary for Class: TbUtils (org.thingsboard.script.api.tbel)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/179)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/278)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/665)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api.tbel;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.primitives.Bytes;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.ArrayUtils;
+&nbsp;import org.mvel2.ExecutionContext;
+&nbsp;import org.mvel2.ParserConfiguration;
+&nbsp;import org.mvel2.execution.ExecutionArrayList;
+&nbsp;import org.mvel2.execution.ExecutionHashMap;
+&nbsp;import org.mvel2.execution.ExecutionLinkedHashSet;
+&nbsp;import org.mvel2.util.MethodStub;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.NumberUtils;
+&nbsp;import org.thingsboard.common.util.geo.Coordinates;
+&nbsp;import org.thingsboard.common.util.geo.GeoUtil;
+&nbsp;import org.thingsboard.common.util.geo.RangeUnit;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.io.UnsupportedEncodingException;
+&nbsp;import java.math.BigDecimal;
+&nbsp;import java.math.BigInteger;
+&nbsp;import java.net.URLDecoder;
+&nbsp;import java.net.URLEncoder;
+&nbsp;import java.nio.ByteBuffer;
+&nbsp;import java.nio.ByteOrder;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.regex.Matcher;
+&nbsp;
+&nbsp;import static java.lang.Character.MAX_RADIX;
+&nbsp;import static java.lang.Character.MIN_RADIX;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class TbUtils {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final byte[] HEX_ARRAY = &quot;0123456789ABCDEF&quot;.getBytes(StandardCharsets.US_ASCII);</b>
+&nbsp;
+&nbsp;    private static final int ZERO_RADIX = 0;
+&nbsp;    private static final int OCTAL_RADIX = 8;
+&nbsp;    private static final int DEC_RADIX = 10;
+&nbsp;    private static final int HEX_RADIX = 16;
+&nbsp;    private static final int HEX_LEN_MIN = -1;
+&nbsp;    private static final int HEX_LEN_INT_MAX = 8;
+&nbsp;    private static final int HEX_LEN_LONG_MAX = 16;
+&nbsp;    private static final int BYTES_LEN_INT_MAX = 4;
+&nbsp;    private static final int BYTES_LEN_LONG_MAX = 8;
+&nbsp;    private static final int BIN_LEN_MAX = 8;
+&nbsp;
+<b class="nc">&nbsp;    private static final LinkedHashMap&lt;String, String&gt; mdnEncodingReplacements = new LinkedHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;\\+&quot;, &quot;%20&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%21&quot;, &quot;!&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%27&quot;, &quot;&#39;&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%28&quot;, &quot;\\(&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%29&quot;, &quot;\\)&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%7E&quot;, &quot;~&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%3B&quot;, &quot;;&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%2C&quot;, &quot;,&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%2F&quot;, &quot;/&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%3F&quot;, &quot;\\?&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%3A&quot;, &quot;:&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%40&quot;, &quot;@&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%26&quot;, &quot;&amp;&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%3D&quot;, &quot;=&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%2B&quot;, &quot;\\+&quot;);</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%24&quot;, Matcher.quoteReplacement(&quot;$&quot;));</b>
+<b class="nc">&nbsp;        mdnEncodingReplacements.put(&quot;%23&quot;, &quot;#&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void register(ParserConfiguration parserConfig) throws Exception {
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;btoa&quot;, new MethodStub(TbUtils.class.getMethod(&quot;btoa&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;atob&quot;, new MethodStub(TbUtils.class.getMethod(&quot;atob&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;bytesToString&quot;, new MethodStub(TbUtils.class.getMethod(&quot;bytesToString&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;bytesToString&quot;, new MethodStub(TbUtils.class.getMethod(&quot;bytesToString&quot;,</b>
+&nbsp;                List.class, String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;decodeToString&quot;, new MethodStub(TbUtils.class.getMethod(&quot;bytesToString&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;decodeToJson&quot;, new MethodStub(TbUtils.class.getMethod(&quot;decodeToJson&quot;,</b>
+&nbsp;                ExecutionContext.class, List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;decodeToJson&quot;, new MethodStub(TbUtils.class.getMethod(&quot;decodeToJson&quot;,</b>
+&nbsp;                ExecutionContext.class, String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;stringToBytes&quot;, new MethodStub(TbUtils.class.getMethod(&quot;stringToBytes&quot;,</b>
+&nbsp;                ExecutionContext.class, Object.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;stringToBytes&quot;, new MethodStub(TbUtils.class.getMethod(&quot;stringToBytes&quot;,</b>
+&nbsp;                ExecutionContext.class, Object.class, String.class)));
+<b class="nc">&nbsp;        parserConfig.registerNonConvertableMethods(TbUtils.class, Collections.singleton(&quot;stringToBytes&quot;));</b>
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseInt&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseInt&quot;,</b>
+&nbsp;                String.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLong&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLong&quot;,</b>
+&nbsp;                String.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseFloat&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseFloat&quot;,</b>
+&nbsp;                String.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexIntLongToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexIntLongToFloat&quot;,</b>
+&nbsp;                String.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseDouble&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLittleEndianHexToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLittleEndianHexToInt&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBigEndianHexToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBigEndianHexToInt&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToInt&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToInt&quot;,</b>
+&nbsp;                String.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                List.class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                List.class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToInt&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLittleEndianHexToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLittleEndianHexToLong&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBigEndianHexToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBigEndianHexToLong&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToLong&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToLong&quot;,</b>
+&nbsp;                String.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                List.class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                List.class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToLong&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToLong&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLittleEndianHexToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLittleEndianHexToFloat&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBigEndianHexToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBigEndianHexToFloat&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToFloat&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToFloat&quot;,</b>
+&nbsp;                String.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                List.class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                List.class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToFloat&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                List.class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                List.class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesIntToFloat&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesIntToFloat&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLittleEndianHexToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLittleEndianHexToDouble&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBigEndianHexToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBigEndianHexToDouble&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToDouble&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseHexToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseHexToDouble&quot;,</b>
+&nbsp;                String.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                List.class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                List.class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToDouble&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                List.class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                List.class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesLongToDouble&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesLongToDouble&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toFixed&quot;, new MethodStub(NumberUtils.class.getMethod(&quot;toFixed&quot;,</b>
+&nbsp;                double.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toFixed&quot;, new MethodStub(NumberUtils.class.getMethod(&quot;toFixed&quot;,</b>
+&nbsp;                float.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toInt&quot;, new MethodStub(NumberUtils.class.getMethod(&quot;toInt&quot;,</b>
+&nbsp;                double.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isNaN&quot;, new MethodStub(NumberUtils.class.getMethod(&quot;isNaN&quot;,</b>
+&nbsp;                double.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;hexToBytes&quot;, new MethodStub(TbUtils.class.getMethod(&quot;hexToBytes&quot;,</b>
+&nbsp;                ExecutionContext.class, String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;hexToBytesArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;hexToBytesArray&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intToHex&quot;,</b>
+&nbsp;                Integer.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intToHex&quot;,</b>
+&nbsp;                Integer.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intToHex&quot;,</b>
+&nbsp;                Integer.class, boolean.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intToHex&quot;,</b>
+&nbsp;                Integer.class, boolean.class, boolean.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;longToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;longToHex&quot;,</b>
+&nbsp;                Long.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;longToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;longToHex&quot;,</b>
+&nbsp;                Long.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;longToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;longToHex&quot;,</b>
+&nbsp;                Long.class, boolean.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;longToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;longToHex&quot;,</b>
+&nbsp;                Long.class, boolean.class, boolean.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intLongToRadixString&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intLongToRadixString&quot;,</b>
+&nbsp;                Long.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intLongToRadixString&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intLongToRadixString&quot;,</b>
+&nbsp;                Long.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intLongToRadixString&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intLongToRadixString&quot;,</b>
+&nbsp;                Long.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;intLongToRadixString&quot;, new MethodStub(TbUtils.class.getMethod(&quot;intLongToRadixString&quot;,</b>
+&nbsp;                Long.class, int.class, boolean.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;floatToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;floatToHex&quot;,</b>
+&nbsp;                Float.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;floatToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;floatToHex&quot;,</b>
+&nbsp;                Float.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;doubleToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;doubleToHex&quot;,</b>
+&nbsp;                Double.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;doubleToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;doubleToHex&quot;,</b>
+&nbsp;                Double.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;printUnsignedBytes&quot;, new MethodStub(TbUtils.class.getMethod(&quot;printUnsignedBytes&quot;,</b>
+&nbsp;                ExecutionContext.class, List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;base64ToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;base64ToHex&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;hexToBase64&quot;, new MethodStub(TbUtils.class.getMethod(&quot;hexToBase64&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;base64ToBytes&quot;, new MethodStub(TbUtils.class.getMethod(&quot;base64ToBytes&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;base64ToBytesList&quot;, new MethodStub(TbUtils.class.getMethod(&quot;base64ToBytesList&quot;,</b>
+&nbsp;                ExecutionContext.class, String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;bytesToBase64&quot;, new MethodStub(TbUtils.class.getMethod(&quot;bytesToBase64&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;bytesToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;bytesToHex&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;bytesToHex&quot;, new MethodStub(TbUtils.class.getMethod(&quot;bytesToHex&quot;,</b>
+&nbsp;                ExecutionArrayList.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toFlatMap&quot;, new MethodStub(TbUtils.class.getMethod(&quot;toFlatMap&quot;,</b>
+&nbsp;                ExecutionContext.class, Map.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toFlatMap&quot;, new MethodStub(TbUtils.class.getMethod(&quot;toFlatMap&quot;,</b>
+&nbsp;                ExecutionContext.class, Map.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toFlatMap&quot;, new MethodStub(TbUtils.class.getMethod(&quot;toFlatMap&quot;,</b>
+&nbsp;                ExecutionContext.class, Map.class, List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toFlatMap&quot;, new MethodStub(TbUtils.class.getMethod(&quot;toFlatMap&quot;,</b>
+&nbsp;                ExecutionContext.class, Map.class, List.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;encodeURI&quot;, new MethodStub(TbUtils.class.getMethod(&quot;encodeURI&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;decodeURI&quot;, new MethodStub(TbUtils.class.getMethod(&quot;decodeURI&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;raiseError&quot;, new MethodStub(TbUtils.class.getMethod(&quot;raiseError&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isBinary&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isBinary&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isOctal&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isOctal&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isDecimal&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isDecimal&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isHexadecimal&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isHexadecimal&quot;,</b>
+&nbsp;                String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;bytesToExecutionArrayList&quot;, new MethodStub(TbUtils.class.getMethod(&quot;bytesToExecutionArrayList&quot;,</b>
+&nbsp;                ExecutionContext.class, byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;padStart&quot;, new MethodStub(TbUtils.class.getMethod(&quot;padStart&quot;,</b>
+&nbsp;                String.class, int.class, char.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;padEnd&quot;, new MethodStub(TbUtils.class.getMethod(&quot;padEnd&quot;,</b>
+&nbsp;                String.class, int.class, char.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseByteToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseByteToBinaryArray&quot;,</b>
+&nbsp;                byte.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseByteToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseByteToBinaryArray&quot;,</b>
+&nbsp;                byte.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseByteToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseByteToBinaryArray&quot;,</b>
+&nbsp;                byte.class, int.class, boolean.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToBinaryArray&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToBinaryArray&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToBinaryArray&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToBinaryArray&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBytesToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBytesToBinaryArray&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLongToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLongToBinaryArray&quot;,</b>
+&nbsp;                long.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseLongToBinaryArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseLongToBinaryArray&quot;,</b>
+&nbsp;                long.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBinaryArrayToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBinaryArrayToInt&quot;,</b>
+&nbsp;                List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBinaryArrayToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBinaryArrayToInt&quot;,</b>
+&nbsp;                List.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBinaryArrayToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBinaryArrayToInt&quot;,</b>
+&nbsp;                List.class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBinaryArrayToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBinaryArrayToInt&quot;,</b>
+&nbsp;                byte[].class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBinaryArrayToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBinaryArrayToInt&quot;,</b>
+&nbsp;                byte[].class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;parseBinaryArrayToInt&quot;, new MethodStub(TbUtils.class.getMethod(&quot;parseBinaryArrayToInt&quot;,</b>
+&nbsp;                byte[].class, int.class, int.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isInsidePolygon&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isInsidePolygon&quot;,</b>
+&nbsp;                double.class, double.class, String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isInsideCircle&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isInsideCircle&quot;,</b>
+&nbsp;                double.class, double.class, String.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isMap&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isMap&quot;,</b>
+&nbsp;                Object.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isList&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isList&quot;,</b>
+&nbsp;                Object.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isArray&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isArray&quot;,</b>
+&nbsp;                Object.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;newSet&quot;, new MethodStub(TbUtils.class.getMethod(&quot;newSet&quot;,</b>
+&nbsp;                ExecutionContext.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;toSet&quot;, new MethodStub(TbUtils.class.getMethod(&quot;toSet&quot;,</b>
+&nbsp;                ExecutionContext.class, List.class)));
+<b class="nc">&nbsp;        parserConfig.addImport(&quot;isSet&quot;, new MethodStub(TbUtils.class.getMethod(&quot;isSet&quot;,</b>
+&nbsp;                Object.class)));
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String btoa(String input) {
+<b class="nc">&nbsp;        return new String(Base64.getEncoder().encode(input.getBytes()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String atob(String encoded) {
+<b class="nc">&nbsp;        return new String(Base64.getDecoder().decode(encoded));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Object decodeToJson(ExecutionContext ctx, List&lt;Byte&gt; bytesList) throws IOException {
+<b class="nc">&nbsp;        return TbJson.parse(ctx, bytesToString(bytesList));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Object decodeToJson(ExecutionContext ctx, String jsonStr) throws IOException {
+<b class="nc">&nbsp;        return TbJson.parse(ctx, jsonStr);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String bytesToString(List&lt;?&gt; bytesList) {
+<b class="nc">&nbsp;        byte[] bytes = bytesFromList(bytesList);</b>
+<b class="nc">&nbsp;        return new String(bytes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String bytesToString(List&lt;?&gt; bytesList, String charsetName) throws UnsupportedEncodingException {
+<b class="nc">&nbsp;        byte[] bytes = bytesFromList(bytesList);</b>
+<b class="nc">&nbsp;        return new String(bytes, charsetName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;Byte&gt; stringToBytes(ExecutionContext ctx, Object str) throws IllegalAccessException {
+<b class="nc">&nbsp;        if (str instanceof String) {</b>
+<b class="nc">&nbsp;            byte[] bytes = str.toString().getBytes();</b>
+<b class="nc">&nbsp;            return bytesToList(ctx, bytes);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalAccessException(&quot;Invalid type parameter [&quot; + str.getClass().getSimpleName() + &quot;]. Expected &#39;String&#39;&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;Byte&gt; stringToBytes(ExecutionContext ctx, Object str, String charsetName) throws UnsupportedEncodingException, IllegalAccessException {
+<b class="nc">&nbsp;        if (str instanceof String) {</b>
+<b class="nc">&nbsp;            byte[] bytes = str.toString().getBytes(charsetName);</b>
+<b class="nc">&nbsp;            return bytesToList(ctx, bytes);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalAccessException(&quot;Invalid type parameter [&quot; + str.getClass().getSimpleName() + &quot;]. Expected &#39;String&#39;&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static byte[] bytesFromList(List&lt;?&gt; bytesList) {
+<b class="nc">&nbsp;        byte[] bytes = new byte[bytesList.size()];</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; bytesList.size(); i++) {</b>
+<b class="nc">&nbsp;            Object objectVal = bytesList.get(i);</b>
+<b class="nc">&nbsp;            if (objectVal instanceof Integer) {</b>
+<b class="nc">&nbsp;                bytes[i] = isValidIntegerToByte((Integer) objectVal);</b>
+<b class="nc">&nbsp;            } else if (objectVal instanceof String) {</b>
+<b class="nc">&nbsp;                bytes[i] = isValidIntegerToByte(parseInt((String) objectVal));</b>
+<b class="nc">&nbsp;            } else if (objectVal instanceof Byte) {</b>
+<b class="nc">&nbsp;                bytes[i] = (byte) objectVal;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new NumberFormatException(&quot;The value &#39;&quot; + objectVal + &quot;&#39; could not be correctly converted to a byte. &quot; +</b>
+&nbsp;                        &quot;Must be a HexDecimal/String/Integer/Byte format !&quot;);
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return bytes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;Byte&gt; bytesToList(ExecutionContext ctx, byte[] bytes) {
+<b class="nc">&nbsp;        List&lt;Byte&gt; list = new ExecutionArrayList&lt;&gt;(ctx);</b>
+<b class="nc">&nbsp;        for (byte aByte : bytes) {</b>
+<b class="nc">&nbsp;            list.add(aByte);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return list;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Integer parseInt(String value) {
+<b class="nc">&nbsp;        return parseInt(value, ZERO_RADIX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Integer parseInt(String value, int radix) {
+<b class="nc">&nbsp;        return parseInt(value, radix, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Integer parseInt(String value, int radix, boolean bigEndian) {
+<b class="nc">&nbsp;        String valueP = prepareNumberString(value, bigEndian);</b>
+<b class="nc">&nbsp;        if (valueP != null) {</b>
+<b class="nc">&nbsp;            int radixValue = isValidStringAndRadix(valueP, radix, value);</b>
+<b class="nc">&nbsp;            if (radixValue &gt;= 25 &amp;&amp; radixValue &lt;= MAX_RADIX) {</b>
+<b class="nc">&nbsp;                return (Integer) compareIntLongValueMinMax(valueP, radixValue, Integer.MAX_VALUE, Integer.MIN_VALUE);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return switch (radixValue) {</b>
+<b class="nc">&nbsp;                case MIN_RADIX -&gt; parseBinaryStringAsSignedInteger(valueP);</b>
+<b class="nc">&nbsp;                case OCTAL_RADIX, DEC_RADIX, HEX_RADIX -&gt; Integer.parseInt(valueP, radixValue);</b>
+<b class="nc">&nbsp;                default -&gt; throw new IllegalArgumentException(&quot;Invalid radix: [&quot; + radix + &quot;]&quot;);</b>
+&nbsp;            };
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Long parseLong(String value) {
+<b class="nc">&nbsp;        return parseLong(value, ZERO_RADIX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Long parseLong(String value, int radix) {
+<b class="nc">&nbsp;        return parseLong(value, radix, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Long parseLong(String value, int radix, boolean bigEndian) {
+<b class="nc">&nbsp;        String valueP = prepareNumberString(value, bigEndian);</b>
+<b class="nc">&nbsp;        if (valueP != null) {</b>
+<b class="nc">&nbsp;            int radixValue = isValidStringAndRadix(valueP, radix, value);</b>
+<b class="nc">&nbsp;            if (radixValue &gt;= 25 &amp;&amp; radixValue &lt;= MAX_RADIX) {</b>
+<b class="nc">&nbsp;                return (Long) compareIntLongValueMinMax(valueP, radixValue, Long.MAX_VALUE, Long.MIN_VALUE);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return switch (radixValue) {</b>
+<b class="nc">&nbsp;                case MIN_RADIX -&gt; parseBinaryStringAsSignedLong(valueP);</b>
+<b class="nc">&nbsp;                case OCTAL_RADIX, DEC_RADIX, HEX_RADIX -&gt; Long.parseLong(valueP, radixValue);</b>
+<b class="nc">&nbsp;                default -&gt; throw new IllegalArgumentException(&quot;Invalid radix: [&quot; + radix + &quot;]&quot;);</b>
+&nbsp;            };
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static int parseBinaryStringAsSignedInteger(String binaryString) {
+<b class="nc">&nbsp;        if (binaryString.length() != 32) {</b>
+&nbsp;            // Pad the binary string to 64 bits if it is not already
+<b class="nc">&nbsp;            binaryString = String.format(&quot;%32s&quot;, binaryString).replace(&#39; &#39;, &#39;0&#39;);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // If the MSB is 1, the number is negative in two&#39;s complement
+<b class="nc">&nbsp;        if (binaryString.charAt(0) == &#39;1&#39;) {</b>
+&nbsp;            // Calculate the two&#39;s complement
+<b class="nc">&nbsp;            String invertedBinaryString = invertBinaryString(binaryString);</b>
+<b class="nc">&nbsp;            int positiveValue = Integer.parseInt(invertedBinaryString, MIN_RADIX) + 1;</b>
+<b class="nc">&nbsp;            return -positiveValue;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Integer.parseInt(binaryString, MIN_RADIX);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static long parseBinaryStringAsSignedLong(String binaryString) {
+<b class="nc">&nbsp;        if (binaryString.length() != 64) {</b>
+&nbsp;            // Pad the binary string to 64 bits if it is not already
+<b class="nc">&nbsp;            binaryString = String.format(&quot;%64s&quot;, binaryString).replace(&#39; &#39;, &#39;0&#39;);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // If the MSB is 1, the number is negative in two&#39;s complement
+<b class="nc">&nbsp;        if (binaryString.charAt(0) == &#39;1&#39;) {</b>
+&nbsp;            // Calculate the two&#39;s complement
+<b class="nc">&nbsp;            String invertedBinaryString = invertBinaryString(binaryString);</b>
+<b class="nc">&nbsp;            long positiveValue = Long.parseLong(invertedBinaryString, MIN_RADIX) + 1;</b>
+<b class="nc">&nbsp;            return -positiveValue;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Long.parseLong(binaryString, MIN_RADIX);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String invertBinaryString(String binaryString) {
+<b class="nc">&nbsp;        StringBuilder invertedString = new StringBuilder();</b>
+<b class="nc">&nbsp;        for (char bit : binaryString.toCharArray()) {</b>
+<b class="nc">&nbsp;            invertedString.append(bit == &#39;0&#39; ? &#39;1&#39; : &#39;0&#39;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return invertedString.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static int getRadix10_16(String value) {
+<b class="nc">&nbsp;        int radix = isDecimal(value) &gt; 0 ? DEC_RADIX : isHexadecimal(value);</b>
+<b class="nc">&nbsp;        if (radix &gt; 0) {</b>
+<b class="nc">&nbsp;            return radix;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new NumberFormatException(&quot;Value: \&quot;&quot; + value + &quot;\&quot; is not numeric or hexDecimal format!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Float parseFloat(String value) {
+<b class="nc">&nbsp;        return parseFloat(value, ZERO_RADIX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Float parseFloat(String value, int radix) {
+<b class="nc">&nbsp;        String valueP = prepareNumberString(value, true);</b>
+<b class="nc">&nbsp;        if (valueP != null) {</b>
+<b class="nc">&nbsp;            return parseFloatFromString(value, valueP, radix);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Float parseFloatFromString(String value, String valueP, int radix) {
+<b class="nc">&nbsp;        int radixValue = isValidStringAndRadix(valueP, radix, value);</b>
+<b class="nc">&nbsp;        if (radixValue == HEX_RADIX) {</b>
+<b class="nc">&nbsp;            int bits = (int) Long.parseLong(valueP, HEX_RADIX);</b>
+&nbsp;            // Hex representation is a standard IEEE 754 float value (eg &quot;0x41200000&quot; for 10.0f).
+<b class="nc">&nbsp;            return Float.intBitsToFloat(bits);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Float.parseFloat(value);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Float parseHexIntLongToFloat(String value, boolean bigEndian) {
+<b class="nc">&nbsp;        String valueP = prepareNumberString(value, bigEndian);</b>
+<b class="nc">&nbsp;        if (valueP != null) {</b>
+<b class="nc">&nbsp;            int radixValue = isValidStringAndRadix(valueP, HEX_RADIX, value);</b>
+<b class="nc">&nbsp;            if (radixValue == HEX_RADIX) {</b>
+<b class="nc">&nbsp;                int bits = (int) Long.parseLong(valueP, HEX_RADIX);</b>
+&nbsp;                // If the length is not equal to 8 characters, we process it as an integer (eg &quot;0x0A&quot; for 10.0f).
+<b class="nc">&nbsp;                float floatValue = (float) bits;</b>
+<b class="nc">&nbsp;                return Float.valueOf(floatValue);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public static Double parseDouble(String value) {
+<b class="nc">&nbsp;        int radix = getRadix10_16(value);</b>
+<b class="nc">&nbsp;        return parseDouble(value, radix);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Double parseDouble(String value, int radix) {
+<b class="nc">&nbsp;        return parseDouble(value, radix, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Double parseDouble(String value, int radix, boolean bigEndian) {
+<b class="nc">&nbsp;        String valueP = prepareNumberString(value, bigEndian);</b>
+<b class="nc">&nbsp;        if (valueP != null) {</b>
+<b class="nc">&nbsp;            int radixValue = isValidStringAndRadix(valueP, radix, value);</b>
+<b class="nc">&nbsp;            if (radixValue == DEC_RADIX) {</b>
+<b class="nc">&nbsp;                return Double.parseDouble(valueP);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                long bits = Long.parseUnsignedLong(valueP, HEX_RADIX);</b>
+<b class="nc">&nbsp;                return Double.longBitsToDouble(bits);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseLittleEndianHexToInt(String hex) {
+<b class="nc">&nbsp;        return parseHexToInt(hex, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBigEndianHexToInt(String hex) {
+<b class="nc">&nbsp;        return parseHexToInt(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseHexToInt(String hex) {
+<b class="nc">&nbsp;        return parseHexToInt(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Integer parseHexToInt(String value, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseInt(value, HEX_RADIX, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseLittleEndianHexToLong(String hex) {
+<b class="nc">&nbsp;        return parseHexToLong(hex, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBigEndianHexToLong(String hex) {
+<b class="nc">&nbsp;        return parseHexToLong(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseHexToLong(String hex) {
+<b class="nc">&nbsp;        return parseHexToLong(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Long parseHexToLong(String value, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseLong(value, HEX_RADIX, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseLittleEndianHexToFloat(String hex) {
+<b class="nc">&nbsp;        return parseHexToFloat(hex, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBigEndianHexToFloat(String hex) {
+<b class="nc">&nbsp;        return parseHexToFloat(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseHexToFloat(String hex) {
+<b class="nc">&nbsp;        return parseHexToFloat(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Float parseHexToFloat(String value, boolean bigEndian) {
+<b class="nc">&nbsp;        String valueP = prepareNumberString(value, bigEndian);</b>
+<b class="nc">&nbsp;        if (valueP != null) {</b>
+<b class="nc">&nbsp;            return parseFloatFromString(value, valueP, HEX_RADIX);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseLittleEndianHexToDouble(String hex) {
+<b class="nc">&nbsp;        return parseHexToDouble(hex, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBigEndianHexToDouble(String hex) {
+<b class="nc">&nbsp;        return parseHexToDouble(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseHexToDouble(String hex) {
+<b class="nc">&nbsp;        return parseHexToDouble(hex, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseHexToDouble(String value, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseDouble(value, HEX_RADIX, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ExecutionArrayList&lt;Byte&gt; hexToBytes(ExecutionContext ctx, String value) {
+<b class="nc">&nbsp;        String hex = validateAndPrepareHex(value);</b>
+<b class="nc">&nbsp;        byte[] data = hexToBytes(hex);</b>
+<b class="nc">&nbsp;        return bytesToExecutionArrayList(ctx, data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] hexToBytesArray(String value) {
+<b class="nc">&nbsp;        String hex = validateAndPrepareHex(value);</b>
+<b class="nc">&nbsp;        return hexToBytes(hex);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;Integer&gt; printUnsignedBytes(ExecutionContext ctx, List&lt;Byte&gt; byteArray) {
+<b class="nc">&nbsp;        ExecutionArrayList&lt;Integer&gt; data = new ExecutionArrayList&lt;&gt;(ctx);</b>
+<b class="nc">&nbsp;        for (Byte b : byteArray) {</b>
+&nbsp;            // Convert signed byte to unsigned integer
+<b class="nc">&nbsp;            int unsignedByte = Byte.toUnsignedInt(b);</b>
+<b class="nc">&nbsp;            data.add(unsignedByte);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return data;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intToHex(Integer i) {
+<b class="nc">&nbsp;        return prepareNumberHexString(i.longValue(), true, false, HEX_LEN_MIN, HEX_LEN_INT_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intToHex(Integer i, boolean bigEndian) {
+<b class="nc">&nbsp;        return prepareNumberHexString(i.longValue(), bigEndian, false, HEX_LEN_MIN, HEX_LEN_INT_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intToHex(Integer i, boolean bigEndian, boolean pref) {
+<b class="nc">&nbsp;        return prepareNumberHexString(i.longValue(), bigEndian, pref, HEX_LEN_MIN, HEX_LEN_INT_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intToHex(Integer i, boolean bigEndian, boolean pref, int len) {
+<b class="nc">&nbsp;        return prepareNumberHexString(i.longValue(), bigEndian, pref, len, HEX_LEN_INT_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String longToHex(Long l) {
+<b class="nc">&nbsp;        return prepareNumberHexString(l, true, false, HEX_LEN_MIN, HEX_LEN_LONG_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String longToHex(Long l, boolean bigEndian) {
+<b class="nc">&nbsp;        return prepareNumberHexString(l, bigEndian, false, HEX_LEN_MIN, HEX_LEN_LONG_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String longToHex(Long l, boolean bigEndian, boolean pref) {
+<b class="nc">&nbsp;        return prepareNumberHexString(l, bigEndian, pref, HEX_LEN_MIN, HEX_LEN_LONG_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String longToHex(Long l, boolean bigEndian, boolean pref, int len) {
+<b class="nc">&nbsp;        return prepareNumberHexString(l, bigEndian, pref, len, HEX_LEN_LONG_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intLongToRadixString(Long number) {
+<b class="nc">&nbsp;        return intLongToRadixString(number, DEC_RADIX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intLongToRadixString(Long number, int radix) {
+<b class="nc">&nbsp;        return intLongToRadixString(number, radix, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intLongToRadixString(Long number, int radix, boolean bigEndian) {
+<b class="nc">&nbsp;        return intLongToRadixString(number, radix, bigEndian, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String intLongToRadixString(Long number, int radix, boolean bigEndian, boolean pref) {
+<b class="nc">&nbsp;        if (radix &gt;= 25 &amp;&amp; radix &lt;= MAX_RADIX) {</b>
+<b class="nc">&nbsp;            return Long.toString(number, radix);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return switch (radix) {</b>
+<b class="nc">&nbsp;            case MIN_RADIX -&gt; formatBinary(Long.toBinaryString(number));</b>
+<b class="nc">&nbsp;            case OCTAL_RADIX -&gt; Long.toOctalString(number);</b>
+<b class="nc">&nbsp;            case DEC_RADIX -&gt; Long.toString(number);</b>
+<b class="nc">&nbsp;            case HEX_RADIX -&gt; prepareNumberHexString(number, bigEndian, pref, -1, -1);</b>
+<b class="nc">&nbsp;            default -&gt; throw new IllegalArgumentException(&quot;Invalid radix: [&quot; + radix + &quot;]&quot;);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Number compareIntLongValueMinMax(String valueP, int radix, Number maxValue, Number minValue) {
+<b class="nc">&nbsp;        boolean isInteger = maxValue.getClass().getSimpleName().equals(&quot;Integer&quot;);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (isInteger) {</b>
+<b class="nc">&nbsp;                return Integer.parseInt(valueP, radix);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return Long.parseLong(valueP, radix);</b>
+&nbsp;            }
+&nbsp;        } catch (NumberFormatException e) {
+<b class="nc">&nbsp;            BigInteger bi = new BigInteger(valueP, radix);</b>
+<b class="nc">&nbsp;            long maxValueL = isInteger ? maxValue.longValue() : (long) maxValue;</b>
+<b class="nc">&nbsp;            if (bi.compareTo(BigInteger.valueOf(maxValueL)) &gt; 0) {</b>
+<b class="nc">&nbsp;                throw new NumberFormatException(&quot;Value \&quot;&quot; + valueP + &quot;\&quot;is greater than the maximum &quot; + maxValue.getClass().getSimpleName() + &quot; value &quot; + maxValue + &quot; !&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            long minValueL = isInteger ? minValue.longValue() : (long) minValue;</b>
+<b class="nc">&nbsp;            if (bi.compareTo(BigInteger.valueOf(minValueL)) &lt; 0) {</b>
+<b class="nc">&nbsp;                throw new NumberFormatException(&quot;Value \&quot;&quot; + valueP + &quot;\&quot; is  less than the minimum &quot; + minValue.getClass().getSimpleName() + &quot; value &quot; + minValue + &quot; !&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            throw new NumberFormatException(e.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String prepareNumberHexString(Long number, boolean bigEndian, boolean pref, int len, int hexLenMax) {
+<b class="nc">&nbsp;        String hex = Long.toHexString(number).toUpperCase();</b>
+<b class="nc">&nbsp;        hexLenMax = hexLenMax &lt; 0 ? hex.length() : hexLenMax;</b>
+<b class="nc">&nbsp;        String hexWithoutZeroFF = removeLeadingZero_FF(hex, number, hexLenMax);</b>
+<b class="nc">&nbsp;        hexWithoutZeroFF = bigEndian ? hexWithoutZeroFF : reverseHexStringByOrder(hexWithoutZeroFF);</b>
+<b class="nc">&nbsp;        len = len == HEX_LEN_MIN ? hexWithoutZeroFF.length() : len;</b>
+<b class="nc">&nbsp;        String result = hexWithoutZeroFF.substring(hexWithoutZeroFF.length() - len);</b>
+<b class="nc">&nbsp;        return pref ? &quot;0x&quot; + result : result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String removeLeadingZero_FF(String hex, Long number, int hexLenMax) {
+<b class="nc">&nbsp;        String hexWithoutZero = hex.replaceFirst(&quot;^0+(?!$)&quot;, &quot;&quot;); // Remove leading zeros except for the last one</b>
+<b class="nc">&nbsp;        hexWithoutZero = hexWithoutZero.length() % 2 &gt; 0 ? &quot;0&quot; + hexWithoutZero : hexWithoutZero;</b>
+<b class="nc">&nbsp;        if (number &gt;= 0) {</b>
+<b class="nc">&nbsp;            return hexWithoutZero;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            String hexWithoutZeroFF = hexWithoutZero.replaceFirst(&quot;^F+(?!$)&quot;, &quot;&quot;);</b>
+<b class="nc">&nbsp;            hexWithoutZeroFF = hexWithoutZeroFF.length() % 2 &gt; 0 ? &quot;F&quot; + hexWithoutZeroFF : hexWithoutZeroFF;</b>
+<b class="nc">&nbsp;            if (hexWithoutZeroFF.length() &gt; hexLenMax) {</b>
+<b class="nc">&nbsp;                return hexWithoutZeroFF.substring(hexWithoutZeroFF.length() - hexLenMax);</b>
+<b class="nc">&nbsp;            } else if (hexWithoutZeroFF.length() == hexLenMax) {</b>
+<b class="nc">&nbsp;                return hexWithoutZeroFF;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return &quot;FF&quot; + hexWithoutZeroFF;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String floatToHex(Float f) {
+<b class="nc">&nbsp;        return floatToHex(f, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String floatToHex(Float f, boolean bigEndian) {
+&nbsp;        // Convert the float to its raw integer bits representation
+<b class="nc">&nbsp;        int bits = Float.floatToIntBits(f);</b>
+&nbsp;
+&nbsp;        // Format the integer bits as a hexadecimal string
+<b class="nc">&nbsp;        String result = String.format(&quot;0x%08X&quot;, bits);</b>
+<b class="nc">&nbsp;        return bigEndian ? result : reverseHexStringByOrder(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String doubleToHex(Double d) {
+<b class="nc">&nbsp;        return doubleToHex(d, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String doubleToHex(Double d, boolean bigEndian) {
+<b class="nc">&nbsp;        long bits = Double.doubleToRawLongBits(d);</b>
+&nbsp;
+&nbsp;        // Format the integer bits as a hexadecimal string
+<b class="nc">&nbsp;        String result = String.format(&quot;0x%016X&quot;, bits);</b>
+<b class="nc">&nbsp;        return bigEndian ? result : reverseHexStringByOrder(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String base64ToHex(String base64) {
+<b class="nc">&nbsp;        return bytesToHex(Base64.getDecoder().decode(base64));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String hexToBase64(String hex) {
+<b class="nc">&nbsp;        return bytesToBase64(hexToBytes(hex));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String bytesToBase64(byte[] bytes) {
+<b class="nc">&nbsp;        return Base64.getEncoder().encodeToString(bytes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] base64ToBytes(String input) {
+<b class="nc">&nbsp;        return Base64.getDecoder().decode(input);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ExecutionArrayList&lt;Byte&gt; base64ToBytesList(ExecutionContext ctx, String input) {
+<b class="nc">&nbsp;        byte[] bytes = Base64.getDecoder().decode(input);</b>
+<b class="nc">&nbsp;        return bytesToExecutionArrayList(ctx, bytes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(List&lt;Byte&gt; data) {
+<b class="nc">&nbsp;        return parseBytesToInt(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(List&lt;Byte&gt; data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToInt(data, offset, validateLength(data.size(), offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(List&lt;Byte&gt; data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToInt(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(List&lt;Byte&gt; data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseBytesToInt(Bytes.toArray(data), offset, length, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(byte[] data) {
+<b class="nc">&nbsp;        return parseBytesToInt(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(byte[] data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToInt(data, offset, validateLength(data.length, offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(byte[] data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToInt(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBytesToInt(byte[] data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        validationNumberByLength(data, offset, length, BYTES_LEN_INT_MAX);</b>
+<b class="nc">&nbsp;        var bb = ByteBuffer.allocate(4);</b>
+<b class="nc">&nbsp;        if (!bigEndian) {</b>
+<b class="nc">&nbsp;            bb.order(ByteOrder.LITTLE_ENDIAN);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        bb.position(bigEndian ? 4 - length : 0);</b>
+<b class="nc">&nbsp;        bb.put(data, offset, length);</b>
+<b class="nc">&nbsp;        bb.position(0);</b>
+<b class="nc">&nbsp;        return bb.getInt();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(byte[] data) {
+<b class="nc">&nbsp;        return parseBytesToUnsignedInt(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(byte[] data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToUnsignedInt(data, offset, validateLength(data.length, offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(byte[] data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToUnsignedInt(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(byte[] data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        validationNumberByLength(data, offset, length, BYTES_LEN_INT_MAX);</b>
+&nbsp;
+<b class="nc">&nbsp;        ByteBuffer bb = ByteBuffer.allocate(8);</b>
+<b class="nc">&nbsp;        if (!bigEndian) {</b>
+<b class="nc">&nbsp;            bb.order(ByteOrder.LITTLE_ENDIAN);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        bb.position(bigEndian ? 8 - length : 0);</b>
+<b class="nc">&nbsp;        bb.put(data, offset, length);</b>
+<b class="nc">&nbsp;        bb.position(0);</b>
+&nbsp;
+<b class="nc">&nbsp;        return bb.getLong();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(List&lt;Byte&gt; data) {
+<b class="nc">&nbsp;        return parseBytesToUnsignedInt(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(List&lt;Byte&gt; data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToUnsignedInt(data, offset, validateLength(data.size(), offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(List&lt;Byte&gt; data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToUnsignedInt(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToUnsignedInt(List&lt;Byte&gt; data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseBytesToUnsignedInt(Bytes.toArray(data), offset, length, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(List&lt;Byte&gt; data) {
+<b class="nc">&nbsp;        return parseBytesToLong(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(List&lt;Byte&gt; data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToLong(data, offset, validateLength(data.size(), offset, BYTES_LEN_LONG_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(List&lt;Byte&gt; data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToLong(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(List&lt;Byte&gt; data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseBytesToLong(Bytes.toArray(data), offset, length, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(byte[] data) {
+<b class="nc">&nbsp;        return parseBytesToLong(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(byte[] data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToLong(data, offset, validateLength(data.length, offset, BYTES_LEN_LONG_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(byte[] data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToLong(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parseBytesToLong(byte[] data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        validationNumberByLength(data, offset, length, BYTES_LEN_LONG_MAX);</b>
+<b class="nc">&nbsp;        var bb = ByteBuffer.allocate(BYTES_LEN_LONG_MAX);</b>
+<b class="nc">&nbsp;        if (!bigEndian) {</b>
+<b class="nc">&nbsp;            bb.order(ByteOrder.LITTLE_ENDIAN);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        bb.position(bigEndian ? BYTES_LEN_LONG_MAX - length : 0);</b>
+<b class="nc">&nbsp;        bb.put(data, offset, length);</b>
+<b class="nc">&nbsp;        bb.position(0);</b>
+<b class="nc">&nbsp;        return bb.getLong();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(List data) {
+<b class="nc">&nbsp;        return parseBytesToFloat(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(List data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToFloat(data, offset, validateLength(data.size(), offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(List data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToFloat(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(List data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseBytesToFloat(Bytes.toArray(data), offset, length, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(byte[] data) {
+<b class="nc">&nbsp;        return parseBytesToFloat(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(byte[] data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToFloat(data, offset, validateLength(data.length, offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(byte[] data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToFloat(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesToFloat(byte[] data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        var bb = ByteBuffer.allocate(BYTES_LEN_INT_MAX);</b>
+<b class="nc">&nbsp;        if (!bigEndian) {</b>
+<b class="nc">&nbsp;            bb.order(ByteOrder.LITTLE_ENDIAN);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        bb.position(bigEndian ? BYTES_LEN_INT_MAX - length : 0);</b>
+<b class="nc">&nbsp;        bb.put(data, offset, length);</b>
+<b class="nc">&nbsp;        bb.position(0);</b>
+<b class="nc">&nbsp;        float floatValue = bb.getFloat();</b>
+<b class="nc">&nbsp;        if (Float.isNaN(floatValue)) {</b>
+<b class="nc">&nbsp;            throw new NumberFormatException(&quot;byte[] 0x&quot; + bytesToHex(data) + &quot; is a Not-a-Number (NaN) value&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return floatValue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(List data) {
+<b class="nc">&nbsp;        return parseBytesIntToFloat(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(List data, int offset) {
+<b class="nc">&nbsp;        return parseBytesIntToFloat(data, offset, validateLength(data.size(), offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(List data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesIntToFloat(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(List data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseBytesIntToFloat(Bytes.toArray(data), offset, length, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(byte[] data) {
+<b class="nc">&nbsp;        return parseBytesIntToFloat(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(byte[] data, int offset) {
+<b class="nc">&nbsp;        return parseBytesIntToFloat(data, offset, validateLength(data.length, offset, BYTES_LEN_INT_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(byte[] data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesIntToFloat(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static float parseBytesIntToFloat(byte[] data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        byte[] bytesToNumber = prepareBytesToNumber(data, offset, length, bigEndian, BYTES_LEN_INT_MAX);</b>
+<b class="nc">&nbsp;        long longValue = parseBytesToLong(bytesToNumber, 0, length);</b>
+<b class="nc">&nbsp;        BigDecimal bigDecimalValue = new BigDecimal(longValue);</b>
+<b class="nc">&nbsp;        return bigDecimalValue.floatValue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(List data) {
+<b class="nc">&nbsp;        return parseBytesToDouble(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(List data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToDouble(data, offset, validateLength(data.size(), offset, BYTES_LEN_LONG_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(List data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToDouble(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(List data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseBytesToDouble(Bytes.toArray(data), offset, length, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(byte[] data) {
+<b class="nc">&nbsp;        return parseBytesToDouble(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(byte[] data, int offset) {
+<b class="nc">&nbsp;        return parseBytesToDouble(data, offset, validateLength(data.length, offset, BYTES_LEN_LONG_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(byte[] data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesToDouble(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesToDouble(byte[] data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        var bb = ByteBuffer.allocate(BYTES_LEN_LONG_MAX);</b>
+<b class="nc">&nbsp;        if (!bigEndian) {</b>
+<b class="nc">&nbsp;            bb.order(ByteOrder.LITTLE_ENDIAN);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        bb.position(bigEndian ? BYTES_LEN_LONG_MAX - length : 0);</b>
+<b class="nc">&nbsp;        bb.put(data, offset, length);</b>
+<b class="nc">&nbsp;        bb.position(0);</b>
+<b class="nc">&nbsp;        double doubleValue = bb.getDouble();</b>
+<b class="nc">&nbsp;        if (Double.isNaN(doubleValue)) {</b>
+<b class="nc">&nbsp;            throw new NumberFormatException(&quot;byte[] 0x&quot; + bytesToHex(data) + &quot; is a Not-a-Number (NaN) value&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return doubleValue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(List data) {
+<b class="nc">&nbsp;        return parseBytesLongToDouble(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(List data, int offset) {
+<b class="nc">&nbsp;        return parseBytesLongToDouble(data, offset, validateLength(data.size(), offset, BYTES_LEN_LONG_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(List data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesLongToDouble(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(List data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        return parseBytesLongToDouble(Bytes.toArray(data), offset, length, bigEndian);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(byte[] data) {
+<b class="nc">&nbsp;        return parseBytesLongToDouble(data, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(byte[] data, int offset) {
+<b class="nc">&nbsp;        return parseBytesLongToDouble(data, offset, validateLength(data.length, offset, BYTES_LEN_LONG_MAX));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(byte[] data, int offset, int length) {
+<b class="nc">&nbsp;        return parseBytesLongToDouble(data, offset, length, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static double parseBytesLongToDouble(byte[] data, int offset, int length, boolean bigEndian) {
+<b class="nc">&nbsp;        byte[] bytesToNumber = prepareBytesToNumber(data, offset, length, bigEndian, BYTES_LEN_LONG_MAX);</b>
+<b class="nc">&nbsp;        BigInteger bigInt = new BigInteger(1, bytesToNumber);</b>
+<b class="nc">&nbsp;        BigDecimal bigDecimalValue = new BigDecimal(bigInt);</b>
+<b class="nc">&nbsp;        return bigDecimalValue.doubleValue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static byte[] prepareBytesToNumber(byte[] data, int offset, int length, boolean bigEndian,
+&nbsp;                                               int bytesLenMax) {
+<b class="nc">&nbsp;        validationNumberByLength(data, offset, length, bytesLenMax);</b>
+<b class="nc">&nbsp;        byte[] dataBytesArray = Arrays.copyOfRange(data, offset, (offset + length));</b>
+<b class="nc">&nbsp;        if (!bigEndian) {</b>
+<b class="nc">&nbsp;            ArrayUtils.reverse(dataBytesArray);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return dataBytesArray;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String bytesToHex(ExecutionArrayList&lt;?&gt; bytesList) {
+<b class="nc">&nbsp;        byte[] bytes = new byte[bytesList.size()];</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; bytesList.size(); i++) {</b>
+<b class="nc">&nbsp;            bytes[i] = Byte.parseByte(bytesList.get(i).toString());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return bytesToHex(bytes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String bytesToHex(byte[] bytes) {
+<b class="nc">&nbsp;        byte[] hexChars = new byte[bytes.length * 2];</b>
+<b class="nc">&nbsp;        for (int j = 0; j &lt; bytes.length; j++) {</b>
+<b class="nc">&nbsp;            int v = bytes[j] &amp; 0xFF;</b>
+<b class="nc">&nbsp;            hexChars[j * 2] = HEX_ARRAY[v &gt;&gt;&gt; 4];</b>
+<b class="nc">&nbsp;            hexChars[j * 2 + 1] = HEX_ARRAY[v &amp; 0x0F];</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new String(hexChars, StandardCharsets.UTF_8);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ExecutionHashMap&lt;String, Object&gt; toFlatMap(ExecutionContext ctx, Map&lt;String, Object&gt; json) {
+<b class="nc">&nbsp;        return toFlatMap(ctx, json, new ArrayList&lt;&gt;(), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ExecutionHashMap&lt;String, Object&gt; toFlatMap(ExecutionContext ctx, Map&lt;String, Object&gt; json, boolean pathInKey) {
+<b class="nc">&nbsp;        return toFlatMap(ctx, json, new ArrayList&lt;&gt;(), pathInKey);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ExecutionHashMap&lt;String, Object&gt; toFlatMap(ExecutionContext ctx, Map&lt;String, Object&gt; json, List&lt;String&gt; excludeList) {
+<b class="nc">&nbsp;        return toFlatMap(ctx, json, excludeList, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ExecutionHashMap&lt;String, Object&gt; toFlatMap(ExecutionContext ctx, Map&lt;String, Object&gt; json, List&lt;String&gt; excludeList, boolean pathInKey) {
+<b class="nc">&nbsp;        ExecutionHashMap&lt;String, Object&gt; map = new ExecutionHashMap&lt;&gt;(16, ctx);</b>
+<b class="nc">&nbsp;        parseRecursive(json, map, excludeList, &quot;&quot;, pathInKey);</b>
+<b class="nc">&nbsp;        return map;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String encodeURI(String uri) {
+<b class="nc">&nbsp;        String encoded = URLEncoder.encode(uri, StandardCharsets.UTF_8);</b>
+<b class="nc">&nbsp;        for (var entry : mdnEncodingReplacements.entrySet()) {</b>
+<b class="nc">&nbsp;            encoded = encoded.replaceAll(entry.getKey(), entry.getValue());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return encoded;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String decodeURI(String uri) {
+<b class="nc">&nbsp;        ArrayList&lt;String&gt; allKeys = new ArrayList&lt;&gt;(mdnEncodingReplacements.keySet());</b>
+<b class="nc">&nbsp;        Collections.reverse(allKeys);</b>
+<b class="nc">&nbsp;        for (String strKey : allKeys) {</b>
+<b class="nc">&nbsp;            uri = uri.replaceAll(mdnEncodingReplacements.get(strKey), strKey);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return URLDecoder.decode(uri, StandardCharsets.UTF_8);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void raiseError(String message) {
+<b class="nc">&nbsp;        throw new RuntimeException(message);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void parseRecursive(Object json, Map&lt;String, Object&gt; map, List&lt;String&gt; excludeList, String path, boolean pathInKey) {
+<b class="nc">&nbsp;        if (json instanceof Map.Entry) {</b>
+<b class="nc">&nbsp;            Map.Entry&lt;?, ?&gt; entry = (Map.Entry&lt;?, ?&gt;) json;</b>
+<b class="nc">&nbsp;            if (StringUtils.isNotBlank(path)) {</b>
+<b class="nc">&nbsp;                path += &quot;.&quot;;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (excludeList.contains(entry.getKey())) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            path += entry.getKey();</b>
+<b class="nc">&nbsp;            json = entry.getValue();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (json instanceof Set || json instanceof List) {</b>
+<b class="nc">&nbsp;            String arrayPath = path + &quot;.&quot;;</b>
+<b class="nc">&nbsp;            Object[] collection = ((Collection&lt;?&gt;) json).toArray();</b>
+<b class="nc">&nbsp;            for (int index = 0; index &lt; collection.length; index++) {</b>
+<b class="nc">&nbsp;                parseRecursive(collection[index], map, excludeList, arrayPath + index, pathInKey);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (json instanceof Map) {</b>
+<b class="nc">&nbsp;            Map&lt;?, ?&gt; node = (Map&lt;?, ?&gt;) json;</b>
+<b class="nc">&nbsp;            for (Map.Entry&lt;?, ?&gt; entry : node.entrySet()) {</b>
+<b class="nc">&nbsp;                parseRecursive(entry, map, excludeList, path, pathInKey);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (pathInKey) {</b>
+<b class="nc">&nbsp;                map.put(path, json);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                String key = path.substring(path.lastIndexOf(&#39;.&#39;) + 1);</b>
+<b class="nc">&nbsp;                if (StringUtils.isNumeric(key)) {</b>
+<b class="nc">&nbsp;                    int pos = path.length();</b>
+<b class="nc">&nbsp;                    for (int i = 0; i &lt; 2; i++) {</b>
+<b class="nc">&nbsp;                        pos = path.lastIndexOf(&#39;.&#39;, pos - 1);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    key = path.substring(pos + 1);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                map.put(key, json);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String prepareNumberString(String value, boolean bigEndian) {
+<b class="nc">&nbsp;        if (StringUtils.isNotBlank(value)) {</b>
+<b class="nc">&nbsp;            value = value.trim();</b>
+<b class="nc">&nbsp;            value = value.replace(&quot;0x&quot;, &quot;&quot;);</b>
+<b class="nc">&nbsp;            value = value.replace(&quot;0X&quot;, &quot;&quot;);</b>
+<b class="nc">&nbsp;            value = value.replace(&quot;,&quot;, &quot;.&quot;);</b>
+<b class="nc">&nbsp;            return bigEndian ? value : reverseHexStringByOrder(value);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static int isValidStringAndRadix(String valueP, int radix, String value) {
+&nbsp;        int radixValue;
+<b class="nc">&nbsp;        if (radix == 0) {</b>
+<b class="nc">&nbsp;            radixValue = getRadix10_16(valueP);</b>
+<b class="nc">&nbsp;        } else if (radix &gt;= 25 &amp;&amp; radix &lt;= MAX_RADIX) {</b>
+<b class="nc">&nbsp;            return radix;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            radixValue = switch (radix) {</b>
+<b class="nc">&nbsp;                case MIN_RADIX -&gt; isBinary(valueP);</b>
+<b class="nc">&nbsp;                case OCTAL_RADIX -&gt; isOctal(valueP);</b>
+<b class="nc">&nbsp;                case DEC_RADIX -&gt; isDecimal(valueP);</b>
+<b class="nc">&nbsp;                case HEX_RADIX -&gt; isHexadecimal(valueP);</b>
+<b class="nc">&nbsp;                default -&gt; throw new IllegalArgumentException(&quot;Invalid radix: [&quot; + radix + &quot;]&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            };</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (radixValue &gt; 0) {</b>
+<b class="nc">&nbsp;            if (value.startsWith(&quot;0x&quot;)) radixValue = HEX_RADIX;</b>
+<b class="nc">&nbsp;            if (radixValue == HEX_RADIX) {</b>
+<b class="nc">&nbsp;                valueP = value.startsWith(&quot;-&quot;) ? value.substring(1) : value;</b>
+<b class="nc">&nbsp;                if (valueP.length() % 2 &gt; 0) {</b>
+<b class="nc">&nbsp;                    throw new NumberFormatException(&quot;The hexadecimal value: \&quot;&quot; + value + &quot;\&quot; must be of even length, or if the decimal value must be a number!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return radixValue;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (radix &gt; 0) {</b>
+<b class="nc">&nbsp;                throw new NumberFormatException(&quot;Failed radix [&quot; + radix + &quot;] for value: \&quot;&quot; + value + &quot;\&quot;, must be [&quot; + radixValue + &quot;] !&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new NumberFormatException(&quot;Invalid \&quot;&quot; + value + &quot;\&quot;. It is not numeric or hexadecimal format!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int isBinary(String str) {
+<b class="nc">&nbsp;        if (str == null || str.isEmpty()) {</b>
+<b class="nc">&nbsp;            return -1;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return str.matches(&quot;[01]+&quot;) ? MIN_RADIX : -1;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int isOctal(String str) {
+<b class="nc">&nbsp;        if (str == null || str.isEmpty()) {</b>
+<b class="nc">&nbsp;            return -1;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return str.matches(&quot;[0-7]+&quot;) ? OCTAL_RADIX : -1;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int isDecimal(String str) {
+<b class="nc">&nbsp;        if (str == null || str.isEmpty()) {</b>
+<b class="nc">&nbsp;            return -1;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return str.matches(&quot;[+-]?\\d+(\\.\\d+)?([eE][+-]?\\d+)?&quot;) ? DEC_RADIX : -1;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int isHexadecimal(String str) {
+<b class="nc">&nbsp;        if (str == null || str.isEmpty()) {</b>
+<b class="nc">&nbsp;            return -1;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return str.matches(&quot;^-?(0[xX])?[0-9a-fA-F]+$&quot;) ? HEX_RADIX : -1;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ExecutionArrayList&lt;Byte&gt; bytesToExecutionArrayList(ExecutionContext ctx, byte[] byteArray) {
+<b class="nc">&nbsp;        List&lt;Byte&gt; byteList = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (byte b : byteArray) {</b>
+<b class="nc">&nbsp;            byteList.add(b);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ExecutionArrayList&lt;Byte&gt; list = new ExecutionArrayList(byteList, ctx);</b>
+<b class="nc">&nbsp;        return list;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String padStart(String str, int targetLength, char padString) {
+<b class="nc">&nbsp;        while (str.length() &lt; targetLength) {</b>
+<b class="nc">&nbsp;            str = padString + str;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return str;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String padEnd(String str, int targetLength, char padString) {
+<b class="nc">&nbsp;        while (str.length() &lt; targetLength) {</b>
+<b class="nc">&nbsp;            str = str + padString;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return str;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] parseByteToBinaryArray(byte byteValue) {
+<b class="nc">&nbsp;        return parseByteToBinaryArray(byteValue, BIN_LEN_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] parseByteToBinaryArray(byte byteValue, int binLength) {
+<b class="nc">&nbsp;        return parseByteToBinaryArray(byteValue, binLength, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * bigEndian = true
+&nbsp;     * Writes the bit value to the appropriate location in the bins array, starting at the end of the array,
+&nbsp;     * to ensure proper alignment (highest bit to low end).
+&nbsp;     */
+&nbsp;    public static byte[] parseByteToBinaryArray(byte byteValue, int binLength, boolean bigEndian) {
+<b class="nc">&nbsp;        byte[] bins = new byte[binLength];</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; binLength; i++) {</b>
+<b class="nc">&nbsp;            if (bigEndian) {</b>
+<b class="nc">&nbsp;                bins[binLength - 1 - i] = (byte) ((byteValue &gt;&gt; i) &amp; 1);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                bins[i] = (byte) ((byteValue &gt;&gt; i) &amp; 1);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return bins;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] parseBytesToBinaryArray(List listValue) {
+<b class="nc">&nbsp;        return parseBytesToBinaryArray(listValue, listValue.size() * BIN_LEN_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] parseBytesToBinaryArray(List listValue, int binLength) {
+<b class="nc">&nbsp;        return parseBytesToBinaryArray(Bytes.toArray(listValue), binLength);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] parseBytesToBinaryArray(byte[] bytesValue) {
+<b class="nc">&nbsp;        return parseLongToBinaryArray(parseBytesToLong(bytesValue), bytesValue.length * BIN_LEN_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] parseBytesToBinaryArray(byte[] bytesValue, int binLength) {
+<b class="nc">&nbsp;        return parseLongToBinaryArray(parseBytesToLong(bytesValue), binLength);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static byte[] parseLongToBinaryArray(long longValue) {
+<b class="nc">&nbsp;        return parseLongToBinaryArray(longValue, BYTES_LEN_LONG_MAX * BIN_LEN_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Writes the bit value to the appropriate location in the bins array, starting at the end of the array,
+&nbsp;     * to ensure proper alignment (highest bit to low end).
+&nbsp;     */
+&nbsp;    public static byte[] parseLongToBinaryArray(long longValue, int binLength) {
+<b class="nc">&nbsp;        int len = Math.min(binLength, BYTES_LEN_LONG_MAX * BIN_LEN_MAX);</b>
+<b class="nc">&nbsp;        byte[] bins = new byte[len];</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; len; i++) {</b>
+<b class="nc">&nbsp;            bins[len - 1 - i] = (byte) ((longValue &gt;&gt; i) &amp; 1);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return bins;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBinaryArrayToInt(List listValue) {
+<b class="nc">&nbsp;        return parseBinaryArrayToInt(listValue, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBinaryArrayToInt(List listValue, int offset) {
+<b class="nc">&nbsp;        return parseBinaryArrayToInt(listValue, offset, listValue.size());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBinaryArrayToInt(List listValue, int offset, int length) {
+<b class="nc">&nbsp;        return parseBinaryArrayToInt(Bytes.toArray(listValue), offset, length);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBinaryArrayToInt(byte[] bytesValue) {
+<b class="nc">&nbsp;        return parseBinaryArrayToInt(bytesValue, 0);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBinaryArrayToInt(byte[] bytesValue, int offset) {
+<b class="nc">&nbsp;        return parseBinaryArrayToInt(bytesValue, offset, bytesValue.length);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static int parseBinaryArrayToInt(byte[] bytesValue, int offset, int length) {
+<b class="nc">&nbsp;        int result = 0;</b>
+<b class="nc">&nbsp;        int len = Math.min(length + offset, bytesValue.length);</b>
+<b class="nc">&nbsp;        for (int i = offset; i &lt; len; i++) {</b>
+<b class="nc">&nbsp;            result = (result &lt;&lt; 1) | (bytesValue[i] &amp; 1);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // For the one byte (8 bit) only If the most significant bit (sign) is set, we convert the result into a negative number
+<b class="nc">&nbsp;        if ((bytesValue.length == BIN_LEN_MAX)</b>
+&nbsp;                &amp;&amp; offset == 0 &amp;&amp; bytesValue[0] == 1) {
+<b class="nc">&nbsp;            result -= (1 &lt;&lt; (len - offset));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isInsidePolygon(double latitude, double longitude, String perimeter) {
+<b class="nc">&nbsp;        return GeoUtil.contains(perimeter, new Coordinates(latitude, longitude));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isInsideCircle(double latitude, double longitude, String perimeter) {
+<b class="nc">&nbsp;        JsonNode perimeterJson = JacksonUtil.toJsonNode(perimeter);</b>
+<b class="nc">&nbsp;        double centerLatitude = Double.parseDouble(perimeterJson.get(&quot;latitude&quot;).asText());</b>
+<b class="nc">&nbsp;        double centerLongitude = Double.parseDouble(perimeterJson.get(&quot;longitude&quot;).asText());</b>
+<b class="nc">&nbsp;        double range = Double.parseDouble(perimeterJson.get(&quot;radius&quot;).asText());</b>
+<b class="nc">&nbsp;        RangeUnit rangeUnit = perimeterJson.has(&quot;radiusUnit&quot;) ? RangeUnit.valueOf(perimeterJson.get(&quot;radiusUnit&quot;).asText()) : RangeUnit.METER;</b>
+&nbsp;
+<b class="nc">&nbsp;        Coordinates entityCoordinates = new Coordinates(latitude, longitude);</b>
+<b class="nc">&nbsp;        Coordinates perimeterCoordinates = new Coordinates(centerLatitude, centerLongitude);</b>
+<b class="nc">&nbsp;        return range &gt; GeoUtil.distance(entityCoordinates, perimeterCoordinates, rangeUnit);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isMap(Object obj) {
+<b class="nc">&nbsp;        return obj instanceof Map;</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isList(Object obj) {
+<b class="nc">&nbsp;        return obj instanceof List;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isArray(Object obj) {
+<b class="nc">&nbsp;        return obj != null &amp;&amp; obj.getClass().isArray();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;E&gt; Set&lt;E&gt; newSet(ExecutionContext ctx) {
+<b class="nc">&nbsp;        return new ExecutionLinkedHashSet&lt;&gt;(ctx);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;E&gt; Set&lt;E&gt; toSet(ExecutionContext ctx, List&lt;E&gt; list) {
+<b class="nc">&nbsp;        Set&lt;E&gt; newSet = new LinkedHashSet&lt;&gt;(list);</b>
+<b class="nc">&nbsp;        return new ExecutionLinkedHashSet&lt;&gt;(newSet, ctx);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isSet(Object obj) {
+<b class="nc">&nbsp;        return obj instanceof Set;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static byte isValidIntegerToByte(Integer val) {
+<b class="nc">&nbsp;        if (val &gt; 255 || val &lt; -128) {</b>
+<b class="nc">&nbsp;            throw new NumberFormatException(&quot;The value &#39;&quot; + val + &quot;&#39; could not be correctly converted to a byte. &quot; +</b>
+&nbsp;                    &quot;Integer to byte conversion requires the use of only 8 bits (with a range of min/max = -128/255)!&quot;);
+&nbsp;        } else {
+<b class="nc">&nbsp;            return val.byteValue();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String reverseHexStringByOrder(String value) {
+<b class="nc">&nbsp;        if (value.startsWith(&quot;-&quot;)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;The hexadecimal string must be without a negative sign.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        boolean isHexPref = value.startsWith(&quot;0x&quot;);</b>
+<b class="nc">&nbsp;        String hex = isHexPref ? value.substring(2) : value;</b>
+<b class="nc">&nbsp;        if (hex.length() % 2 &gt; 0) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;The hexadecimal string must be even-length.&quot;);</b>
+&nbsp;        }
+&nbsp;        // Split the hex string into bytes (2 characters each)
+<b class="nc">&nbsp;        StringBuilder reversedHex = new StringBuilder(BYTES_LEN_LONG_MAX);</b>
+<b class="nc">&nbsp;        for (int i = hex.length() - 2; i &gt;= 0; i -= 2) {</b>
+<b class="nc">&nbsp;            reversedHex.append(hex, i, i + 2);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String result = reversedHex.toString();</b>
+<b class="nc">&nbsp;        return isHexPref ? &quot;0x&quot; + result : result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validationNumberByLength(byte[] data, int offset, int length, int bytesLenMax) {
+<b class="nc">&nbsp;        if (offset &gt; data.length) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Offset: &quot; + offset + &quot; is out of bounds for array with length: &quot; + data.length + &quot;!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (offset + length &gt; data.length) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Offset: &quot; + offset + &quot; and Length: &quot; + length + &quot; is out of bounds for array with length: &quot; + data.length + &quot;!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (length &gt; bytesLenMax) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Length: &quot; + length + &quot; is too large. Maximum &quot; + bytesLenMax + &quot; bytes is allowed!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static int validateLength(int dataLength, int offset, int bytesLenMax) {
+<b class="nc">&nbsp;        return (dataLength &lt; offset) ? dataLength : Math.min((dataLength - offset), bytesLenMax);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String formatBinary(String binaryString) {
+<b class="nc">&nbsp;        int format = binaryString.length() &lt; 8 ? 8 :</b>
+<b class="nc">&nbsp;                binaryString.length() &lt; 16 ? 16 :</b>
+<b class="nc">&nbsp;                        binaryString.length() &lt; 32 ? 32 :</b>
+<b class="nc">&nbsp;                                binaryString.length() &lt; 64 ? 64 : 0;</b>
+<b class="nc">&nbsp;        return format == 0 ? binaryString : String.format(&quot;%&quot; + format + &quot;s&quot;, binaryString).replace(&#39; &#39;, &#39;0&#39;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static byte[] hexToBytes(String hex) {
+<b class="nc">&nbsp;        byte[] data = new byte[hex.length() / 2];</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; hex.length(); i += 2) {</b>
+&nbsp;            // Extract two characters from the hex string
+<b class="nc">&nbsp;            String byteString = hex.substring(i, i + 2);</b>
+&nbsp;            // Parse the hex string to a byte
+<b class="nc">&nbsp;            byte byteValue = (byte) Integer.parseInt(byteString, HEX_RADIX);</b>
+&nbsp;            // Add the byte to the ArrayList
+<b class="nc">&nbsp;            data[i / 2] = byteValue;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return data;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String validateAndPrepareHex(String value) {
+<b class="nc">&nbsp;        String hex = prepareNumberString(value, true);</b>
+<b class="nc">&nbsp;        if (hex == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Hex string must be not empty!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        int len = hex.length();</b>
+<b class="nc">&nbsp;        if (len % 2 &gt; 0) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Hex string must be even-length.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        int radix = isHexadecimal(value);</b>
+<b class="nc">&nbsp;        if (radix != HEX_RADIX) {</b>
+<b class="nc">&nbsp;            throw new NumberFormatException(&quot;Value: \&quot;&quot; + value + &quot;\&quot; is not numeric or hexDecimal format!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return hex;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

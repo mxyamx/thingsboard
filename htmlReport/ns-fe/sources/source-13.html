@@ -1,0 +1,624 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DeviceProfileDataValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.service.validator</a>
+</div>
+
+<h1>Coverage Summary for Class: DeviceProfileDataValidator (org.thingsboard.server.dao.service.validator)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DeviceProfileDataValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/168)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/197)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DeviceProfileDataValidator$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/168)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/198)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.service.validator;
+&nbsp;
+&nbsp;import com.google.protobuf.Descriptors;
+&nbsp;import com.google.protobuf.DynamicMessage;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.core.security.util.SecurityUtil;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.data.DashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfileProvisionType;
+&nbsp;import org.thingsboard.server.common.data.DynamicProtoUtils;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode;
+&nbsp;import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.CoapDeviceTypeConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.RPKLwM2MBootstrapServerCredential;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.X509LwM2MBootstrapServerCredential;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.queue.Queue;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.msg.EncryptionUtil;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceDao;
+&nbsp;import org.thingsboard.server.dao.device.DeviceProfileDao;
+&nbsp;import org.thingsboard.server.dao.device.DeviceProfileService;
+&nbsp;import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
+&nbsp;import org.thingsboard.server.dao.queue.QueueService;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainService;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;
+&nbsp;import java.io.FileInputStream;
+&nbsp;import java.security.KeyStore;
+&nbsp;import java.security.cert.CertificateEncodingException;
+&nbsp;import java.security.cert.PKIXParameters;
+&nbsp;import java.security.cert.TrustAnchor;
+&nbsp;import java.security.cert.X509Certificate;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.device.credentials.lwm2m.Lwm2mServerIdentifier.LWM2M_SERVER_MAX;
+&nbsp;import static org.thingsboard.server.common.data.device.credentials.lwm2m.Lwm2mServerIdentifier.PRIMARY_LWM2M_SERVER;
+&nbsp;import static org.thingsboard.server.common.data.device.credentials.lwm2m.Lwm2mServerIdentifier.isNotLwm2mServer;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+<b class="nc">&nbsp;public class DeviceProfileDataValidator extends AbstractHasOtaPackageValidator&lt;DeviceProfile&gt; {</b>
+&nbsp;
+&nbsp;    private static final String ATTRIBUTES_PROTO_SCHEMA = &quot;attributes proto schema&quot;;
+&nbsp;    private static final String TELEMETRY_PROTO_SCHEMA = &quot;telemetry proto schema&quot;;
+&nbsp;    private static final String RPC_REQUEST_PROTO_SCHEMA = &quot;rpc request proto schema&quot;;
+&nbsp;    private static final String RPC_RESPONSE_PROTO_SCHEMA = &quot;rpc response proto schema&quot;;
+&nbsp;    private static final String EXCEPTION_PREFIX = &quot;[Transport Configuration]&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DeviceProfileDao deviceProfileDao;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private DeviceProfileService deviceProfileService;
+&nbsp;    @Autowired
+&nbsp;    private DeviceDao deviceDao;
+&nbsp;    @Autowired
+&nbsp;    private TenantService tenantService;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    private QueueService queueService;
+&nbsp;    @Autowired
+&nbsp;    private RuleChainService ruleChainService;
+&nbsp;    @Autowired
+&nbsp;    private DashboardService dashboardService;
+&nbsp;
+&nbsp;    @Value(&quot;${transport.lwm2m.server.bind_port:5685}&quot;)
+&nbsp;    private Integer lwm2mPort;
+&nbsp;
+&nbsp;    @Value(&quot;${transport.lwm2m.server.security.bind_port:5686}&quot;)
+&nbsp;    private Integer lwm2mSecurePort;
+&nbsp;
+&nbsp;    @Value(&quot;${transport.lwm2m.bootstrap.bind_port:5687}&quot;)
+&nbsp;    private Integer lwm2mBootstrapPort;
+&nbsp;
+&nbsp;    @Value(&quot;${transport.lwm2m.bootstrap.security.bind_port:5688}&quot;)
+&nbsp;    private Integer lwm2mBootstrapSecurePort;
+&nbsp;
+&nbsp;    @Value(&quot;${security.java_cacerts.path:}&quot;)
+&nbsp;    private String javaCacertsPath;
+&nbsp;
+&nbsp;    @Value(&quot;${security.java_cacerts.password:}&quot;)
+&nbsp;    private String javaCacertsPassword;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void validateDataImpl(TenantId tenantId, DeviceProfile deviceProfile) {
+<b class="nc">&nbsp;        validateString(&quot;Device profile name&quot;, deviceProfile.getName());</b>
+<b class="nc">&nbsp;        if (deviceProfile.getType() == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Device profile type should be specified!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (deviceProfile.getTransportType() == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Device profile transport type should be specified!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (deviceProfile.getTenantId() == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Device profile should be assigned to tenant!&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (!tenantService.tenantExists(deviceProfile.getTenantId())) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Device profile is referencing to non-existent tenant!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (deviceProfile.isDefault()) {</b>
+<b class="nc">&nbsp;            DeviceProfile defaultDeviceProfile = deviceProfileService.findDefaultDeviceProfile(tenantId);</b>
+<b class="nc">&nbsp;            if (defaultDeviceProfile != null &amp;&amp; !defaultDeviceProfile.getId().equals(deviceProfile.getId())) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Another default device profile is present in scope of current tenant!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(deviceProfile.getDefaultQueueName())) {</b>
+<b class="nc">&nbsp;            Queue queue = queueService.findQueueByTenantIdAndName(tenantId, deviceProfile.getDefaultQueueName());</b>
+<b class="nc">&nbsp;            if (queue == null) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Device profile is referencing to non-existent queue!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (deviceProfile.getProvisionType() == null) {</b>
+<b class="nc">&nbsp;            deviceProfile.setProvisionType(DeviceProfileProvisionType.DISABLED);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (deviceProfile.getProvisionDeviceKey() != null &amp;&amp; DeviceProfileProvisionType.X509_CERTIFICATE_CHAIN.equals(deviceProfile.getProvisionType())) {</b>
+<b class="nc">&nbsp;            if (isDeviceProfileCertificateInJavaCacerts(deviceProfile.getProfileData().getProvisionConfiguration().getProvisionDeviceSecret())) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Device profile certificate cannot be well known root CA!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        DeviceProfileTransportConfiguration transportConfiguration = deviceProfile.getProfileData().getTransportConfiguration();</b>
+<b class="nc">&nbsp;        transportConfiguration.validate();</b>
+<b class="nc">&nbsp;        if (transportConfiguration instanceof MqttDeviceProfileTransportConfiguration) {</b>
+<b class="nc">&nbsp;            MqttDeviceProfileTransportConfiguration mqttTransportConfiguration = (MqttDeviceProfileTransportConfiguration) transportConfiguration;</b>
+<b class="nc">&nbsp;            if (mqttTransportConfiguration.getTransportPayloadTypeConfiguration() instanceof ProtoTransportPayloadConfiguration) {</b>
+<b class="nc">&nbsp;                ProtoTransportPayloadConfiguration protoTransportPayloadConfiguration =</b>
+<b class="nc">&nbsp;                        (ProtoTransportPayloadConfiguration) mqttTransportConfiguration.getTransportPayloadTypeConfiguration();</b>
+<b class="nc">&nbsp;                validateProtoSchemas(protoTransportPayloadConfiguration);</b>
+<b class="nc">&nbsp;                validateTelemetryDynamicMessageFields(protoTransportPayloadConfiguration);</b>
+<b class="nc">&nbsp;                validateRpcRequestDynamicMessageFields(protoTransportPayloadConfiguration);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (transportConfiguration instanceof CoapDeviceProfileTransportConfiguration) {</b>
+<b class="nc">&nbsp;            CoapDeviceProfileTransportConfiguration coapDeviceProfileTransportConfiguration = (CoapDeviceProfileTransportConfiguration) transportConfiguration;</b>
+<b class="nc">&nbsp;            CoapDeviceTypeConfiguration coapDeviceTypeConfiguration = coapDeviceProfileTransportConfiguration.getCoapDeviceTypeConfiguration();</b>
+<b class="nc">&nbsp;            if (coapDeviceTypeConfiguration instanceof DefaultCoapDeviceTypeConfiguration) {</b>
+<b class="nc">&nbsp;                DefaultCoapDeviceTypeConfiguration defaultCoapDeviceTypeConfiguration = (DefaultCoapDeviceTypeConfiguration) coapDeviceTypeConfiguration;</b>
+<b class="nc">&nbsp;                TransportPayloadTypeConfiguration transportPayloadTypeConfiguration = defaultCoapDeviceTypeConfiguration.getTransportPayloadTypeConfiguration();</b>
+<b class="nc">&nbsp;                if (transportPayloadTypeConfiguration instanceof ProtoTransportPayloadConfiguration) {</b>
+<b class="nc">&nbsp;                    ProtoTransportPayloadConfiguration protoTransportPayloadConfiguration = (ProtoTransportPayloadConfiguration) transportPayloadTypeConfiguration;</b>
+<b class="nc">&nbsp;                    validateProtoSchemas(protoTransportPayloadConfiguration);</b>
+<b class="nc">&nbsp;                    validateTelemetryDynamicMessageFields(protoTransportPayloadConfiguration);</b>
+<b class="nc">&nbsp;                    validateRpcRequestDynamicMessageFields(protoTransportPayloadConfiguration);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (transportConfiguration instanceof Lwm2mDeviceProfileTransportConfiguration) {</b>
+<b class="nc">&nbsp;            List&lt;LwM2MBootstrapServerCredential&gt; lwM2MBootstrapServersConfigurations = ((Lwm2mDeviceProfileTransportConfiguration) transportConfiguration).getBootstrap();</b>
+<b class="nc">&nbsp;            if (lwM2MBootstrapServersConfigurations != null) {</b>
+<b class="nc">&nbsp;                validateLwm2mServersConfigOfBootstrapForClient(lwM2MBootstrapServersConfigurations,</b>
+<b class="nc">&nbsp;                        ((Lwm2mDeviceProfileTransportConfiguration) transportConfiguration).isBootstrapServerUpdateEnable());</b>
+<b class="nc">&nbsp;                for (LwM2MBootstrapServerCredential bootstrapServerCredential : lwM2MBootstrapServersConfigurations) {</b>
+<b class="nc">&nbsp;                    validateLwm2mServersCredentialOfBootstrapForClient(bootstrapServerCredential);</b>
+&nbsp;                }
+&nbsp;                // call setProfileData after validation to ensure &#39;profileData&#39; and &#39;profileDataBytes&#39; fields are synchronized and ProtoUtils.toProto is not broken
+<b class="nc">&nbsp;                deviceProfile.setProfileData(deviceProfile.getProfileData());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;DeviceProfileAlarm&gt; profileAlarms = deviceProfile.getProfileData().getAlarms();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(profileAlarms)) {</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; alarmTypes = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (DeviceProfileAlarm alarm : profileAlarms) {</b>
+<b class="nc">&nbsp;                String alarmType = alarm.getAlarmType();</b>
+<b class="nc">&nbsp;                if (StringUtils.isEmpty(alarmType)) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(&quot;Alarm rule type should be specified!&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (!alarmTypes.add(alarmType)) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(String.format(&quot;Can&#39;t create device profile with the same alarm rule types: \&quot;%s\&quot;!&quot;, alarmType));</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (deviceProfile.getDefaultRuleChainId() != null) {</b>
+<b class="nc">&nbsp;            validateRuleChain(tenantId, deviceProfile.getTenantId(), deviceProfile.getDefaultRuleChainId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (deviceProfile.getDefaultEdgeRuleChainId() != null) {</b>
+<b class="nc">&nbsp;            validateRuleChain(tenantId, deviceProfile.getTenantId(), deviceProfile.getDefaultEdgeRuleChainId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (deviceProfile.getDefaultDashboardId() != null) {</b>
+<b class="nc">&nbsp;            DashboardInfo dashboard = dashboardService.findDashboardInfoById(tenantId, deviceProfile.getDefaultDashboardId());</b>
+<b class="nc">&nbsp;            if (dashboard == null) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Can&#39;t assign non-existent dashboard!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!dashboard.getTenantId().equals(deviceProfile.getTenantId())) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Can&#39;t assign dashboard from different tenant!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        validateOtaPackage(tenantId, deviceProfile, deviceProfile.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateRuleChain(TenantId tenantId, TenantId deviceProfileTenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        if (ruleChain == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign non-existent rule chain!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!ruleChain.getTenantId().equals(deviceProfileTenantId)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign rule chain from different tenant!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected DeviceProfile validateUpdate(TenantId tenantId, DeviceProfile deviceProfile) {
+<b class="nc">&nbsp;        DeviceProfile old = deviceProfileDao.findById(deviceProfile.getTenantId(), deviceProfile.getId().getId());</b>
+<b class="nc">&nbsp;        if (old == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t update non existing device profile!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        boolean profileTypeChanged = !old.getType().equals(deviceProfile.getType());</b>
+<b class="nc">&nbsp;        boolean transportTypeChanged = !old.getTransportType().equals(deviceProfile.getTransportType());</b>
+<b class="nc">&nbsp;        if (profileTypeChanged || transportTypeChanged) {</b>
+<b class="nc">&nbsp;            Long profileDeviceCount = deviceDao.countDevicesByDeviceProfileId(deviceProfile.getTenantId(), deviceProfile.getId().getId());</b>
+<b class="nc">&nbsp;            if (profileDeviceCount &gt; 0) {</b>
+<b class="nc">&nbsp;                String message = null;</b>
+<b class="nc">&nbsp;                if (profileTypeChanged) {</b>
+<b class="nc">&nbsp;                    message = &quot;Can&#39;t change device profile type because devices referenced it!&quot;;</b>
+<b class="nc">&nbsp;                } else if (transportTypeChanged) {</b>
+<b class="nc">&nbsp;                    message = &quot;Can&#39;t change device profile transport type because devices referenced it!&quot;;</b>
+&nbsp;                }
+<b class="nc">&nbsp;                throw new DataValidationException(message);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (deviceProfile.getProvisionDeviceKey() != null &amp;&amp; DeviceProfileProvisionType.X509_CERTIFICATE_CHAIN.equals(deviceProfile.getProvisionType())) {</b>
+<b class="nc">&nbsp;            if (isDeviceProfileCertificateInJavaCacerts(deviceProfile.getProvisionDeviceKey())) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Device profile certificate cannot be well known root CA!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return old;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateProtoSchemas(ProtoTransportPayloadConfiguration protoTransportPayloadTypeConfiguration) {
+&nbsp;        try {
+<b class="nc">&nbsp;            DynamicProtoUtils.validateProtoSchema(protoTransportPayloadTypeConfiguration.getDeviceAttributesProtoSchema(), ATTRIBUTES_PROTO_SCHEMA, EXCEPTION_PREFIX);</b>
+<b class="nc">&nbsp;            DynamicProtoUtils.validateProtoSchema(protoTransportPayloadTypeConfiguration.getDeviceTelemetryProtoSchema(), TELEMETRY_PROTO_SCHEMA, EXCEPTION_PREFIX);</b>
+<b class="nc">&nbsp;            DynamicProtoUtils.validateProtoSchema(protoTransportPayloadTypeConfiguration.getDeviceRpcRequestProtoSchema(), RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX);</b>
+<b class="nc">&nbsp;            DynamicProtoUtils.validateProtoSchema(protoTransportPayloadTypeConfiguration.getDeviceRpcResponseProtoSchema(), RPC_RESPONSE_PROTO_SCHEMA, EXCEPTION_PREFIX);</b>
+&nbsp;        } catch (Exception exception) {
+<b class="nc">&nbsp;            throw new DataValidationException(exception.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private void validateTelemetryDynamicMessageFields(ProtoTransportPayloadConfiguration protoTransportPayloadTypeConfiguration) {
+<b class="nc">&nbsp;        String deviceTelemetryProtoSchema = protoTransportPayloadTypeConfiguration.getDeviceTelemetryProtoSchema();</b>
+<b class="nc">&nbsp;        Descriptors.Descriptor telemetryDynamicMessageDescriptor = protoTransportPayloadTypeConfiguration.getTelemetryDynamicMessageDescriptor(deviceTelemetryProtoSchema);</b>
+<b class="nc">&nbsp;        if (telemetryDynamicMessageDescriptor == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(TELEMETRY_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Failed to get telemetryDynamicMessageDescriptor!&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            List&lt;Descriptors.FieldDescriptor&gt; fields = telemetryDynamicMessageDescriptor.getFields();</b>
+<b class="nc">&nbsp;            if (CollectionUtils.isEmpty(fields)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(TELEMETRY_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; &quot; + telemetryDynamicMessageDescriptor.getName() + &quot; fields is empty!&quot;);</b>
+<b class="nc">&nbsp;            } else if (fields.size() == 2) {</b>
+<b class="nc">&nbsp;                Descriptors.FieldDescriptor tsFieldDescriptor = telemetryDynamicMessageDescriptor.findFieldByName(&quot;ts&quot;);</b>
+<b class="nc">&nbsp;                Descriptors.FieldDescriptor valuesFieldDescriptor = telemetryDynamicMessageDescriptor.findFieldByName(&quot;values&quot;);</b>
+<b class="nc">&nbsp;                if (tsFieldDescriptor != null &amp;&amp; valuesFieldDescriptor != null) {</b>
+<b class="nc">&nbsp;                    if (!Descriptors.FieldDescriptor.Type.MESSAGE.equals(valuesFieldDescriptor.getType())) {</b>
+<b class="nc">&nbsp;                        throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(TELEMETRY_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;values&#39; has invalid data type. Only message type is supported!&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (!Descriptors.FieldDescriptor.Type.INT64.equals(tsFieldDescriptor.getType())) {</b>
+<b class="nc">&nbsp;                        throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(TELEMETRY_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;ts&#39; has invalid data type. Only int64 type is supported!&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (!tsFieldDescriptor.hasOptionalKeyword()) {</b>
+<b class="nc">&nbsp;                        throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(TELEMETRY_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;ts&#39; has invalid label. Field &#39;ts&#39; should have optional keyword!&quot;);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateRpcRequestDynamicMessageFields(ProtoTransportPayloadConfiguration protoTransportPayloadTypeConfiguration) {
+<b class="nc">&nbsp;        DynamicMessage.Builder rpcRequestDynamicMessageBuilder = protoTransportPayloadTypeConfiguration.getRpcRequestDynamicMessageBuilder(protoTransportPayloadTypeConfiguration.getDeviceRpcRequestProtoSchema());</b>
+<b class="nc">&nbsp;        Descriptors.Descriptor rpcRequestDynamicMessageDescriptor = rpcRequestDynamicMessageBuilder.getDescriptorForType();</b>
+<b class="nc">&nbsp;        if (rpcRequestDynamicMessageDescriptor == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Failed to get rpcRequestDynamicMessageDescriptor!&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (CollectionUtils.isEmpty(rpcRequestDynamicMessageDescriptor.getFields()) || rpcRequestDynamicMessageDescriptor.getFields().size() != 3) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; &quot; + rpcRequestDynamicMessageDescriptor.getName() + &quot; message should always contains 3 fields: method, requestId and params!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            Descriptors.FieldDescriptor methodFieldDescriptor = rpcRequestDynamicMessageDescriptor.findFieldByName(&quot;method&quot;);</b>
+<b class="nc">&nbsp;            if (methodFieldDescriptor == null) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Failed to get field descriptor for field: method!&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (!Descriptors.FieldDescriptor.Type.STRING.equals(methodFieldDescriptor.getType())) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;method&#39; has invalid data type. Only string type is supported!&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (methodFieldDescriptor.isRepeated()) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;method&#39; has invalid label!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            Descriptors.FieldDescriptor requestIdFieldDescriptor = rpcRequestDynamicMessageDescriptor.findFieldByName(&quot;requestId&quot;);</b>
+<b class="nc">&nbsp;            if (requestIdFieldDescriptor == null) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Failed to get field descriptor for field: requestId!&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (!Descriptors.FieldDescriptor.Type.INT32.equals(requestIdFieldDescriptor.getType())) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;requestId&#39; has invalid data type. Only int32 type is supported!&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (requestIdFieldDescriptor.isRepeated()) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;requestId&#39; has invalid label!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            Descriptors.FieldDescriptor paramsFieldDescriptor = rpcRequestDynamicMessageDescriptor.findFieldByName(&quot;params&quot;);</b>
+<b class="nc">&nbsp;            if (paramsFieldDescriptor == null) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Failed to get field descriptor for field: params!&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (paramsFieldDescriptor.isRepeated()) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(DynamicProtoUtils.invalidSchemaProvidedMessage(RPC_REQUEST_PROTO_SCHEMA, EXCEPTION_PREFIX) + &quot; Field &#39;params&#39; has invalid label!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateLwm2mServersConfigOfBootstrapForClient(List&lt;LwM2MBootstrapServerCredential&gt; lwM2MBootstrapServersConfigurations, boolean isBootstrapServerUpdateEnable) {
+<b class="nc">&nbsp;        Set&lt;String&gt; uris = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Set&lt;Integer&gt; shortServerIds = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (LwM2MBootstrapServerCredential bootstrapServerCredential : lwM2MBootstrapServersConfigurations) {</b>
+<b class="nc">&nbsp;            AbstractLwM2MBootstrapServerCredential serverConfig = (AbstractLwM2MBootstrapServerCredential) bootstrapServerCredential;</b>
+<b class="nc">&nbsp;            if (!isBootstrapServerUpdateEnable &amp;&amp; serverConfig.isBootstrapServerIs()) {</b>
+<b class="nc">&nbsp;                throw new DeviceCredentialsValidationException(&quot;Bootstrap config must not include \&quot;Bootstrap Server\&quot;. \&quot;Include Bootstrap Server updates\&quot; is &quot; + isBootstrapServerUpdateEnable + &quot;.&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (serverConfig.isBootstrapServerIs()) {</b>
+<b class="nc">&nbsp;                if (serverConfig.getShortServerId() != null) {</b>
+<b class="nc">&nbsp;                    if (serverConfig.getShortServerId() == 0) {</b>
+<b class="nc">&nbsp;                        serverConfig.setShortServerId(null);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        throw new DeviceCredentialsValidationException(&quot;Bootstrap Server ShortServerId must be null!&quot;);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (serverConfig.getShortServerId() != null) {</b>
+<b class="nc">&nbsp;                    if (isNotLwm2mServer(serverConfig.getShortServerId())) {</b>
+<b class="nc">&nbsp;                        throw new DeviceCredentialsValidationException(&quot;LwM2M Server ShortServerId must be in range [&quot; + PRIMARY_LWM2M_SERVER.getId() + &quot; - &quot; + LWM2M_SERVER_MAX.getId() + &quot;]!&quot;);</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    throw new DeviceCredentialsValidationException(&quot;LwM2M Server ShortServerId must not be null!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String server = serverConfig.isBootstrapServerIs() ? &quot;Bootstrap Server&quot; : &quot;LwM2M Server&quot;;</b>
+<b class="nc">&nbsp;            if (!shortServerIds.add(serverConfig.getShortServerId())) {</b>
+<b class="nc">&nbsp;                throw new DeviceCredentialsValidationException(server + &quot; \&quot;Short server Id\&quot; value = &quot; + serverConfig.getShortServerId() + &quot;. This value must be a unique value for all servers!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String uri = serverConfig.getHost() + &quot;:&quot; + serverConfig.getPort();</b>
+<b class="nc">&nbsp;            if (!uris.add(uri)) {</b>
+<b class="nc">&nbsp;                throw new DeviceCredentialsValidationException(server + &quot; \&quot;Host + port\&quot; value = &quot; + uri + &quot;. This value must be a unique value for all servers!&quot;);</b>
+&nbsp;            }
+&nbsp;            int port;
+<b class="nc">&nbsp;            if (LwM2MSecurityMode.NO_SEC.equals(serverConfig.getSecurityMode())) {</b>
+<b class="nc">&nbsp;                port = serverConfig.isBootstrapServerIs() ? lwm2mBootstrapPort : lwm2mPort;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                port = serverConfig.isBootstrapServerIs() ? lwm2mBootstrapSecurePort : lwm2mSecurePort;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (serverConfig.getPort() == null || serverConfig.getPort() != port) {</b>
+<b class="nc">&nbsp;                throw new DeviceCredentialsValidationException(server + &quot; \&quot;Port\&quot; value = &quot; + serverConfig.getPort() + &quot;. This value for security &quot; + serverConfig.getSecurityMode().name() + &quot; must be &quot; + port + &quot;!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateLwm2mServersCredentialOfBootstrapForClient(LwM2MBootstrapServerCredential bootstrapServerConfig) {
+&nbsp;        String server;
+<b class="nc">&nbsp;        switch (bootstrapServerConfig.getSecurityMode()) {</b>
+&nbsp;            case NO_SEC:
+&nbsp;            case PSK:
+&nbsp;                break;
+&nbsp;            case RPK:
+<b class="nc">&nbsp;                RPKLwM2MBootstrapServerCredential rpkServerCredentials = (RPKLwM2MBootstrapServerCredential) bootstrapServerConfig;</b>
+<b class="nc">&nbsp;                server = rpkServerCredentials.isBootstrapServerIs() ? &quot;Bootstrap Server&quot; : &quot;LwM2M Server&quot;;</b>
+<b class="nc">&nbsp;                if (StringUtils.isEmpty(rpkServerCredentials.getServerPublicKey())) {</b>
+<b class="nc">&nbsp;                    throw new DeviceCredentialsValidationException(server + &quot; RPK public key must be specified!&quot;);</b>
+&nbsp;                }
+&nbsp;                try {
+<b class="nc">&nbsp;                    String pubkRpkSever = EncryptionUtil.pubkTrimNewLines(rpkServerCredentials.getServerPublicKey());</b>
+<b class="nc">&nbsp;                    rpkServerCredentials.setServerPublicKey(pubkRpkSever);</b>
+<b class="nc">&nbsp;                    SecurityUtil.publicKey.decode(rpkServerCredentials.getDecodedCServerPublicKey());</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    throw new DeviceCredentialsValidationException(server + &quot; RPK public key must be in standard [RFC7250] and then encoded to Base64 format!&quot;);</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            case X509:
+<b class="nc">&nbsp;                X509LwM2MBootstrapServerCredential x509ServerCredentials = (X509LwM2MBootstrapServerCredential) bootstrapServerConfig;</b>
+<b class="nc">&nbsp;                server = x509ServerCredentials.isBootstrapServerIs() ? &quot;Bootstrap Server&quot; : &quot;LwM2M Server&quot;;</b>
+<b class="nc">&nbsp;                if (StringUtils.isEmpty(x509ServerCredentials.getServerPublicKey())) {</b>
+<b class="nc">&nbsp;                    throw new DeviceCredentialsValidationException(server + &quot; X509 certificate must be specified!&quot;);</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                try {
+<b class="nc">&nbsp;                    String certServer = EncryptionUtil.certTrimNewLines(x509ServerCredentials.getServerPublicKey());</b>
+<b class="nc">&nbsp;                    x509ServerCredentials.setServerPublicKey(certServer);</b>
+<b class="nc">&nbsp;                    SecurityUtil.certificate.decode(x509ServerCredentials.getDecodedCServerPublicKey());</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    throw new DeviceCredentialsValidationException(server + &quot; X509 certificate must be in DER-encoded X509v3 format and support only EC algorithm and then encoded to Base64 format!&quot;);</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isDeviceProfileCertificateInJavaCacerts(String deviceProfileX509Secret) {
+&nbsp;        try {
+<b class="nc">&nbsp;            FileInputStream is = new FileInputStream(javaCacertsPath);</b>
+<b class="nc">&nbsp;            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());</b>
+<b class="nc">&nbsp;            keystore.load(is, javaCacertsPassword.toCharArray());</b>
+&nbsp;
+<b class="nc">&nbsp;            PKIXParameters params = new PKIXParameters(keystore);</b>
+<b class="nc">&nbsp;            for (TrustAnchor ta : params.getTrustAnchors()) {</b>
+<b class="nc">&nbsp;                X509Certificate cert = ta.getTrustedCert();</b>
+<b class="nc">&nbsp;                if (getCertificateString(cert).equals(deviceProfileX509Secret)) {</b>
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to validate certificate due to: &quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getCertificateString(X509Certificate cert) throws CertificateEncodingException {
+<b class="nc">&nbsp;        return EncryptionUtil.certTrimNewLines(Base64.getEncoder().encodeToString(cert.getEncoded()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

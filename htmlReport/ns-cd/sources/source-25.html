@@ -1,0 +1,310 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NotificationRuleController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: NotificationRuleController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NotificationRuleController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.security.core.annotation.AuthenticationPrincipal;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationRuleId;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.NotificationRuleInfo;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRuleService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.service.security.permission.Resource.NOTIFICATION;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api/notification&quot;)
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class NotificationRuleController extends BaseController {
+&nbsp;
+&nbsp;    private final NotificationRuleService notificationRuleService;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Save notification rule (saveNotificationRule)&quot;,
+&nbsp;            notes = &quot;Creates or updates notification rule. &quot; + NEW_LINE +
+&nbsp;                    &quot;Mandatory properties are `name`, `templateId` (of a template with `notificationType` matching to rule&#39;s `triggerType`), &quot; +
+&nbsp;                    &quot;`triggerType`, `triggerConfig` and `recipientConfig`. Additionally, you may specify rule `description` &quot; +
+&nbsp;                    &quot;inside of `additionalConfig`.&quot; + NEW_LINE +
+&nbsp;                    &quot;Trigger type of the rule cannot be changed. &quot; +
+&nbsp;                    &quot;Available trigger types for tenant: `ENTITY_ACTION`, `ALARM`, `ALARM_COMMENT`, `ALARM_ASSIGNMENT`, &quot; +
+&nbsp;                    &quot;`DEVICE_ACTIVITY`, `RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT`.\n&quot; +
+&nbsp;                    &quot;For sysadmin, there are following trigger types available: `ENTITIES_LIMIT`, `API_USAGE_LIMIT`, &quot; +
+&nbsp;                    &quot;`NEW_PLATFORM_VERSION`.&quot; + NEW_LINE +
+&nbsp;                    &quot;Here is an example of notification rule to send notification when a &quot; +
+&nbsp;                    &quot;device, asset or customer is created or deleted:\n&quot; +
+&nbsp;                    MARKDOWN_CODE_BLOCK_START +
+&nbsp;                    &quot;{\n&quot; +
+&nbsp;                    &quot;  \&quot;name\&quot;: \&quot;Entity action\&quot;,\n&quot; +
+&nbsp;                    &quot;  \&quot;templateId\&quot;: {\n&quot; +
+&nbsp;                    &quot;    \&quot;entityType\&quot;: \&quot;NOTIFICATION_TEMPLATE\&quot;,\n&quot; +
+&nbsp;                    &quot;    \&quot;id\&quot;: \&quot;32117320-d785-11ed-a06c-21dd57dd88ca\&quot;\n&quot; +
+&nbsp;                    &quot;  },\n&quot; +
+&nbsp;                    &quot;  \&quot;triggerType\&quot;: \&quot;ENTITY_ACTION\&quot;,\n&quot; +
+&nbsp;                    &quot;  \&quot;triggerConfig\&quot;: {\n&quot; +
+&nbsp;                    &quot;    \&quot;entityTypes\&quot;: [\n&quot; +
+&nbsp;                    &quot;      \&quot;CUSTOMER\&quot;,\n&quot; +
+&nbsp;                    &quot;      \&quot;DEVICE\&quot;,\n&quot; +
+&nbsp;                    &quot;      \&quot;ASSET\&quot;\n&quot; +
+&nbsp;                    &quot;    ],\n&quot; +
+&nbsp;                    &quot;    \&quot;created\&quot;: true,\n&quot; +
+&nbsp;                    &quot;    \&quot;updated\&quot;: false,\n&quot; +
+&nbsp;                    &quot;    \&quot;deleted\&quot;: true,\n&quot; +
+&nbsp;                    &quot;    \&quot;triggerType\&quot;: \&quot;ENTITY_ACTION\&quot;\n&quot; +
+&nbsp;                    &quot;  },\n&quot; +
+&nbsp;                    &quot;  \&quot;recipientsConfig\&quot;: {\n&quot; +
+&nbsp;                    &quot;    \&quot;targets\&quot;: [\n&quot; +
+&nbsp;                    &quot;      \&quot;320f2930-d785-11ed-a06c-21dd57dd88ca\&quot;\n&quot; +
+&nbsp;                    &quot;    ],\n&quot; +
+&nbsp;                    &quot;    \&quot;triggerType\&quot;: \&quot;ENTITY_ACTION\&quot;\n&quot; +
+&nbsp;                    &quot;  },\n&quot; +
+&nbsp;                    &quot;  \&quot;additionalConfig\&quot;: {\n&quot; +
+&nbsp;                    &quot;    \&quot;description\&quot;: \&quot;Send notification to tenant admins or customer users when a device, asset or customer is created\&quot;\n&quot; +
+&nbsp;                    &quot;  },\n&quot; +
+&nbsp;                    &quot;  \&quot;templateName\&quot;: \&quot;Entity action notification\&quot;,\n&quot; +
+&nbsp;                    &quot;  \&quot;deliveryMethods\&quot;: [\n&quot; +
+&nbsp;                    &quot;    \&quot;WEB\&quot;\n&quot; +
+&nbsp;                    &quot;  ]\n&quot; +
+&nbsp;                    &quot;}&quot; +
+&nbsp;                    MARKDOWN_CODE_BLOCK_END +
+&nbsp;                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PostMapping(&quot;/rule&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public NotificationRule saveNotificationRule(@RequestBody @Valid NotificationRule notificationRule,
+&nbsp;                                                 @AuthenticationPrincipal SecurityUser user) throws Exception {
+<b class="nc">&nbsp;        notificationRule.setTenantId(user.getTenantId());</b>
+<b class="nc">&nbsp;        checkEntity(notificationRule.getId(), notificationRule, NOTIFICATION);</b>
+&nbsp;
+<b class="nc">&nbsp;        NotificationRuleTriggerType triggerType = notificationRule.getTriggerType();</b>
+<b class="nc">&nbsp;        if ((user.isTenantAdmin() &amp;&amp; !triggerType.isTenantLevel()) || (user.isSystemAdmin() &amp;&amp; triggerType.isTenantLevel())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Trigger type &quot; + triggerType + &quot; is not available&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return doSaveAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::saveNotificationRule);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get notification rule by id (getNotificationRuleById)&quot;,
+&nbsp;            notes = &quot;Fetches notification rule info by rule&#39;s id.\n&quot; +
+&nbsp;                    &quot;In addition to regular notification rule fields, &quot; +
+&nbsp;                    &quot;there are `templateName` and `deliveryMethods` in the response.&quot; +
+&nbsp;                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @GetMapping(&quot;/rule/{id}&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public NotificationRuleInfo getNotificationRuleById(@PathVariable UUID id) throws ThingsboardException {
+<b class="nc">&nbsp;        NotificationRuleId notificationRuleId = new NotificationRuleId(id);</b>
+<b class="nc">&nbsp;        return checkEntityId(notificationRuleId, notificationRuleService::findNotificationRuleInfoById, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get notification rules (getNotificationRules)&quot;,
+&nbsp;            notes = &quot;Returns the page of notification rules.&quot; + NEW_LINE +
+&nbsp;                    PAGE_DATA_PARAMETERS +
+&nbsp;                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @GetMapping(&quot;/rules&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public PageData&lt;NotificationRuleInfo&gt; getNotificationRules(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;                                                               @RequestParam int pageSize,
+&nbsp;                                                               @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;                                                               @RequestParam int page,
+&nbsp;                                                               @Parameter(description = &quot;Case-insensitive &#39;substring&#39; filter based on rule&#39;s name&quot;)
+&nbsp;                                                               @RequestParam(required = false) String textSearch,
+&nbsp;                                                               @Parameter(description = SORT_PROPERTY_DESCRIPTION)
+&nbsp;                                                               @RequestParam(required = false) String sortProperty,
+&nbsp;                                                               @Parameter(description = SORT_ORDER_DESCRIPTION)
+&nbsp;                                                               @RequestParam(required = false) String sortOrder,
+&nbsp;                                                               @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+&nbsp;        // PE: generic permission
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        return notificationRuleService.findNotificationRulesInfosByTenantId(user.getTenantId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete notification rule (deleteNotificationRule)&quot;,
+&nbsp;            notes = &quot;Deletes notification rule by id.\n&quot; +
+&nbsp;                    &quot;Cancels all related scheduled notification requests (e.g. due to escalation table)&quot; +
+&nbsp;                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @DeleteMapping(&quot;/rule/{id}&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    public void deleteNotificationRule(@PathVariable UUID id,
+&nbsp;                                       @AuthenticationPrincipal SecurityUser user) throws Exception {
+<b class="nc">&nbsp;        NotificationRuleId notificationRuleId = new NotificationRuleId(id);</b>
+<b class="nc">&nbsp;        NotificationRule notificationRule = checkEntityId(notificationRuleId, notificationRuleService::findNotificationRuleById, Operation.DELETE);</b>
+<b class="nc">&nbsp;        doDeleteAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::deleteNotificationRuleById);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

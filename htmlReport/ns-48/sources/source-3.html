@@ -1,0 +1,242 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ComponentMsgProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.actors.shared</a>
+</div>
+
+<h1>Coverage Summary for Class: ComponentMsgProcessor (org.thingsboard.server.actors.shared)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ComponentMsgProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.actors.shared;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.actors.TbActorCtx;
+&nbsp;import org.thingsboard.server.actors.stats.StatsPersistTick;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.TenantProfileConfiguration;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.RuleNodeException;
+&nbsp;
+&nbsp;import java.util.concurrent.ScheduledFuture;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public abstract class ComponentMsgProcessor&lt;T extends EntityId&gt; extends AbstractContextAwareMsgProcessor {
+&nbsp;
+&nbsp;    protected final TenantId tenantId;
+&nbsp;    protected final T entityId;
+&nbsp;    protected ComponentLifecycleState state;
+&nbsp;
+&nbsp;    protected ComponentMsgProcessor(ActorSystemContext systemContext, TenantId tenantId, T id) {
+<b class="nc">&nbsp;        super(systemContext);</b>
+<b class="nc">&nbsp;        this.tenantId = tenantId;</b>
+<b class="nc">&nbsp;        this.entityId = id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected TenantProfileConfiguration getTenantProfileConfiguration() {
+<b class="nc">&nbsp;        return systemContext.getTenantProfileCache().get(tenantId).getProfileData().getConfiguration();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public abstract String getComponentName();
+&nbsp;
+&nbsp;    public abstract void start(TbActorCtx context) throws Exception;
+&nbsp;
+&nbsp;    public abstract void stop(TbActorCtx context) throws Exception;
+&nbsp;
+&nbsp;    public abstract void onPartitionChangeMsg(PartitionChangeMsg msg) throws Exception;
+&nbsp;
+&nbsp;    public void onCreated(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        start(context);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onUpdate(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        restart(context);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onActivate(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        restart(context);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onSuspend(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        stop(context);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onStop(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        stop(context);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void restart(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        stop(context);</b>
+<b class="nc">&nbsp;        start(context);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ScheduledFuture&lt;?&gt; scheduleStatsPersistTick(TbActorCtx context, long statsPersistFrequency) {
+<b class="nc">&nbsp;        return schedulePeriodicMsgWithDelay(context, StatsPersistTick.INSTANCE, statsPersistFrequency, statsPersistFrequency);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected boolean checkMsgValid(TbMsg tbMsg) {
+<b class="nc">&nbsp;        var valid = tbMsg.isValid();</b>
+<b class="nc">&nbsp;        if (!valid) {</b>
+<b class="nc">&nbsp;            if (log.isTraceEnabled()) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;Skip processing of message: {} because it is no longer valid!&quot;, tbMsg);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return valid;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void checkComponentStateActive(TbMsg tbMsg) throws RuleNodeException {
+<b class="nc">&nbsp;        if (state != ComponentLifecycleState.ACTIVE) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Component is not active. Current state [{}] for processor [{}][{}] tenant [{}]&quot;, state, entityId.getEntityType(), entityId, tenantId);</b>
+<b class="nc">&nbsp;            RuleNodeException ruleNodeException = getInactiveException();</b>
+<b class="nc">&nbsp;            if (tbMsg != null) {</b>
+<b class="nc">&nbsp;                tbMsg.getCallback().onFailure(ruleNodeException);</b>
+&nbsp;            }
+&nbsp;            throw ruleNodeException;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    abstract protected RuleNodeException getInactiveException();
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

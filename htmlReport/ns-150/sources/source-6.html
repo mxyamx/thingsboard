@@ -1,0 +1,431 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TaskProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.task</a>
+</div>
+
+<h1>Coverage Summary for Class: TaskProcessor (org.thingsboard.server.queue.task)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TaskProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TaskProcessor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/91)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.task;
+&nbsp;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import org.apache.commons.lang3.tuple.Pair;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.event.EventListener;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.SetCache;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.job.JobType;
+&nbsp;import org.thingsboard.server.common.data.job.task.Task;
+&nbsp;import org.thingsboard.server.common.data.job.task.TaskResult;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.queue.QueueConfig;
+&nbsp;import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.MainQueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.settings.TasksQueueConfig;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.CancellationException;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.TimeoutException;
+&nbsp;import java.util.function.Predicate;
+&nbsp;
+<b class="nc">&nbsp;public abstract class TaskProcessor&lt;T extends Task&lt;R&gt;, R extends TaskResult&gt; {</b>
+&nbsp;
+<b class="nc">&nbsp;    protected final Logger log = LoggerFactory.getLogger(getClass());</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TaskProcessorQueueFactory queueFactory;
+&nbsp;    @Autowired
+&nbsp;    private JobStatsService statsService;
+&nbsp;    @Autowired
+&nbsp;    private TaskProcessorExecutors executors;
+&nbsp;    @Autowired
+&nbsp;    private TasksQueueConfig config;
+&nbsp;
+&nbsp;    private QueueKey queueKey;
+&nbsp;    private MainQueueConsumerManager&lt;TbProtoQueueMsg&lt;TaskProto&gt;, QueueConfig&gt; taskConsumer;
+<b class="nc">&nbsp;    private final ExecutorService taskExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName(getJobType().name().toLowerCase() + &quot;-task-processor&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;    protected final Map&lt;Object, Pair&lt;Task&lt;R&gt;, Future&lt;R&gt;&gt;&gt; currentTasks = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    private final SetCache&lt;String&gt; discarded = new SetCache&lt;&gt;(TimeUnit.MINUTES.toMillis(60));</b>
+<b class="nc">&nbsp;    private final SetCache&lt;String&gt; failed = new SetCache&lt;&gt;(TimeUnit.MINUTES.toMillis(60));</b>
+&nbsp;
+<b class="nc">&nbsp;    private final SetCache&lt;UUID&gt; deletedTenants = new SetCache&lt;&gt;(TimeUnit.MINUTES.toMillis(60));</b>
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        queueKey = new QueueKey(ServiceType.TASK_PROCESSOR, getJobType().name());</b>
+<b class="nc">&nbsp;        taskConsumer = MainQueueConsumerManager.&lt;TbProtoQueueMsg&lt;TaskProto&gt;, QueueConfig&gt;builder()</b>
+<b class="nc">&nbsp;                .queueKey(queueKey)</b>
+<b class="nc">&nbsp;                .config(QueueConfig.of(true, config.getPollInterval()))</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                .consumerCreator((queueConfig, tpi) -&gt; queueFactory.createTaskConsumer(getJobType()))</b>
+<b class="nc">&nbsp;                .consumerExecutor(executors.getConsumersExecutor())</b>
+<b class="nc">&nbsp;                .scheduler(executors.getScheduler())</b>
+<b class="nc">&nbsp;                .taskExecutor(executors.getMgmtExecutor())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener
+&nbsp;    public void onPartitionChangeEvent(PartitionChangeEvent event) {
+<b class="nc">&nbsp;        if (event.getServiceType() == ServiceType.TASK_PROCESSOR) {</b>
+<b class="nc">&nbsp;            Set&lt;TopicPartitionInfo&gt; partitions = event.getNewPartitions().get(queueKey);</b>
+<b class="nc">&nbsp;            taskConsumer.update(partitions);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener
+&nbsp;    public void onComponentLifecycle(ComponentLifecycleMsg event) {
+<b class="nc">&nbsp;        EntityId entityId = event.getEntityId();</b>
+<b class="nc">&nbsp;        switch (entityId.getEntityType()) {</b>
+&nbsp;            case JOB -&gt; {
+<b class="nc">&nbsp;                String tasksKey = event.getInfo().get(&quot;tasksKey&quot;).asText();</b>
+<b class="nc">&nbsp;                if (event.getEvent() == ComponentLifecycleEvent.STOPPED) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;Adding job {} ({}) to discarded&quot;, entityId, tasksKey);</b>
+<b class="nc">&nbsp;                    addToDiscarded(tasksKey);</b>
+<b class="nc">&nbsp;                    cancelRunningTasks(tasksKey);</b>
+<b class="nc">&nbsp;                } else if (event.getEvent() == ComponentLifecycleEvent.FAILED) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;Adding job {} ({}) to failed&quot;, entityId, tasksKey);</b>
+<b class="nc">&nbsp;                    failed.add(tasksKey);</b>
+<b class="nc">&nbsp;                    cancelRunningTasks(tasksKey);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;            case TENANT -&gt; {
+<b class="nc">&nbsp;                if (event.getEvent() == ComponentLifecycleEvent.DELETED) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;Adding tenant {} to deleted&quot;, entityId);</b>
+<b class="nc">&nbsp;                    deletedTenants.add(entityId.getId());</b>
+<b class="nc">&nbsp;                    cancelRunningTasks((TenantId) entityId);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsgs(List&lt;TbProtoQueueMsg&lt;TaskProto&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;TaskProto&gt;&gt; consumer, Object consumerKey, QueueConfig queueConfig) throws Exception {
+<b class="nc">&nbsp;        for (TbProtoQueueMsg&lt;TaskProto&gt; msg : msgs) {</b>
+&nbsp;            try {
+&nbsp;                @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;                T task = (T) JacksonUtil.fromString(msg.getValue().getValue(), Task.class);</b>
+<b class="nc">&nbsp;                if (discarded.contains(task.getKey())) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;Skipping task for discarded job {}: {}&quot;, task.getJobId(), task);</b>
+<b class="nc">&nbsp;                    reportTaskDiscarded(task);</b>
+&nbsp;                    continue;
+<b class="nc">&nbsp;                } else if (failed.contains(task.getKey())) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;Skipping task for failed job {}: {}&quot;, task.getJobId(), task);</b>
+&nbsp;                    continue;
+<b class="nc">&nbsp;                } else if (deletedTenants.contains(task.getTenantId().getId())) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;Skipping task for deleted tenant {}: {}&quot;, task.getTenantId(), task);</b>
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                processTask(task, consumerKey);</b>
+&nbsp;            } catch (InterruptedException e) {
+&nbsp;                throw e;
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to process msg: {}&quot;, msg, e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processTask(T task, Object consumerKey) throws InterruptedException {
+<b class="nc">&nbsp;        task.setAttempt(task.getAttempt() + 1);</b>
+<b class="nc">&nbsp;        log.debug(&quot;Processing task: {}&quot;, task);</b>
+<b class="nc">&nbsp;        Future&lt;R&gt; future = null;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            long startNs = System.nanoTime();</b>
+<b class="nc">&nbsp;            long timeoutMs = getProcessingTimeout(task);</b>
+&nbsp;
+<b class="nc">&nbsp;            future = taskExecutor.submit(() -&gt; process(task));</b>
+<b class="nc">&nbsp;            currentTasks.put(consumerKey, Pair.of(task, future));</b>
+&nbsp;
+&nbsp;            R result;
+&nbsp;            try {
+<b class="nc">&nbsp;                result = future.get(timeoutMs, TimeUnit.MILLISECONDS);</b>
+&nbsp;            } catch (ExecutionException e) {
+<b class="nc">&nbsp;                throw e.getCause();</b>
+&nbsp;            } catch (TimeoutException e) {
+<b class="nc">&nbsp;                throw new TimeoutException(&quot;Timeout after &quot; + timeoutMs + &quot; ms&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            long timingNs = System.nanoTime() - startNs;</b>
+<b class="nc">&nbsp;            log.info(&quot;Processed task in {} ms: {}&quot;, timingNs / 1000000.0, task);</b>
+<b class="nc">&nbsp;            reportTaskResult(task, result);</b>
+&nbsp;        } catch (InterruptedException e) {
+&nbsp;            throw e;
+&nbsp;        } catch (CancellationException e) {
+<b class="nc">&nbsp;            if (!failed.contains(task.getKey()) &amp;&amp; !deletedTenants.contains(task.getTenantId().getId())) {</b>
+<b class="nc">&nbsp;                reportTaskDiscarded(task);</b>
+&nbsp;            }
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to process task (attempt {}): {}&quot;, task.getAttempt(), task, e);</b>
+<b class="nc">&nbsp;            if (task.getAttempt() &lt;= task.getRetries()) {</b>
+<b class="nc">&nbsp;                processTask(task, consumerKey);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                reportTaskFailure(task, e);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (future != null &amp;&amp; !future.isDone()) {</b>
+<b class="nc">&nbsp;                future.cancel(true);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            currentTasks.remove(consumerKey);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public abstract R process(T task) throws Exception;
+&nbsp;
+&nbsp;    private void cancelRunningTasks(String tasksKey) {
+<b class="nc">&nbsp;        cancelRunningTasks(task -&gt; task.getKey().equals(tasksKey));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cancelRunningTasks(TenantId tenantId) {
+<b class="nc">&nbsp;        cancelRunningTasks(task -&gt; task.getTenantId().equals(tenantId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cancelRunningTasks(Predicate&lt;Task&lt;R&gt;&gt; filter) {
+<b class="nc">&nbsp;        currentTasks.values().forEach(entry -&gt; {</b>
+<b class="nc">&nbsp;            Task&lt;R&gt; task = entry.getKey();</b>
+<b class="nc">&nbsp;            Future&lt;R&gt; future = entry.getValue();</b>
+<b class="nc">&nbsp;            if (filter.test(task)) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;Cancelling running task {}&quot;, task);</b>
+<b class="nc">&nbsp;                future.cancel(true);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportTaskFailure(T task, Throwable error) {
+<b class="nc">&nbsp;        R taskResult = task.toFailed(error);</b>
+<b class="nc">&nbsp;        reportTaskResult(task, taskResult);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportTaskDiscarded(T task) {
+<b class="nc">&nbsp;        R taskResult = task.toDiscarded();</b>
+<b class="nc">&nbsp;        reportTaskResult(task, taskResult);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reportTaskResult(T task, R result) {
+<b class="nc">&nbsp;        result.setKey(task.getKey());</b>
+<b class="nc">&nbsp;        result.setFinishTs(System.currentTimeMillis());</b>
+<b class="nc">&nbsp;        statsService.reportTaskResult(task.getTenantId(), task.getJobId(), result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addToDiscarded(String tasksKey) {
+<b class="nc">&nbsp;        discarded.add(tasksKey);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;V&gt; V wait(Future&lt;V&gt; future) throws Exception {
+&nbsp;        try {
+<b class="nc">&nbsp;            return future.get(); // will be interrupted after task processing timeout</b>
+&nbsp;        } catch (InterruptedException e) {
+<b class="nc">&nbsp;            future.cancel(true); // interrupting the underlying task</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        taskConsumer.stop();</b>
+<b class="nc">&nbsp;        taskConsumer.awaitStop();</b>
+<b class="nc">&nbsp;        taskExecutor.shutdownNow();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public abstract long getProcessingTimeout(T task);
+&nbsp;
+&nbsp;    public abstract JobType getJobType();
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

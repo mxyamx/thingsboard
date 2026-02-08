@@ -1,0 +1,339 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbCreateAlarmNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.action</a>
+</div>
+
+<h1>Coverage Summary for Class: TbCreateAlarmNode (org.thingsboard.rule.engine.action)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbCreateAlarmNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/86)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.action;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import org.apache.commons.lang3.EnumUtils;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.ACTION,
+&nbsp;        name = &quot;create alarm&quot;, relationTypes = {&quot;Created&quot;, &quot;Updated&quot;, &quot;False&quot;},
+&nbsp;        configClazz = TbCreateAlarmNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Create or Update Alarm&quot;,
+&nbsp;        nodeDetails =
+&nbsp;                &quot;Details - JS function that creates JSON object based on incoming message. This object will be added into Alarm.details field.\n&quot; +
+&nbsp;                        &quot;Node output:\n&quot; +
+&nbsp;                        &quot;If alarm was not created, original message is returned. Otherwise new Message returned with type &#39;ALARM&#39;, Alarm object in &#39;msg&#39; property and &#39;metadata&#39; will contains one of those properties &#39;isNewAlarm/isExistingAlarm&#39;. &quot; +
+&nbsp;                        &quot;Message payload can be accessed via &lt;code&gt;msg&lt;/code&gt; property. For example &lt;code&gt;&#39;temperature = &#39; + msg.temperature ;&lt;/code&gt;. &quot; +
+&nbsp;                        &quot;Message metadata can be accessed via &lt;code&gt;metadata&lt;/code&gt; property. For example &lt;code&gt;&#39;name = &#39; + metadata.customerName;&lt;/code&gt;.&quot;,
+&nbsp;        configDirective = &quot;tbActionNodeCreateAlarmConfig&quot;,
+&nbsp;        icon = &quot;notifications_active&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/action/create-alarm/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbCreateAlarmNode extends TbAbstractAlarmNode&lt;TbCreateAlarmNodeConfiguration&gt; {</b>
+&nbsp;
+&nbsp;    private List&lt;String&gt; relationTypes;
+&nbsp;    private AlarmSeverity notDynamicAlarmSeverity;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        super.init(ctx, configuration);</b>
+<b class="nc">&nbsp;        if (!config.isDynamicSeverity()) {</b>
+<b class="nc">&nbsp;            notDynamicAlarmSeverity = EnumUtils.getEnum(AlarmSeverity.class, config.getSeverity());</b>
+<b class="nc">&nbsp;            if (notDynamicAlarmSeverity == null) {</b>
+<b class="nc">&nbsp;                throw new TbNodeException(&quot;Incorrect Alarm Severity value: &quot; + config.getSeverity(), true);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbCreateAlarmNodeConfiguration loadAlarmNodeConfig(TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        TbCreateAlarmNodeConfiguration nodeConfiguration = TbNodeUtils.convert(configuration, TbCreateAlarmNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        relationTypes = nodeConfiguration.getRelationTypes();</b>
+<b class="nc">&nbsp;        return nodeConfiguration;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ListenableFuture&lt;TbAlarmResult&gt; processAlarm(TbContext ctx, TbMsg msg) {
+&nbsp;        String alarmType;
+&nbsp;        final Alarm msgAlarm;
+&nbsp;
+<b class="nc">&nbsp;        if (!config.isUseMessageAlarmData()) {</b>
+<b class="nc">&nbsp;            alarmType = TbNodeUtils.processPattern(config.getAlarmType(), msg);</b>
+<b class="nc">&nbsp;            msgAlarm = null;</b>
+&nbsp;        } else {
+&nbsp;            try {
+<b class="nc">&nbsp;                msgAlarm = getAlarmFromMessage(ctx, msg);</b>
+<b class="nc">&nbsp;                alarmType = msgAlarm.getType();</b>
+&nbsp;            } catch (IOException e) {
+<b class="nc">&nbsp;                ctx.tellFailure(msg, e);</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return ctx.getAlarmService().findLatestActiveByOriginatorAndTypeAsync(ctx.getTenantId(), msg.getOriginator(), alarmType).transformAsync(existingAlarm -&gt; {</b>
+<b class="nc">&nbsp;            if (existingAlarm == null || existingAlarm.getStatus().isCleared()) {</b>
+<b class="nc">&nbsp;                return createNewAlarm(ctx, msg, msgAlarm);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return updateAlarm(ctx, msg, existingAlarm, msgAlarm);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }, ctx.getDbCallbackExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Alarm getAlarmFromMessage(TbContext ctx, TbMsg msg) throws IOException {
+&nbsp;        Alarm msgAlarm;
+<b class="nc">&nbsp;        msgAlarm = JacksonUtil.fromString(msg.getData(), Alarm.class);</b>
+<b class="nc">&nbsp;        msgAlarm.setTenantId(ctx.getTenantId());</b>
+<b class="nc">&nbsp;        if (msgAlarm.getOriginator() == null) {</b>
+<b class="nc">&nbsp;            msgAlarm.setOriginator(msg.getOriginator());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return msgAlarm;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbAlarmResult&gt; createNewAlarm(TbContext ctx, TbMsg msg, Alarm msgAlarm) {
+&nbsp;        ListenableFuture&lt;JsonNode&gt; asyncDetails;
+<b class="nc">&nbsp;        boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();</b>
+<b class="nc">&nbsp;        if (buildDetails) {</b>
+<b class="nc">&nbsp;            asyncDetails = buildAlarmDetails(msg, null);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            asyncDetails = Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ListenableFuture&lt;Alarm&gt; asyncAlarm = Futures.transform(asyncDetails, details -&gt; {</b>
+&nbsp;            Alarm newAlarm;
+<b class="nc">&nbsp;            if (msgAlarm != null) {</b>
+<b class="nc">&nbsp;                newAlarm = msgAlarm;</b>
+<b class="nc">&nbsp;                if (buildDetails) {</b>
+<b class="nc">&nbsp;                    newAlarm.setDetails(details);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                newAlarm = buildAlarm(msg, details, ctx.getTenantId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return newAlarm;</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;AlarmApiCallResult&gt; asyncCreated = Futures.transform(asyncAlarm,</b>
+<b class="nc">&nbsp;                alarm -&gt; ctx.getAlarmService().createAlarm(AlarmCreateOrUpdateActiveRequest.fromAlarm(alarm)), ctx.getDbCallbackExecutor());</b>
+<b class="nc">&nbsp;        return Futures.transform(asyncCreated, TbAlarmResult::fromAlarmResult, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TbAlarmResult&gt; updateAlarm(TbContext ctx, TbMsg msg, Alarm existingAlarm, Alarm msgAlarm) {
+&nbsp;        ListenableFuture&lt;JsonNode&gt; asyncDetails;
+<b class="nc">&nbsp;        boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();</b>
+<b class="nc">&nbsp;        if (buildDetails) {</b>
+<b class="nc">&nbsp;            asyncDetails = buildAlarmDetails(msg, existingAlarm.getDetails());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            asyncDetails = Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ListenableFuture&lt;AlarmApiCallResult&gt; asyncUpdated = Futures.transform(asyncDetails, details -&gt; {</b>
+<b class="nc">&nbsp;            if (msgAlarm != null) {</b>
+<b class="nc">&nbsp;                existingAlarm.setSeverity(msgAlarm.getSeverity());</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagate(msgAlarm.isPropagate());</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagateToOwner(msgAlarm.isPropagateToOwner());</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagateToTenant(msgAlarm.isPropagateToTenant());</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagateRelationTypes(msgAlarm.getPropagateRelationTypes());</b>
+<b class="nc">&nbsp;                if (buildDetails) {</b>
+<b class="nc">&nbsp;                    existingAlarm.setDetails(details);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    existingAlarm.setDetails(msgAlarm.getDetails());</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                existingAlarm.setSeverity(processAlarmSeverity(msg));</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagate(config.isPropagate());</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagateToOwner(config.isPropagateToOwner());</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagateToTenant(config.isPropagateToTenant());</b>
+<b class="nc">&nbsp;                existingAlarm.setPropagateRelationTypes(relationTypes);</b>
+<b class="nc">&nbsp;                existingAlarm.setDetails(details);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            existingAlarm.setEndTs(currentTimeMillis());</b>
+<b class="nc">&nbsp;            return ctx.getAlarmService().updateAlarm(AlarmUpdateRequest.fromAlarm(existingAlarm));</b>
+<b class="nc">&nbsp;        }, ctx.getDbCallbackExecutor());</b>
+<b class="nc">&nbsp;        return Futures.transform(asyncUpdated, TbAlarmResult::fromAlarmResult, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Alarm buildAlarm(TbMsg msg, JsonNode details, TenantId tenantId) {
+<b class="nc">&nbsp;        long ts = msg.getMetaDataTs();</b>
+<b class="nc">&nbsp;        return Alarm.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .originator(msg.getOriginator())</b>
+<b class="nc">&nbsp;                .cleared(false)</b>
+<b class="nc">&nbsp;                .acknowledged(false)</b>
+<b class="nc">&nbsp;                .severity(config.isDynamicSeverity() ? processAlarmSeverity(msg) : notDynamicAlarmSeverity)</b>
+<b class="nc">&nbsp;                .propagate(config.isPropagate())</b>
+<b class="nc">&nbsp;                .propagateToOwner(config.isPropagateToOwner())</b>
+<b class="nc">&nbsp;                .propagateToTenant(config.isPropagateToTenant())</b>
+<b class="nc">&nbsp;                .type(TbNodeUtils.processPattern(config.getAlarmType(), msg))</b>
+<b class="nc">&nbsp;                .propagateRelationTypes(relationTypes)</b>
+<b class="nc">&nbsp;                .startTs(ts)</b>
+<b class="nc">&nbsp;                .endTs(ts)</b>
+<b class="nc">&nbsp;                .details(details)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmSeverity processAlarmSeverity(TbMsg msg) {
+<b class="nc">&nbsp;        AlarmSeverity severity = EnumUtils.getEnum(AlarmSeverity.class, TbNodeUtils.processPattern(config.getSeverity(), msg));</b>
+<b class="nc">&nbsp;        if (severity == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Used incorrect pattern or Alarm Severity not included in message&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return severity;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    long currentTimeMillis() {
+<b class="nc">&nbsp;        return System.currentTimeMillis();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SslUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.common.util</a>
+</div>
+
+<h1>Coverage Summary for Class: SslUtil (org.thingsboard.common.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SslUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.common.util;
+&nbsp;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+&nbsp;import org.bouncycastle.cert.X509CertificateHolder;
+&nbsp;import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+&nbsp;import org.bouncycastle.jce.provider.BouncyCastleProvider;
+&nbsp;import org.bouncycastle.openssl.PEMDecryptorProvider;
+&nbsp;import org.bouncycastle.openssl.PEMEncryptedKeyPair;
+&nbsp;import org.bouncycastle.openssl.PEMKeyPair;
+&nbsp;import org.bouncycastle.openssl.PEMParser;
+&nbsp;import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+&nbsp;import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
+&nbsp;import org.bouncycastle.operator.InputDecryptorProvider;
+&nbsp;import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+&nbsp;import org.bouncycastle.pkcs.PKCSException;
+&nbsp;import org.bouncycastle.pkcs.jcajce.JcePKCSPBEInputDecryptorProviderBuilder;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;
+&nbsp;import java.io.FileReader;
+&nbsp;import java.io.IOException;
+&nbsp;import java.io.Reader;
+&nbsp;import java.io.StringReader;
+&nbsp;import java.security.PrivateKey;
+&nbsp;import java.security.Security;
+&nbsp;import java.security.cert.CertificateException;
+&nbsp;import java.security.cert.X509Certificate;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class SslUtil {
+&nbsp;
+<b class="nc">&nbsp;    public static final char[] EMPTY_PASS = {};</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final BouncyCastleProvider DEFAULT_PROVIDER = new BouncyCastleProvider();</b>
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {</b>
+<b class="nc">&nbsp;            Security.addProvider(DEFAULT_PROVIDER);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private SslUtil() {
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    public static List&lt;X509Certificate&gt; readCertFile(String fileContent) {
+<b class="nc">&nbsp;        return readCertFile(new StringReader(fileContent));</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    public static List&lt;X509Certificate&gt; readCertFileByPath(String filePath) {
+<b class="nc">&nbsp;        return readCertFile( new FileReader(filePath));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;X509Certificate&gt; readCertFile(Reader reader) throws IOException, CertificateException {
+<b class="nc">&nbsp;        List&lt;X509Certificate&gt; certificates = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();</b>
+<b class="nc">&nbsp;        try (PEMParser pemParser = new PEMParser(reader)) {</b>
+&nbsp;            Object object;
+<b class="nc">&nbsp;            while ((object = pemParser.readObject()) != null) {</b>
+<b class="nc">&nbsp;                if (object instanceof X509CertificateHolder) {</b>
+<b class="nc">&nbsp;                    X509Certificate x509Cert = certConverter.getCertificate((X509CertificateHolder) object);</b>
+<b class="nc">&nbsp;                    certificates.add(x509Cert);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return certificates;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    public static PrivateKey readPrivateKey(String fileContent, String passStr) {
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(fileContent)) {</b>
+<b class="nc">&nbsp;            StringReader reader = new StringReader(fileContent);</b>
+<b class="nc">&nbsp;            return readPrivateKey(reader, passStr);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    public static PrivateKey readPrivateKeyByFilePath(String filePath, String passStr) {
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(filePath)) {</b>
+<b class="nc">&nbsp;            FileReader fileReader = new FileReader(filePath);</b>
+<b class="nc">&nbsp;            return readPrivateKey(fileReader, passStr);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static PrivateKey readPrivateKey(Reader reader, String passStr) throws IOException, PKCSException {
+<b class="nc">&nbsp;        char[] password = getPassword(passStr);</b>
+<b class="nc">&nbsp;        PrivateKey privateKey = null;</b>
+<b class="nc">&nbsp;        JcaPEMKeyConverter keyConverter = new JcaPEMKeyConverter();</b>
+<b class="nc">&nbsp;        try (PEMParser pemParser = new PEMParser(reader)) {</b>
+&nbsp;            Object object;
+<b class="nc">&nbsp;            while ((object = pemParser.readObject()) != null) {</b>
+<b class="nc">&nbsp;                if (object instanceof PEMEncryptedKeyPair) {</b>
+<b class="nc">&nbsp;                    PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().build(password);</b>
+<b class="nc">&nbsp;                    privateKey = keyConverter.getKeyPair(((PEMEncryptedKeyPair) object).decryptKeyPair(decProv)).getPrivate();</b>
+&nbsp;                    break;
+<b class="nc">&nbsp;                } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {</b>
+<b class="nc">&nbsp;                    InputDecryptorProvider decProv =</b>
+<b class="nc">&nbsp;                            new JcePKCSPBEInputDecryptorProviderBuilder().setProvider(DEFAULT_PROVIDER).build(password);</b>
+<b class="nc">&nbsp;                    privateKey = keyConverter.getPrivateKey(((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(decProv));</b>
+&nbsp;                    break;
+<b class="nc">&nbsp;                } else if (object instanceof PEMKeyPair) {</b>
+<b class="nc">&nbsp;                    privateKey = keyConverter.getKeyPair((PEMKeyPair) object).getPrivate();</b>
+&nbsp;                    break;
+<b class="nc">&nbsp;                } else if (object instanceof PrivateKeyInfo) {</b>
+<b class="nc">&nbsp;                    privateKey = keyConverter.getPrivateKey((PrivateKeyInfo) object);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return privateKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static char[] getPassword(String passStr) {
+<b class="nc">&nbsp;        return StringUtils.isEmpty(passStr) ? EMPTY_PASS : passStr.toCharArray();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

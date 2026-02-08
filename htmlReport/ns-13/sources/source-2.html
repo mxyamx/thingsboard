@@ -1,0 +1,381 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseMonitoringService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.monitoring.service</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseMonitoringService (org.thingsboard.monitoring.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseMonitoringService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/92)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.monitoring.service;
+&nbsp;
+&nbsp;import com.google.common.collect.Sets;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.ApplicationContext;
+&nbsp;import org.thingsboard.monitoring.client.TbClient;
+&nbsp;import org.thingsboard.monitoring.client.WsClient;
+&nbsp;import org.thingsboard.monitoring.client.WsClientFactory;
+&nbsp;import org.thingsboard.monitoring.config.MonitoringConfig;
+&nbsp;import org.thingsboard.monitoring.config.MonitoringTarget;
+&nbsp;import org.thingsboard.monitoring.data.Latencies;
+&nbsp;import org.thingsboard.monitoring.data.MonitoredServiceKey;
+&nbsp;import org.thingsboard.monitoring.data.ServiceFailureException;
+&nbsp;import org.thingsboard.monitoring.util.TbStopWatch;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataPageLink;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.query.EntityTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.query.TsValue;
+&nbsp;
+&nbsp;import java.net.InetAddress;
+&nbsp;import java.net.URI;
+&nbsp;import java.net.URISyntaxException;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.LinkedList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;import static org.thingsboard.monitoring.service.BaseHealthChecker.TEST_CF_TELEMETRY_KEY;
+&nbsp;import static org.thingsboard.monitoring.service.BaseHealthChecker.TEST_TELEMETRY_KEY;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class BaseMonitoringService&lt;C extends MonitoringConfig&lt;T&gt;, T extends MonitoringTarget&gt; {</b>
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private List&lt;C&gt; configs;
+<b class="nc">&nbsp;    private final List&lt;BaseHealthChecker&lt;C, T&gt;&gt; healthCheckers = new LinkedList&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final List&lt;UUID&gt; devices = new LinkedList&lt;&gt;();</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TbClient tbClient;
+&nbsp;    @Autowired
+&nbsp;    private WsClientFactory wsClientFactory;
+&nbsp;    @Autowired
+&nbsp;    private TbStopWatch stopWatch;
+&nbsp;    @Autowired
+&nbsp;    private MonitoringReporter reporter;
+&nbsp;    @Autowired
+&nbsp;    protected ApplicationContext applicationContext;
+&nbsp;
+&nbsp;    @Value(&quot;${monitoring.edqs.enabled:false}&quot;)
+&nbsp;    private boolean checkEdqs;
+&nbsp;    @Value(&quot;${monitoring.calculated_fields.enabled:true}&quot;)
+&nbsp;    protected boolean checkCalculatedFields;
+&nbsp;
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        if (configs == null || configs.isEmpty()) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        configs.forEach(config -&gt; {</b>
+<b class="nc">&nbsp;            config.getTargets().forEach(target -&gt; {</b>
+<b class="nc">&nbsp;                BaseHealthChecker&lt;C, T&gt; healthChecker = initHealthChecker(target, config);</b>
+<b class="nc">&nbsp;                healthCheckers.add(healthChecker);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (target.isCheckDomainIps()) {</b>
+<b class="nc">&nbsp;                    getAssociatedUrls(target.getBaseUrl()).forEach(url -&gt; {</b>
+<b class="nc">&nbsp;                        healthChecker.getAssociates().put(url, initHealthChecker(createTarget(url), config));</b>
+&nbsp;                    });
+&nbsp;                }
+&nbsp;            });
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private BaseHealthChecker&lt;C, T&gt; initHealthChecker(T target, C config) {
+<b class="nc">&nbsp;        BaseHealthChecker&lt;C, T&gt; healthChecker = (BaseHealthChecker&lt;C, T&gt;) createHealthChecker(config, target);</b>
+<b class="nc">&nbsp;        log.info(&quot;Initializing {} for {}&quot;, healthChecker.getClass().getSimpleName(), target.getBaseUrl());</b>
+<b class="nc">&nbsp;        healthChecker.initialize();</b>
+<b class="nc">&nbsp;        devices.add(target.getDeviceId());</b>
+<b class="nc">&nbsp;        return healthChecker;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public final void runChecks() {
+<b class="nc">&nbsp;        if (healthCheckers.isEmpty()) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            log.info(&quot;Starting {}&quot;, getName());</b>
+<b class="nc">&nbsp;            stopWatch.start();</b>
+<b class="nc">&nbsp;            String accessToken = tbClient.logIn();</b>
+<b class="nc">&nbsp;            reporter.reportLatency(Latencies.LOG_IN, stopWatch.getTime());</b>
+&nbsp;
+<b class="nc">&nbsp;            try (WsClient wsClient = wsClientFactory.createClient(accessToken)) {</b>
+<b class="nc">&nbsp;                stopWatch.start();</b>
+<b class="nc">&nbsp;                wsClient.subscribeForTelemetry(devices, getTestTelemetryKeys()).waitForReply();</b>
+<b class="nc">&nbsp;                reporter.reportLatency(Latencies.WS_SUBSCRIBE, stopWatch.getTime());</b>
+&nbsp;
+<b class="nc">&nbsp;                for (BaseHealthChecker&lt;C, T&gt; healthChecker : healthCheckers) {</b>
+<b class="nc">&nbsp;                    check(healthChecker, wsClient);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (checkEdqs) {</b>
+<b class="nc">&nbsp;                stopWatch.start();</b>
+<b class="nc">&nbsp;                checkEdqs();</b>
+<b class="nc">&nbsp;                reporter.reportLatency(Latencies.EDQS_QUERY, stopWatch.getTime());</b>
+<b class="nc">&nbsp;                reporter.serviceIsOk(MonitoredServiceKey.EDQS);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            reporter.reportLatencies();</b>
+<b class="nc">&nbsp;            log.debug(&quot;Finished {}&quot;, getName());</b>
+&nbsp;        } catch (ServiceFailureException e) {
+<b class="nc">&nbsp;            reporter.serviceFailure(e.getServiceKey(), e);</b>
+&nbsp;        } catch (Throwable error) {
+&nbsp;            try {
+<b class="nc">&nbsp;                reporter.serviceFailure(MonitoredServiceKey.GENERAL, error);</b>
+&nbsp;            } catch (Throwable reportError) {
+<b class="nc">&nbsp;                log.error(&quot;Error occurred during service failure reporting&quot;, reportError);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void check(BaseHealthChecker&lt;C, T&gt; healthChecker, WsClient wsClient) throws Exception {
+<b class="nc">&nbsp;        healthChecker.check(wsClient);</b>
+&nbsp;
+<b class="nc">&nbsp;        T target = healthChecker.getTarget();</b>
+<b class="nc">&nbsp;        if (target.isCheckDomainIps()) {</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; associatedUrls = getAssociatedUrls(target.getBaseUrl());</b>
+<b class="nc">&nbsp;            Map&lt;String, BaseHealthChecker&lt;C, T&gt;&gt; associates = healthChecker.getAssociates();</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; prevAssociatedUrls = new HashSet&lt;&gt;(associates.keySet());</b>
+&nbsp;
+<b class="nc">&nbsp;            boolean changed = false;</b>
+<b class="nc">&nbsp;            for (String url : associatedUrls) {</b>
+<b class="nc">&nbsp;                if (!prevAssociatedUrls.contains(url)) {</b>
+<b class="nc">&nbsp;                    BaseHealthChecker&lt;C, T&gt; associate = initHealthChecker(createTarget(url), healthChecker.getConfig());</b>
+<b class="nc">&nbsp;                    associates.put(url, associate);</b>
+<b class="nc">&nbsp;                    changed = true;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            for (String url : prevAssociatedUrls) {</b>
+<b class="nc">&nbsp;                if (!associatedUrls.contains(url)) {</b>
+<b class="nc">&nbsp;                    stopHealthChecker(healthChecker);</b>
+<b class="nc">&nbsp;                    associates.remove(url);</b>
+<b class="nc">&nbsp;                    changed = true;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (changed) {</b>
+<b class="nc">&nbsp;                log.info(&quot;Updated IPs for {}: {} (old list: {})&quot;, target.getBaseUrl(), associatedUrls, prevAssociatedUrls);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkEdqs() {
+<b class="nc">&nbsp;        EntityTypeFilter entityTypeFilter = new EntityTypeFilter();</b>
+<b class="nc">&nbsp;        entityTypeFilter.setEntityType(EntityType.DEVICE);</b>
+<b class="nc">&nbsp;        EntityDataPageLink pageLink = new EntityDataPageLink(100, 0, null, new EntityDataSortOrder(new EntityKey(EntityKeyType.ENTITY_FIELD, &quot;name&quot;)));</b>
+<b class="nc">&nbsp;        EntityDataQuery entityDataQuery = new EntityDataQuery(entityTypeFilter, pageLink,</b>
+<b class="nc">&nbsp;                List.of(new EntityKey(EntityKeyType.ENTITY_FIELD, &quot;name&quot;), new EntityKey(EntityKeyType.ENTITY_FIELD, &quot;type&quot;)),</b>
+<b class="nc">&nbsp;                List.of(new EntityKey(EntityKeyType.TIME_SERIES, &quot;testData&quot;)),</b>
+<b class="nc">&nbsp;                Collections.emptyList());</b>
+&nbsp;
+<b class="nc">&nbsp;        PageData&lt;EntityData&gt; result = tbClient.findEntityDataByQuery(entityDataQuery);</b>
+<b class="nc">&nbsp;        Set&lt;UUID&gt; devices = result.getData().stream()</b>
+<b class="nc">&nbsp;                .map(entityData -&gt; entityData.getEntityId().getId())</b>
+<b class="nc">&nbsp;                .collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;        Set&lt;UUID&gt; missing = Sets.difference(new HashSet&lt;&gt;(this.devices), devices);</b>
+<b class="nc">&nbsp;        if (!missing.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new ServiceFailureException(MonitoredServiceKey.EDQS, &quot;Missing devices in the response: &quot; + missing);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        result.getData().stream()</b>
+<b class="nc">&nbsp;                .filter(entityData -&gt; this.devices.contains(entityData.getEntityId().getId()))</b>
+<b class="nc">&nbsp;                .forEach(entityData -&gt; {</b>
+<b class="nc">&nbsp;                    Map&lt;String, TsValue&gt; values = new HashMap&lt;&gt;(entityData.getLatest().get(EntityKeyType.ENTITY_FIELD));</b>
+<b class="nc">&nbsp;                    values.putAll(entityData.getLatest().get(EntityKeyType.TIME_SERIES));</b>
+&nbsp;
+<b class="nc">&nbsp;                    Stream.of(&quot;name&quot;, &quot;type&quot;, &quot;testData&quot;).forEach(key -&gt; {</b>
+<b class="nc">&nbsp;                        TsValue value = values.get(key);</b>
+<b class="nc">&nbsp;                        if (value == null || StringUtils.isBlank(value.getValue())) {</b>
+<b class="nc">&nbsp;                            throw new ServiceFailureException(MonitoredServiceKey.EDQS, &quot;Missing &quot; + key + &quot; for device &quot; + entityData.getEntityId());</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    private Set&lt;String&gt; getAssociatedUrls(String baseUrl) {
+<b class="nc">&nbsp;        URI url = new URI(baseUrl);</b>
+<b class="nc">&nbsp;        return Arrays.stream(InetAddress.getAllByName(url.getHost()))</b>
+<b class="nc">&nbsp;                .map(InetAddress::getHostAddress)</b>
+<b class="nc">&nbsp;                .map(ip -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        return new URI(url.getScheme(), null, ip, url.getPort(), &quot;&quot;, null, null).toString();</b>
+&nbsp;                    } catch (URISyntaxException e) {
+<b class="nc">&nbsp;                        throw new RuntimeException(e);</b>
+&nbsp;                    }
+&nbsp;                })
+<b class="nc">&nbsp;                .collect(Collectors.toSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;String&gt; getTestTelemetryKeys() {
+<b class="nc">&nbsp;        return checkCalculatedFields ? List.of(TEST_TELEMETRY_KEY, TEST_CF_TELEMETRY_KEY) : List.of(TEST_TELEMETRY_KEY);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void stopHealthChecker(BaseHealthChecker&lt;C, T&gt; healthChecker) throws Exception {
+<b class="nc">&nbsp;        healthChecker.destroyClient();</b>
+<b class="nc">&nbsp;        devices.remove(healthChecker.getTarget().getDeviceId());</b>
+<b class="nc">&nbsp;        log.info(&quot;Stopped {} for {}&quot;, healthChecker.getClass().getSimpleName(), healthChecker.getTarget().getBaseUrl());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract BaseHealthChecker&lt;?, ?&gt; createHealthChecker(C config, T target);
+&nbsp;
+&nbsp;    protected abstract T createTarget(String baseUrl);
+&nbsp;
+&nbsp;    protected abstract String getName();
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

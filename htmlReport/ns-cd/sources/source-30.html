@@ -1,0 +1,768 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RuleChainController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: RuleChainController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RuleChainController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/157)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RuleChainController$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/158)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.core.type.TypeReference;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ArrayNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.ObjectUtils;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.ResponseStatus;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.ScriptEngine;
+&nbsp;import org.thingsboard.script.api.js.JsInvokeService;
+&nbsp;import org.thingsboard.script.api.tbel.TbelInvokeService;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
+&nbsp;import org.thingsboard.server.common.data.EventInfo;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageDataIterableByTenant;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.rule.DefaultRuleChainCreateRequest;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainData;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainImportResult;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainOutputLabelsUsage;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.common.data.script.ScriptLanguage;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgDataType;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.event.EventService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.rule.TbRuleChainService;
+&nbsp;import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
+&nbsp;import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_TEXT_SEARCH_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_TYPE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RULE_NODE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+<b class="nc">&nbsp;public class RuleChainController extends BaseController {</b>
+&nbsp;
+&nbsp;    public static final String RULE_CHAIN_ID = &quot;ruleChainId&quot;;
+&nbsp;    public static final String RULE_NODE_ID = &quot;ruleNodeId&quot;;
+&nbsp;
+&nbsp;    private static final int DEFAULT_PAGE_SIZE = 1000;
+&nbsp;
+&nbsp;    public static final int TIMEOUT = 20;
+&nbsp;
+&nbsp;    private static final String RULE_CHAIN_DESCRIPTION = &quot;The rule chain object is lightweight and contains general information about the rule chain. &quot; +
+&nbsp;            &quot;List of rule nodes and their connection is stored in a separate &#39;metadata&#39; object.&quot;;
+&nbsp;    private static final String RULE_CHAIN_METADATA_DESCRIPTION = &quot;The metadata object contains information about the rule nodes and their connections.&quot;;
+&nbsp;    private static final String TEST_SCRIPT_FUNCTION = &quot;Execute the Script function and return the result. The format of request: \n\n&quot;
+&nbsp;            + MARKDOWN_CODE_BLOCK_START
+&nbsp;            + &quot;{\n&quot; +
+&nbsp;            &quot;  \&quot;script\&quot;: \&quot;Your Function as String\&quot;,\n&quot; +
+&nbsp;            &quot;  \&quot;scriptType\&quot;: \&quot;One of: update, generate, filter, switch, json, string\&quot;,\n&quot; +
+&nbsp;            &quot;  \&quot;argNames\&quot;: [\&quot;msg\&quot;, \&quot;metadata\&quot;, \&quot;type\&quot;],\n&quot; +
+&nbsp;            &quot;  \&quot;msg\&quot;: \&quot;{\\\&quot;temperature\\\&quot;: 42}\&quot;, \n&quot; +
+&nbsp;            &quot;  \&quot;metadata\&quot;: {\n&quot; +
+&nbsp;            &quot;    \&quot;deviceName\&quot;: \&quot;Device A\&quot;,\n&quot; +
+&nbsp;            &quot;    \&quot;deviceType\&quot;: \&quot;Thermometer\&quot;\n&quot; +
+&nbsp;            &quot;  },\n&quot; +
+&nbsp;            &quot;  \&quot;msgType\&quot;: \&quot;POST_TELEMETRY_REQUEST\&quot;\n&quot; +
+&nbsp;            &quot;}&quot;
+&nbsp;            + MARKDOWN_CODE_BLOCK_END
+&nbsp;            + &quot;\n\n Expected result JSON contains \&quot;output\&quot; and \&quot;error\&quot;.&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbRuleChainService tbRuleChainService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EventService eventService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private JsInvokeService jsInvokeService;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private TbelInvokeService tbelInvokeService;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private ActorSystemContext actorContext;
+&nbsp;
+&nbsp;    @Value(&quot;${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled}&quot;)
+&nbsp;    private boolean debugPerTenantEnabled;
+&nbsp;
+&nbsp;    @Value(&quot;${tbel.enabled:true}&quot;)
+&nbsp;    private boolean tbelEnabled;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Rule Chain (getRuleChainById)&quot;,
+&nbsp;            notes = &quot;Fetch the Rule Chain object based on the provided Rule Chain Id. &quot; + RULE_CHAIN_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/ruleChain/{ruleChainId}&quot;)
+&nbsp;    public RuleChain getRuleChainById(
+&nbsp;            @Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        return checkRuleChain(ruleChainId, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Rule Chain output labels (getRuleChainOutputLabels)&quot;,
+&nbsp;            notes = &quot;Fetch the unique labels for the \&quot;output\&quot; Rule Nodes that belong to the Rule Chain based on the provided Rule Chain Id. &quot;
+&nbsp;                    + RULE_CHAIN_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/ruleChain/{ruleChainId}/output/labels&quot;)
+&nbsp;    public Set&lt;String&gt; getRuleChainOutputLabels(
+&nbsp;            @Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        checkRuleChain(ruleChainId, Operation.READ);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.getRuleChainOutputLabels(getTenantId(), ruleChainId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get output labels usage (getRuleChainOutputLabelsUsage)&quot;,
+&nbsp;            notes = &quot;Fetch the list of rule chains and the relation types (labels) they use to process output of the current rule chain based on the provided Rule Chain Id. &quot;
+&nbsp;                    + RULE_CHAIN_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/ruleChain/{ruleChainId}/output/labels/usage&quot;)
+&nbsp;    public List&lt;RuleChainOutputLabelsUsage&gt; getRuleChainOutputLabelsUsage(
+&nbsp;            @Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        checkRuleChain(ruleChainId, Operation.READ);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.getOutputLabelUsage(getCurrentUser().getTenantId(), ruleChainId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Rule Chain (getRuleChainById)&quot;,
+&nbsp;            notes = &quot;Fetch the Rule Chain Metadata object based on the provided Rule Chain Id. &quot; + RULE_CHAIN_METADATA_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/ruleChain/{ruleChainId}/metadata&quot;)
+&nbsp;    public RuleChainMetaData getRuleChainMetaData(
+&nbsp;            @Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        checkRuleChain(ruleChainId, Operation.READ);</b>
+<b class="nc">&nbsp;        return ruleChainService.loadRuleChainMetaData(getTenantId(), ruleChainId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Or Update Rule Chain (saveRuleChain)&quot;,
+&nbsp;            notes = &quot;Create or update the Rule Chain. When creating Rule Chain, platform generates Rule Chain Id as &quot; + UUID_WIKI_LINK +
+&nbsp;                    &quot;The newly created Rule Chain Id will be present in the response. &quot; +
+&nbsp;                    &quot;Specify existing Rule Chain id to update the rule chain. &quot; +
+&nbsp;                    &quot;Referencing non-existing rule chain Id will cause &#39;Not Found&#39; error.&quot; +
+&nbsp;                    &quot;\n\n&quot; + RULE_CHAIN_DESCRIPTION +
+&nbsp;                    &quot;Remove &#39;id&#39;, &#39;tenantId&#39; from the request body example (below) to create new Rule Chain entity.&quot; +
+&nbsp;                    TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChain&quot;)
+&nbsp;    public RuleChain saveRuleChain(
+&nbsp;            @Parameter(description = &quot;A JSON value representing the rule chain.&quot;)
+&nbsp;            @RequestBody RuleChain ruleChain) throws Exception {
+<b class="nc">&nbsp;        ruleChain.setTenantId(getCurrentUser().getTenantId());</b>
+<b class="nc">&nbsp;        checkEntity(ruleChain.getId(), ruleChain, Resource.RULE_CHAIN);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.save(ruleChain, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Default Rule Chain&quot;,
+&nbsp;            notes = &quot;Create rule chain from template, based on the specified name in the request. &quot; +
+&nbsp;                    &quot;Creates the rule chain based on the template that is used to create root rule chain. &quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChain/device/default&quot;)
+&nbsp;    public RuleChain saveRuleChain(
+&nbsp;            @Parameter(description = &quot;A JSON value representing the request.&quot;)
+&nbsp;            @RequestBody DefaultRuleChainCreateRequest request) throws Exception {
+<b class="nc">&nbsp;        checkNotNull(request);</b>
+<b class="nc">&nbsp;        checkParameter(request.getName(), &quot;name&quot;);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.saveDefaultByName(getTenantId(), request, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Set Root Rule Chain (setRootRuleChain)&quot;,
+&nbsp;            notes = &quot;Makes the rule chain to be root rule chain. Updates previous root rule chain as well. &quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChain/{ruleChainId}/root&quot;)
+&nbsp;    public RuleChain setRootRuleChain(
+&nbsp;            @Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.setRootRuleChain(getTenantId(), ruleChain, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Update Rule Chain Metadata&quot;,
+&nbsp;            notes = &quot;Updates the rule chain metadata. &quot; + RULE_CHAIN_METADATA_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChain/metadata&quot;)
+&nbsp;    public RuleChainMetaData saveRuleChainMetaData(
+&nbsp;            @Parameter(description = &quot;A JSON value representing the rule chain metadata.&quot;)
+&nbsp;            @RequestBody RuleChainMetaData ruleChainMetaData,
+&nbsp;            @Parameter(description = &quot;Update related rule nodes.&quot;)
+&nbsp;            @RequestParam(value = &quot;updateRelated&quot;, required = false, defaultValue = &quot;true&quot;) boolean updateRelated
+&nbsp;    ) throws Exception {
+<b class="nc">&nbsp;        TenantId tenantId = getTenantId();</b>
+<b class="nc">&nbsp;        if (debugPerTenantEnabled) {</b>
+<b class="nc">&nbsp;            ConcurrentMap&lt;TenantId, DebugTbRateLimits&gt; debugPerTenantLimits = actorContext.getDebugPerTenantLimits();</b>
+<b class="nc">&nbsp;            DebugTbRateLimits debugTbRateLimits = debugPerTenantLimits.getOrDefault(tenantId, null);</b>
+<b class="nc">&nbsp;            if (debugTbRateLimits != null) {</b>
+<b class="nc">&nbsp;                debugPerTenantLimits.remove(tenantId, debugTbRateLimits);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainMetaData.getRuleChainId(), Operation.WRITE);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbRuleChainService.saveRuleChainMetaData(tenantId, ruleChain, ruleChainMetaData, updateRelated, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Rule Chains (getRuleChains)&quot;,
+&nbsp;            notes = &quot;Returns a page of Rule Chains owned by tenant. &quot; + RULE_CHAIN_DESCRIPTION + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/ruleChains&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;RuleChain&gt; getRuleChains(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = RULE_CHAIN_TYPE_DESCRIPTION, schema = @Schema(allowableValues = {&quot;CORE&quot;, &quot;EDGE&quot;}))
+&nbsp;            @RequestParam(value = &quot;type&quot;, required = false) String typeStr,
+&nbsp;            @Parameter(description = RULE_CHAIN_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;root&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        RuleChainType type = RuleChainType.CORE;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotBlank(typeStr)) {</b>
+<b class="nc">&nbsp;            type = RuleChainType.valueOf(typeStr);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return checkNotNull(ruleChainService.findTenantRuleChainsByType(tenantId, type, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete rule chain (deleteRuleChain)&quot;,
+&nbsp;            notes = &quot;Deletes the rule chain. Referencing non-existing rule chain Id will cause an error. &quot; +
+&nbsp;                    &quot;Referencing rule chain that is used in the device profiles will cause an error.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(&quot;/ruleChain/{ruleChainId}&quot;)
+&nbsp;    @ResponseStatus(HttpStatus.OK)
+&nbsp;    public void deleteRuleChain(
+&nbsp;            @Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.DELETE);</b>
+<b class="nc">&nbsp;        tbRuleChainService.delete(ruleChain, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get latest input message (getLatestRuleNodeDebugInput)&quot;,
+&nbsp;            notes = &quot;Gets the input message from the debug events for specified Rule Chain Id. &quot; +
+&nbsp;                    &quot;Referencing non-existing rule chain Id will cause an error. &quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/ruleNode/{ruleNodeId}/debugIn&quot;)
+&nbsp;    public JsonNode getLatestRuleNodeDebugInput(
+&nbsp;            @Parameter(description = RULE_NODE_ID_PARAM_DESCRIPTION)
+&nbsp;            @PathVariable(RULE_NODE_ID) String strRuleNodeId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_NODE_ID, strRuleNodeId);</b>
+<b class="nc">&nbsp;        RuleNodeId ruleNodeId = new RuleNodeId(toUUID(strRuleNodeId));</b>
+<b class="nc">&nbsp;        checkRuleNode(ruleNodeId, Operation.READ);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        return Optional.ofNullable(eventService.findLatestDebugRuleNodeInEvent(tenantId, ruleNodeId))</b>
+<b class="nc">&nbsp;                .map(EventInfo::getBody).orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Is TBEL script executor enabled&quot;,
+&nbsp;            notes = &quot;Returns &#39;True&#39; if the TBEL script execution is enabled&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/ruleChain/tbelEnabled&quot;)
+&nbsp;    public Boolean isTbelEnabled() {
+<b class="nc">&nbsp;        return tbelEnabled;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Test Script function&quot;,
+&nbsp;            notes = TEST_SCRIPT_FUNCTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChain/testScript&quot;)
+&nbsp;    public JsonNode testScript(
+&nbsp;            @Parameter(description = &quot;Script language: JS or TBEL&quot;)
+&nbsp;            @RequestParam(required = false) ScriptLanguage scriptLang,
+&nbsp;            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = &quot;Test JS request. See API call description above.&quot;)
+&nbsp;            @RequestBody JsonNode inputParams) {
+<b class="nc">&nbsp;        String script = inputParams.get(&quot;script&quot;).asText();</b>
+<b class="nc">&nbsp;        String scriptType = inputParams.get(&quot;scriptType&quot;).asText();</b>
+<b class="nc">&nbsp;        JsonNode argNamesJson = inputParams.get(&quot;argNames&quot;);</b>
+<b class="nc">&nbsp;        String[] argNames = JacksonUtil.treeToValue(argNamesJson, String[].class);</b>
+&nbsp;
+<b class="nc">&nbsp;        String data = inputParams.get(&quot;msg&quot;).asText();</b>
+<b class="nc">&nbsp;        JsonNode metadataJson = inputParams.get(&quot;metadata&quot;);</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; metadata = JacksonUtil.convertValue(metadataJson, new TypeReference&lt;&gt;() {});</b>
+<b class="nc">&nbsp;        String msgType = inputParams.get(&quot;msgType&quot;).asText();</b>
+<b class="nc">&nbsp;        String output = &quot;&quot;;</b>
+<b class="nc">&nbsp;        String errorText = &quot;&quot;;</b>
+<b class="nc">&nbsp;        ScriptEngine engine = null;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (scriptLang == null) {</b>
+<b class="nc">&nbsp;                scriptLang = ScriptLanguage.JS;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (ScriptLanguage.JS.equals(scriptLang)) {</b>
+<b class="nc">&nbsp;                engine = new RuleNodeJsScriptEngine(getTenantId(), jsInvokeService, script, argNames);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (tbelInvokeService == null) {</b>
+<b class="nc">&nbsp;                    throw new IllegalArgumentException(&quot;TBEL script engine is disabled!&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                engine = new RuleNodeTbelScriptEngine(getTenantId(), tbelInvokeService, script, argNames);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            var inMsg = TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                    .type(msgType)</b>
+<b class="nc">&nbsp;                    .copyMetaData(new TbMsgMetaData(metadata))</b>
+<b class="nc">&nbsp;                    .dataType(TbMsgDataType.JSON)</b>
+<b class="nc">&nbsp;                    .data(data)</b>
+<b class="nc">&nbsp;                    .build();</b>
+&nbsp;
+<b class="nc">&nbsp;            output = switch (scriptType) {</b>
+<b class="nc">&nbsp;                case &quot;update&quot; -&gt; msgToOutput(engine.executeUpdateAsync(inMsg).get(TIMEOUT, TimeUnit.SECONDS));</b>
+<b class="nc">&nbsp;                case &quot;generate&quot; -&gt; msgToOutput(engine.executeGenerateAsync(inMsg).get(TIMEOUT, TimeUnit.SECONDS));</b>
+<b class="nc">&nbsp;                case &quot;filter&quot; -&gt; Boolean.toString(engine.executeFilterAsync(inMsg).get(TIMEOUT, TimeUnit.SECONDS));</b>
+<b class="nc">&nbsp;                case &quot;switch&quot; -&gt; JacksonUtil.toString(engine.executeSwitchAsync(inMsg).get(TIMEOUT, TimeUnit.SECONDS));</b>
+<b class="nc">&nbsp;                case &quot;json&quot; -&gt; JacksonUtil.toString(engine.executeJsonAsync(inMsg).get(TIMEOUT, TimeUnit.SECONDS));</b>
+<b class="nc">&nbsp;                case &quot;string&quot; -&gt; engine.executeToStringAsync(inMsg).get(TIMEOUT, TimeUnit.SECONDS);</b>
+<b class="nc">&nbsp;                default -&gt; throw new IllegalArgumentException(&quot;Unsupported script type: &quot; + scriptType);</b>
+&nbsp;            };
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Error evaluating JS function&quot;, e);</b>
+<b class="nc">&nbsp;            Throwable rootCause = ExceptionUtils.getRootCause(e);</b>
+<b class="nc">&nbsp;            errorText = ObjectUtils.firstNonNull(rootCause.getMessage(), e.getMessage(), e.getClass().getSimpleName());</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (engine != null) {</b>
+<b class="nc">&nbsp;                engine.destroy();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return JacksonUtil.newObjectNode()</b>
+<b class="nc">&nbsp;                .put(&quot;output&quot;, output)</b>
+<b class="nc">&nbsp;                .put(&quot;error&quot;, errorText);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Export Rule Chains&quot;, notes = &quot;Exports all tenant rule chains as one JSON.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/ruleChains/export&quot;, params = {&quot;limit&quot;})
+&nbsp;    public RuleChainData exportRuleChains(
+&nbsp;            @Parameter(description = &quot;A limit of rule chains to export.&quot;, required = true)
+&nbsp;            @RequestParam(&quot;limit&quot;) int limit) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        PageLink pageLink = new PageLink(limit);</b>
+<b class="nc">&nbsp;        return checkNotNull(ruleChainService.exportTenantRuleChains(tenantId, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Import Rule Chains&quot;, notes = &quot;Imports all tenant rule chains as one JSON.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChains/import&quot;)
+&nbsp;    public List&lt;RuleChainImportResult&gt; importRuleChains(
+&nbsp;            @Parameter(description = &quot;A JSON value representing the rule chains.&quot;)
+&nbsp;            @RequestBody RuleChainData ruleChainData,
+&nbsp;            @Parameter(description = &quot;Enables overwrite for existing rule chains with the same name.&quot;)
+&nbsp;            @RequestParam(required = false, defaultValue = &quot;false&quot;) boolean overwrite) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        return ruleChainService.importTenantRuleChains(tenantId, ruleChainData, overwrite, tbRuleChainService::updateRuleNodeConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String msgToOutput(TbMsg msg) {
+<b class="nc">&nbsp;        JsonNode resultNode = convertMsgToOut(msg);</b>
+<b class="nc">&nbsp;        return JacksonUtil.toString(resultNode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String msgToOutput(List&lt;TbMsg&gt; msgs) {
+&nbsp;        JsonNode resultNode;
+<b class="nc">&nbsp;        if (msgs.size() &gt; 1) {</b>
+<b class="nc">&nbsp;            resultNode = JacksonUtil.newArrayNode();</b>
+<b class="nc">&nbsp;            for (TbMsg msg : msgs) {</b>
+<b class="nc">&nbsp;                JsonNode convertedData = convertMsgToOut(msg);</b>
+<b class="nc">&nbsp;                ((ArrayNode) resultNode).add(convertedData);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            resultNode = convertMsgToOut(msgs.get(0));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return JacksonUtil.toString(resultNode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private JsonNode convertMsgToOut(TbMsg msg) {
+<b class="nc">&nbsp;        ObjectNode msgData = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(msg.getData())) {</b>
+<b class="nc">&nbsp;            msgData.set(&quot;msg&quot;, JacksonUtil.toJsonNode(msg.getData()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Map&lt;String, String&gt; metadata = msg.getMetaData().getData();</b>
+<b class="nc">&nbsp;        msgData.set(&quot;metadata&quot;, JacksonUtil.valueToTree(metadata));</b>
+<b class="nc">&nbsp;        msgData.put(&quot;msgType&quot;, msg.getType());</b>
+<b class="nc">&nbsp;        return msgData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Assign rule chain to edge (assignRuleChainToEdge)&quot;,
+&nbsp;            notes = &quot;Creates assignment of an existing rule chain to an instance of The Edge. &quot; +
+&nbsp;                    EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION +
+&nbsp;                    &quot;Second, remote edge service will receive a copy of assignment rule chain &quot; +
+&nbsp;                    EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
+&nbsp;                    &quot;Third, once rule chain will be delivered to edge service, it&#39;s going to start processing messages locally. &quot; +
+&nbsp;                    &quot;\n\nOnly rule chain with type &#39;EDGE&#39; can be assigned to edge.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/edge/{edgeId}/ruleChain/{ruleChainId}&quot;)
+&nbsp;    public RuleChain assignRuleChainToEdge(@PathVariable(&quot;edgeId&quot;) String strEdgeId,
+&nbsp;                                           @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;edgeId&quot;, strEdgeId);</b>
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        Edge edge = checkEdgeId(edgeId, Operation.WRITE);</b>
+&nbsp;
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbRuleChainService.assignRuleChainToEdge(getTenantId(), ruleChain, edge, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Unassign rule chain from edge (unassignRuleChainFromEdge)&quot;,
+&nbsp;            notes = &quot;Clears assignment of the rule chain to the edge. &quot; +
+&nbsp;                    EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION +
+&nbsp;                    &quot;Second, remote edge service will receive an &#39;unassign&#39; command to remove rule chain &quot; +
+&nbsp;                    EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
+&nbsp;                    &quot;Third, once &#39;unassign&#39; command will be delivered to edge service, it&#39;s going to remove rule chain locally.&quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(&quot;/edge/{edgeId}/ruleChain/{ruleChainId}&quot;)
+&nbsp;    public RuleChain unassignRuleChainFromEdge(@PathVariable(&quot;edgeId&quot;) String strEdgeId,
+&nbsp;                                               @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;edgeId&quot;, strEdgeId);</b>
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        Edge edge = checkEdgeId(edgeId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.READ);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbRuleChainService.unassignRuleChainFromEdge(getTenantId(), ruleChain, edge, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Edge Rule Chains (getEdgeRuleChains)&quot;,
+&nbsp;            notes = &quot;Returns a page of Rule Chains assigned to the specified edge. &quot; + RULE_CHAIN_DESCRIPTION + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/edge/{edgeId}/ruleChains&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;RuleChain&gt; getEdgeRuleChains(
+&nbsp;            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(EDGE_ID) String strEdgeId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = RULE_CHAIN_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;name&quot;, &quot;root&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(EDGE_ID, strEdgeId);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));</b>
+<b class="nc">&nbsp;        checkEdgeId(edgeId, Operation.READ);</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        return checkNotNull(ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Set Edge Template Root Rule Chain (setEdgeTemplateRootRuleChain)&quot;,
+&nbsp;            notes = &quot;Makes the rule chain to be root rule chain for any new edge that will be created. &quot; +
+&nbsp;                    &quot;Does not update root rule chain for already created edges. &quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChain/{ruleChainId}/edgeTemplateRoot&quot;)
+&nbsp;    public RuleChain setEdgeTemplateRootRuleChain(@Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;                                                  @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.setEdgeTemplateRootRuleChain(getTenantId(), ruleChain, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Set Auto Assign To Edge Rule Chain (setAutoAssignToEdgeRuleChain)&quot;,
+&nbsp;            notes = &quot;Makes the rule chain to be automatically assigned for any new edge that will be created. &quot; +
+&nbsp;                    &quot;Does not assign this rule chain for already created edges. &quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/ruleChain/{ruleChainId}/autoAssignToEdge&quot;)
+&nbsp;    public RuleChain setAutoAssignToEdgeRuleChain(@Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;                                                  @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.setAutoAssignToEdgeRuleChain(getTenantId(), ruleChain, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Unset Auto Assign To Edge Rule Chain (unsetAutoAssignToEdgeRuleChain)&quot;,
+&nbsp;            notes = &quot;Removes the rule chain from the list of rule chains that are going to be automatically assigned for any new edge that will be created. &quot; +
+&nbsp;                    &quot;Does not unassign this rule chain for already assigned edges. &quot; + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(&quot;/ruleChain/{ruleChainId}/autoAssignToEdge&quot;)
+&nbsp;    public RuleChain unsetAutoAssignToEdgeRuleChain(@Parameter(description = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+&nbsp;                                                    @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(RULE_CHAIN_ID, strRuleChainId);</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        return tbRuleChainService.unsetAutoAssignToEdgeRuleChain(getTenantId(), ruleChain, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // TODO: @voba refactor this - add new config to edge rule chain to set it as auto-assign
+&nbsp;    @ApiOperation(value = &quot;Get Auto Assign To Edge Rule Chains (getAutoAssignToEdgeRuleChains)&quot;,
+&nbsp;            notes = &quot;Returns a list of Rule Chains that will be assigned to a newly created edge. &quot; + RULE_CHAIN_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/ruleChain/autoAssignToEdgeRuleChains&quot;)
+&nbsp;    public List&lt;RuleChain&gt; getAutoAssignToEdgeRuleChains() throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        List&lt;RuleChain&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        PageDataIterableByTenant&lt;RuleChain&gt; autoAssignRuleChainsIterator =</b>
+<b class="nc">&nbsp;                new PageDataIterableByTenant&lt;&gt;(ruleChainService::findAutoAssignToEdgeRuleChainsByTenantId, tenantId, DEFAULT_PAGE_SIZE);</b>
+<b class="nc">&nbsp;        for (RuleChain ruleChain : autoAssignRuleChainsIterator) {</b>
+<b class="nc">&nbsp;            result.add(ruleChain);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return checkNotNull(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Rule Chains By Ids (getRuleChainsByIds)&quot;,
+&nbsp;            notes = &quot;Requested rule chains must be owned by tenant which is performing the request. &quot; +
+&nbsp;                    NEW_LINE)
+&nbsp;    @PreAuthorize(&quot;hasAuthority(&#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/ruleChains&quot;, params = {&quot;ruleChainIds&quot;})
+&nbsp;    public List&lt;RuleChain&gt; getRuleChainsByIds(
+&nbsp;            @Parameter(description = &quot;A list of rule chain ids, separated by comma &#39;,&#39;&quot;, array = @ArraySchema(schema = @Schema(type = &quot;string&quot;)), required = true)
+&nbsp;            @RequestParam(&quot;ruleChainIds&quot;) Set&lt;UUID&gt; ruleChainUUIDs) throws Exception {
+<b class="nc">&nbsp;        TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;        List&lt;RuleChainId&gt; ruleChainIds = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (UUID ruleChainUUID : ruleChainUUIDs) {</b>
+<b class="nc">&nbsp;            ruleChainIds.add(new RuleChainId(ruleChainUUID));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ruleChainService.findRuleChainsByIds(tenantId, ruleChainIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

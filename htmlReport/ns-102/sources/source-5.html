@@ -1,0 +1,501 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlarmRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.alarm</a>
+</div>
+
+<h1>Coverage Summary for Class: AlarmRepository (org.thingsboard.server.dao.sql.alarm)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">AlarmRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.alarm;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.domain.Slice;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Modifying;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.dao.model.sql.AlarmEntity;
+&nbsp;import org.thingsboard.server.dao.model.sql.AlarmInfoEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface AlarmRepository extends JpaRepository&lt;AlarmEntity, UUID&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AlarmEntity a WHERE a.originatorId = :originatorId AND a.type = :alarmType ORDER BY a.startTs DESC&quot;)
+&nbsp;    List&lt;AlarmEntity&gt; findLatestByOriginatorAndType(@Param(&quot;originatorId&quot;) UUID originatorId,
+&nbsp;                                                    @Param(&quot;alarmType&quot;) String alarmType,
+&nbsp;                                                    Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AlarmEntity a WHERE a.originatorId = :originatorId AND a.type = :alarmType AND a.cleared = FALSE ORDER BY a.createdTime DESC&quot;)
+&nbsp;    List&lt;AlarmEntity&gt; findLatestActiveByOriginatorAndType(@Param(&quot;originatorId&quot;) UUID originatorId,
+&nbsp;                                                          @Param(&quot;alarmType&quot;) String alarmType,
+&nbsp;                                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a &quot; +
+&nbsp;            &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN EntityAlarmEntity ea ON a.id = ea.alarmId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ea.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ea.entityId = :affectedEntityId &quot; +
+&nbsp;            &quot;AND ea.entityType = :affectedEntityType &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR (a.createdTime &gt;= :startTime AND ea.createdTime &gt;= :startTime)) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR (a.createdTime &lt;= :endTime AND ea.createdTime &lt;= :endTime)) &quot; +
+&nbsp;            &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;            &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;            &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)) &quot;
+&nbsp;            ,
+&nbsp;            countQuery = &quot;&quot; +
+&nbsp;                    &quot;SELECT count(a) &quot; + //alarms with relations only
+&nbsp;                    &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;                    &quot;LEFT JOIN EntityAlarmEntity ea ON a.id = ea.alarmId &quot; +
+&nbsp;                    &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;                    &quot;AND ea.tenantId = :tenantId &quot; +
+&nbsp;                    &quot;AND ea.entityId = :affectedEntityId &quot; +
+&nbsp;                    &quot;AND ea.entityType = :affectedEntityType &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR (a.createdTime &gt;= :startTime AND ea.createdTime &gt;= :startTime)) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR (a.createdTime &lt;= :endTime AND ea.createdTime &lt;= :endTime)) &quot; +
+&nbsp;                    &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;                    &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;                    &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;                    &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;                    &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;                    &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true))&quot;)
+&nbsp;    Page&lt;AlarmInfoEntity&gt; findAlarms(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                     @Param(&quot;affectedEntityId&quot;) UUID affectedEntityId,
+&nbsp;                                     @Param(&quot;affectedEntityType&quot;) String affectedEntityType,
+&nbsp;                                     @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                     @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                     @Param(&quot;clearFilterEnabled&quot;) boolean clearFilterEnabled,
+&nbsp;                                     @Param(&quot;clearFilter&quot;) boolean clearFilter,
+&nbsp;                                     @Param(&quot;ackFilterEnabled&quot;) boolean ackFilterEnabled,
+&nbsp;                                     @Param(&quot;ackFilter&quot;) boolean ackFilter,
+&nbsp;                                     @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                     @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                     Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a &quot; +
+&nbsp;            &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN EntityAlarmEntity ea ON a.id = ea.alarmId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ea.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ea.entityId = :affectedEntityId &quot; +
+&nbsp;            &quot;AND ea.entityType = :affectedEntityType &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR (a.createdTime &gt;= :startTime AND ea.createdTime &gt;= :startTime)) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR (a.createdTime &lt;= :endTime AND ea.createdTime &lt;= :endTime)) &quot; +
+&nbsp;            &quot;AND ((:#{#alarmTypes == null} = true) OR a.type IN (:alarmTypes)) &quot; + //HHH-15968
+&nbsp;            &quot;AND ((:#{#alarmSeverities == null} = true) OR a.severity IN (:alarmSeverities)) &quot; + //HHH-15968
+&nbsp;//            &quot;AND ((:alarmTypes) IS NULL OR a.type IN (:alarmTypes)) &quot; +
+&nbsp;//            &quot;AND ((:alarmSeverities) IS NULL OR a.severity IN (:alarmSeverities)) &quot; +
+&nbsp;            &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;            &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;            &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)) &quot;
+&nbsp;            ,
+&nbsp;            countQuery = &quot;&quot; +
+&nbsp;                    &quot;SELECT count(a) &quot; + //alarms with relations only
+&nbsp;                    &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;                    &quot;LEFT JOIN EntityAlarmEntity ea ON a.id = ea.alarmId &quot; +
+&nbsp;                    &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;                    &quot;AND ea.tenantId = :tenantId &quot; +
+&nbsp;                    &quot;AND ea.entityId = :affectedEntityId &quot; +
+&nbsp;                    &quot;AND ea.entityType = :affectedEntityType &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR (a.createdTime &gt;= :startTime AND ea.createdTime &gt;= :startTime)) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR (a.createdTime &lt;= :endTime AND ea.createdTime &lt;= :endTime)) &quot; +
+&nbsp;                    &quot;AND ((:#{#alarmTypes == null} = true) OR a.type IN (:alarmTypes)) &quot; + //HHH-15968
+&nbsp;                    &quot;AND ((:#{#alarmSeverities == null} = true) OR a.severity IN (:alarmSeverities)) &quot; + //HHH-15968
+&nbsp;//                    &quot;AND ((:alarmTypes) IS NULL OR a.type IN (:alarmTypes)) &quot; +
+&nbsp;//                    &quot;AND ((:alarmSeverities) IS NULL OR a.severity IN (:alarmSeverities)) &quot; +
+&nbsp;                    &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;                    &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;                    &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;                    &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;                    &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;                    &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true))&quot;)
+&nbsp;    Page&lt;AlarmInfoEntity&gt; findAlarmsV2(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                       @Param(&quot;affectedEntityId&quot;) UUID affectedEntityId,
+&nbsp;                                       @Param(&quot;affectedEntityType&quot;) String affectedEntityType,
+&nbsp;                                       @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                       @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                       @Param(&quot;alarmTypes&quot;) List&lt;String&gt; alarmTypes,
+&nbsp;                                       @Param(&quot;alarmSeverities&quot;) List&lt;AlarmSeverity&gt; alarmSeverities,
+&nbsp;                                       @Param(&quot;clearFilterEnabled&quot;) boolean clearFilterEnabled,
+&nbsp;                                       @Param(&quot;clearFilter&quot;) boolean clearFilter,
+&nbsp;                                       @Param(&quot;ackFilterEnabled&quot;) boolean ackFilterEnabled,
+&nbsp;                                       @Param(&quot;ackFilter&quot;) boolean ackFilter,
+&nbsp;                                       @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                       @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                       Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a &quot; +
+&nbsp;            &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;            &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;            &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)) &quot;,
+&nbsp;            countQuery = &quot;&quot; +
+&nbsp;                    &quot;SELECT count(a) &quot; +
+&nbsp;                    &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;                    &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;                    &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;                    &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;                    &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;                    &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;                    &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;                    &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true))&quot;)
+&nbsp;    Page&lt;AlarmInfoEntity&gt; findAllAlarms(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                        @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                        @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                        @Param(&quot;clearFilterEnabled&quot;) boolean clearFilterEnabled,
+&nbsp;                                        @Param(&quot;clearFilter&quot;) boolean clearFilter,
+&nbsp;                                        @Param(&quot;ackFilterEnabled&quot;) boolean ackFilterEnabled,
+&nbsp;                                        @Param(&quot;ackFilter&quot;) boolean ackFilter,
+&nbsp;                                        @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                        @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                        Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a &quot; +
+&nbsp;            &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:#{#alarmTypes == null} = true) OR a.type IN (:alarmTypes)) &quot; + //HHH-15968
+&nbsp;            &quot;AND ((:#{#alarmSeverities == null} = true) OR a.severity IN (:alarmSeverities)) &quot; + //HHH-15968
+&nbsp;//            &quot;AND ((:alarmTypes) IS NULL OR a.type IN (:alarmTypes)) &quot; +
+&nbsp;//            &quot;AND ((:alarmSeverities) IS NULL OR a.severity IN (:alarmSeverities)) &quot; +
+&nbsp;            &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;            &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;            &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)) &quot;,
+&nbsp;            countQuery = &quot;&quot; +
+&nbsp;                    &quot;SELECT count(a) &quot; +
+&nbsp;                    &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;                    &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;                    &quot;AND ((:#{#alarmTypes == null} = true) OR a.type IN (:alarmTypes)) &quot; + //HHH-15968
+&nbsp;                    &quot;AND ((:#{#alarmSeverities == null} = true) OR a.severity IN (:alarmSeverities)) &quot; + //HHH-15968
+&nbsp;//                    &quot;AND ((:alarmTypes) IS NULL OR a.type IN (:alarmTypes)) &quot; +
+&nbsp;//                    &quot;AND ((:alarmSeverities) IS NULL OR a.severity IN (:alarmSeverities)) &quot; +
+&nbsp;                    &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;                    &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;                    &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;                    &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;                    &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;                    &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true))&quot;)
+&nbsp;    Page&lt;AlarmInfoEntity&gt; findAllAlarmsV2(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                          @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                          @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                          @Param(&quot;alarmTypes&quot;) List&lt;String&gt; alarmTypes,
+&nbsp;                                          @Param(&quot;alarmSeverities&quot;) List&lt;AlarmSeverity&gt; alarmSeverities,
+&nbsp;                                          @Param(&quot;clearFilterEnabled&quot;) boolean clearFilterEnabled,
+&nbsp;                                          @Param(&quot;clearFilter&quot;) boolean clearFilter,
+&nbsp;                                          @Param(&quot;ackFilterEnabled&quot;) boolean ackFilterEnabled,
+&nbsp;                                          @Param(&quot;ackFilter&quot;) boolean ackFilter,
+&nbsp;                                          @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                          @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a &quot; +
+&nbsp;            &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId AND a.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;            &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;            &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)) &quot;
+&nbsp;            ,
+&nbsp;            countQuery = &quot;&quot; +
+&nbsp;                    &quot;SELECT count(a) &quot; +
+&nbsp;                    &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;                    &quot;WHERE a.tenantId = :tenantId AND a.customerId = :customerId &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;                    &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;                    &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;                    &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;                    &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;                    &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;                    &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true))&quot;)
+&nbsp;    Page&lt;AlarmInfoEntity&gt; findCustomerAlarms(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                             @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                             @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                             @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                             @Param(&quot;clearFilterEnabled&quot;) boolean clearFilterEnabled,
+&nbsp;                                             @Param(&quot;clearFilter&quot;) boolean clearFilter,
+&nbsp;                                             @Param(&quot;ackFilterEnabled&quot;) boolean ackFilterEnabled,
+&nbsp;                                             @Param(&quot;ackFilter&quot;) boolean ackFilter,
+&nbsp;                                             @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                             @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                             Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a &quot; +
+&nbsp;            &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId AND a.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:#{#alarmTypes == null} = true) OR a.type IN (:alarmTypes)) &quot; + //HHH-15968
+&nbsp;            &quot;AND ((:#{#alarmSeverities == null} = true) OR a.severity IN (:alarmSeverities)) &quot; + //HHH-15968
+&nbsp;//            &quot;AND ((:alarmTypes) IS NULL OR a.type IN (:alarmTypes)) &quot; +
+&nbsp;//            &quot;AND ((:alarmSeverities) IS NULL OR a.severity IN (:alarmSeverities)) &quot; +
+&nbsp;            &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;            &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;            &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;            &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)) &quot;
+&nbsp;            ,
+&nbsp;            countQuery = &quot;&quot; +
+&nbsp;                    &quot;SELECT count(a) &quot; +
+&nbsp;                    &quot;FROM AlarmInfoEntity a &quot; +
+&nbsp;                    &quot;WHERE a.tenantId = :tenantId AND a.customerId = :customerId &quot; +
+&nbsp;                    &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;                    &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;                    &quot;AND ((:#{#alarmTypes == null} = true) OR a.type IN (:alarmTypes)) &quot; + //HHH-15968
+&nbsp;                    &quot;AND ((:#{#alarmSeverities == null} = true) OR a.severity IN (:alarmSeverities)) &quot; + //HHH-15968
+&nbsp;//                    &quot;AND ((:alarmTypes) IS NULL OR a.type IN (:alarmTypes)) &quot; +
+&nbsp;//                    &quot;AND ((:alarmSeverities) IS NULL OR a.severity IN (:alarmSeverities)) &quot; +
+&nbsp;                    &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;                    &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;                    &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId) &quot; +
+&nbsp;                    &quot;AND (:searchText IS NULL OR (ilike(a.type, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true &quot; +
+&nbsp;                    &quot;  OR ilike(a.severity, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true  &quot; +
+&nbsp;                    &quot;  OR ilike(a.status, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true))&quot;)
+&nbsp;    Page&lt;AlarmInfoEntity&gt; findCustomerAlarmsV2(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                               @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                               @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                               @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                               @Param(&quot;alarmTypes&quot;) List&lt;String&gt; alarmTypes,
+&nbsp;                                               @Param(&quot;alarmSeverities&quot;) List&lt;AlarmSeverity&gt; alarmSeverities,
+&nbsp;                                               @Param(&quot;clearFilterEnabled&quot;) boolean clearFilterEnabled,
+&nbsp;                                               @Param(&quot;clearFilter&quot;) boolean clearFilter,
+&nbsp;                                               @Param(&quot;ackFilterEnabled&quot;) boolean ackFilterEnabled,
+&nbsp;                                               @Param(&quot;ackFilter&quot;) boolean ackFilter,
+&nbsp;                                               @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                               @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                               Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a.severity FROM AlarmEntity a &quot; +
+&nbsp;            &quot;LEFT JOIN EntityAlarmEntity ea ON a.id = ea.alarmId &quot; +
+&nbsp;            &quot;WHERE a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ea.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ea.entityId = :affectedEntityId &quot; +
+&nbsp;            &quot;AND ea.entityType = :affectedEntityType &quot; +
+&nbsp;            &quot;AND ((:clearFilterEnabled) = FALSE OR a.cleared = :clearFilter) &quot; +
+&nbsp;            &quot;AND ((:ackFilterEnabled) = FALSE OR a.acknowledged = :ackFilter) &quot; +
+&nbsp;            &quot;AND (:assigneeId IS NULL OR a.assigneeId = :assigneeId)&quot;)
+&nbsp;    Set&lt;AlarmSeverity&gt; findAlarmSeverities(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                           @Param(&quot;affectedEntityId&quot;) UUID affectedEntityId,
+&nbsp;                                           @Param(&quot;affectedEntityType&quot;) String affectedEntityType,
+&nbsp;                                           @Param(&quot;clearFilterEnabled&quot;) boolean clearFilterEnabled,
+&nbsp;                                           @Param(&quot;clearFilter&quot;) boolean clearFilter,
+&nbsp;                                           @Param(&quot;ackFilterEnabled&quot;) boolean ackFilterEnabled,
+&nbsp;                                           @Param(&quot;ackFilter&quot;) boolean ackFilter,
+&nbsp;                                           @Param(&quot;assigneeId&quot;) UUID assigneeId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a.id FROM AlarmEntity a WHERE a.tenantId = :tenantId AND a.createdTime &lt; :time AND a.endTs &lt; :time&quot;)
+&nbsp;    Page&lt;UUID&gt; findAlarmsIdsByEndTsBeforeAndTenantId(@Param(&quot;time&quot;) Long time, @Param(&quot;tenantId&quot;) UUID tenantId, Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a FROM AlarmInfoEntity a WHERE a.tenantId = :tenantId AND a.id = :alarmId&quot;)
+&nbsp;    AlarmInfoEntity findAlarmInfoById(@Param(&quot;tenantId&quot;) UUID tenantId, @Param(&quot;alarmId&quot;) UUID alarmId);
+&nbsp;
+&nbsp;    // using Slice so that count query is not executed
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.util.TbPair(a.id, a.createdTime) &quot; +
+&nbsp;            &quot;FROM AlarmEntity a WHERE a.tenantId = :tenantId AND a.assigneeId = :assigneeId&quot;)
+&nbsp;    Slice&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByAssigneeId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                       @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                                       Pageable pageable);
+&nbsp;
+&nbsp;    // using Slice so that count query is not executed
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.util.TbPair(a.id, a.createdTime) &quot; +
+&nbsp;            &quot;FROM AlarmEntity a WHERE a.tenantId = :tenantId AND a.assigneeId = :assigneeId &quot; +
+&nbsp;            &quot;AND (a.createdTime &gt; :createdTimeOffset OR &quot; +
+&nbsp;            &quot;(a.createdTime = :createdTimeOffset AND a.id &gt; :idOffset))&quot;)
+&nbsp;    Slice&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByAssigneeId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                       @Param(&quot;assigneeId&quot;) UUID assigneeId,
+&nbsp;                                                       @Param(&quot;createdTimeOffset&quot;) long createdTimeOffset,
+&nbsp;                                                       @Param(&quot;idOffset&quot;) UUID idOffset,
+&nbsp;                                                       Pageable pageable);
+&nbsp;
+&nbsp;    // using Slice so that count query is not executed
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.util.TbPair(a.id, a.createdTime) &quot; +
+&nbsp;            &quot;FROM AlarmEntity a WHERE a.originatorId = :originatorId &quot; +
+&nbsp;            &quot;AND (a.createdTime &gt; :createdTimeOffset OR &quot; +
+&nbsp;            &quot;(a.createdTime = :createdTimeOffset AND a.id &gt; :idOffset))&quot;)
+&nbsp;    Slice&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByOriginatorId(@Param(&quot;originatorId&quot;) UUID originatorId,
+&nbsp;                                                         @Param(&quot;createdTimeOffset&quot;) long createdTimeOffset,
+&nbsp;                                                         @Param(&quot;idOffset&quot;) UUID idOffset,
+&nbsp;                                                         Pageable pageable);
+&nbsp;
+&nbsp;    // using Slice so that count query is not executed
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.util.TbPair(a.id, a.createdTime) &quot; +
+&nbsp;            &quot;FROM AlarmEntity a WHERE a.originatorId = :originatorId&quot;)
+&nbsp;    Slice&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByOriginatorId(@Param(&quot;originatorId&quot;) UUID originatorId,
+&nbsp;                                                         Pageable pageable);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT create_or_update_active_alarm(:t_id, :c_id, :a_id, :a_created_ts, :a_o_id, :a_o_type, :a_type, :a_severity, &quot; +
+&nbsp;            &quot;:a_start_ts, :a_end_ts, :a_details, :a_propagate, :a_propagate_to_owner, &quot; +
+&nbsp;            &quot;:a_propagate_to_tenant, :a_propagation_types, :a_creation_enabled)&quot;, nativeQuery = true)
+&nbsp;    String createOrUpdateActiveAlarm(@Param(&quot;t_id&quot;) UUID tenantId, @Param(&quot;c_id&quot;) UUID customerId,
+&nbsp;                                     @Param(&quot;a_id&quot;) UUID alarmId, @Param(&quot;a_created_ts&quot;) long createdTime,
+&nbsp;                                     @Param(&quot;a_o_id&quot;) UUID originatorId, @Param(&quot;a_o_type&quot;) int originatorType,
+&nbsp;                                     @Param(&quot;a_type&quot;) String type, @Param(&quot;a_severity&quot;) String severity,
+&nbsp;                                     @Param(&quot;a_start_ts&quot;) long startTs, @Param(&quot;a_end_ts&quot;) long endTs, @Param(&quot;a_details&quot;) String detailsAsString,
+&nbsp;                                     @Param(&quot;a_propagate&quot;) boolean propagate, @Param(&quot;a_propagate_to_owner&quot;) boolean propagateToOwner,
+&nbsp;                                     @Param(&quot;a_propagate_to_tenant&quot;) boolean propagateToTenant, @Param(&quot;a_propagation_types&quot;) String propagationTypes,
+&nbsp;                                     @Param(&quot;a_creation_enabled&quot;) boolean alarmCreationEnabled);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT update_alarm(:t_id, :a_id, :a_severity, :a_start_ts, :a_end_ts, :a_details, :a_propagate, :a_propagate_to_owner, &quot; +
+&nbsp;            &quot;:a_propagate_to_tenant, :a_propagation_types)&quot;, nativeQuery = true)
+&nbsp;    String updateAlarm(@Param(&quot;t_id&quot;) UUID tenantId, @Param(&quot;a_id&quot;) UUID alarmId, @Param(&quot;a_severity&quot;) String severity,
+&nbsp;                       @Param(&quot;a_start_ts&quot;) long startTs, @Param(&quot;a_end_ts&quot;) long endTs, @Param(&quot;a_details&quot;) String detailsAsString,
+&nbsp;                       @Param(&quot;a_propagate&quot;) boolean propagate, @Param(&quot;a_propagate_to_owner&quot;) boolean propagateToOwner,
+&nbsp;                       @Param(&quot;a_propagate_to_tenant&quot;) boolean propagateToTenant, @Param(&quot;a_propagation_types&quot;) String propagationTypes);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT acknowledge_alarm(:t_id, :a_id, :a_ts)&quot;, nativeQuery = true)
+&nbsp;    String acknowledgeAlarm(@Param(&quot;t_id&quot;) UUID tenantId, @Param(&quot;a_id&quot;) UUID alarmId, @Param(&quot;a_ts&quot;) long ts);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT clear_alarm(:t_id, :a_id, :a_ts, :a_details)&quot;, nativeQuery = true)
+&nbsp;    String clearAlarm(@Param(&quot;t_id&quot;) UUID tenantId, @Param(&quot;a_id&quot;) UUID alarmId, @Param(&quot;a_ts&quot;) long ts, @Param(&quot;a_details&quot;) String details);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT assign_alarm(:t_id, :a_id, :u_id, :a_ts)&quot;, nativeQuery = true)
+&nbsp;    String assignAlarm(@Param(&quot;t_id&quot;) UUID tenantId, @Param(&quot;a_id&quot;) UUID alarmId, @Param(&quot;u_id&quot;) UUID userId, @Param(&quot;a_ts&quot;) long assignTime);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT unassign_alarm(:t_id, :a_id, :a_ts)&quot;, nativeQuery = true)
+&nbsp;    String unassignAlarm(@Param(&quot;t_id&quot;) UUID tenantId, @Param(&quot;a_id&quot;) UUID alarmId, @Param(&quot;a_ts&quot;) long unassignTime);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT at.type FROM alarm_types AS at WHERE at.tenant_id = :tenantId AND at.type ILIKE CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)&quot;, nativeQuery = true)
+&nbsp;    Page&lt;String&gt; findTenantAlarmTypes(@Param(&quot;tenantId&quot;) UUID tenantId, @Param(&quot;searchText&quot;) String searchText, Pageable pageable);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying
+&nbsp;    @Query(value = &quot;DELETE FROM alarm_types AS at WHERE NOT EXISTS (SELECT 1 FROM alarm AS a WHERE a.tenant_id = at.tenant_id AND a.type = at.type) AND at.tenant_id = :tenantId AND at.type IN (:types)&quot;, nativeQuery = true)
+&nbsp;    int deleteTypeIfNoAlarmsExist(@Param(&quot;tenantId&quot;) UUID tenantId, @Param(&quot;types&quot;) Set&lt;String&gt; types);
+&nbsp;
+&nbsp;    @Query(value = &quot;SELECT a.id FROM alarm a &quot; +
+&nbsp;            &quot;WHERE a.originator_id = :originatorId &quot; +
+&nbsp;            &quot;AND (COALESCE(:alarmTypes) IS NULL OR a.type IN (:alarmTypes)) &quot; +
+&nbsp;            &quot;AND (COALESCE(:alarmSeverities) IS NULL OR a.severity IN (:alarmSeverities)) &quot; +
+&nbsp;            &quot;AND (a.cleared = false) ORDER BY id LIMIT :limit&quot;, nativeQuery = true)
+&nbsp;    List&lt;UUID&gt; findActiveOriginatorAlarms(@Param(&quot;originatorId&quot;) UUID originatorId,
+&nbsp;                                          @Param(&quot;alarmTypes&quot;) List&lt;String&gt; alarmTypes,
+&nbsp;                                          @Param(&quot;alarmSeverities&quot;) List&lt;String&gt; alarmSeverities,
+&nbsp;                                          int limit);
+&nbsp;
+&nbsp;    Page&lt;AlarmEntity&gt; findByTenantId(UUID tenantId, Pageable pageable);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

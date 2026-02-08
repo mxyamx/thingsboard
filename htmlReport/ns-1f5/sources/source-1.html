@@ -1,0 +1,722 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CoapEfentoTransportResource</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.coap.efento</a>
+</div>
+
+<h1>Coverage Summary for Class: CoapEfentoTransportResource (org.thingsboard.server.transport.coap.efento)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CoapEfentoTransportResource</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/87)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/249)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CoapEfentoTransportResource$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CoapEfentoTransportResource$EfentoTelemetry</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/87)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/250)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.coap.efento;
+&nbsp;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import com.google.protobuf.InvalidProtocolBufferException;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.logging.log4j.util.TriConsumer;
+&nbsp;import org.eclipse.californium.core.coap.CoAP;
+&nbsp;import org.eclipse.californium.core.coap.Request;
+&nbsp;import org.eclipse.californium.core.network.Exchange;
+&nbsp;import org.eclipse.californium.core.server.resources.CoapExchange;
+&nbsp;import org.eclipse.californium.core.server.resources.Resource;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.adaptor.AdaptorException;
+&nbsp;import org.thingsboard.server.common.adaptor.ProtoConverter;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.DeviceTransportType;
+&nbsp;import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.EfentoCoapDeviceTypeConfiguration;
+&nbsp;import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.coap.ConfigProtos;
+&nbsp;import org.thingsboard.server.gen.transport.coap.DeviceInfoProtos;
+&nbsp;import org.thingsboard.server.gen.transport.coap.MeasurementsProtos;
+&nbsp;import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoChannel;
+&nbsp;import org.thingsboard.server.transport.coap.AbstractCoapTransportResource;
+&nbsp;import org.thingsboard.server.transport.coap.CoapTransportContext;
+&nbsp;import org.thingsboard.server.transport.coap.callback.CoapDeviceAuthCallback;
+&nbsp;import org.thingsboard.server.transport.coap.callback.CoapEfentoCallback;
+&nbsp;import org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils;
+&nbsp;import org.thingsboard.server.transport.coap.efento.utils.PulseCounterType;
+&nbsp;
+&nbsp;import java.nio.ByteBuffer;
+&nbsp;import java.text.SimpleDateFormat;
+&nbsp;import java.util.Date;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.TreeMap;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.gson.JsonParser.parseString;
+&nbsp;import static org.thingsboard.server.transport.coap.CoapTransportService.CONFIGURATION;
+&nbsp;import static org.thingsboard.server.transport.coap.CoapTransportService.CURRENT_TIMESTAMP;
+&nbsp;import static org.thingsboard.server.transport.coap.CoapTransportService.DEVICE_INFO;
+&nbsp;import static org.thingsboard.server.transport.coap.CoapTransportService.MEASUREMENTS;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.BREATH_VOC_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.CO2_EQUIVALENT_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.CO2_GAS_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.ELEC_METER_ACC_MAJOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.ELEC_METER_ACC_MINOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.IAQ_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.PULSE_CNT_ACC_MAJOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.PULSE_CNT_ACC_MINOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.PULSE_CNT_ACC_WIDE_MAJOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.PULSE_CNT_ACC_WIDE_MINOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.STATIC_IAQ_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.WATER_METER_ACC_MAJOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.WATER_METER_ACC_MINOR_METADATA_FACTOR;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.isBinarySensor;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils.isSensorError;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.PulseCounterType.ELEC_METER_ACC;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.PulseCounterType.PULSE_CNT_ACC;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.PulseCounterType.PULSE_CNT_ACC_WIDE;
+&nbsp;import static org.thingsboard.server.transport.coap.efento.utils.PulseCounterType.WATER_CNT_ACC;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class CoapEfentoTransportResource extends AbstractCoapTransportResource {
+&nbsp;
+&nbsp;    private static final int CHILD_RESOURCE_POSITION = 2;
+&nbsp;
+&nbsp;    public CoapEfentoTransportResource(CoapTransportContext context, String name) {
+<b class="nc">&nbsp;        super(context, name);</b>
+<b class="nc">&nbsp;        this.setObservable(true); // enable observing</b>
+<b class="nc">&nbsp;        this.setObserveType(CoAP.Type.CON); // configure the notification type to CONs</b>
+&nbsp;//        this.getAttributes().setObservable(); // mark observable in the Link-Format
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void processHandleGet(CoapExchange exchange) {
+<b class="nc">&nbsp;        Exchange advanced = exchange.advanced();</b>
+<b class="nc">&nbsp;        Request request = advanced.getRequest();</b>
+<b class="nc">&nbsp;        List&lt;String&gt; uriPath = request.getOptions().getUriPath();</b>
+<b class="nc">&nbsp;        boolean validPath = uriPath.size() == CHILD_RESOURCE_POSITION &amp;&amp; uriPath.get(1).equals(CURRENT_TIMESTAMP);</b>
+<b class="nc">&nbsp;        if (!validPath) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Invalid path: [{}]&quot;, uriPath);</b>
+<b class="nc">&nbsp;            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            int dateInSec = (int) (System.currentTimeMillis() / 1000);</b>
+<b class="nc">&nbsp;            byte[] bytes = ByteBuffer.allocate(4).putInt(dateInSec).array();</b>
+<b class="nc">&nbsp;            exchange.respond(CoAP.ResponseCode.CONTENT, bytes);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void processHandlePost(CoapExchange exchange) {
+<b class="nc">&nbsp;        Exchange advanced = exchange.advanced();</b>
+<b class="nc">&nbsp;        Request request = advanced.getRequest();</b>
+<b class="nc">&nbsp;        List&lt;String&gt; uriPath = request.getOptions().getUriPath();</b>
+<b class="nc">&nbsp;        if (uriPath.size() != CHILD_RESOURCE_POSITION) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Unexpected uri path size, uri path: [{}]&quot;, uriPath);</b>
+<b class="nc">&nbsp;            exchange.respond(CoAP.ResponseCode.BAD_REQUEST);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        String requestType = uriPath.get(1);</b>
+<b class="nc">&nbsp;        switch (requestType) {</b>
+&nbsp;            case MEASUREMENTS:
+<b class="nc">&nbsp;                processMeasurementsRequest(exchange);</b>
+&nbsp;                break;
+&nbsp;            case DEVICE_INFO:
+<b class="nc">&nbsp;                processDeviceInfoRequest(exchange);</b>
+&nbsp;                break;
+&nbsp;            case CONFIGURATION:
+<b class="nc">&nbsp;                processConfigurationRequest(exchange);</b>
+&nbsp;                break;
+&nbsp;            default:
+<b class="nc">&nbsp;                log.trace(&quot;Unexpected request type: [{}]&quot;, requestType);</b>
+<b class="nc">&nbsp;                exchange.respond(CoAP.ResponseCode.BAD_REQUEST);</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMeasurementsRequest(CoapExchange exchange) {
+<b class="nc">&nbsp;        byte[] bytes = exchange.advanced().getRequest().getPayload();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            MeasurementsProtos.ProtoMeasurements protoMeasurements = MeasurementsProtos.ProtoMeasurements.parseFrom(bytes);</b>
+<b class="nc">&nbsp;            log.trace(&quot;Successfully parsed Efento ProtoMeasurements: [{}]&quot;, protoMeasurements.getCloudToken());</b>
+<b class="nc">&nbsp;            validateAndProcessEffentoMessage(protoMeasurements.getCloudToken(), exchange, (deviceProfile, sessionInfo, sessionId) -&gt; {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    List&lt;EfentoTelemetry&gt; measurements = getEfentoMeasurements(protoMeasurements, sessionId);</b>
+<b class="nc">&nbsp;                    transportService.process(sessionInfo,</b>
+<b class="nc">&nbsp;                            transportContext.getEfentoCoapAdaptor().convertToPostTelemetry(sessionId, measurements),</b>
+&nbsp;                            new CoapEfentoCallback(exchange, CoAP.ResponseCode.CREATED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
+&nbsp;                } catch (AdaptorException e) {
+<b class="nc">&nbsp;                    log.error(&quot;[{}] Failed to decode Efento ProtoMeasurements: &quot;, sessionId, e);</b>
+<b class="nc">&nbsp;                    exchange.respond(CoAP.ResponseCode.BAD_REQUEST);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to decode Efento ProtoMeasurements: &quot;, e);</b>
+<b class="nc">&nbsp;            exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processDeviceInfoRequest(CoapExchange exchange) {
+<b class="nc">&nbsp;        byte[] bytes = exchange.advanced().getRequest().getPayload();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            DeviceInfoProtos.ProtoDeviceInfo protoDeviceInfo = DeviceInfoProtos.ProtoDeviceInfo.parseFrom(bytes);</b>
+<b class="nc">&nbsp;            String token = protoDeviceInfo.getCloudToken();</b>
+<b class="nc">&nbsp;            log.trace(&quot;Successfully parsed Efento ProtoDeviceInfo: [{}]&quot;, token);</b>
+<b class="nc">&nbsp;            validateAndProcessEffentoMessage(token, exchange, (deviceProfile, sessionInfo, sessionId) -&gt; {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    EfentoTelemetry deviceInfo = getEfentoDeviceInfo(protoDeviceInfo);</b>
+<b class="nc">&nbsp;                    transportService.process(sessionInfo,</b>
+<b class="nc">&nbsp;                            transportContext.getEfentoCoapAdaptor().convertToPostTelemetry(sessionId, List.of(deviceInfo)),</b>
+&nbsp;                            new CoapEfentoCallback(exchange, CoAP.ResponseCode.CREATED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
+&nbsp;                } catch (AdaptorException e) {
+<b class="nc">&nbsp;                    log.error(&quot;[{}] Failed to decode Efento ProtoDeviceInfo: &quot;, sessionId, e);</b>
+<b class="nc">&nbsp;                    exchange.respond(CoAP.ResponseCode.BAD_REQUEST);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to decode Efento ProtoDeviceInfo: &quot;, e);</b>
+<b class="nc">&nbsp;            exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processConfigurationRequest(CoapExchange exchange) {
+<b class="nc">&nbsp;        byte[] bytes = exchange.advanced().getRequest().getPayload();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            ConfigProtos.ProtoConfig protoConfig = ConfigProtos.ProtoConfig.parseFrom(bytes);</b>
+<b class="nc">&nbsp;            String token = protoConfig.getCloudToken();</b>
+<b class="nc">&nbsp;            log.trace(&quot;Successfully parsed Efento ProtoConfig: [{}]&quot;, token);</b>
+<b class="nc">&nbsp;            validateAndProcessEffentoMessage(token, exchange, (deviceProfile, sessionInfo, sessionId) -&gt; {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    JsonElement configuration = getEfentoConfiguration(bytes);</b>
+<b class="nc">&nbsp;                    transportService.process(sessionInfo,</b>
+<b class="nc">&nbsp;                            transportContext.getEfentoCoapAdaptor().convertToPostAttributes(sessionId, configuration),</b>
+&nbsp;                            new CoapEfentoCallback(exchange, CoAP.ResponseCode.CREATED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
+&nbsp;                } catch (AdaptorException e) {
+<b class="nc">&nbsp;                    log.error(&quot;[{}] Failed to decode Efento ProtoConfig: &quot;, sessionId, e);</b>
+<b class="nc">&nbsp;                    exchange.respond(CoAP.ResponseCode.BAD_REQUEST);</b>
+&nbsp;                } catch (InvalidProtocolBufferException e) {
+<b class="nc">&nbsp;                    log.error(&quot;[{}] Error while processing efento message: &quot;, sessionId, e);</b>
+<b class="nc">&nbsp;                    throw new RuntimeException(e);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to decode Efento ProtoConfig: &quot;, e);</b>
+<b class="nc">&nbsp;            exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateAndProcessEffentoMessage(String token, CoapExchange exchange, TriConsumer&lt;DeviceProfile, TransportProtos.SessionInfoProto, UUID&gt; requestProcessor) {
+<b class="nc">&nbsp;        transportService.process(DeviceTransportType.COAP, TransportProtos.ValidateDeviceTokenRequestMsg.newBuilder().setToken(token).build(),</b>
+&nbsp;                new CoapDeviceAuthCallback(exchange, (msg, deviceProfile) -&gt; {
+<b class="nc">&nbsp;                    TransportProtos.SessionInfoProto sessionInfo = SessionInfoCreator.create(msg, transportContext, UUID.randomUUID());</b>
+<b class="nc">&nbsp;                    UUID sessionId = new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        validateEfentoTransportConfiguration(deviceProfile);</b>
+<b class="nc">&nbsp;                        requestProcessor.accept(deviceProfile, sessionInfo, sessionId);</b>
+<b class="nc">&nbsp;                        reportSubscriptionInfo(sessionInfo, false, false);</b>
+&nbsp;                    } catch (AdaptorException e) {
+<b class="nc">&nbsp;                        log.error(&quot;[{}] Failed to decode Efento request: &quot;, sessionId, e);</b>
+<b class="nc">&nbsp;                        exchange.respond(CoAP.ResponseCode.BAD_REQUEST);</b>
+&nbsp;                    }
+&nbsp;                }));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Resource getChild(String name) {
+<b class="nc">&nbsp;        return this;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateEfentoTransportConfiguration(DeviceProfile deviceProfile) throws AdaptorException {
+<b class="nc">&nbsp;        DeviceProfileTransportConfiguration transportConfiguration = deviceProfile.getProfileData().getTransportConfiguration();</b>
+<b class="nc">&nbsp;        if (transportConfiguration instanceof CoapDeviceProfileTransportConfiguration) {</b>
+<b class="nc">&nbsp;            CoapDeviceProfileTransportConfiguration coapDeviceProfileTransportConfiguration =</b>
+&nbsp;                    (CoapDeviceProfileTransportConfiguration) transportConfiguration;
+<b class="nc">&nbsp;            if (!(coapDeviceProfileTransportConfiguration.getCoapDeviceTypeConfiguration() instanceof EfentoCoapDeviceTypeConfiguration)) {</b>
+<b class="nc">&nbsp;                throw new AdaptorException(&quot;Invalid CoapDeviceTypeConfiguration type: &quot; + coapDeviceProfileTransportConfiguration.getCoapDeviceTypeConfiguration().getClass().getSimpleName() + &quot;!&quot;);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new AdaptorException(&quot;Invalid DeviceProfileTransportConfiguration type&quot; + transportConfiguration.getClass().getSimpleName() + &quot;!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    List&lt;EfentoTelemetry&gt; getEfentoMeasurements(MeasurementsProtos.ProtoMeasurements protoMeasurements, UUID sessionId) {
+<b class="nc">&nbsp;        String serialNumber = CoapEfentoUtils.convertByteArrayToString(protoMeasurements.getSerialNum().toByteArray());</b>
+<b class="nc">&nbsp;        boolean batteryStatus = protoMeasurements.getBatteryStatus();</b>
+<b class="nc">&nbsp;        int measurementPeriodBase = protoMeasurements.getMeasurementPeriodBase();</b>
+<b class="nc">&nbsp;        int measurementPeriodFactor = protoMeasurements.getMeasurementPeriodFactor();</b>
+<b class="nc">&nbsp;        int signal = protoMeasurements.getSignal();</b>
+<b class="nc">&nbsp;        long nextTransmissionAtMillis = TimeUnit.SECONDS.toMillis(protoMeasurements.getNextTransmissionAt());</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;ProtoChannel&gt; channelsList = protoMeasurements.getChannelsList();</b>
+<b class="nc">&nbsp;        if (CollectionUtils.isEmpty(channelsList)) {</b>
+<b class="nc">&nbsp;            throw new IllegalStateException(&quot;[&quot; + sessionId + &quot;]: Failed to get Efento measurements, reason: channels list is empty!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;Long, JsonObject&gt; valuesMap = new TreeMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (int channel = 0; channel &lt; channelsList.size(); channel++) {</b>
+<b class="nc">&nbsp;            ProtoChannel protoChannel = channelsList.get(channel);</b>
+<b class="nc">&nbsp;            List&lt;Integer&gt; sampleOffsetsList = protoChannel.getSampleOffsetsList();</b>
+<b class="nc">&nbsp;            if (CollectionUtils.isEmpty(sampleOffsetsList)) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}][{}] sampleOffsetsList list is empty!&quot;, sessionId, protoChannel.getType().name());</b>
+&nbsp;                continue;
+&nbsp;            }
+<b class="nc">&nbsp;            boolean isBinarySensor = isBinarySensor(protoChannel.getType());</b>
+<b class="nc">&nbsp;            int channelPeriodFactor = (measurementPeriodFactor == 0 ? (isBinarySensor ? 14 : 1) : measurementPeriodFactor);</b>
+<b class="nc">&nbsp;            int measurementPeriod = measurementPeriodBase * channelPeriodFactor;</b>
+<b class="nc">&nbsp;            long measurementPeriodMillis = TimeUnit.SECONDS.toMillis(measurementPeriod);</b>
+<b class="nc">&nbsp;            long startTimestampMillis = TimeUnit.SECONDS.toMillis(protoChannel.getTimestamp());</b>
+&nbsp;
+<b class="nc">&nbsp;            for (int i = 0; i &lt; sampleOffsetsList.size(); i++) {</b>
+<b class="nc">&nbsp;                int sampleOffset = sampleOffsetsList.get(i);</b>
+<b class="nc">&nbsp;                if (isSensorError(sampleOffset)) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;[{}],[{}] Sensor error value! Ignoring.&quot;, sessionId, sampleOffset);</b>
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;
+&nbsp;                JsonObject values;
+<b class="nc">&nbsp;                if (isBinarySensor) {</b>
+<b class="nc">&nbsp;                    boolean currentIsOk = sampleOffset &lt; 0;</b>
+<b class="nc">&nbsp;                    Integer previousSampleOffset = i &gt; 0 ? sampleOffsetsList.get(i - 1) : null;</b>
+<b class="nc">&nbsp;                    if (previousSampleOffset != null) {  //compare with previous value</b>
+<b class="nc">&nbsp;                        boolean previousIsOk = previousSampleOffset &lt; 0;</b>
+<b class="nc">&nbsp;                        if (currentIsOk == previousIsOk) {</b>
+&nbsp;                            break;
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    long sampleOffsetMillis = TimeUnit.SECONDS.toMillis(sampleOffset);</b>
+<b class="nc">&nbsp;                    long measurementTimestamp = startTimestampMillis + Math.abs(sampleOffsetMillis);</b>
+<b class="nc">&nbsp;                    values = valuesMap.computeIfAbsent(measurementTimestamp - 1000, k -&gt;</b>
+<b class="nc">&nbsp;                            CoapEfentoUtils.setDefaultMeasurements(serialNumber, batteryStatus, measurementPeriod, nextTransmissionAtMillis, signal, k));</b>
+<b class="nc">&nbsp;                    addBinarySample(protoChannel, currentIsOk, values, channel + 1, sessionId);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    long timestampMillis = startTimestampMillis + i * measurementPeriodMillis;</b>
+<b class="nc">&nbsp;                    values = valuesMap.computeIfAbsent(timestampMillis, k -&gt; CoapEfentoUtils.setDefaultMeasurements(</b>
+<b class="nc">&nbsp;                            serialNumber, batteryStatus, measurementPeriod, nextTransmissionAtMillis, signal, k));</b>
+<b class="nc">&nbsp;                    addContinuesSample(protoChannel, sampleOffset, values, channel + 1, sessionId);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (CollectionUtils.isEmpty(valuesMap)) {</b>
+<b class="nc">&nbsp;            throw new IllegalStateException(&quot;[&quot; + sessionId + &quot;]: Failed to collect Efento measurements, reason, values map is empty!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return valuesMap.entrySet().stream()</b>
+<b class="nc">&nbsp;                .map(entry -&gt; new EfentoTelemetry(entry.getKey(), entry.getValue()))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addContinuesSample(ProtoChannel protoChannel, int sampleOffset, JsonObject values, int channelNumber, UUID sessionId) {
+<b class="nc">&nbsp;        int startPoint = protoChannel.getStartPoint();</b>
+&nbsp;
+<b class="nc">&nbsp;        switch (protoChannel.getType()) {</b>
+&nbsp;            case MEASUREMENT_TYPE_TEMPERATURE:
+<b class="nc">&nbsp;                values.addProperty(&quot;temperature_&quot; + channelNumber, ((double) (startPoint + sampleOffset)) / 10f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_WATER_METER:
+<b class="nc">&nbsp;                values.addProperty(&quot;pulse_counter_water_&quot; + channelNumber, ((double) (startPoint + sampleOffset)));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_HUMIDITY:
+<b class="nc">&nbsp;                values.addProperty(&quot;humidity_&quot; + channelNumber, (double) (startPoint + sampleOffset));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_ATMOSPHERIC_PRESSURE:
+<b class="nc">&nbsp;                values.addProperty(&quot;pressure_&quot; + channelNumber, (double) (startPoint + sampleOffset) / 10f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_DIFFERENTIAL_PRESSURE:
+<b class="nc">&nbsp;                values.addProperty(&quot;pressure_diff_&quot; + channelNumber, (double) (startPoint + sampleOffset));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_PULSE_CNT:
+<b class="nc">&nbsp;                values.addProperty(&quot;pulse_cnt_&quot; + channelNumber, (double) (startPoint + sampleOffset));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_IAQ:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, &quot;iaq_&quot;, channelNumber, startPoint + sampleOffset, IAQ_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_ELECTRICITY_METER:
+<b class="nc">&nbsp;                values.addProperty(&quot;watt_hour_&quot; + channelNumber, (double) (startPoint + sampleOffset));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_SOIL_MOISTURE:
+<b class="nc">&nbsp;                values.addProperty(&quot;soil_moisture_&quot; + channelNumber, (double) (startPoint + sampleOffset));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_AMBIENT_LIGHT:
+<b class="nc">&nbsp;                values.addProperty(&quot;ambient_light_&quot; + channelNumber, (double) (startPoint + sampleOffset) / 10f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_HIGH_PRESSURE:
+<b class="nc">&nbsp;                values.addProperty(&quot;high_pressure_&quot; + channelNumber, (double) (startPoint + sampleOffset));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_DISTANCE_MM:
+<b class="nc">&nbsp;                values.addProperty(&quot;distance_mm_&quot; + channelNumber, (double) (startPoint + sampleOffset));</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_WATER_METER_ACC_MINOR:
+<b class="nc">&nbsp;                calculateAccPulseCounterTotalValue(values, WATER_CNT_ACC , channelNumber, startPoint + sampleOffset, WATER_METER_ACC_MINOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_WATER_METER_ACC_MAJOR:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, WATER_CNT_ACC.getPrefix(), channelNumber, startPoint + sampleOffset, WATER_METER_ACC_MAJOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_HUMIDITY_ACCURATE:
+<b class="nc">&nbsp;                values.addProperty(&quot;humidity_relative_&quot; + channelNumber, (double) (startPoint + sampleOffset) / 10f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_STATIC_IAQ:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, &quot;static_iaq_&quot;, channelNumber, startPoint + sampleOffset, STATIC_IAQ_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_CO2_GAS:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, &quot;co2_gas_&quot;, channelNumber, startPoint + sampleOffset, CO2_GAS_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_CO2_EQUIVALENT:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, &quot;co2_&quot;, channelNumber, startPoint + sampleOffset, CO2_EQUIVALENT_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_BREATH_VOC:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, &quot;breath_voc_&quot;, channelNumber, startPoint + sampleOffset, BREATH_VOC_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_PERCENTAGE:
+<b class="nc">&nbsp;                values.addProperty(&quot;percentage_&quot; + channelNumber, (double) (startPoint + sampleOffset) / 100f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_VOLTAGE:
+<b class="nc">&nbsp;                values.addProperty(&quot;voltage_&quot; + channelNumber, (double) (startPoint + sampleOffset) / 10f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_CURRENT:
+<b class="nc">&nbsp;                values.addProperty(&quot;current_&quot; + channelNumber, (double) (startPoint + sampleOffset) / 100f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_PULSE_CNT_ACC_MINOR:
+<b class="nc">&nbsp;                calculateAccPulseCounterTotalValue(values, PULSE_CNT_ACC , channelNumber, startPoint + sampleOffset, PULSE_CNT_ACC_MINOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_PULSE_CNT_ACC_MAJOR:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, PULSE_CNT_ACC.getPrefix(), channelNumber, startPoint + sampleOffset, PULSE_CNT_ACC_MAJOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_ELEC_METER_ACC_MINOR:
+<b class="nc">&nbsp;                calculateAccPulseCounterTotalValue(values, ELEC_METER_ACC , channelNumber, startPoint + sampleOffset, ELEC_METER_ACC_MINOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_ELEC_METER_ACC_MAJOR:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, ELEC_METER_ACC.getPrefix(), channelNumber, startPoint + sampleOffset, ELEC_METER_ACC_MAJOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_PULSE_CNT_ACC_WIDE_MINOR:
+<b class="nc">&nbsp;                calculateAccPulseCounterTotalValue(values, PULSE_CNT_ACC_WIDE , channelNumber, startPoint + sampleOffset, PULSE_CNT_ACC_WIDE_MINOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_PULSE_CNT_ACC_WIDE_MAJOR:
+<b class="nc">&nbsp;                addPropertiesForMeasurementTypeWithMetadataFactor(values, PULSE_CNT_ACC_WIDE.getPrefix(), channelNumber, startPoint + sampleOffset, PULSE_CNT_ACC_WIDE_MAJOR_METADATA_FACTOR);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_CURRENT_PRECISE:
+<b class="nc">&nbsp;                values.addProperty(&quot;current_precise_&quot; + channelNumber, (double) (startPoint + sampleOffset) / 1000f);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_NO_SENSOR:
+&nbsp;            case UNRECOGNIZED:
+<b class="nc">&nbsp;                log.trace(&quot;[{}][{}] Sensor error value! Ignoring.&quot;, sessionId, protoChannel.getType().name());</b>
+&nbsp;                break;
+&nbsp;            default:
+<b class="nc">&nbsp;                log.trace(&quot;[{}],[{}] Unsupported measurementType! Ignoring.&quot;, sessionId, protoChannel.getType().name());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addPropertiesForMeasurementTypeWithMetadataFactor(JsonObject values, String prefix, int channelNumber, int value, int metadataFactor) {
+<b class="nc">&nbsp;        values.addProperty(prefix + channelNumber, value / metadataFactor);</b>
+<b class="nc">&nbsp;        values.addProperty(prefix + &quot;metadata_&quot; + channelNumber, value % metadataFactor);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void calculateAccPulseCounterTotalValue(JsonObject values, PulseCounterType pulseCounterType, int channelNumber, int value, int metadataFactor) {
+<b class="nc">&nbsp;        int minorValue = value / metadataFactor;</b>
+<b class="nc">&nbsp;        int majorChannel = value % metadataFactor + 1;</b>
+<b class="nc">&nbsp;        String majorPropertyKey = pulseCounterType.getPrefix() + majorChannel;</b>
+<b class="nc">&nbsp;        JsonElement majorProperty = values.get(majorPropertyKey);</b>
+<b class="nc">&nbsp;        if (majorProperty != null) {</b>
+<b class="nc">&nbsp;            int totalValue = majorProperty.getAsInt() * pulseCounterType.getMajorResolution() + minorValue;</b>
+<b class="nc">&nbsp;            values.addProperty(pulseCounterType.getPrefix() + &quot;total_&quot; + channelNumber, totalValue);</b>
+<b class="nc">&nbsp;            values.remove(majorPropertyKey);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addBinarySample(ProtoChannel protoChannel, boolean valueIsOk, JsonObject values, int channel, UUID sessionId) {
+<b class="nc">&nbsp;        switch (protoChannel.getType()) {</b>
+&nbsp;            case MEASUREMENT_TYPE_OK_ALARM:
+<b class="nc">&nbsp;                values.addProperty(&quot;ok_alarm_&quot; + channel, valueIsOk ? &quot;OK&quot; : &quot;ALARM&quot;);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_FLOODING:
+<b class="nc">&nbsp;                values.addProperty(&quot;flooding_&quot; + channel, valueIsOk ? &quot;OK&quot; : &quot;WATER_DETECTED&quot;);</b>
+&nbsp;                break;
+&nbsp;            case MEASUREMENT_TYPE_OUTPUT_CONTROL:
+<b class="nc">&nbsp;                values.addProperty(&quot;output_control_&quot; + channel, valueIsOk ? &quot;OFF&quot; : &quot;ON&quot;);</b>
+&nbsp;                break;
+&nbsp;            default:
+<b class="nc">&nbsp;                log.trace(&quot;[{}],[{}] Unsupported binary measurementType! Ignoring.&quot;, sessionId, protoChannel.getType().name());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private EfentoTelemetry getEfentoDeviceInfo(DeviceInfoProtos.ProtoDeviceInfo protoDeviceInfo) {
+<b class="nc">&nbsp;        JsonObject values = new JsonObject();</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sw_version&quot;, protoDeviceInfo.getSwVersion());</b>
+&nbsp;
+&nbsp;        //memory statistics
+<b class="nc">&nbsp;        values.addProperty(&quot;nv_storage_status&quot;, protoDeviceInfo.getMemoryStatistics(0));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;timestamp_of_the_end_of_collecting_statistics&quot;, getDate(protoDeviceInfo.getMemoryStatistics(1)));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;capacity_of_memory_in_bytes&quot;, protoDeviceInfo.getMemoryStatistics(2));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;used_space_in_bytes&quot;, protoDeviceInfo.getMemoryStatistics(3));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;size_of_invalid_packets_in_bytes&quot;, protoDeviceInfo.getMemoryStatistics(4));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;size_of_corrupted_packets_in_bytes&quot;, protoDeviceInfo.getMemoryStatistics(5));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_valid_packets&quot;, protoDeviceInfo.getMemoryStatistics(6));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_invalid_packets&quot;, protoDeviceInfo.getMemoryStatistics(7));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_corrupted_packets&quot;, protoDeviceInfo.getMemoryStatistics(8));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_all_samples_for_channel_1&quot;, protoDeviceInfo.getMemoryStatistics(9));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_all_samples_for_channel_2&quot;, protoDeviceInfo.getMemoryStatistics(10));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_all_samples_for_channel_3&quot;, protoDeviceInfo.getMemoryStatistics(11));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_all_samples_for_channel_4&quot;, protoDeviceInfo.getMemoryStatistics(12));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_all_samples_for_channel_5&quot;, protoDeviceInfo.getMemoryStatistics(13));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;number_of_all_samples_for_channel_6&quot;, protoDeviceInfo.getMemoryStatistics(14));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;timestamp_of_the_first_binary_measurement&quot;, getDate(protoDeviceInfo.getMemoryStatistics(15)));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;timestamp_of_the_last_binary_measurement&quot;, getDate(protoDeviceInfo.getMemoryStatistics(16)));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;timestamp_of_the_first_binary_measurement_sent&quot;, getDate(protoDeviceInfo.getMemoryStatistics(17)));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;timestamp_of_the_first_continuous_measurement&quot;, getDate(protoDeviceInfo.getMemoryStatistics(18)));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;timestamp_of_the_last_continuous_measurement&quot;, getDate(protoDeviceInfo.getMemoryStatistics(19)));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;timestamp_of_the_last_continuous_measurement_sent&quot;, getDate(protoDeviceInfo.getMemoryStatistics(20)));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;nvm_write_counter&quot;, protoDeviceInfo.getMemoryStatistics(21));</b>
+&nbsp;
+&nbsp;        //modem info
+<b class="nc">&nbsp;        DeviceInfoProtos.ProtoModem modem = protoDeviceInfo.getModem();</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;modem_types&quot;, modem.getType().toString());</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_EARNFCN_offset&quot;, modem.getParameters(0));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_EARFCN&quot;, modem.getParameters(1));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_PCI&quot;, modem.getParameters(2));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_Cell_id&quot;, modem.getParameters(3));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_RSRP&quot;, modem.getParameters(4));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_RSRQ&quot;, modem.getParameters(5));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_RSSI&quot;, modem.getParameters(6));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_SINR&quot;, modem.getParameters(7));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_Band&quot;, modem.getParameters(8));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_TAC&quot;, modem.getParameters(9));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_ECL&quot;, modem.getParameters(10));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sc_TX_PWR&quot;, modem.getParameters(11));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;op_mode&quot;, modem.getParameters(12));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;nc_EARFCN&quot;, modem.getParameters(13));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;nc_EARNFCN_offset&quot;, modem.getParameters(14));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;nc_PCI&quot;, modem.getParameters(15));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;nc_RSRP&quot;, modem.getParameters(16));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;RLC_UL_BLER&quot;, modem.getParameters(17));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;RLC_DL_BLER&quot;, modem.getParameters(18));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_UL_BLER&quot;, modem.getParameters(19));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_DL_BLER&quot;, modem.getParameters(20));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_UL_TOTAL_BYTES&quot;, modem.getParameters(21));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_DL_TOTAL_BYTES&quot;, modem.getParameters(22));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_UL_total_HARQ_Tx&quot;, modem.getParameters(23));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_DL_total_HARQ_Tx&quot;, modem.getParameters(24));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_UL_HARQ_re_Tx&quot;, modem.getParameters(25));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_DL_HARQ_re_Tx&quot;, modem.getParameters(26));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;RLC_UL_tput&quot;, modem.getParameters(27));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;RLC_DL_tput&quot;, modem.getParameters(28));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_UL_tput&quot;, modem.getParameters(29));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;MAC_DL_tput&quot;, modem.getParameters(30));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;sleep_duration&quot;, modem.getParameters(31));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;rx_time&quot;, modem.getParameters(32));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;tx_time&quot;, modem.getParameters(33));</b>
+&nbsp;
+&nbsp;        //Runtime info
+<b class="nc">&nbsp;        DeviceInfoProtos.ProtoRuntime runtimeInfo = protoDeviceInfo.getRuntimeInfo();</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;battery_reset_timestamp&quot;, getDate(runtimeInfo.getBatteryResetTimestamp()));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;max_mcu_temp&quot;, runtimeInfo.getMaxMcuTemperature());</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;mcu_temp&quot;, runtimeInfo.getMcuTemperature());</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;counter_of_confirmable_messages_attempts&quot;, runtimeInfo.getMessageCounters(0));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;counter_of_non_confirmable_messages_attempts&quot;, runtimeInfo.getMessageCounters(1));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;counter_of_succeeded_messages&quot;, runtimeInfo.getMessageCounters(2));</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;min_battery_mcu_temp&quot;, runtimeInfo.getMinBatteryMcuTemperature());</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;min_battery_voltage&quot;, runtimeInfo.getMinBatteryVoltage());</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;min_mcu_temp&quot;, runtimeInfo.getMinMcuTemperature());</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;runtime_errors&quot;, runtimeInfo.getRuntimeErrorsCount());</b>
+<b class="nc">&nbsp;        values.addProperty(&quot;up_time&quot;, runtimeInfo.getUpTime());</b>
+&nbsp;
+<b class="nc">&nbsp;        return new EfentoTelemetry(System.currentTimeMillis(), values);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private JsonElement getEfentoConfiguration(byte[] bytes) throws InvalidProtocolBufferException {
+<b class="nc">&nbsp;        return parseString(ProtoConverter.dynamicMsgToJson(bytes, ConfigProtos.getDescriptor().getMessageTypes().get(2)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String getDate(long seconds) {
+<b class="nc">&nbsp;        if (seconds == -1L || seconds == 4294967295L) {</b>
+<b class="nc">&nbsp;            return &quot;Undefined&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(&quot;dd MMM yyyy HH:mm:ss Z&quot;);</b>
+<b class="nc">&nbsp;        return simpleDateFormat.format(new Date(TimeUnit.SECONDS.toMillis(seconds)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Data
+&nbsp;    @AllArgsConstructor
+&nbsp;    public static class EfentoTelemetry {
+&nbsp;
+&nbsp;        private long ts;
+&nbsp;        private JsonElement values;
+&nbsp;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

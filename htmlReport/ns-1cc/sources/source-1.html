@@ -1,0 +1,446 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultSystemSecurityService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.security.system</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultSystemSecurityService (org.thingsboard.server.service.security.system)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultSystemSecurityService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/98)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/112)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultSystemSecurityService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/98)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/113)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.security.system;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.core.type.TypeReference;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.passay.CharacterRule;
+&nbsp;import org.passay.EnglishCharacterData;
+&nbsp;import org.passay.LengthRule;
+&nbsp;import org.passay.PasswordData;
+&nbsp;import org.passay.PasswordValidator;
+&nbsp;import org.passay.Rule;
+&nbsp;import org.passay.RuleResult;
+&nbsp;import org.passay.WhitespaceRule;
+&nbsp;import org.springframework.security.authentication.BadCredentialsException;
+&nbsp;import org.springframework.security.authentication.DisabledException;
+&nbsp;import org.springframework.security.authentication.LockedException;
+&nbsp;import org.springframework.security.core.AuthenticationException;
+&nbsp;import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.MailService;
+&nbsp;import org.thingsboard.server.common.data.AdminSettings;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.security.UserCredentials;
+&nbsp;import org.thingsboard.server.common.data.security.model.SecuritySettings;
+&nbsp;import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettings;
+&nbsp;import org.thingsboard.server.dao.audit.AuditLogService;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.settings.AdminSettingsService;
+&nbsp;import org.thingsboard.server.dao.settings.SecuritySettingsService;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;import org.thingsboard.server.dao.user.UserServiceImpl;
+&nbsp;import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
+&nbsp;import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.utils.MiscUtils;
+&nbsp;import ua_parser.Client;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultSystemSecurityService implements SystemSecurityService {
+&nbsp;
+&nbsp;    private final AdminSettingsService adminSettingsService;
+&nbsp;    private final BCryptPasswordEncoder encoder;
+&nbsp;    private final UserService userService;
+&nbsp;    private final MailService mailService;
+&nbsp;    private final AuditLogService auditLogService;
+&nbsp;    private final SecuritySettingsService securitySettingsService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void validateUserCredentials(TenantId tenantId, UserCredentials userCredentials, String username, String password) throws AuthenticationException {
+<b class="nc">&nbsp;        if (!userCredentials.isEnabled()) {</b>
+<b class="nc">&nbsp;            throw new DisabledException(&quot;User is not active&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!encoder.matches(password, userCredentials.getPassword())) {</b>
+<b class="nc">&nbsp;            int failedLoginAttempts = userService.increaseFailedLoginAttempts(tenantId, userCredentials.getUserId());</b>
+<b class="nc">&nbsp;            SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();</b>
+<b class="nc">&nbsp;            if (securitySettings.getMaxFailedLoginAttempts() != null &amp;&amp; securitySettings.getMaxFailedLoginAttempts() &gt; 0) {</b>
+<b class="nc">&nbsp;                if (failedLoginAttempts &gt; securitySettings.getMaxFailedLoginAttempts()) {</b>
+<b class="nc">&nbsp;                    lockAccount(userCredentials.getUserId(), username, securitySettings.getUserLockoutNotificationEmail(), securitySettings.getMaxFailedLoginAttempts());</b>
+<b class="nc">&nbsp;                    throw new LockedException(&quot;Authentication Failed. Username was locked due to security policy.&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            throw new BadCredentialsException(&quot;Authentication Failed. Username or Password not valid.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        userService.resetFailedLoginAttempts(tenantId, userCredentials.getUserId());</b>
+&nbsp;
+<b class="nc">&nbsp;        SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();</b>
+<b class="nc">&nbsp;        if (isPositiveInteger(securitySettings.getPasswordPolicy().getPasswordExpirationPeriodDays())) {</b>
+<b class="nc">&nbsp;            if ((userCredentials.getCreatedTime()</b>
+<b class="nc">&nbsp;                    + TimeUnit.DAYS.toMillis(securitySettings.getPasswordPolicy().getPasswordExpirationPeriodDays()))</b>
+<b class="nc">&nbsp;                    &lt; System.currentTimeMillis()) {</b>
+<b class="nc">&nbsp;                userCredentials = userService.requestExpiredPasswordReset(tenantId, userCredentials.getId());</b>
+<b class="nc">&nbsp;                throw new UserPasswordExpiredException(&quot;User password expired!&quot;, userCredentials.getResetToken());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void validateTwoFaVerification(SecurityUser securityUser, boolean verificationSuccess, PlatformTwoFaSettings twoFaSettings) {
+<b class="nc">&nbsp;        TenantId tenantId = securityUser.getTenantId();</b>
+<b class="nc">&nbsp;        UserId userId = securityUser.getId();</b>
+&nbsp;
+&nbsp;        int failedVerificationAttempts;
+<b class="nc">&nbsp;        if (!verificationSuccess) {</b>
+<b class="nc">&nbsp;            failedVerificationAttempts = userService.increaseFailedLoginAttempts(tenantId, userId);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            userService.resetFailedLoginAttempts(tenantId, userId);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Integer maxVerificationFailures = twoFaSettings.getMaxVerificationFailuresBeforeUserLockout();</b>
+<b class="nc">&nbsp;        if (maxVerificationFailures != null &amp;&amp; maxVerificationFailures &gt; 0</b>
+<b class="nc">&nbsp;                &amp;&amp; failedVerificationAttempts &gt;= maxVerificationFailures) {</b>
+<b class="nc">&nbsp;            userService.setUserCredentialsEnabled(TenantId.SYS_TENANT_ID, userId, false);</b>
+<b class="nc">&nbsp;            SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();</b>
+<b class="nc">&nbsp;            lockAccount(userId, securityUser.getEmail(), securitySettings.getUserLockoutNotificationEmail(), maxVerificationFailures);</b>
+<b class="nc">&nbsp;            throw new LockedException(&quot;User account was locked due to exceeded 2FA verification attempts&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void lockAccount(UserId userId, String username, String userLockoutNotificationEmail, Integer maxFailedLoginAttempts) {
+<b class="nc">&nbsp;        userService.setUserCredentialsEnabled(TenantId.SYS_TENANT_ID, userId, false);</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotBlank(userLockoutNotificationEmail)) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                mailService.sendAccountLockoutEmail(username, userLockoutNotificationEmail, maxFailedLoginAttempts);</b>
+&nbsp;            } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                log.warn(&quot;Can&#39;t send email regarding user account [{}] lockout to provided email [{}]&quot;, username, userLockoutNotificationEmail, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void validatePassword(String password, UserCredentials userCredentials) throws DataValidationException {
+<b class="nc">&nbsp;        SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();</b>
+<b class="nc">&nbsp;        UserPasswordPolicy passwordPolicy = securitySettings.getPasswordPolicy();</b>
+&nbsp;
+<b class="nc">&nbsp;        validatePasswordByPolicy(password, passwordPolicy);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (userCredentials != null &amp;&amp; isPositiveInteger(passwordPolicy.getPasswordReuseFrequencyDays())) {</b>
+<b class="nc">&nbsp;            long passwordReuseFrequencyTs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(passwordPolicy.getPasswordReuseFrequencyDays());</b>
+<b class="nc">&nbsp;            JsonNode additionalInfo = userCredentials.getAdditionalInfo();</b>
+<b class="nc">&nbsp;            if (additionalInfo instanceof ObjectNode &amp;&amp; additionalInfo.has(UserServiceImpl.USER_PASSWORD_HISTORY)) {</b>
+<b class="nc">&nbsp;                JsonNode userPasswordHistoryJson = additionalInfo.get(UserServiceImpl.USER_PASSWORD_HISTORY);</b>
+<b class="nc">&nbsp;                Map&lt;String, String&gt; userPasswordHistoryMap = JacksonUtil.convertValue(userPasswordHistoryJson, new TypeReference&lt;&gt;() {});</b>
+<b class="nc">&nbsp;                for (Map.Entry&lt;String, String&gt; entry : userPasswordHistoryMap.entrySet()) {</b>
+<b class="nc">&nbsp;                    if (encoder.matches(password, entry.getValue()) &amp;&amp; Long.parseLong(entry.getKey()) &gt; passwordReuseFrequencyTs) {</b>
+<b class="nc">&nbsp;                        throw new DataValidationException(&quot;Password was already used for the last &quot; + passwordPolicy.getPasswordReuseFrequencyDays() + &quot; days&quot;);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void validatePasswordByPolicy(String password, UserPasswordPolicy passwordPolicy) {
+<b class="nc">&nbsp;        List&lt;Rule&gt; passwordRules = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        Integer maximumLength = passwordPolicy.getMaximumLength();</b>
+<b class="nc">&nbsp;        Integer minLengthBound = passwordPolicy.getMinimumLength();</b>
+<b class="nc">&nbsp;        int maxLengthBound = (maximumLength != null &amp;&amp; maximumLength &gt; passwordPolicy.getMinimumLength()) ? maximumLength : Integer.MAX_VALUE;</b>
+&nbsp;
+<b class="nc">&nbsp;        passwordRules.add(new LengthRule(minLengthBound, maxLengthBound));</b>
+<b class="nc">&nbsp;        if (isPositiveInteger(passwordPolicy.getMinimumUppercaseLetters())) {</b>
+<b class="nc">&nbsp;            passwordRules.add(new CharacterRule(EnglishCharacterData.UpperCase, passwordPolicy.getMinimumUppercaseLetters()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (isPositiveInteger(passwordPolicy.getMinimumLowercaseLetters())) {</b>
+<b class="nc">&nbsp;            passwordRules.add(new CharacterRule(EnglishCharacterData.LowerCase, passwordPolicy.getMinimumLowercaseLetters()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (isPositiveInteger(passwordPolicy.getMinimumDigits())) {</b>
+<b class="nc">&nbsp;            passwordRules.add(new CharacterRule(EnglishCharacterData.Digit, passwordPolicy.getMinimumDigits()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (isPositiveInteger(passwordPolicy.getMinimumSpecialCharacters())) {</b>
+<b class="nc">&nbsp;            passwordRules.add(new CharacterRule(EnglishCharacterData.Special, passwordPolicy.getMinimumSpecialCharacters()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (passwordPolicy.getAllowWhitespaces() != null &amp;&amp; !passwordPolicy.getAllowWhitespaces()) {</b>
+<b class="nc">&nbsp;            passwordRules.add(new WhitespaceRule());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        PasswordValidator validator = new PasswordValidator(passwordRules);</b>
+<b class="nc">&nbsp;        PasswordData passwordData = new PasswordData(password);</b>
+<b class="nc">&nbsp;        RuleResult result = validator.validate(passwordData);</b>
+<b class="nc">&nbsp;        if (!result.isValid()) {</b>
+<b class="nc">&nbsp;            String message = String.join(&quot;\n&quot;, validator.getMessages(result));</b>
+<b class="nc">&nbsp;            throw new DataValidationException(message);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getBaseUrl(TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest) {
+<b class="nc">&nbsp;        String baseUrl = null;</b>
+<b class="nc">&nbsp;        AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, &quot;general&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        JsonNode prohibitDifferentUrl = generalSettings.getJsonValue().get(&quot;prohibitDifferentUrl&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        if ((prohibitDifferentUrl != null &amp;&amp; prohibitDifferentUrl.asBoolean()) || httpServletRequest == null) {</b>
+<b class="nc">&nbsp;            baseUrl = generalSettings.getJsonValue().get(&quot;baseUrl&quot;).asText();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(baseUrl) &amp;&amp; httpServletRequest != null) {</b>
+<b class="nc">&nbsp;            baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return baseUrl;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void logLoginAction(User user, Object authenticationDetails, ActionType actionType, Exception e) {
+<b class="nc">&nbsp;        logLoginAction(user, authenticationDetails, actionType, null, e);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void logLoginAction(User user, Object authenticationDetails, ActionType actionType, String provider, Exception e) {
+<b class="nc">&nbsp;        String clientAddress = &quot;Unknown&quot;;</b>
+<b class="nc">&nbsp;        String browser = &quot;Unknown&quot;;</b>
+<b class="nc">&nbsp;        String os = &quot;Unknown&quot;;</b>
+<b class="nc">&nbsp;        String device = &quot;Unknown&quot;;</b>
+<b class="nc">&nbsp;        if (authenticationDetails instanceof RestAuthenticationDetails) {</b>
+<b class="nc">&nbsp;            RestAuthenticationDetails details = (RestAuthenticationDetails) authenticationDetails;</b>
+<b class="nc">&nbsp;            clientAddress = details.getClientAddress();</b>
+<b class="nc">&nbsp;            if (details.getUserAgent() != null) {</b>
+<b class="nc">&nbsp;                Client userAgent = details.getUserAgent();</b>
+<b class="nc">&nbsp;                if (userAgent.userAgent != null) {</b>
+<b class="nc">&nbsp;                    browser = userAgent.userAgent.family;</b>
+<b class="nc">&nbsp;                    if (userAgent.userAgent.major != null) {</b>
+<b class="nc">&nbsp;                        browser += &quot; &quot; + userAgent.userAgent.major;</b>
+<b class="nc">&nbsp;                        if (userAgent.userAgent.minor != null) {</b>
+<b class="nc">&nbsp;                            browser += &quot;.&quot; + userAgent.userAgent.minor;</b>
+<b class="nc">&nbsp;                            if (userAgent.userAgent.patch != null) {</b>
+<b class="nc">&nbsp;                                browser += &quot;.&quot; + userAgent.userAgent.patch;</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                if (userAgent.os != null) {</b>
+<b class="nc">&nbsp;                    os = userAgent.os.family;</b>
+<b class="nc">&nbsp;                    if (userAgent.os.major != null) {</b>
+<b class="nc">&nbsp;                        os += &quot; &quot; + userAgent.os.major;</b>
+<b class="nc">&nbsp;                        if (userAgent.os.minor != null) {</b>
+<b class="nc">&nbsp;                            os += &quot;.&quot; + userAgent.os.minor;</b>
+<b class="nc">&nbsp;                            if (userAgent.os.patch != null) {</b>
+<b class="nc">&nbsp;                                os += &quot;.&quot; + userAgent.os.patch;</b>
+<b class="nc">&nbsp;                                if (userAgent.os.patchMinor != null) {</b>
+<b class="nc">&nbsp;                                    os += &quot;.&quot; + userAgent.os.patchMinor;</b>
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                if (userAgent.device != null) {</b>
+<b class="nc">&nbsp;                    device = userAgent.device.family;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (actionType == ActionType.LOGIN &amp;&amp; e == null) {</b>
+<b class="nc">&nbsp;            userService.updateLastLoginTs(user.getTenantId(), user.getId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        auditLogService.logEntityAction(</b>
+<b class="nc">&nbsp;                user.getTenantId(), user.getCustomerId(), user.getId(),</b>
+<b class="nc">&nbsp;                user.getName(), user.getId(), null, actionType, e, clientAddress, browser, os, device, provider);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean isPositiveInteger(Integer val) {
+<b class="nc">&nbsp;        return val != null &amp;&amp; val.intValue() &gt; 0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

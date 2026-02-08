@@ -1,0 +1,862 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseImageService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.resource</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseImageService (org.thingsboard.server.dao.resource)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseImageService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/51)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/118)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/362)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseImageService$UpdateResult</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/53)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/118)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/364)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.resource;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.RandomStringUtils;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.apache.commons.lang3.Strings;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.apache.commons.lang3.tuple.Pair;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+&nbsp;import org.thingsboard.server.common.data.Dashboard;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.HasImage;
+&nbsp;import org.thingsboard.server.common.data.ImageDescriptor;
+&nbsp;import org.thingsboard.server.common.data.ResourceExportData;
+&nbsp;import org.thingsboard.server.common.data.ResourceSubType;
+&nbsp;import org.thingsboard.server.common.data.ResourceType;
+&nbsp;import org.thingsboard.server.common.data.TbImageDeleteResult;
+&nbsp;import org.thingsboard.server.common.data.TbResource;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfo;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfoFilter;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TbResourceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+&nbsp;import org.thingsboard.server.dao.ImageContainerDao;
+&nbsp;import org.thingsboard.server.dao.asset.AssetProfileDao;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
+&nbsp;import org.thingsboard.server.dao.device.DeviceProfileDao;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainDao;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
+&nbsp;import org.thingsboard.server.dao.util.ImageUtils;
+&nbsp;import org.thingsboard.server.dao.util.ImageUtils.ProcessedImage;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetTypeDao;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetsBundleDao;
+&nbsp;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;import java.util.function.BiFunction;
+&nbsp;import java.util.regex.Pattern;
+&nbsp;
+&nbsp;import static org.apache.commons.lang3.ArrayUtils.get;
+&nbsp;import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class BaseImageService extends BaseResourceService implements ImageService {
+&nbsp;
+<b class="nc">&nbsp;    public static Map&lt;String, String&gt; DASHBOARD_BASE64_MAPPING = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    public static Map&lt;String, String&gt; WIDGET_TYPE_BASE64_MAPPING = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;settings.dashboardLogoUrl&quot;, &quot;$prefix logo&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;states.default.layouts.main.gridSettings.backgroundImageUrl&quot;, &quot;$prefix background&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;states.default.layouts.right.gridSettings.backgroundImageUrl&quot;, &quot;$prefix right background&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;states.$stateId.layouts.main.gridSettings.backgroundImageUrl&quot;, &quot;$prefix $stateId background&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;states.$stateId.layouts.right.gridSettings.backgroundImageUrl&quot;, &quot;$prefix $stateId right background&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;widgets.*.config[$title].settings.backgroundImageUrl&quot;, &quot;$prefix widget \&quot;$title\&quot; background&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;widgets.*.config[$title].settings.mapImageUrl&quot;, &quot;$prefix widget \&quot;$title\&quot; map image&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;widgets.*.config[$title].settings.markerImage&quot;, &quot;$prefix widget \&quot;$title\&quot; marker image&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;widgets.*.config[$title].settings.markerImages&quot;, &quot;$prefix widget \&quot;$title\&quot; marker image $index&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;widgets.*.config[$title].settings.background.imageUrl&quot;, &quot;$prefix widget \&quot;$title\&quot; background&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;widgets.*.config[$title].settings.background.imageBase64&quot;, &quot;$prefix widget \&quot;$title\&quot; background&quot;);</b>
+<b class="nc">&nbsp;        DASHBOARD_BASE64_MAPPING.put(&quot;widgets.*.config[$title].datasources.*.dataKeys.*.settings.customIcon&quot;, &quot;$prefix widget \&quot;$title\&quot; custom icon&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;settings.backgroundImageUrl&quot;, &quot;$prefix background&quot;);</b>
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;settings.mapImageUrl&quot;, &quot;$prefix map image&quot;);</b>
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;settings.markerImage&quot;, &quot;Map marker image&quot;);</b>
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;settings.markerImages&quot;, &quot;Map marker image $index&quot;);</b>
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;settings.background.imageUrl&quot;, &quot;$prefix background&quot;);</b>
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;settings.background.imageBase64&quot;, &quot;$prefix background&quot;);</b>
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;settings.scadaSymbolUrl&quot;, &quot;$prefix SCADA symbol&quot;);</b>
+<b class="nc">&nbsp;        WIDGET_TYPE_BASE64_MAPPING.put(&quot;datasources.*.dataKeys.*.settings.customIcon&quot;, &quot;$prefix custom icon&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private final AssetProfileDao assetProfileDao;
+&nbsp;    private final DeviceProfileDao deviceProfileDao;
+&nbsp;    private final WidgetsBundleDao widgetsBundleDao;
+<b class="nc">&nbsp;    private final Map&lt;EntityType, ImageContainerDao&lt;?&gt;&gt; imageContainerDaoMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    public BaseImageService(TbResourceDao resourceDao, TbResourceInfoDao resourceInfoDao, ResourceDataValidator resourceValidator,
+&nbsp;                            AssetProfileDao assetProfileDao, DeviceProfileDao deviceProfileDao, WidgetsBundleDao widgetsBundleDao,
+&nbsp;                            WidgetTypeDao widgetTypeDao, DashboardInfoDao dashboardInfoDao, RuleChainDao ruleChainDao) {
+<b class="nc">&nbsp;        super(resourceDao, resourceInfoDao, resourceValidator, widgetTypeDao, dashboardInfoDao, ruleChainDao);</b>
+<b class="nc">&nbsp;        this.assetProfileDao = assetProfileDao;</b>
+<b class="nc">&nbsp;        this.deviceProfileDao = deviceProfileDao;</b>
+<b class="nc">&nbsp;        this.widgetsBundleDao = widgetsBundleDao;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        imageContainerDaoMap.put(EntityType.WIDGET_TYPE, widgetTypeDao);</b>
+<b class="nc">&nbsp;        imageContainerDaoMap.put(EntityType.WIDGETS_BUNDLE, widgetsBundleDao);</b>
+<b class="nc">&nbsp;        imageContainerDaoMap.put(EntityType.DEVICE_PROFILE, deviceProfileDao);</b>
+<b class="nc">&nbsp;        imageContainerDaoMap.put(EntityType.ASSET_PROFILE, assetProfileDao);</b>
+<b class="nc">&nbsp;        imageContainerDaoMap.put(EntityType.DASHBOARD, dashboardInfoDao);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    public TbResourceInfo saveImage(TbResource image) {
+<b class="nc">&nbsp;        if (image.getId() == null) {</b>
+<b class="nc">&nbsp;            image.setResourceKey(getUniqueKey(image.getTenantId(), ResourceType.IMAGE, StringUtils.defaultIfEmpty(image.getResourceKey(), image.getFileName())));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (image.getResourceSubType() == null) {</b>
+<b class="nc">&nbsp;            image.setResourceSubType(ResourceSubType.IMAGE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        resourceValidator.validate(image, TbResourceInfo::getTenantId);</b>
+&nbsp;
+<b class="nc">&nbsp;        ImageDescriptor descriptor = image.getDescriptor(ImageDescriptor.class);</b>
+<b class="nc">&nbsp;        Pair&lt;ImageDescriptor, byte[]&gt; result = processImage(image.getData(), descriptor);</b>
+<b class="nc">&nbsp;        descriptor = result.getLeft();</b>
+<b class="nc">&nbsp;        image.setEtag(descriptor.getEtag());</b>
+<b class="nc">&nbsp;        image.setDescriptorValue(descriptor);</b>
+<b class="nc">&nbsp;        image.setPreview(result.getRight());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(image.getPublicResourceKey()) || (image.getId() == null &amp;&amp;</b>
+<b class="nc">&nbsp;                resourceInfoDao.existsByPublicResourceKey(ResourceType.IMAGE, image.getPublicResourceKey()))) {</b>
+<b class="nc">&nbsp;            image.setPublicResourceKey(generatePublicResourceKey());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Creating image {} (&#39;{}&#39;)&quot;, image.getTenantId(), image.getResourceKey(), image.getName());</b>
+<b class="nc">&nbsp;        return new TbResourceInfo(doSaveResource(image));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Pair&lt;ImageDescriptor, byte[]&gt; processImage(byte[] data, ImageDescriptor descriptor) throws Exception {
+<b class="nc">&nbsp;        ProcessedImage image = ImageUtils.processImage(data, descriptor.getMediaType(), 250);</b>
+<b class="nc">&nbsp;        ProcessedImage preview = image.getPreview();</b>
+&nbsp;
+<b class="nc">&nbsp;        descriptor.setWidth(image.getWidth());</b>
+<b class="nc">&nbsp;        descriptor.setHeight(image.getHeight());</b>
+<b class="nc">&nbsp;        descriptor.setSize(image.getSize());</b>
+<b class="nc">&nbsp;        descriptor.setEtag(calculateEtag(data));</b>
+&nbsp;
+<b class="nc">&nbsp;        ImageDescriptor previewDescriptor = new ImageDescriptor();</b>
+<b class="nc">&nbsp;        previewDescriptor.setWidth(preview.getWidth());</b>
+<b class="nc">&nbsp;        previewDescriptor.setHeight(preview.getHeight());</b>
+<b class="nc">&nbsp;        previewDescriptor.setMediaType(preview.getMediaType());</b>
+<b class="nc">&nbsp;        previewDescriptor.setSize(preview.getSize());</b>
+<b class="nc">&nbsp;        previewDescriptor.setEtag(preview.getData() != null ? calculateEtag(preview.getData()) : descriptor.getEtag());</b>
+<b class="nc">&nbsp;        descriptor.setPreviewDescriptor(previewDescriptor);</b>
+&nbsp;
+<b class="nc">&nbsp;        return Pair.of(descriptor, preview.getData());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String generatePublicResourceKey() {
+<b class="nc">&nbsp;        return RandomStringUtils.randomAlphanumeric(32);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo saveImageInfo(TbResourceInfo imageInfo) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing saveImageInfo [{}] [{}]&quot;, imageInfo.getTenantId(), imageInfo.getId());</b>
+<b class="nc">&nbsp;        return saveResource(new TbResource(imageInfo));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo getImageInfoByTenantIdAndKey(TenantId tenantId, String key) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getImageInfoByTenantIdAndKey [{}] [{}]&quot;, tenantId, key);</b>
+<b class="nc">&nbsp;        return findResourceInfoByTenantIdAndKey(tenantId, ResourceType.IMAGE, key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo getPublicImageInfoByKey(String publicResourceKey) {
+<b class="nc">&nbsp;        return resourceInfoDao.findPublicResourceByKey(ResourceType.IMAGE, publicResourceKey);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbResourceInfo&gt; getImagesByTenantId(TenantId tenantId, ResourceSubType imageSubType, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getImagesByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        TbResourceInfoFilter filter = TbResourceInfoFilter.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .resourceTypes(Set.of(ResourceType.IMAGE))</b>
+<b class="nc">&nbsp;                .resourceSubTypes(Set.of(imageSubType))</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        return findTenantResourcesByTenantId(filter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbResourceInfo&gt; getAllImagesByTenantId(TenantId tenantId, ResourceSubType imageSubType, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getAllImagesByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        TbResourceInfoFilter filter = TbResourceInfoFilter.builder()</b>
+<b class="nc">&nbsp;                .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                .resourceTypes(Set.of(ResourceType.IMAGE))</b>
+<b class="nc">&nbsp;                .resourceSubTypes(Set.of(imageSubType))</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        return findAllTenantResourcesByTenantId(filter, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public byte[] getImageData(TenantId tenantId, TbResourceId imageId) {
+<b class="nc">&nbsp;        return getResourceData(tenantId, imageId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public byte[] getImagePreview(TenantId tenantId, TbResourceId imageId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing getImagePreview [{}] [{}]&quot;, tenantId, imageId);</b>
+<b class="nc">&nbsp;        return resourceDao.getResourcePreview(tenantId, imageId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResourceExportData exportImage(TbResourceInfo imageInfo) {
+<b class="nc">&nbsp;        ImageDescriptor descriptor = imageInfo.getDescriptor(ImageDescriptor.class);</b>
+<b class="nc">&nbsp;        byte[] data = getImageData(imageInfo.getTenantId(), imageInfo.getId());</b>
+<b class="nc">&nbsp;        return ResourceExportData.builder()</b>
+<b class="nc">&nbsp;                .link(imageInfo.getLink())</b>
+<b class="nc">&nbsp;                .mediaType(descriptor.getMediaType())</b>
+<b class="nc">&nbsp;                .fileName(imageInfo.getFileName())</b>
+<b class="nc">&nbsp;                .title(imageInfo.getTitle())</b>
+<b class="nc">&nbsp;                .type(ResourceType.IMAGE)</b>
+<b class="nc">&nbsp;                .subType(imageInfo.getResourceSubType())</b>
+<b class="nc">&nbsp;                .resourceKey(imageInfo.getResourceKey())</b>
+<b class="nc">&nbsp;                .isPublic(imageInfo.isPublic())</b>
+<b class="nc">&nbsp;                .publicResourceKey(imageInfo.getPublicResourceKey())</b>
+<b class="nc">&nbsp;                .data(Base64.getEncoder().encodeToString(data))</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResource toImage(TenantId tenantId, ResourceExportData imageData, boolean checkExisting) {
+<b class="nc">&nbsp;        byte[] data = Base64.getDecoder().decode(imageData.getData());</b>
+<b class="nc">&nbsp;        if (checkExisting) {</b>
+<b class="nc">&nbsp;            String etag = calculateImageEtag(data);</b>
+<b class="nc">&nbsp;            TbResourceInfo existingImage = findSystemOrTenantImageByEtag(tenantId, etag);</b>
+<b class="nc">&nbsp;            if (existingImage != null) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Using existing image {}&quot;, tenantId, existingImage.getLink());</b>
+<b class="nc">&nbsp;                return new TbResource(existingImage);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TbResource image = new TbResource();</b>
+<b class="nc">&nbsp;        image.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        image.setFileName(imageData.getFileName());</b>
+<b class="nc">&nbsp;        if (isNotEmpty(imageData.getTitle())) {</b>
+<b class="nc">&nbsp;            image.setTitle(imageData.getTitle());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            image.setTitle(imageData.getFileName());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (imageData.getSubType() != null) {</b>
+<b class="nc">&nbsp;            image.setResourceSubType(imageData.getSubType());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            image.setResourceSubType(ResourceSubType.IMAGE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        image.setResourceType(ResourceType.IMAGE);</b>
+<b class="nc">&nbsp;        image.setResourceKey(imageData.getResourceKey());</b>
+<b class="nc">&nbsp;        image.setPublic(imageData.isPublic());</b>
+<b class="nc">&nbsp;        image.setPublicResourceKey(imageData.getPublicResourceKey());</b>
+<b class="nc">&nbsp;        ImageDescriptor descriptor = new ImageDescriptor();</b>
+<b class="nc">&nbsp;        descriptor.setMediaType(imageData.getMediaType());</b>
+<b class="nc">&nbsp;        image.setDescriptorValue(descriptor);</b>
+<b class="nc">&nbsp;        image.setData(data);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Creating image {}&quot;, tenantId, image.getFileName());</b>
+<b class="nc">&nbsp;        return image;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbImageDeleteResult deleteImage(TbResourceInfo imageInfo, boolean force) {
+<b class="nc">&nbsp;        var tenantId = imageInfo.getTenantId();</b>
+<b class="nc">&nbsp;        var imageId = imageInfo.getId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteImage [{}] [{}]&quot;, tenantId, imageId);</b>
+<b class="nc">&nbsp;        Validator.validateId(imageId, id -&gt; INCORRECT_RESOURCE_ID + id);</b>
+<b class="nc">&nbsp;        TbImageDeleteResult.TbImageDeleteResultBuilder result = TbImageDeleteResult.builder();</b>
+<b class="nc">&nbsp;        boolean success = true;</b>
+<b class="nc">&nbsp;        if (!force) {</b>
+<b class="nc">&nbsp;            var link = DataConstants.TB_IMAGE_PREFIX + imageInfo.getLink();</b>
+<b class="nc">&nbsp;            Map&lt;String, List&lt;? extends HasId&lt;?&gt;&gt;&gt; affectedEntities = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            imageContainerDaoMap.forEach((entityType, imageContainerDao) -&gt; {</b>
+<b class="nc">&nbsp;                var entities = tenantId.isSysTenantId() ? imageContainerDao.findByImageLink(link, MAX_ENTITIES_TO_FIND) :</b>
+<b class="nc">&nbsp;                        imageContainerDao.findByTenantAndImageLink(tenantId, link, MAX_ENTITIES_TO_FIND);</b>
+<b class="nc">&nbsp;                if (!entities.isEmpty()) {</b>
+<b class="nc">&nbsp;                    affectedEntities.put(entityType.name(), entities);</b>
+&nbsp;                }
+&nbsp;            });
+<b class="nc">&nbsp;            if (!affectedEntities.isEmpty()) {</b>
+<b class="nc">&nbsp;                success = false;</b>
+<b class="nc">&nbsp;                result.references(affectedEntities);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (success) {</b>
+<b class="nc">&nbsp;            success = deleteResource(tenantId, imageId, true)</b>
+<b class="nc">&nbsp;                    .isSuccess();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result.success(success).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo createOrUpdateSystemImage(String resourceKey, byte[] data) {
+&nbsp;        TbResource image;
+<b class="nc">&nbsp;        TbResourceInfo existingImage = findResourceInfoByTenantIdAndKey(TenantId.SYS_TENANT_ID, ResourceType.IMAGE, resourceKey);</b>
+<b class="nc">&nbsp;        if (existingImage != null) {</b>
+<b class="nc">&nbsp;            image = new TbResource(existingImage);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            image = new TbResource();</b>
+<b class="nc">&nbsp;            image.setTenantId(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;            image.setFileName(resourceKey);</b>
+<b class="nc">&nbsp;            image.setTitle(resourceKey);</b>
+<b class="nc">&nbsp;            image.setResourceKey(resourceKey);</b>
+<b class="nc">&nbsp;            image.setResourceType(ResourceType.IMAGE);</b>
+<b class="nc">&nbsp;            image.setResourceSubType(ResourceSubType.IMAGE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ImageDescriptor descriptor = new ImageDescriptor();</b>
+<b class="nc">&nbsp;        descriptor.setMediaType(ImageUtils.fileExtensionToMediaType(StringUtils.substringAfterLast(resourceKey, &quot;.&quot;)));</b>
+<b class="nc">&nbsp;        image.setDescriptorValue(descriptor);</b>
+<b class="nc">&nbsp;        image.setData(data);</b>
+<b class="nc">&nbsp;        image.setPublic(true);</b>
+<b class="nc">&nbsp;        log.debug(&quot;{} system image {}&quot;, (image.getId() == null ? &quot;Creating&quot; : &quot;Updating&quot;), resourceKey);</b>
+<b class="nc">&nbsp;        return saveImage(image);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String calculateImageEtag(byte[] imageData) {
+<b class="nc">&nbsp;        return calculateEtag(imageData);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceInfo findSystemOrTenantImageByEtag(TenantId tenantId, String etag) {
+<b class="nc">&nbsp;        return findSystemOrTenantResourceByEtag(tenantId, ResourceType.IMAGE, etag);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional(noRollbackFor = Exception.class) // we don&#39;t want transaction to rollback in case of an image processing failure
+&nbsp;    @Override
+&nbsp;    public boolean replaceBase64WithImageUrl(HasImage entity, String type) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing replaceBase64WithImageUrl [{}] [{}] [{}]&quot;, entity.getTenantId(), type, entity.getName());</b>
+<b class="nc">&nbsp;        String imageName = &quot;\&quot;&quot; + entity.getName() + &quot;\&quot; &quot;;</b>
+<b class="nc">&nbsp;        if (entity.getTenantId() == null || entity.getTenantId().isSysTenantId()) {</b>
+<b class="nc">&nbsp;            imageName += &quot;system &quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        imageName = imageName + type + &quot; image&quot;;</b>
+&nbsp;
+<b class="nc">&nbsp;        UpdateResult result = convertToImageUrl(entity.getTenantId(), imageName, entity.getImage(), Collections.emptyMap());</b>
+<b class="nc">&nbsp;        entity.setImage(result.value());</b>
+<b class="nc">&nbsp;        return result.updated();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional(noRollbackFor = Exception.class) // we don&#39;t want transaction to rollback in case of an image processing failure
+&nbsp;    @Override
+&nbsp;    public boolean updateImagesUsage(WidgetTypeDetails widgetTypeDetails) {
+<b class="nc">&nbsp;        TenantId tenantId = widgetTypeDetails.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing updateImagesUsage [{}] [WidgetTypeDetails] [{}]&quot;, tenantId, widgetTypeDetails.getId());</b>
+<b class="nc">&nbsp;        String prefix = &quot;\&quot;&quot; + widgetTypeDetails.getName() + &quot;\&quot; &quot;;</b>
+<b class="nc">&nbsp;        if (tenantId == null || tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            prefix += &quot;system &quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        prefix += &quot;widget&quot;;</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; imagesLinks = getResourcesLinks(widgetTypeDetails.getResources());</b>
+&nbsp;
+<b class="nc">&nbsp;        UpdateResult result = convertToImageUrl(tenantId, prefix + &quot; image&quot;, widgetTypeDetails.getImage(), imagesLinks);</b>
+<b class="nc">&nbsp;        boolean updated = result.updated();</b>
+<b class="nc">&nbsp;        widgetTypeDetails.setImage(result.value());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (widgetTypeDetails.getDescriptor().isObject()) {</b>
+<b class="nc">&nbsp;            JsonNode defaultConfig = widgetTypeDetails.getDefaultConfig();</b>
+<b class="nc">&nbsp;            if (defaultConfig != null) {</b>
+<b class="nc">&nbsp;                updated |= convertToImageUrlsByMapping(tenantId, WIDGET_TYPE_BASE64_MAPPING, Collections.singletonMap(&quot;prefix&quot;, prefix), defaultConfig, imagesLinks);</b>
+<b class="nc">&nbsp;                updated |= convertToImageUrls(tenantId, prefix, defaultConfig, imagesLinks);</b>
+<b class="nc">&nbsp;                widgetTypeDetails.setDefaultConfig(defaultConfig);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        updated |= convertToImageUrls(tenantId, prefix, widgetTypeDetails.getDescriptor(), imagesLinks);</b>
+<b class="nc">&nbsp;        return updated;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional(noRollbackFor = Exception.class) // we don&#39;t want transaction to rollback in case of an image processing failure
+&nbsp;    @Override
+&nbsp;    public boolean updateImagesUsage(Dashboard dashboard) {
+<b class="nc">&nbsp;        TenantId tenantId = dashboard.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing updateImagesUsage [{}] [Dashboard] [{}]&quot;, tenantId, dashboard.getId());</b>
+<b class="nc">&nbsp;        String prefix = &quot;\&quot;&quot; + dashboard.getTitle() + &quot;\&quot; dashboard&quot;;</b>
+<b class="nc">&nbsp;        Map&lt;String, String&gt; imagesLinks = getResourcesLinks(dashboard.getResources());</b>
+&nbsp;
+<b class="nc">&nbsp;        var result = convertToImageUrl(tenantId, prefix + &quot; image&quot;, dashboard.getImage(), imagesLinks);</b>
+<b class="nc">&nbsp;        boolean updated = result.updated();</b>
+<b class="nc">&nbsp;        dashboard.setImage(result.value());</b>
+&nbsp;
+<b class="nc">&nbsp;        updated |= convertToImageUrlsByMapping(tenantId, DASHBOARD_BASE64_MAPPING, Collections.singletonMap(&quot;prefix&quot;, prefix), dashboard.getConfiguration(), imagesLinks);</b>
+<b class="nc">&nbsp;        updated |= convertToImageUrls(tenantId, prefix, dashboard.getConfiguration(), imagesLinks);</b>
+<b class="nc">&nbsp;        return updated;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean convertToImageUrlsByMapping(TenantId tenantId, Map&lt;String, String&gt; mapping, Map&lt;String, String&gt; templateParams, JsonNode configuration, Map&lt;String, String&gt; links) {
+<b class="nc">&nbsp;        AtomicBoolean updated = new AtomicBoolean(false);</b>
+<b class="nc">&nbsp;        JacksonUtil.replaceAllByMapping(configuration, mapping, templateParams, (name, value) -&gt; {</b>
+<b class="nc">&nbsp;            UpdateResult result = convertToImageUrl(tenantId, name, value, links);</b>
+<b class="nc">&nbsp;            if (result.updated()) {</b>
+<b class="nc">&nbsp;                updated.set(true);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return result.value();</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return updated.get();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private UpdateResult convertToImageUrl(TenantId tenantId, String name, String data, Map&lt;String, String&gt; links) {
+<b class="nc">&nbsp;        return convertToImageUrl(tenantId, name, data, false, links);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public static final Pattern TB_IMAGE_METADATA_PATTERN = Pattern.compile(&quot;^tb-image:([^;]+);data:(.*);.*&quot;);</b>
+&nbsp;
+&nbsp;    private UpdateResult convertToImageUrl(TenantId tenantId, String name, String data, boolean strict, Map&lt;String, String&gt; imagesLinks) {
+<b class="nc">&nbsp;        if (StringUtils.isBlank(data)) {</b>
+<b class="nc">&nbsp;            return UpdateResult.of(false, data);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String link = getImageLink(data);</b>
+<b class="nc">&nbsp;        if (link != null) {</b>
+<b class="nc">&nbsp;            String newLink = imagesLinks.get(link);</b>
+<b class="nc">&nbsp;            if (newLink == null || newLink.equals(link)) {</b>
+<b class="nc">&nbsp;                return UpdateResult.of(false, data);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return UpdateResult.of(true, DataConstants.TB_IMAGE_PREFIX + newLink);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String resourceKey = null;</b>
+<b class="nc">&nbsp;        String resourceName = null;</b>
+<b class="nc">&nbsp;        String resourceSubType = null;</b>
+<b class="nc">&nbsp;        String etag = null;</b>
+&nbsp;        String mediaType;
+<b class="nc">&nbsp;        var matcher = TB_IMAGE_METADATA_PATTERN.matcher(data);</b>
+<b class="nc">&nbsp;        if (matcher.matches()) {</b>
+<b class="nc">&nbsp;            String[] metadata = matcher.group(1).split(&quot;:&quot;);</b>
+<b class="nc">&nbsp;            resourceKey = decode(get(metadata, 0));</b>
+<b class="nc">&nbsp;            resourceName = decode(get(metadata, 1));</b>
+<b class="nc">&nbsp;            resourceSubType = decode(get(metadata, 2));</b>
+<b class="nc">&nbsp;            etag = get(metadata, 3);</b>
+<b class="nc">&nbsp;            mediaType = matcher.group(2);</b>
+<b class="nc">&nbsp;        } else if (data.startsWith(DataConstants.TB_IMAGE_PREFIX + &quot;data:image/&quot;) || (!strict &amp;&amp; data.startsWith(&quot;data:image/&quot;))) {</b>
+<b class="nc">&nbsp;            mediaType = StringUtils.substringBetween(data, &quot;data:&quot;, &quot;;base64&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return UpdateResult.of(false, data);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String base64Data = StringUtils.substringAfter(data, &quot;base64,&quot;);</b>
+<b class="nc">&nbsp;        byte[] imageData = StringUtils.isNotEmpty(base64Data) ? Base64.getDecoder().decode(base64Data) : null;</b>
+<b class="nc">&nbsp;        if (StringUtils.isBlank(etag)) {</b>
+<b class="nc">&nbsp;            etag = calculateEtag(imageData);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var imageInfo = findSystemOrTenantImageByEtag(tenantId, etag);</b>
+<b class="nc">&nbsp;        if (imageInfo == null) {</b>
+<b class="nc">&nbsp;            if (imageData == null) {</b>
+<b class="nc">&nbsp;                return UpdateResult.of(false, data);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            TbResource image = new TbResource();</b>
+<b class="nc">&nbsp;            image.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;            image.setResourceType(ResourceType.IMAGE);</b>
+<b class="nc">&nbsp;            if (StringUtils.isBlank(resourceName)) {</b>
+<b class="nc">&nbsp;                resourceName = name;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            image.setTitle(resourceName);</b>
+&nbsp;
+&nbsp;            String fileName;
+<b class="nc">&nbsp;            if (StringUtils.isBlank(resourceKey)) {</b>
+<b class="nc">&nbsp;                String extension = ImageUtils.mediaTypeToFileExtension(mediaType);</b>
+<b class="nc">&nbsp;                fileName = StringUtils.strip(resourceName.toLowerCase()</b>
+<b class="nc">&nbsp;                        .replaceAll(&quot;[&#39;\&quot;]&quot;, &quot;&quot;)</b>
+<b class="nc">&nbsp;                        .replaceAll(&quot;[^\\pL\\d]+&quot;, &quot;_&quot;), &quot;_&quot;) // leaving only letters and numbers</b>
+&nbsp;                        + &quot;.&quot; + extension;
+&nbsp;            } else {
+<b class="nc">&nbsp;                fileName = resourceKey;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (StringUtils.isBlank(resourceSubType)) {</b>
+<b class="nc">&nbsp;                image.setResourceSubType(ResourceSubType.IMAGE);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                image.setResourceSubType(ResourceSubType.valueOf(resourceSubType));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            image.setFileName(fileName);</b>
+<b class="nc">&nbsp;            image.setDescriptor(JacksonUtil.newObjectNode().put(&quot;mediaType&quot;, mediaType));</b>
+<b class="nc">&nbsp;            image.setData(imageData);</b>
+<b class="nc">&nbsp;            image.setPublic(true);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                imageInfo = saveImage(image);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                if (log.isDebugEnabled()) { // printing stacktrace</b>
+<b class="nc">&nbsp;                    log.warn(&quot;[{}][{}] Failed to replace Base64 with image url for {}&quot;, tenantId, name, StringUtils.abbreviate(data, 50), e);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}][{}] Failed to replace Base64 with image url for {}: {}&quot;, tenantId, name, StringUtils.abbreviate(data, 50), ExceptionUtils.getMessage(e));</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return UpdateResult.of(false, data);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Using existing image {} ({} - &#39;{}&#39;) for &#39;{}&#39;&quot;, tenantId, imageInfo.getResourceKey(), imageInfo.getTenantId(), imageInfo.getName(), name);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return UpdateResult.of(true, DataConstants.TB_IMAGE_PREFIX + imageInfo.getLink());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean convertToImageUrls(TenantId tenantId, String title, JsonNode root, Map&lt;String, String&gt; links) {
+<b class="nc">&nbsp;        AtomicBoolean updated = new AtomicBoolean(false);</b>
+<b class="nc">&nbsp;        JacksonUtil.replaceAll(root, title, (path, value) -&gt; {</b>
+<b class="nc">&nbsp;            UpdateResult result = convertToImageUrl(tenantId, path, value, true, links);</b>
+<b class="nc">&nbsp;            if (result.updated()) {</b>
+<b class="nc">&nbsp;                updated.set(true);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return result.value();</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return updated.get();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;T extends HasImage&gt; T inlineImage(T entity) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing inlineImage [{}] [{}] [{}]&quot;, entity.getTenantId(), entity.getClass().getSimpleName(), entity.getName());</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(entity.getImage())) {</b>
+<b class="nc">&nbsp;            return entity;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (cache instanceof CaffeineTbTransactionalCache) {</b>
+<b class="nc">&nbsp;            entity = JacksonUtil.clone(entity); // cloning the entity to avoid updating the cached one</b>
+&nbsp;        }
+<b class="nc">&nbsp;        entity.setImage(inlineImage(entity.getTenantId(), &quot;image&quot;, entity.getImage(), true));</b>
+<b class="nc">&nbsp;        return entity;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;TbResourceInfo&gt; getUsedImages(Dashboard dashboard) {
+<b class="nc">&nbsp;        TenantId tenantId = dashboard.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing getUsedImages [{}] [Dashboard] [{}]&quot;, tenantId, dashboard.getId());</b>
+<b class="nc">&nbsp;        Map&lt;TbResourceId, TbResourceInfo&gt; images = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        processImage(tenantId, &quot;image&quot;, dashboard.getImage(), (key, imageInfo) -&gt; {</b>
+<b class="nc">&nbsp;            images.putIfAbsent(imageInfo.getId(), imageInfo);</b>
+<b class="nc">&nbsp;            return null; // leaving the url as is</b>
+&nbsp;        });
+<b class="nc">&nbsp;        processImages(tenantId, dashboard.getConfiguration(), (key, imageInfo) -&gt; {</b>
+<b class="nc">&nbsp;            images.putIfAbsent(imageInfo.getId(), imageInfo);</b>
+<b class="nc">&nbsp;            return null; // leaving the url as is</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return images.values();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;TbResourceInfo&gt; getUsedImages(WidgetTypeDetails widgetTypeDetails) {
+<b class="nc">&nbsp;        TenantId tenantId = widgetTypeDetails.getTenantId();</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing getUsedImages [{}] [WidgetTypeDetails] [{}]&quot;, tenantId, widgetTypeDetails.getId());</b>
+<b class="nc">&nbsp;        Map&lt;TbResourceId, TbResourceInfo&gt; images = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        processImage(tenantId, &quot;image&quot;, widgetTypeDetails.getImage(), (key, imageInfo) -&gt; {</b>
+<b class="nc">&nbsp;            images.putIfAbsent(imageInfo.getId(), imageInfo);</b>
+<b class="nc">&nbsp;            return null; // leaving the url as is</b>
+&nbsp;        });
+<b class="nc">&nbsp;        processImages(tenantId, widgetTypeDetails.getDescriptor(), (key, imageInfo) -&gt; {</b>
+<b class="nc">&nbsp;            images.putIfAbsent(imageInfo.getId(), imageInfo);</b>
+<b class="nc">&nbsp;            return null; // leaving the url as is</b>
+&nbsp;        });
+<b class="nc">&nbsp;        JsonNode defaultConfig = widgetTypeDetails.getDefaultConfig();</b>
+<b class="nc">&nbsp;        if (defaultConfig != null) {</b>
+<b class="nc">&nbsp;            processImages(tenantId, defaultConfig, (key, imageInfo) -&gt; {</b>
+<b class="nc">&nbsp;                images.putIfAbsent(imageInfo.getId(), imageInfo);</b>
+<b class="nc">&nbsp;                return null; // leaving the url as is</b>
+&nbsp;            });
+&nbsp;        }
+<b class="nc">&nbsp;        return images.values();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void inlineImageForEdge(HasImage entity) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing inlineImageForEdge [{}] [{}] [{}]&quot;, entity.getTenantId(), entity.getClass().getSimpleName(), entity.getName());</b>
+<b class="nc">&nbsp;        entity.setImage(inlineImage(entity.getTenantId(), &quot;image&quot;, entity.getImage(), false));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void inlineImagesForEdge(Dashboard dashboard) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing inlineImagesForEdge [{}] [Dashboard] [{}]&quot;, dashboard.getTenantId(), dashboard.getId());</b>
+<b class="nc">&nbsp;        inlineImageForEdge(dashboard);</b>
+<b class="nc">&nbsp;        inlineImages(dashboard.getTenantId(), dashboard.getConfiguration(), false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void inlineImagesForEdge(WidgetTypeDetails widgetTypeDetails) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing inlineImage [{}] [WidgetTypeDetails] [{}]&quot;, widgetTypeDetails.getTenantId(), widgetTypeDetails.getId());</b>
+<b class="nc">&nbsp;        inlineImageForEdge(widgetTypeDetails);</b>
+<b class="nc">&nbsp;        inlineImages(widgetTypeDetails.getTenantId(), widgetTypeDetails.getDescriptor(), false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void inlineImages(TenantId tenantId, JsonNode root, boolean addTbImagePrefix) {
+<b class="nc">&nbsp;        processImages(tenantId, root, (key, imageInfo) -&gt; {</b>
+<b class="nc">&nbsp;            return inlineImage(key, imageInfo, addTbImagePrefix);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private String inlineImage(TenantId tenantId, String path, String url, boolean addTbImagePrefix) {
+<b class="nc">&nbsp;        return processImage(tenantId, path, url, (key, imageInfo) -&gt; {</b>
+<b class="nc">&nbsp;            return inlineImage(key, imageInfo, addTbImagePrefix);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private String inlineImage(ImageCacheKey key, TbResourceInfo imageInfo, boolean addTbImagePrefix) {
+<b class="nc">&nbsp;        String value = &quot;&quot;;</b>
+<b class="nc">&nbsp;        if (addTbImagePrefix) {</b>
+<b class="nc">&nbsp;            value = &quot;tb-image:&quot; + encode(imageInfo.getResourceKey()) + &quot;:&quot;</b>
+<b class="nc">&nbsp;                    + encode(imageInfo.getName()) + &quot;:&quot;</b>
+<b class="nc">&nbsp;                    + encode(imageInfo.getResourceSubType().name()) + &quot;;&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ImageDescriptor descriptor = getImageDescriptor(imageInfo, key.isPreview());</b>
+<b class="nc">&nbsp;        byte[] data = key.isPreview() ? getImagePreview(key.getTenantId(), imageInfo.getId()) : getImageData(key.getTenantId(), imageInfo.getId());</b>
+<b class="nc">&nbsp;        return value + &quot;data:&quot; + descriptor.getMediaType() + &quot;;base64,&quot; + encode(data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processImages(TenantId tenantId, JsonNode node, BiFunction&lt;ImageCacheKey, TbResourceInfo, String&gt; processor) {
+<b class="nc">&nbsp;        JacksonUtil.replaceAll(node, &quot;&quot;, (path, value) -&gt; {</b>
+<b class="nc">&nbsp;            return processImage(tenantId, path, value, processor);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private String processImage(TenantId tenantId, String path, String imageUrl, BiFunction&lt;ImageCacheKey, TbResourceInfo, String&gt; processor) {
+&nbsp;        try {
+<b class="nc">&nbsp;            ImageCacheKey key = getKeyFromUrl(tenantId, imageUrl);</b>
+<b class="nc">&nbsp;            if (key != null) {</b>
+<b class="nc">&nbsp;                var imageInfo = getImageInfoByTenantIdAndKey(key.getTenantId(), key.getResourceKey());</b>
+<b class="nc">&nbsp;                if (imageInfo == null) {</b>
+<b class="nc">&nbsp;                    return imageUrl;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    String result = processor.apply(key, imageInfo);</b>
+<b class="nc">&nbsp;                    if (result != null) {</b>
+<b class="nc">&nbsp;                        return result;</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}][{}] Failed to process image&quot;, tenantId, path, imageUrl, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return imageUrl;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ImageDescriptor getImageDescriptor(TbResourceInfo imageInfo, boolean preview) {
+<b class="nc">&nbsp;        ImageDescriptor descriptor = imageInfo.getDescriptor(ImageDescriptor.class);</b>
+<b class="nc">&nbsp;        return preview ? descriptor.getPreviewDescriptor() : descriptor;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ImageCacheKey getKeyFromUrl(TenantId tenantId, String url) {
+<b class="nc">&nbsp;        if (StringUtils.isBlank(url)) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String link = getImageLink(url);</b>
+<b class="nc">&nbsp;        if (link == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TenantId imageTenantId = null;</b>
+<b class="nc">&nbsp;        if (link.startsWith(&quot;/api/images/tenant/&quot;)) {</b>
+<b class="nc">&nbsp;            imageTenantId = tenantId;</b>
+<b class="nc">&nbsp;        } else if (link.startsWith(&quot;/api/images/system/&quot;)) {</b>
+<b class="nc">&nbsp;            imageTenantId = TenantId.SYS_TENANT_ID;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (imageTenantId != null) {</b>
+<b class="nc">&nbsp;            var parts = url.split(&quot;/&quot;);</b>
+<b class="nc">&nbsp;            if (parts.length == 5) {</b>
+<b class="nc">&nbsp;                return ImageCacheKey.forImage(imageTenantId, parts[4], false);</b>
+<b class="nc">&nbsp;            } else if (parts.length == 6 &amp;&amp; &quot;preview&quot;.equals(parts[5])) {</b>
+<b class="nc">&nbsp;                return ImageCacheKey.forImage(imageTenantId, parts[4], true);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getImageLink(String value) {
+<b class="nc">&nbsp;        if (value.startsWith(DataConstants.TB_IMAGE_PREFIX + &quot;/api/images&quot;)) {</b>
+<b class="nc">&nbsp;            return Strings.CS.removeStart(value, DataConstants.TB_IMAGE_PREFIX);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private record UpdateResult(boolean updated, String value) {</b>
+&nbsp;
+&nbsp;        static UpdateResult of(boolean updated, String value) {
+<b class="nc">&nbsp;            return new UpdateResult(updated, value);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

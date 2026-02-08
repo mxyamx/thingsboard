@@ -1,0 +1,319 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > QrCodeSettingsController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: QrCodeSettingsController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QrCodeSettingsController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestHeader;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.mobile.app.MobileApp;
+&nbsp;import org.thingsboard.server.common.data.mobile.app.StoreInfo;
+&nbsp;import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
+&nbsp;import org.thingsboard.server.common.data.security.model.JwtPair;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.mobile.QrCodeSettingService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.mobile.secret.MobileAppSecretService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;import org.thingsboard.server.service.security.system.SystemSecurityService;
+&nbsp;
+&nbsp;import java.net.URI;
+&nbsp;import java.net.URISyntaxException;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.oauth2.PlatformType.ANDROID;
+&nbsp;import static org.thingsboard.server.common.data.oauth2.PlatformType.IOS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
+&nbsp;
+&nbsp;@RequiredArgsConstructor
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;public class QrCodeSettingsController extends BaseController {
+&nbsp;
+&nbsp;    @Value(&quot;${cache.specs.mobileSecretKey.timeToLiveInMinutes:2}&quot;)
+&nbsp;    private int mobileSecretKeyTtl;
+&nbsp;    @Value(&quot;${mobileApp.domain:demo.thingsboard.io}&quot;)
+&nbsp;    private String defaultAppDomain;
+&nbsp;
+&nbsp;    public static final String ASSET_LINKS_PATTERN = &quot;[{\n&quot; +
+&nbsp;            &quot;  \&quot;relation\&quot;: [\&quot;delegate_permission/common.handle_all_urls\&quot;],\n&quot; +
+&nbsp;            &quot;  \&quot;target\&quot;: {\n&quot; +
+&nbsp;            &quot;    \&quot;namespace\&quot;: \&quot;android_app\&quot;,\n&quot; +
+&nbsp;            &quot;    \&quot;package_name\&quot;: \&quot;%s\&quot;,\n&quot; +
+&nbsp;            &quot;    \&quot;sha256_cert_fingerprints\&quot;:\n&quot; +
+&nbsp;            &quot;    [\&quot;%s\&quot;]\n&quot; +
+&nbsp;            &quot;  }\n&quot; +
+&nbsp;            &quot;}]&quot;;
+&nbsp;
+&nbsp;    public static final String APPLE_APP_SITE_ASSOCIATION_PATTERN = &quot;{\n&quot; +
+&nbsp;            &quot;    \&quot;applinks\&quot;: {\n&quot; +
+&nbsp;            &quot;        \&quot;apps\&quot;: [],\n&quot; +
+&nbsp;            &quot;        \&quot;details\&quot;: [\n&quot; +
+&nbsp;            &quot;            {\n&quot; +
+&nbsp;            &quot;                \&quot;appID\&quot;: \&quot;%s\&quot;,\n&quot; +
+&nbsp;            &quot;                \&quot;paths\&quot;: [ \&quot;/api/noauth/qr\&quot; ]\n&quot; +
+&nbsp;            &quot;            }\n&quot; +
+&nbsp;            &quot;        ]\n&quot; +
+&nbsp;            &quot;    }\n&quot; +
+&nbsp;            &quot;}&quot;;
+&nbsp;
+&nbsp;    public static final String SECRET = &quot;secret&quot;;
+&nbsp;    public static final String SECRET_PARAM_DESCRIPTION = &quot;A string value representing short-lived secret key&quot;;
+&nbsp;    public static final String DEEP_LINK_PATTERN = &quot;https://%s/api/noauth/qr?secret=%s&amp;ttl=%s&quot;;
+&nbsp;
+&nbsp;    private final SystemSecurityService systemSecurityService;
+&nbsp;    private final MobileAppSecretService mobileAppSecretService;
+&nbsp;    private final QrCodeSettingService qrCodeSettingService;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get associated android applications (getAssetLinks)&quot;)
+&nbsp;    @GetMapping(value = &quot;/.well-known/assetlinks.json&quot;)
+&nbsp;    public ResponseEntity&lt;JsonNode&gt; getAssetLinks() {
+<b class="nc">&nbsp;        MobileApp mobileApp = qrCodeSettingService.findAppFromQrCodeSettings(TenantId.SYS_TENANT_ID, ANDROID);</b>
+<b class="nc">&nbsp;        StoreInfo storeInfo = mobileApp != null ? mobileApp.getStoreInfo() : null;</b>
+<b class="nc">&nbsp;        if (storeInfo != null &amp;&amp; storeInfo.getSha256CertFingerprints() != null) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(JacksonUtil.toJsonNode(String.format(ASSET_LINKS_PATTERN, mobileApp.getPkgName(), storeInfo.getSha256CertFingerprints())));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return ResponseEntity.notFound().build();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get associated ios applications (getAppleAppSiteAssociation)&quot;)
+&nbsp;    @GetMapping(value = &quot;/.well-known/apple-app-site-association&quot;)
+&nbsp;    public ResponseEntity&lt;JsonNode&gt; getAppleAppSiteAssociation() {
+<b class="nc">&nbsp;        MobileApp mobileApp = qrCodeSettingService.findAppFromQrCodeSettings(TenantId.SYS_TENANT_ID, IOS);</b>
+<b class="nc">&nbsp;        StoreInfo storeInfo = mobileApp != null ? mobileApp.getStoreInfo() : null;</b>
+<b class="nc">&nbsp;        if (storeInfo != null &amp;&amp; storeInfo.getAppId() != null) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(JacksonUtil.toJsonNode(String.format(APPLE_APP_SITE_ASSOCIATION_PATTERN, storeInfo.getAppId())));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return ResponseEntity.notFound().build();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Or Update the Mobile application settings (saveMobileAppSettings)&quot;,
+&nbsp;            notes = &quot;The request payload contains configuration for android/iOS applications and platform qr code widget settings.&quot; + SYSTEM_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/api/mobile/qr/settings&quot;)
+&nbsp;    public QrCodeSettings saveQrCodeSettings(@Parameter(description = &quot;A JSON value representing the mobile apps configuration&quot;)
+&nbsp;                                             @RequestBody QrCodeSettings qrCodeSettings) throws ThingsboardException {
+<b class="nc">&nbsp;        SecurityUser currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(currentUser, Resource.MOBILE_APP_SETTINGS, Operation.WRITE);</b>
+<b class="nc">&nbsp;        qrCodeSettings.setTenantId(getTenantId());</b>
+<b class="nc">&nbsp;        return qrCodeSettingService.saveQrCodeSettings(currentUser.getTenantId(), qrCodeSettings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Mobile application settings (getMobileAppSettings)&quot;,
+&nbsp;            notes = &quot;The response payload contains configuration for android/iOS applications and platform qr code widget settings.&quot; + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/api/mobile/qr/settings&quot;)
+&nbsp;    public QrCodeSettings getQrCodeSettings() throws ThingsboardException {
+<b class="nc">&nbsp;        SecurityUser currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(currentUser, Resource.MOBILE_APP_SETTINGS, Operation.READ);</b>
+<b class="nc">&nbsp;        return qrCodeSettingService.findQrCodeSettings(TenantId.SYS_TENANT_ID);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get the deep link to the associated mobile application (getMobileAppDeepLink)&quot;,
+&nbsp;            notes = &quot;Fetch the url that takes user to linked mobile application &quot; + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/api/mobile/qr/deepLink&quot;, produces = &quot;text/plain&quot;)
+&nbsp;    public String getMobileAppDeepLink(HttpServletRequest request) throws ThingsboardException, URISyntaxException {
+<b class="nc">&nbsp;        String secret = mobileAppSecretService.generateMobileAppSecret(getCurrentUser());</b>
+<b class="nc">&nbsp;        String baseUrl = systemSecurityService.getBaseUrl(TenantId.SYS_TENANT_ID, null, request);</b>
+<b class="nc">&nbsp;        String platformDomain = new URI(baseUrl).getHost();</b>
+<b class="nc">&nbsp;        QrCodeSettings qrCodeSettings = qrCodeSettingService.findQrCodeSettings(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;        String appDomain = qrCodeSettings.isUseDefaultApp() ? defaultAppDomain : platformDomain;</b>
+<b class="nc">&nbsp;        String deepLink = String.format(DEEP_LINK_PATTERN, appDomain, secret, mobileSecretKeyTtl);</b>
+<b class="nc">&nbsp;        if (!appDomain.equals(platformDomain)) {</b>
+<b class="nc">&nbsp;            deepLink = deepLink + &quot;&amp;host=&quot; + baseUrl;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return &quot;\&quot;&quot; + deepLink + &quot;\&quot;&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get User Token (getUserTokenByMobileSecret)&quot;,
+&nbsp;            notes = &quot;Returns the token of the User based on the provided secret key.&quot;)
+&nbsp;    @GetMapping(value = &quot;/api/noauth/qr/{secret}&quot;)
+&nbsp;    public JwtPair getUserTokenByMobileSecret(@Parameter(description = SECRET_PARAM_DESCRIPTION)
+&nbsp;                                              @PathVariable(SECRET) String secret) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(SECRET, secret);</b>
+<b class="nc">&nbsp;        return mobileAppSecretService.getJwtPair(secret);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(value = &quot;/api/noauth/qr&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getApplicationRedirect(@RequestHeader(value = &quot;User-Agent&quot;) String userAgent) {
+<b class="nc">&nbsp;        QrCodeSettings qrCodeSettings = qrCodeSettingService.findQrCodeSettings(TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;        if (userAgent.contains(&quot;Android&quot;) &amp;&amp; qrCodeSettings.isAndroidEnabled()) {</b>
+<b class="nc">&nbsp;            String googlePlayLink = qrCodeSettings.getGooglePlayLink();</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FOUND)</b>
+<b class="nc">&nbsp;                    .header(&quot;Location&quot;, googlePlayLink)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;        } else if ((userAgent.contains(&quot;iPhone&quot;) || userAgent.contains(&quot;iPad&quot;)) &amp;&amp; qrCodeSettings.isIosEnabled()) {</b>
+<b class="nc">&nbsp;            String appStoreLink = qrCodeSettings.getAppStoreLink();</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FOUND)</b>
+<b class="nc">&nbsp;                    .header(&quot;Location&quot;, appStoreLink)</b>
+<b class="nc">&nbsp;                    .build();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return response(HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

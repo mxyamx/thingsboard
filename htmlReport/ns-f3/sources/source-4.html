@@ -1,0 +1,211 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CassandraBufferedRateWriteExecutor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.nosql</a>
+</div>
+
+<h1>Coverage Summary for Class: CassandraBufferedRateWriteExecutor (org.thingsboard.server.dao.nosql)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CassandraBufferedRateWriteExecutor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.nosql;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.SettableFuture;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.cache.limits.RateLimitService;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.util.AbstractBufferedRateExecutor;
+&nbsp;import org.thingsboard.server.dao.util.AsyncTaskContext;
+&nbsp;import org.thingsboard.server.dao.util.BufferedRateExecutorType;
+&nbsp;import org.thingsboard.server.dao.util.NoSqlAnyDao;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 24.10.18.
+&nbsp; */
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@NoSqlAnyDao
+&nbsp;public class CassandraBufferedRateWriteExecutor extends AbstractBufferedRateExecutor&lt;CassandraStatementTask, TbResultSetFuture, TbResultSet&gt; {
+&nbsp;
+&nbsp;    public CassandraBufferedRateWriteExecutor(
+&nbsp;            @Value(&quot;${cassandra.query.buffer_size}&quot;) int queueLimit,
+&nbsp;            @Value(&quot;${cassandra.query.concurrent_limit}&quot;) int concurrencyLimit,
+&nbsp;            @Value(&quot;${cassandra.query.permit_max_wait_time}&quot;) long maxWaitTime,
+&nbsp;            @Value(&quot;${cassandra.query.dispatcher_threads:2}&quot;) int dispatcherThreads,
+&nbsp;            @Value(&quot;${cassandra.query.callback_threads:4}&quot;) int callbackThreads,
+&nbsp;            @Value(&quot;${cassandra.query.poll_ms:50}&quot;) long pollMs,
+&nbsp;            @Value(&quot;${cassandra.query.tenant_rate_limits.print_tenant_names}&quot;) boolean printTenantNames,
+&nbsp;            @Value(&quot;${cassandra.query.print_queries_freq:0}&quot;) int printQueriesFreq,
+&nbsp;            @Autowired StatsFactory statsFactory,
+&nbsp;            @Autowired EntityService entityService,
+&nbsp;            @Autowired RateLimitService rateLimitService,
+&nbsp;            @Autowired(required = false) TbServiceInfoProvider serviceInfoProvider) {
+<b class="nc">&nbsp;        super(queueLimit, concurrencyLimit, maxWaitTime, dispatcherThreads, callbackThreads, pollMs, printQueriesFreq,</b>
+&nbsp;                BufferedRateExecutorType.WRITE, serviceInfoProvider, rateLimitService, statsFactory, entityService, printTenantNames);
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(fixedDelayString = &quot;${cassandra.query.rate_limit_print_interval_ms}&quot;)
+&nbsp;    @Override
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        super.printStats();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        super.stop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected SettableFuture&lt;TbResultSet&gt; create() {
+<b class="nc">&nbsp;        return SettableFuture.create();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected TbResultSetFuture wrap(CassandraStatementTask task, SettableFuture&lt;TbResultSet&gt; future) {
+<b class="nc">&nbsp;        return new TbResultSetFuture(future);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ListenableFuture&lt;TbResultSet&gt; execute(AsyncTaskContext&lt;CassandraStatementTask, TbResultSet&gt; taskCtx) {
+<b class="nc">&nbsp;        CassandraStatementTask task = taskCtx.getTask();</b>
+<b class="nc">&nbsp;        return task.executeAsync(</b>
+&nbsp;                statement -&gt;
+<b class="nc">&nbsp;                        this.submit(new CassandraStatementTask(task.getTenantId(), task.getSession(), statement))</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

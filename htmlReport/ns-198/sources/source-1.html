@@ -1,0 +1,368 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbUserSettingsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.entitiy.user</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbUserSettingsService (org.thingsboard.server.service.entitiy.user)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbUserSettingsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/77)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultTbUserSettingsService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/78)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.entitiy.user;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.HasTitle;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.DashboardId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.settings.AbstractUserDashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.settings.LastVisitedDashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.settings.StarredDashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.settings.UserDashboardAction;
+&nbsp;import org.thingsboard.server.common.data.settings.UserDashboardsInfo;
+&nbsp;import org.thingsboard.server.common.data.settings.UserSettings;
+&nbsp;import org.thingsboard.server.common.data.settings.UserSettingsType;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.dao.user.UserSettingsService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.function.Predicate;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@AllArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultTbUserSettingsService implements TbUserSettingsService {
+&nbsp;
+&nbsp;    private static final int MAX_DASHBOARD_INFO_LIST_SIZE = 10;
+<b class="nc">&nbsp;    private static final Predicate&lt;HasTitle&gt; EMPTY_TITLE = i -&gt; StringUtils.isEmpty(i.getTitle());</b>
+&nbsp;
+&nbsp;    private final UserSettingsService settingsService;
+&nbsp;    private final DashboardService dashboardService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings) {
+<b class="nc">&nbsp;        return settingsService.saveUserSettings(tenantId, userSettings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, JsonNode settings) {
+<b class="nc">&nbsp;        settingsService.updateUserSettings(tenantId, userId, type, settings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserSettings findUserSettings(TenantId tenantId, UserId userId, UserSettingsType type) {
+<b class="nc">&nbsp;        return settingsService.findUserSettings(tenantId, userId, type);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, List&lt;String&gt; jsonPaths) {
+<b class="nc">&nbsp;        settingsService.deleteUserSettings(tenantId, userId, type, jsonPaths);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserDashboardsInfo findUserDashboardsInfo(TenantId tenantId, UserId id) {
+<b class="nc">&nbsp;        UserSettings us = findUserSettings(tenantId, id, UserSettingsType.VISITED_DASHBOARDS);</b>
+<b class="nc">&nbsp;        if (us == null) {</b>
+<b class="nc">&nbsp;            return UserDashboardsInfo.EMPTY;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        UserDashboardsInfo stored = JacksonUtil.convertValue(us.getSettings(), UserDashboardsInfo.class);</b>
+<b class="nc">&nbsp;        return refreshDashboardTitles(tenantId, stored);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserDashboardsInfo reportUserDashboardAction(TenantId tenantId, UserId id, DashboardId dashboardId, UserDashboardAction action) {
+<b class="nc">&nbsp;        UserSettings us = findUserSettings(tenantId, id, UserSettingsType.VISITED_DASHBOARDS);</b>
+<b class="nc">&nbsp;        UserDashboardsInfo stored = null;</b>
+<b class="nc">&nbsp;        if (us != null) {</b>
+<b class="nc">&nbsp;            stored = JacksonUtil.convertValue(us.getSettings(), UserDashboardsInfo.class);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (stored == null) {</b>
+<b class="nc">&nbsp;            stored = new UserDashboardsInfo();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        switch (action) {</b>
+&nbsp;            case STAR:
+<b class="nc">&nbsp;                addToStarred(stored, dashboardId);</b>
+&nbsp;                break;
+&nbsp;            case UNSTAR:
+<b class="nc">&nbsp;                removeFromStarred(stored, dashboardId);</b>
+&nbsp;                break;
+&nbsp;            case VISIT:
+<b class="nc">&nbsp;                addToVisited(stored, dashboardId);</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        stored = refreshDashboardTitles(tenantId, stored);</b>
+&nbsp;
+<b class="nc">&nbsp;        us = new UserSettings();</b>
+<b class="nc">&nbsp;        us.setUserId(id);</b>
+<b class="nc">&nbsp;        us.setType(UserSettingsType.VISITED_DASHBOARDS);</b>
+<b class="nc">&nbsp;        us.setSettings(JacksonUtil.valueToTree(stored));</b>
+<b class="nc">&nbsp;        saveUserSettings(tenantId, us);</b>
+<b class="nc">&nbsp;        return stored;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addToVisited(UserDashboardsInfo stored, DashboardId dashboardId) {
+<b class="nc">&nbsp;        UUID id = dashboardId.getId();</b>
+<b class="nc">&nbsp;        long ts = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        var opt = stored.getLast().stream().filter(filterById(id)).findFirst();</b>
+<b class="nc">&nbsp;        if (opt.isPresent()) {</b>
+<b class="nc">&nbsp;            opt.get().setLastVisited(ts);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            var newInfo = new LastVisitedDashboardInfo();</b>
+<b class="nc">&nbsp;            newInfo.setId(id);</b>
+<b class="nc">&nbsp;            newInfo.setStarred(stored.getStarred().stream().anyMatch(filterById(id)));</b>
+<b class="nc">&nbsp;            newInfo.setLastVisited(System.currentTimeMillis());</b>
+<b class="nc">&nbsp;            stored.getLast().add(newInfo);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stored.getLast().sort(Comparator.comparing(LastVisitedDashboardInfo::getLastVisited).reversed());</b>
+<b class="nc">&nbsp;        if (stored.getLast().size() &gt; MAX_DASHBOARD_INFO_LIST_SIZE) {</b>
+<b class="nc">&nbsp;            stored.setLast(stored.getLast().stream().limit(MAX_DASHBOARD_INFO_LIST_SIZE).collect(Collectors.toList()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeFromStarred(UserDashboardsInfo stored, DashboardId dashboardId) {
+<b class="nc">&nbsp;        UUID id = dashboardId.getId();</b>
+<b class="nc">&nbsp;        stored.getStarred().removeIf(filterById(id));</b>
+<b class="nc">&nbsp;        stored.getLast().stream().filter(d -&gt; id.equals(d.getId())).findFirst().ifPresent(d -&gt; d.setStarred(false));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addToStarred(UserDashboardsInfo stored, DashboardId dashboardId) {
+<b class="nc">&nbsp;        UUID id = dashboardId.getId();</b>
+<b class="nc">&nbsp;        long ts = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;        var opt = stored.getStarred().stream().filter(filterById(id)).findFirst();</b>
+<b class="nc">&nbsp;        if (opt.isPresent()) {</b>
+<b class="nc">&nbsp;            opt.get().setStarredAt(ts);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            var newInfo = new StarredDashboardInfo();</b>
+<b class="nc">&nbsp;            newInfo.setId(id);</b>
+<b class="nc">&nbsp;            newInfo.setStarredAt(System.currentTimeMillis());</b>
+<b class="nc">&nbsp;            stored.getStarred().add(newInfo);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stored.getStarred().sort(Comparator.comparing(StarredDashboardInfo::getStarredAt).reversed());</b>
+<b class="nc">&nbsp;        if (stored.getStarred().size() &gt; MAX_DASHBOARD_INFO_LIST_SIZE) {</b>
+<b class="nc">&nbsp;            stored.setStarred(stored.getStarred().stream().limit(MAX_DASHBOARD_INFO_LIST_SIZE).collect(Collectors.toList()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Set&lt;UUID&gt; starredMap =</b>
+<b class="nc">&nbsp;                stored.getStarred().stream().map(AbstractUserDashboardInfo::getId).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;        stored.getLast().forEach(d -&gt; d.setStarred(starredMap.contains(d.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Predicate&lt;AbstractUserDashboardInfo&gt; filterById(UUID id) {
+<b class="nc">&nbsp;        return d -&gt; id.equals(d.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private UserDashboardsInfo refreshDashboardTitles(TenantId tenantId, UserDashboardsInfo stored) {
+<b class="nc">&nbsp;        if (stored == null) {</b>
+<b class="nc">&nbsp;            return UserDashboardsInfo.EMPTY;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stored.getLast().forEach(i -&gt; i.setTitle(null));</b>
+<b class="nc">&nbsp;        stored.getStarred().forEach(i -&gt; i.setTitle(null));</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;UUID&gt; uniqueIds = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        stored.getLast().stream().map(AbstractUserDashboardInfo::getId).forEach(uniqueIds::add);</b>
+<b class="nc">&nbsp;        stored.getStarred().stream().map(AbstractUserDashboardInfo::getId).forEach(uniqueIds::add);</b>
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;UUID, String&gt; dashboardTitles = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        uniqueIds.forEach(id -&gt; {</b>
+<b class="nc">&nbsp;                    var title = dashboardService.findDashboardTitleById(tenantId, new DashboardId(id));</b>
+<b class="nc">&nbsp;                    if (StringUtils.isNotEmpty(title)) {</b>
+<b class="nc">&nbsp;                        dashboardTitles.put(id, title);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;        );
+&nbsp;
+<b class="nc">&nbsp;        stored.getLast().forEach(i -&gt; i.setTitle(dashboardTitles.get(i.getId())));</b>
+<b class="nc">&nbsp;        stored.getLast().removeIf(EMPTY_TITLE);</b>
+<b class="nc">&nbsp;        stored.getStarred().forEach(i -&gt; i.setTitle(dashboardTitles.get(i.getId())));</b>
+<b class="nc">&nbsp;        stored.getStarred().removeIf(EMPTY_TITLE);</b>
+<b class="nc">&nbsp;        return stored;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

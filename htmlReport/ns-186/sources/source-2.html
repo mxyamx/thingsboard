@@ -1,0 +1,384 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbAlarmService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.entitiy.alarm</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbAlarmService (org.thingsboard.server.service.entitiy.alarm)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbAlarmService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/102)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.entitiy.alarm;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmAssignee;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmComment;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCommentSubType;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCommentType;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+&nbsp;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.alarm.AlarmCommentSubType.ACKED_BY_USER;
+&nbsp;import static org.thingsboard.server.common.data.alarm.AlarmCommentSubType.ASSIGNED_TO_USER;
+&nbsp;import static org.thingsboard.server.common.data.alarm.AlarmCommentSubType.CLEARED_BY_USER;
+&nbsp;import static org.thingsboard.server.common.data.alarm.AlarmCommentSubType.UNASSIGNED_BY_USER;
+&nbsp;import static org.thingsboard.server.common.data.alarm.AlarmCommentSubType.UNASSIGNED_FROM_DELETED_USER;
+&nbsp;
+&nbsp;@Service
+&nbsp;@AllArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultTbAlarmService extends AbstractTbEntityService implements TbAlarmService {
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbAlarmCommentService alarmCommentService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm save(Alarm alarm, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = alarm.getId() == null ? ActionType.ADDED : ActionType.UPDATED;</b>
+<b class="nc">&nbsp;        TenantId tenantId = alarm.getTenantId();</b>
+&nbsp;        try {
+&nbsp;            AlarmApiCallResult result;
+<b class="nc">&nbsp;            if (alarm.getId() == null) {</b>
+<b class="nc">&nbsp;                result = alarmSubscriptionService.createAlarm(AlarmCreateOrUpdateActiveRequest.fromAlarm(alarm, user.getId()));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                result = alarmSubscriptionService.updateAlarm(AlarmUpdateRequest.fromAlarm(alarm, user.getId()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!result.isSuccessful()) {</b>
+<b class="nc">&nbsp;                throw new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            AlarmInfo resultAlarm = result.getAlarm();</b>
+<b class="nc">&nbsp;            if (alarm.isAcknowledged() &amp;&amp; !resultAlarm.isAcknowledged()) {</b>
+<b class="nc">&nbsp;                resultAlarm = ack(resultAlarm, alarm.getAckTs(), user);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (alarm.isCleared() &amp;&amp; !resultAlarm.isCleared()) {</b>
+<b class="nc">&nbsp;                resultAlarm = clear(resultAlarm, alarm.getClearTs(), user);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            UserId newAssignee = alarm.getAssigneeId();</b>
+<b class="nc">&nbsp;            UserId curAssignee = resultAlarm.getAssigneeId();</b>
+<b class="nc">&nbsp;            if (newAssignee != null &amp;&amp; !newAssignee.equals(curAssignee)) {</b>
+<b class="nc">&nbsp;                resultAlarm = assign(resultAlarm, newAssignee, alarm.getAssignTs(), user);</b>
+<b class="nc">&nbsp;            } else if (newAssignee == null &amp;&amp; curAssignee != null) {</b>
+<b class="nc">&nbsp;                resultAlarm = unassign(alarm, alarm.getAssignTs(), user);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (result.isModified()) {</b>
+<b class="nc">&nbsp;                logEntityActionService.logEntityAction(tenantId, alarm.getOriginator(), resultAlarm,</b>
+<b class="nc">&nbsp;                        resultAlarm.getCustomerId(), actionType, user);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return new Alarm(resultAlarm);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.ALARM), alarm, actionType, user, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo ack(Alarm alarm, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        return ack(alarm, System.currentTimeMillis(), user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo ack(Alarm alarm, long ackTs, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        AlarmApiCallResult result = alarmSubscriptionService.acknowledgeAlarm(alarm.getTenantId(), alarm.getId(), getOrDefault(ackTs));</b>
+<b class="nc">&nbsp;        if (!result.isSuccessful()) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AlarmInfo alarmInfo = result.getAlarm();</b>
+<b class="nc">&nbsp;        if (result.isModified()) {</b>
+<b class="nc">&nbsp;            addSystemAlarmComment(alarmInfo, user, ACKED_BY_USER,&quot;userName&quot;, user.getTitle());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarmInfo,</b>
+<b class="nc">&nbsp;                    alarmInfo.getCustomerId(), ActionType.ALARM_ACK, user);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Alarm was already acknowledged!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return alarmInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo clear(Alarm alarm, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        return clear(alarm, System.currentTimeMillis(), user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo clear(Alarm alarm, long clearTs, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        AlarmApiCallResult result = alarmSubscriptionService.clearAlarm(alarm.getTenantId(), alarm.getId(), getOrDefault(clearTs), null);</b>
+<b class="nc">&nbsp;        if (!result.isSuccessful()) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AlarmInfo alarmInfo = result.getAlarm();</b>
+<b class="nc">&nbsp;        if (result.isCleared()) {</b>
+<b class="nc">&nbsp;            addSystemAlarmComment(alarmInfo, user, CLEARED_BY_USER, &quot;userName&quot;, user.getTitle());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarmInfo,</b>
+<b class="nc">&nbsp;                    alarmInfo.getCustomerId(), ActionType.ALARM_CLEAR, user);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Alarm was already cleared!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return alarmInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo assign(Alarm alarm, UserId assigneeId, long assignTs, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        AlarmApiCallResult result = alarmSubscriptionService.assignAlarm(alarm.getTenantId(), alarm.getId(), assigneeId, getOrDefault(assignTs));</b>
+<b class="nc">&nbsp;        if (!result.isSuccessful()) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AlarmInfo alarmInfo = result.getAlarm();</b>
+<b class="nc">&nbsp;        if (result.isModified()) {</b>
+<b class="nc">&nbsp;            AlarmAssignee assignee = alarmInfo.getAssignee();</b>
+<b class="nc">&nbsp;            addSystemAlarmComment(alarmInfo, user, ASSIGNED_TO_USER, &quot;userName&quot;, user.getTitle(), &quot;assigneeName&quot;, assignee.getTitle());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarmInfo,</b>
+<b class="nc">&nbsp;                    alarmInfo.getCustomerId(), ActionType.ALARM_ASSIGNED, user);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Alarm was already assigned to this user!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return alarmInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo unassign(Alarm alarm, long unassignTs, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        AlarmApiCallResult result = alarmSubscriptionService.unassignAlarm(alarm.getTenantId(), alarm.getId(), getOrDefault(unassignTs));</b>
+<b class="nc">&nbsp;        if (!result.isSuccessful()) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AlarmInfo alarmInfo = result.getAlarm();</b>
+<b class="nc">&nbsp;        if (result.isModified()) {</b>
+<b class="nc">&nbsp;            addSystemAlarmComment(alarmInfo, user, UNASSIGNED_BY_USER, &quot;userName&quot;, user.getTitle());</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarmInfo,</b>
+<b class="nc">&nbsp;                    alarmInfo.getCustomerId(), ActionType.ALARM_UNASSIGNED, user);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Alarm was already unassigned!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return alarmInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void unassignDeletedUserAlarms(TenantId tenantId, UserId userId, String userTitle, List&lt;UUID&gt; alarms, long unassignTs) {
+<b class="nc">&nbsp;        for (UUID alarmId : alarms) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Unassigning alarm {} from user {}&quot;, tenantId, alarmId, userId);</b>
+<b class="nc">&nbsp;            AlarmApiCallResult result = alarmSubscriptionService.unassignAlarm(tenantId, new AlarmId(alarmId), unassignTs);</b>
+<b class="nc">&nbsp;            if (!result.isSuccessful()) {</b>
+<b class="nc">&nbsp;                log.error(&quot;[{}] Cannot unassign alarm {} from user {}&quot;, tenantId, alarmId, userId);</b>
+&nbsp;                continue;
+&nbsp;            }
+<b class="nc">&nbsp;            if (result.isModified()) {</b>
+<b class="nc">&nbsp;                addSystemAlarmComment(result.getAlarm(), null, UNASSIGNED_FROM_DELETED_USER, &quot;userName&quot;, userTitle);</b>
+<b class="nc">&nbsp;                logEntityActionService.logEntityAction(result.getAlarm().getTenantId(), result.getAlarm().getOriginator(), result.getAlarm(), result.getAlarm().getCustomerId(), ActionType.ALARM_UNASSIGNED, null);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean delete(Alarm alarm, User user) {
+<b class="nc">&nbsp;        var tenantId = alarm.getTenantId();</b>
+<b class="nc">&nbsp;        var alarmId = alarm.getId();</b>
+<b class="nc">&nbsp;        var alarmOriginator = alarm.getOriginator();</b>
+&nbsp;
+&nbsp;        boolean deleted;
+&nbsp;        try {
+<b class="nc">&nbsp;            deleted = alarmSubscriptionService.deleteAlarm(tenantId, alarmId);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(alarmOriginator.getEntityType()), ActionType.ALARM_DELETE, user, e, alarmId);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (deleted) {</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, alarmOriginator, alarm, alarm.getCustomerId(), ActionType.ALARM_DELETE, user, alarmId);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return deleted;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static long getOrDefault(long ts) {
+<b class="nc">&nbsp;        return ts &gt; 0 ? ts : System.currentTimeMillis();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addSystemAlarmComment(Alarm alarm, User user, AlarmCommentSubType subType, String param, String value) {
+<b class="nc">&nbsp;        Map&lt;String, String&gt; params = new LinkedHashMap&lt;&gt;(1);</b>
+<b class="nc">&nbsp;        params.put(param, value);</b>
+<b class="nc">&nbsp;        addSystemAlarmComment(alarm, user, subType, params);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addSystemAlarmComment(Alarm alarm, User user, AlarmCommentSubType subType, String param, String value, String param2, String value2) {
+<b class="nc">&nbsp;        Map&lt;String, String&gt; params = new LinkedHashMap&lt;&gt;(2);</b>
+<b class="nc">&nbsp;        params.put(param, value);</b>
+<b class="nc">&nbsp;        params.put(param2, value2);</b>
+<b class="nc">&nbsp;        addSystemAlarmComment(alarm, user, subType, params);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addSystemAlarmComment(Alarm alarm, User user, AlarmCommentSubType subType, Map&lt;String, String&gt; params) {
+<b class="nc">&nbsp;        ObjectNode commentNode = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;        commentNode.put(&quot;text&quot;, String.format(subType.getText(), params.values().toArray()))</b>
+<b class="nc">&nbsp;                .put(&quot;subtype&quot;, subType.name());</b>
+<b class="nc">&nbsp;        params.forEach(commentNode::put);</b>
+<b class="nc">&nbsp;        AlarmComment alarmComment = AlarmComment.builder()</b>
+<b class="nc">&nbsp;                .alarmId(alarm.getId())</b>
+<b class="nc">&nbsp;                .type(AlarmCommentType.SYSTEM)</b>
+<b class="nc">&nbsp;                .comment(commentNode)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            alarmCommentService.saveAlarmComment(alarm, alarmComment, user);</b>
+&nbsp;        } catch (ThingsboardException e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to save alarm comment&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

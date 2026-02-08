@@ -1,0 +1,582 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LwM2MTransportUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: LwM2MTransportUtil (org.thingsboard.server.transport.lwm2m.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LwM2MTransportUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/125)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/195)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.utils;
+&nbsp;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonPrimitive;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.californium.elements.config.Configuration;
+&nbsp;import org.eclipse.leshan.core.model.LwM2mModel;
+&nbsp;import org.eclipse.leshan.core.model.ObjectLoader;
+&nbsp;import org.eclipse.leshan.core.model.ResourceModel;
+&nbsp;import org.eclipse.leshan.core.model.StaticModel;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mMultipleResource;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mPath;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mResource;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mSingleResource;
+&nbsp;import org.eclipse.leshan.core.util.Hex;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.DeviceTransportType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
+&nbsp;import org.thingsboard.server.common.data.ota.OtaPackageKey;
+&nbsp;import org.thingsboard.server.transport.lwm2m.config.TbLwM2mVersion;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mOtaConvert;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.ResourceValue;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.downlink.HasVersionedId;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.ota.firmware.FirmwareUpdateResult;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.ota.firmware.FirmwareUpdateState;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.ota.software.SoftwareUpdateResult;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.ota.software.SoftwareUpdateState;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_LENGTH;
+&nbsp;import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_NODE_ID;
+&nbsp;import static org.eclipse.leshan.core.model.ResourceModel.Type.BOOLEAN;
+&nbsp;import static org.eclipse.leshan.core.model.ResourceModel.Type.FLOAT;
+&nbsp;import static org.eclipse.leshan.core.model.ResourceModel.Type.INTEGER;
+&nbsp;import static org.eclipse.leshan.core.model.ResourceModel.Type.OBJLNK;
+&nbsp;import static org.eclipse.leshan.core.model.ResourceModel.Type.OPAQUE;
+&nbsp;import static org.eclipse.leshan.core.model.ResourceModel.Type.STRING;
+&nbsp;import static org.eclipse.leshan.core.model.ResourceModel.Type.TIME;
+&nbsp;import static org.thingsboard.server.common.data.lwm2m.LwM2mConstants.LWM2M_SEPARATOR_KEY;
+&nbsp;import static org.thingsboard.server.common.data.lwm2m.LwM2mConstants.LWM2M_SEPARATOR_PATH;
+&nbsp;import static org.thingsboard.server.common.transport.util.JsonUtils.convertToJsonObject;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_RESULT_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.FW_STATE_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.SW_RESULT_ID;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaUpdateService.SW_STATE_ID;
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class LwM2MTransportUtil {</b>
+&nbsp;
+&nbsp;    public static final String LWM2M_OBJECT_VERSION_DEFAULT = &quot;1.0&quot;;
+&nbsp;
+&nbsp;    public static final String LOG_LWM2M_TELEMETRY = &quot;transportLog&quot;;
+&nbsp;    public static final String LOG_LWM2M_INFO = &quot;info&quot;;
+&nbsp;    public static final String LOG_LWM2M_ERROR = &quot;error&quot;;
+&nbsp;    public static final String LOG_LWM2M_WARN = &quot;warn&quot;;
+&nbsp;    public static final String REGISTRATION_TRIGGER_PARAMS_ID = &quot;/1/0/8&quot;;
+&nbsp;    public static final String BOOTSTRAP_TRIGGER_PARAMS_ID = &quot;/1/0/9&quot;;;
+&nbsp;
+&nbsp;    public static LwM2mOtaConvert convertOtaUpdateValueToString(String pathIdVer, Object value, ResourceModel.Type currentType) {
+<b class="nc">&nbsp;        String path = fromVersionedIdToObjectId(pathIdVer);</b>
+<b class="nc">&nbsp;        LwM2mOtaConvert lwM2mOtaConvert = new LwM2mOtaConvert();</b>
+<b class="nc">&nbsp;        if (path != null) {</b>
+<b class="nc">&nbsp;            if (FW_STATE_ID.equals(path)) {</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setCurrentType(STRING);</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setValue(FirmwareUpdateState.fromStateFwByCode(((Long) value).intValue()).getType());</b>
+<b class="nc">&nbsp;                return lwM2mOtaConvert;</b>
+<b class="nc">&nbsp;            } else if (FW_RESULT_ID.equals(path)) {</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setCurrentType(STRING);</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setValue(FirmwareUpdateResult.fromUpdateResultFwByCode(((Long) value).intValue()).getType());</b>
+<b class="nc">&nbsp;                return lwM2mOtaConvert;</b>
+<b class="nc">&nbsp;            } else if (SW_STATE_ID.equals(path)) {</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setCurrentType(STRING);</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setValue(SoftwareUpdateState.fromUpdateStateSwByCode(((Long) value).intValue()).getType());</b>
+<b class="nc">&nbsp;                return lwM2mOtaConvert;</b>
+<b class="nc">&nbsp;            } else if (SW_RESULT_ID.equals(path)) {</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setCurrentType(STRING);</b>
+<b class="nc">&nbsp;                lwM2mOtaConvert.setValue(SoftwareUpdateResult.fromUpdateResultSwByCode(((Long) value).intValue()).getType());</b>
+<b class="nc">&nbsp;                return lwM2mOtaConvert;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        lwM2mOtaConvert.setCurrentType(currentType);</b>
+<b class="nc">&nbsp;        lwM2mOtaConvert.setValue(value);</b>
+<b class="nc">&nbsp;        return lwM2mOtaConvert;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Lwm2mDeviceProfileTransportConfiguration toLwM2MClientProfile(DeviceProfile deviceProfile) {
+<b class="nc">&nbsp;        DeviceProfileTransportConfiguration transportConfiguration = deviceProfile.getProfileData().getTransportConfiguration();</b>
+<b class="nc">&nbsp;        if (transportConfiguration.getType().equals(DeviceTransportType.LWM2M)) {</b>
+<b class="nc">&nbsp;            return (Lwm2mDeviceProfileTransportConfiguration) transportConfiguration;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.info(&quot;[{}] Received profile with invalid transport configuration: {}&quot;, deviceProfile.getId(), deviceProfile.getProfileData().getTransportConfiguration());</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Received profile with invalid transport configuration: &quot; + transportConfiguration.getType());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String fromVersionedIdToObjectId(String pathIdVer) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (pathIdVer == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String[] keyArray = pathIdVer.split(LWM2M_SEPARATOR_PATH);</b>
+<b class="nc">&nbsp;            if (keyArray.length &gt; 1 &amp;&amp; keyArray[1].split(LWM2M_SEPARATOR_KEY).length == 2) {</b>
+<b class="nc">&nbsp;                keyArray[1] = keyArray[1].split(LWM2M_SEPARATOR_KEY)[0];</b>
+<b class="nc">&nbsp;                return StringUtils.join(keyArray, LWM2M_SEPARATOR_PATH);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return pathIdVer;</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;Issue converting path with version [{}] to path without version: &quot;, pathIdVer, e);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param path - pathId or pathIdVer
+&nbsp;     * @return
+&nbsp;     */
+&nbsp;    public static String getVerFromPathIdVerOrId(String path) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String[] keyArray = path.split(LWM2M_SEPARATOR_PATH);</b>
+<b class="nc">&nbsp;            if (keyArray.length &gt; 1) {</b>
+<b class="nc">&nbsp;                String[] keyArrayVer = keyArray[1].split(LWM2M_SEPARATOR_KEY);</b>
+<b class="nc">&nbsp;                return keyArrayVer.length == 2 ? keyArrayVer[1] : LWM2M_OBJECT_VERSION_DEFAULT;</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String convertObjectIdToVersionedId(String path, LwM2mClient lwM2MClient) {
+<b class="nc">&nbsp;        String[] keyArray = path.split(LWM2M_SEPARATOR_PATH);</b>
+<b class="nc">&nbsp;        if (keyArray.length &gt; 1) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                Integer objectId = Integer.valueOf((keyArray[1].split(LWM2M_SEPARATOR_KEY))[0]);</b>
+<b class="nc">&nbsp;                String ver = String.valueOf(lwM2MClient.getSupportedObjectVersion(objectId));</b>
+<b class="nc">&nbsp;                ver = ver != null ? ver : TbLwM2mVersion.VERSION_1_0.getVersion().toString();</b>
+<b class="nc">&nbsp;                keyArray[1] = String.valueOf(keyArray[1]).contains(LWM2M_SEPARATOR_KEY) ? keyArray[1] : keyArray[1] + LWM2M_SEPARATOR_KEY + ver;</b>
+<b class="nc">&nbsp;                return StringUtils.join(keyArray, LWM2M_SEPARATOR_PATH);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return path;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * &quot;UNSIGNED_INTEGER&quot;:  // Number -&gt; Integer Example:
+&nbsp;     * Alarm Timestamp [32-bit unsigned integer]
+&nbsp;     * Short Server ID, Object ID, Object Instance ID, Resource ID, Resource Instance ID
+&nbsp;     * &quot;CORELINK&quot;: // String used in Attribute
+&nbsp;     */
+&nbsp;    public static ResourceModel.Type equalsResourceTypeGetSimpleName(Object value) {
+<b class="nc">&nbsp;        switch (value.getClass().getSimpleName()) {</b>
+&nbsp;            case &quot;Float&quot;:
+&nbsp;            case &quot;Double&quot;:
+<b class="nc">&nbsp;                return FLOAT;</b>
+&nbsp;            case &quot;Integer&quot;:
+&nbsp;            case &quot;Long&quot;:
+<b class="nc">&nbsp;                return INTEGER;</b>
+&nbsp;            case &quot;String&quot;:
+<b class="nc">&nbsp;                return STRING;</b>
+&nbsp;            case &quot;Boolean&quot;:
+<b class="nc">&nbsp;                return BOOLEAN;</b>
+&nbsp;            case &quot;byte[]&quot;:
+<b class="nc">&nbsp;                return OPAQUE;</b>
+&nbsp;            case &quot;Date&quot;:
+<b class="nc">&nbsp;                return TIME;</b>
+&nbsp;            case &quot;ObjectLink&quot;:
+<b class="nc">&nbsp;                return OBJLNK;</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Object getJsonPrimitiveValue(JsonPrimitive value) {
+<b class="nc">&nbsp;        if (value.isString()) {</b>
+<b class="nc">&nbsp;            return value.getAsString();</b>
+<b class="nc">&nbsp;        } else if (value.isNumber()) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                return Integer.valueOf(value.toString());</b>
+&nbsp;            } catch (NumberFormatException i) {
+&nbsp;                try {
+<b class="nc">&nbsp;                    return Long.valueOf(value.toString());</b>
+&nbsp;                } catch (NumberFormatException l) {
+<b class="nc">&nbsp;                    if (value.getAsFloat() &gt;= Float.MIN_VALUE &amp;&amp; value.getAsFloat() &lt;= Float.MAX_VALUE) {</b>
+<b class="nc">&nbsp;                        return value.getAsFloat();</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        return value.getAsDouble();</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (value.isBoolean()) {</b>
+<b class="nc">&nbsp;            return value.getAsBoolean();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void validateVersionedId(LwM2mClient client, HasVersionedId request) {
+<b class="nc">&nbsp;        String msgExceptionStr = &quot;&quot;;</b>
+<b class="nc">&nbsp;        if (request.getObjectId() == null) {</b>
+<b class="nc">&nbsp;            msgExceptionStr = &quot;Specified object id is null!&quot;;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            msgExceptionStr = client.isValidObjectVersion(request.getVersionedId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!msgExceptionStr.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(msgExceptionStr);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Map&lt;Integer, Object&gt; convertMultiResourceValuesFromRpcBody(Object value, ResourceModel.Type type, String versionedId) throws Exception {
+<b class="nc">&nbsp;        if (value instanceof JsonElement) {</b>
+<b class="nc">&nbsp;            return convertMultiResourceValuesFromJson((JsonElement) value, type, versionedId);</b>
+<b class="nc">&nbsp;        } else if (value instanceof Map) {</b>
+<b class="nc">&nbsp;            JsonElement valueConvert = convertToJsonObject((Map&lt;String, ?&gt;) value);</b>
+<b class="nc">&nbsp;            return convertMultiResourceValuesFromJson(valueConvert, type, versionedId);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Map&lt;Integer, Object&gt; convertMultiResourceValuesFromJson(JsonElement newValProto, ResourceModel.Type type, String versionedId) {
+<b class="nc">&nbsp;        Map&lt;Integer, Object&gt; newValues = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        newValProto.getAsJsonObject().entrySet().forEach((obj) -&gt; {</b>
+<b class="nc">&nbsp;            Object valueByTypeResource = convertValueByTypeResource(obj.getValue(), type, versionedId);</b>
+<b class="nc">&nbsp;            newValues.put(Integer.valueOf(obj.getKey()), valueByTypeResource);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return newValues;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Object convertValueByTypeResource(Object value, ResourceModel.Type type, String versionedId) {
+<b class="nc">&nbsp;        Object valueCurrent = getJsonPrimitiveValue((JsonPrimitive) value);</b>
+<b class="nc">&nbsp;        return LwM2mValueConverterImpl.getInstance().convertValue(valueCurrent,</b>
+<b class="nc">&nbsp;                equalsResourceTypeGetSimpleName(valueCurrent), type, new LwM2mPath(fromVersionedIdToObjectId(versionedId)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param lwM2MClient -
+&nbsp;     * @param path        -
+&nbsp;     * @return - return value of Resource by idPath
+&nbsp;     */
+&nbsp;    public static LwM2mResource getResourceValueFromLwM2MClient(LwM2mClient lwM2MClient, String path) {
+<b class="nc">&nbsp;        LwM2mResource lwm2mResourceValue = null;</b>
+<b class="nc">&nbsp;        ResourceValue resourceValue = lwM2MClient.getResources().get(path);</b>
+<b class="nc">&nbsp;        if (resourceValue != null) {</b>
+<b class="nc">&nbsp;            if (new LwM2mPath(fromVersionedIdToObjectId(path)).isResource()) {</b>
+<b class="nc">&nbsp;                lwm2mResourceValue = lwM2MClient.getResources().get(path).getLwM2mResource();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return lwm2mResourceValue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    public static Optional&lt;String&gt; contentToString(Object content) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String value = null;</b>
+<b class="nc">&nbsp;            LwM2mResource resource = null;</b>
+<b class="nc">&nbsp;            String key = null;</b>
+<b class="nc">&nbsp;            if (content instanceof Map) {</b>
+<b class="nc">&nbsp;                Map&lt;Object, Object&gt; contentAsMap = (Map&lt;Object, Object&gt;) content;</b>
+<b class="nc">&nbsp;                if (contentAsMap.size() == 1) {</b>
+<b class="nc">&nbsp;                    for (Map.Entry&lt;Object, Object&gt; kv : contentAsMap.entrySet()) {</b>
+<b class="nc">&nbsp;                        if (kv.getValue() instanceof LwM2mResource) {</b>
+<b class="nc">&nbsp;                            key = kv.getKey().toString();</b>
+<b class="nc">&nbsp;                            resource = (LwM2mResource) kv.getValue();</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;            } else if (content instanceof LwM2mResource) {</b>
+<b class="nc">&nbsp;                resource = (LwM2mResource) content;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (resource != null &amp;&amp; resource.getType() == OPAQUE) {</b>
+<b class="nc">&nbsp;                value = opaqueResourceToString(resource, key);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            value = value == null ? content.toString() : value;</b>
+<b class="nc">&nbsp;            return Optional.of(value);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;Failed to convert content &quot; + content + &quot; to string&quot;, e);</b>
+<b class="nc">&nbsp;            return Optional.ofNullable(content != null ? content.toString() : null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String opaqueResourceToString(LwM2mResource resource, String key) {
+<b class="nc">&nbsp;        String value = null;</b>
+<b class="nc">&nbsp;        StringBuilder builder = new StringBuilder();</b>
+<b class="nc">&nbsp;        if (resource instanceof LwM2mSingleResource) {</b>
+<b class="nc">&nbsp;            builder.append(&quot;LwM2mSingleResource&quot;);</b>
+<b class="nc">&nbsp;            if (key == null) {</b>
+<b class="nc">&nbsp;                builder.append(&quot; id=&quot;).append(String.valueOf(resource.getId()));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                builder.append(&quot; key=&quot;).append(key);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            builder.append(&quot; value=&quot;).append(opaqueToString((byte[]) resource.getValue()));</b>
+<b class="nc">&nbsp;            builder.append(&quot; type=&quot;).append(OPAQUE.toString());</b>
+<b class="nc">&nbsp;            value = builder.toString();</b>
+<b class="nc">&nbsp;        } else if (resource instanceof LwM2mMultipleResource) {</b>
+<b class="nc">&nbsp;            builder.append(&quot;LwM2mMultipleResource&quot;);</b>
+<b class="nc">&nbsp;            if (key == null) {</b>
+<b class="nc">&nbsp;                builder.append(&quot; id=&quot;).append(String.valueOf(resource.getId()));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                builder.append(&quot; key=&quot;).append(key);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            builder.append(&quot; values={&quot;);</b>
+<b class="nc">&nbsp;            if (resource.getInstances().size() &gt; 0) {</b>
+<b class="nc">&nbsp;                builder.append(multiInstanceOpaqueToString((LwM2mMultipleResource) resource));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            builder.append(&quot;}&quot;);</b>
+<b class="nc">&nbsp;            builder.append(&quot; type=&quot;).append(OPAQUE.toString());</b>
+<b class="nc">&nbsp;            value = builder.toString();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return value;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String multiInstanceOpaqueToString(LwM2mMultipleResource resource) {
+<b class="nc">&nbsp;        StringBuilder builder = new StringBuilder();</b>
+<b class="nc">&nbsp;        resource.getInstances().values()</b>
+<b class="nc">&nbsp;                .forEach(v -&gt; builder.append(&quot; id=&quot;).append(v.getId()).append(&quot; value=&quot;).append(Hex.encodeHexString((byte[]) v.getValue())).append(&quot;, &quot;));</b>
+<b class="nc">&nbsp;        int startInd = builder.lastIndexOf(&quot;, &quot;);</b>
+<b class="nc">&nbsp;        if (startInd &gt; 0) {</b>
+<b class="nc">&nbsp;            builder.delete(startInd, startInd + 2);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return builder.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String opaqueToString(byte[] value) {
+<b class="nc">&nbsp;        String opaque = Hex.encodeHexString(value);</b>
+<b class="nc">&nbsp;        return opaque.length() &gt; 1024 ? opaque.substring(0, 1024) : opaque;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static LwM2mModel createModelsDefault() {
+<b class="nc">&nbsp;        return new StaticModel(ObjectLoader.loadDefault());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean compareAttNameKeyOta(String attrName) {
+<b class="nc">&nbsp;        for (OtaPackageKey value : OtaPackageKey.values()) {</b>
+<b class="nc">&nbsp;            if (attrName.contains(value.getValue())) return true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean valueEquals(Object newValue, Object oldValue) {
+&nbsp;        String newValueStr;
+&nbsp;        String oldValueStr;
+<b class="nc">&nbsp;        if (oldValue instanceof byte[]) {</b>
+<b class="nc">&nbsp;            oldValueStr = Hex.encodeHexString((byte[]) oldValue);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            oldValueStr = oldValue.toString();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (newValue instanceof byte[]) {</b>
+<b class="nc">&nbsp;            newValueStr = Hex.encodeHexString((byte[]) newValue);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            newValueStr = newValue.toString();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return newValueStr.equals(oldValueStr);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void setDtlsConnectorConfigCidLength(Configuration serverCoapConfig, Integer cIdLength) {
+<b class="nc">&nbsp;        serverCoapConfig.setTransient(DTLS_CONNECTION_ID_LENGTH);</b>
+<b class="nc">&nbsp;        serverCoapConfig.setTransient(DTLS_CONNECTION_ID_NODE_ID);</b>
+<b class="nc">&nbsp;        serverCoapConfig.set(DTLS_CONNECTION_ID_LENGTH, cIdLength);</b>
+<b class="nc">&nbsp;        if (cIdLength &gt; 4) {</b>
+<b class="nc">&nbsp;            serverCoapConfig.set(DTLS_CONNECTION_ID_NODE_ID, 0);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            serverCoapConfig.set(DTLS_CONNECTION_ID_NODE_ID, null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ConcurrentHashMap&lt;Integer, String[]&gt; groupByObjectIdVersionedIds(Set&lt;String&gt; targetIds) {
+<b class="nc">&nbsp;        return targetIds.stream()</b>
+<b class="nc">&nbsp;                .collect(Collectors.groupingBy(</b>
+<b class="nc">&nbsp;                        id -&gt; new LwM2mPath(fromVersionedIdToObjectId(id)).getObjectId(),</b>
+&nbsp;                        ConcurrentHashMap::new,
+<b class="nc">&nbsp;                        Collectors.collectingAndThen(</b>
+<b class="nc">&nbsp;                                Collectors.toList(),</b>
+<b class="nc">&nbsp;                                list -&gt; list.toArray(new String[0])</b>
+&nbsp;                        )
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean areArraysStringEqual(String[] oldValue, String[] newValue) {
+<b class="nc">&nbsp;        if (oldValue == null || newValue == null) return false;</b>
+<b class="nc">&nbsp;        if (oldValue.length != newValue.length) return false;</b>
+<b class="nc">&nbsp;        String[] sorted1 = oldValue.clone();</b>
+<b class="nc">&nbsp;        String[] sorted2 = newValue.clone();</b>
+<b class="nc">&nbsp;        Arrays.sort(sorted1);</b>
+<b class="nc">&nbsp;        Arrays.sort(sorted2);</b>
+<b class="nc">&nbsp;        return Arrays.equals(sorted1, sorted2);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ConcurrentHashMap&lt;Integer, String[]&gt; deepCopyConcurrentMap(Map&lt;Integer, String[]&gt; original) {
+<b class="nc">&nbsp;        return original.isEmpty() ? new ConcurrentHashMap&lt;&gt;() : original.entrySet().stream()</b>
+<b class="nc">&nbsp;                .collect(Collectors.toMap(</b>
+&nbsp;                        Map.Entry::getKey,
+<b class="nc">&nbsp;                        entry -&gt; entry.getValue() != null ? entry.getValue().clone() : null,</b>
+<b class="nc">&nbsp;                        (v1, v2) -&gt; v1, // merge function in case of duplicate keys</b>
+&nbsp;                        ConcurrentHashMap::new
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean areMapsEqual(Map&lt;Integer, String[]&gt; m1, Map&lt;Integer, String[]&gt; m2) {
+<b class="nc">&nbsp;        if (m1.size() != m2.size()) return false;</b>
+<b class="nc">&nbsp;        for (Integer key : m1.keySet()) {</b>
+<b class="nc">&nbsp;            if (!m2.containsKey(key)) return false;</b>
+&nbsp;
+<b class="nc">&nbsp;            String[] arr1 = m1.get(key);</b>
+<b class="nc">&nbsp;            String[] arr2 = m2.get(key);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (arr1 == null || arr2 == null) {</b>
+<b class="nc">&nbsp;                if (arr1 != arr2) return false;</b>
+<b class="nc">&nbsp;                String[] sorted1 = arr1.clone();</b>
+<b class="nc">&nbsp;                String[] sorted2 = arr2.clone();</b>
+<b class="nc">&nbsp;                Arrays.sort(sorted1);</b>
+<b class="nc">&nbsp;                Arrays.sort(sorted2);</b>
+<b class="nc">&nbsp;                if (!Arrays.equals(sorted1, sorted2)) return false;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

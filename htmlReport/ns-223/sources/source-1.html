@@ -1,0 +1,230 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbClusterService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.cluster</a>
+</div>
+
+<h1>Coverage Summary for Class: TbClusterService (org.thingsboard.server.cluster)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">TbClusterService</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.cluster;
+&nbsp;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageState;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfo;
+&nbsp;import org.thingsboard.server.common.data.Tenant;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventType;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
+&nbsp;import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
+&nbsp;import org.thingsboard.server.common.msg.edge.EdgeHighPriorityMsg;
+&nbsp;import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
+&nbsp;import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
+&nbsp;import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.RestApiCallResponseMsgProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueCallback;
+&nbsp;import org.thingsboard.server.queue.TbQueueClusterService;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface TbClusterService extends TbQueueClusterService {
+&nbsp;
+&nbsp;    void pushMsgToCore(TopicPartitionInfo tpi, UUID msgKey, ToCoreMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToCore(TenantId tenantId, EntityId entityId, ToCoreMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToCore(ToDeviceActorNotificationMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void broadcastToCore(ToCoreNotificationMsg msg);
+&nbsp;
+&nbsp;    void broadcastToCalculatedFields(ToCalculatedFieldNotificationMsg build, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToVersionControl(TenantId tenantId, ToVersionControlServiceMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushNotificationToCore(String targetServiceId, FromDeviceRpcResponse response, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushNotificationToCore(String targetServiceId, RestApiCallResponseMsgProto msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToRuleEngine(TopicPartitionInfo tpi, UUID msgId, ToRuleEngineMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg msg, boolean useQueueFromTbMsg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushNotificationToRuleEngine(String targetServiceId, FromDeviceRpcResponse response, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushNotificationToTransport(String targetServiceId, ToTransportMsg response, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToCalculatedFields(TenantId tenantId, EntityId entityId, ToCalculatedFieldMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void pushMsgToCalculatedFields(TopicPartitionInfo tpi, UUID msgId, ToCalculatedFieldMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void broadcastEntityStateChangeEvent(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent state);
+&nbsp;
+&nbsp;    void broadcast(ComponentLifecycleMsg componentLifecycleMsg);
+&nbsp;
+&nbsp;    void onDeviceProfileChange(DeviceProfile deviceProfile, DeviceProfile oldDeviceProfile, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onDeviceProfileDelete(DeviceProfile deviceProfile, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onTenantProfileChange(TenantProfile tenantProfile, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onTenantProfileDelete(TenantProfile tenantProfile, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onTenantChange(Tenant tenant, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onTenantDelete(Tenant tenant, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onApiStateChange(ApiUsageState apiUsageState, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onDeviceUpdated(Device device, Device old);
+&nbsp;
+&nbsp;    void onDeviceDeleted(TenantId tenantId, Device device, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onDeviceAssignedToTenant(TenantId oldTenantId, Device device);
+&nbsp;
+&nbsp;    void onAssetUpdated(Asset asset, Asset old);
+&nbsp;
+&nbsp;    void onAssetDeleted(TenantId tenantId, Asset asset, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onResourceChange(TbResourceInfo resource, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onResourceDeleted(TbResourceInfo resource, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onEdgeHighPriorityMsg(EdgeHighPriorityMsg msg);
+&nbsp;
+&nbsp;    void onEdgeEventUpdate(EdgeEventUpdateMsg msg);
+&nbsp;
+&nbsp;    void onEdgeStateChangeEvent(ComponentLifecycleMsg msg);
+&nbsp;
+&nbsp;    void pushEdgeSyncRequestToEdge(ToEdgeSyncRequest request);
+&nbsp;
+&nbsp;    void pushEdgeSyncResponseToCore(FromEdgeSyncResponse response, String requestServiceId);
+&nbsp;
+&nbsp;    void pushMsgToEdge(TenantId tenantId, EntityId entityId, ToEdgeMsg msg, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action, EdgeId sourceEdgeId);
+&nbsp;
+&nbsp;    void onCustomerUpdated(Customer customer, Customer oldCustomer);
+&nbsp;
+&nbsp;    void onCalculatedFieldUpdated(CalculatedField calculatedField, CalculatedField oldCalculatedField, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onCalculatedFieldDeleted(CalculatedField calculatedField, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onRelationUpdated(TenantId tenantId, EntityRelation entityRelation, TbQueueCallback callback);
+&nbsp;
+&nbsp;    void onRelationDeleted(TenantId tenantId, EntityRelation entityRelation, TbQueueCallback callback);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

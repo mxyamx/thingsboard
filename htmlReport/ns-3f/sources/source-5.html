@@ -1,0 +1,325 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NashornJsInvokeService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api.js</a>
+</div>
+
+<h1>Coverage Summary for Class: NashornJsInvokeService (org.thingsboard.script.api.js)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NashornJsInvokeService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api.js;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.ListeningExecutorService;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import delight.nashornsandbox.NashornSandbox;
+&nbsp;import delight.nashornsandbox.NashornSandboxes;
+&nbsp;import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.script.api.TbScriptException;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+&nbsp;
+&nbsp;import javax.script.Invocable;
+&nbsp;import javax.script.ScriptEngine;
+&nbsp;import javax.script.ScriptEngineManager;
+&nbsp;import javax.script.ScriptException;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.Executor;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@ConditionalOnProperty(prefix = &quot;js&quot;, value = &quot;evaluator&quot;, havingValue = &quot;local&quot;, matchIfMissing = true)
+&nbsp;@Service
+&nbsp;public class NashornJsInvokeService extends AbstractJsInvokeService {
+&nbsp;
+&nbsp;    private NashornSandbox sandbox;
+&nbsp;    private ScriptEngine engine;
+&nbsp;    private ExecutorService monitorExecutorService;
+&nbsp;    private ListeningExecutorService jsExecutor;
+&nbsp;
+<b class="nc">&nbsp;    private final ReentrantLock evalLock = new ReentrantLock();</b>
+&nbsp;
+&nbsp;    @Value(&quot;${js.local.use_js_sandbox}&quot;)
+&nbsp;    private boolean useJsSandbox;
+&nbsp;
+&nbsp;    @Value(&quot;${js.local.monitor_thread_pool_size}&quot;)
+&nbsp;    private int monitorThreadPoolSize;
+&nbsp;
+&nbsp;    @Value(&quot;${js.local.max_cpu_time:8000}&quot;) // 8 seconds
+&nbsp;    private long maxCpuTime;
+&nbsp;
+&nbsp;    @Value(&quot;${js.local.max_memory:104857600}&quot;) // 100 MiB
+&nbsp;    private long maxMemory;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${js.local.max_errors}&quot;)
+&nbsp;    private int maxErrors;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${js.local.max_black_list_duration_sec:60}&quot;)
+&nbsp;    private int maxBlackListDurationSec;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${js.local.max_requests_timeout:0}&quot;)
+&nbsp;    private long maxInvokeRequestsTimeout;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${js.local.stats.enabled:false}&quot;)
+&nbsp;    private boolean statsEnabled;
+&nbsp;
+&nbsp;    @Value(&quot;${js.local.js_thread_pool_size:50}&quot;)
+&nbsp;    private int jsExecutorThreadPoolSize;
+&nbsp;
+&nbsp;    public NashornJsInvokeService(Optional&lt;TbApiUsageStateClient&gt; apiUsageStateClient, Optional&lt;TbApiUsageReportClient&gt; apiUsageReportClient) {
+<b class="nc">&nbsp;        super(apiUsageStateClient, apiUsageReportClient);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getStatsName() {
+<b class="nc">&nbsp;        return &quot;Nashorn JS Invoke Stats&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Executor getCallbackExecutor() {
+<b class="nc">&nbsp;        return MoreExecutors.directExecutor();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(fixedDelayString = &quot;${js.local.stats.print_interval_ms:10000}&quot;)
+&nbsp;    public void printStats() {
+<b class="nc">&nbsp;        super.printStats();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    @Override
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        super.init();</b>
+<b class="nc">&nbsp;        jsExecutor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(jsExecutorThreadPoolSize, &quot;nashorn-js-executor&quot;));</b>
+<b class="nc">&nbsp;        if (useJsSandbox) {</b>
+<b class="nc">&nbsp;            sandbox = NashornSandboxes.create();</b>
+<b class="nc">&nbsp;            monitorExecutorService = ThingsBoardExecutors.newWorkStealingPool(monitorThreadPoolSize, &quot;nashorn-js-monitor&quot;);</b>
+<b class="nc">&nbsp;            sandbox.setExecutor(monitorExecutorService);</b>
+<b class="nc">&nbsp;            sandbox.setMaxCPUTime(maxCpuTime);</b>
+<b class="nc">&nbsp;            sandbox.setMaxMemory(maxMemory);</b>
+<b class="nc">&nbsp;            sandbox.allowNoBraces(false);</b>
+<b class="nc">&nbsp;            sandbox.allowLoadFunctions(true);</b>
+<b class="nc">&nbsp;            sandbox.setMaxPreparedStatements(30);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ScriptEngineManager factory = new ScriptEngineManager();</b>
+<b class="nc">&nbsp;            engine = factory.getEngineByName(&quot;nashorn&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    @Override
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        super.stop();</b>
+<b class="nc">&nbsp;        if (monitorExecutorService != null) {</b>
+<b class="nc">&nbsp;            monitorExecutorService.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (jsExecutor != null) {</b>
+<b class="nc">&nbsp;            jsExecutor.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ListenableFuture&lt;UUID&gt; doEval(UUID scriptId, JsScriptInfo scriptInfo, String jsScript) {
+<b class="nc">&nbsp;        return jsExecutor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                evalLock.lock();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    if (useJsSandbox) {</b>
+<b class="nc">&nbsp;                        sandbox.eval(jsScript);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        engine.eval(jsScript);</b>
+&nbsp;                    }
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    evalLock.unlock();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                scriptInfoMap.put(scriptId, scriptInfo);</b>
+<b class="nc">&nbsp;                return scriptId;</b>
+&nbsp;            } catch (ScriptException e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.COMPILATION, jsScript, e);</b>
+&nbsp;            } catch (ScriptCPUAbuseException e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.TIMEOUT, jsScript, e);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.OTHER, jsScript, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ListenableFuture&lt;Object&gt; doInvokeFunction(UUID scriptId, JsScriptInfo scriptInfo, Object[] args) {
+<b class="nc">&nbsp;        return jsExecutor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (useJsSandbox) {</b>
+<b class="nc">&nbsp;                    return sandbox.getSandboxedInvocable().invokeFunction(scriptInfo.getFunctionName(), args);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return ((Invocable) engine).invokeFunction(scriptInfo.getFunctionName(), args);</b>
+&nbsp;                }
+&nbsp;            } catch (ScriptException e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.RUNTIME, null, e);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                throw new TbScriptException(scriptId, TbScriptException.ErrorCode.OTHER, null, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void doRelease(UUID scriptId, JsScriptInfo scriptInfo) throws ScriptException {
+<b class="nc">&nbsp;        if (useJsSandbox) {</b>
+<b class="nc">&nbsp;            sandbox.eval(scriptInfo.getFunctionName() + &quot; = undefined;&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            engine.eval(scriptInfo.getFunctionName() + &quot; = undefined;&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

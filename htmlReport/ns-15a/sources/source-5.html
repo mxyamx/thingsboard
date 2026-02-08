@@ -1,0 +1,311 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CalculatedFieldState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.cf.ctx.state</a>
+</div>
+
+<h1>Coverage Summary for Class: CalculatedFieldState (org.thingsboard.server.service.cf.ctx.state)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CalculatedFieldState</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CalculatedFieldState$ReadinessStatus</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.cf.ctx.state;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import com.fasterxml.jackson.annotation.JsonSubTypes;
+&nbsp;import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+&nbsp;import com.fasterxml.jackson.annotation.JsonTypeInfo;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import org.thingsboard.server.actors.TbActorRef;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.util.CollectionsUtil;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.service.cf.CalculatedFieldResult;
+&nbsp;import org.thingsboard.server.service.cf.ctx.CalculatedFieldEntityCtxId;
+&nbsp;import org.thingsboard.server.service.cf.ctx.state.aggregation.RelatedEntitiesAggregationCalculatedFieldState;
+&nbsp;import org.thingsboard.server.service.cf.ctx.state.aggregation.single.EntityAggregationCalculatedFieldState;
+&nbsp;import org.thingsboard.server.service.cf.ctx.state.alarm.AlarmCalculatedFieldState;
+&nbsp;import org.thingsboard.server.service.cf.ctx.state.geofencing.GeofencingArgumentEntry;
+&nbsp;import org.thingsboard.server.service.cf.ctx.state.geofencing.GeofencingCalculatedFieldState;
+&nbsp;import org.thingsboard.server.service.cf.ctx.state.propagation.PropagationCalculatedFieldState;
+&nbsp;
+&nbsp;import java.io.Closeable;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.cf.configuration.PropagationCalculatedFieldConfiguration.PROPAGATION_CONFIG_ARGUMENT;
+&nbsp;import static org.thingsboard.server.utils.CalculatedFieldUtils.toSingleValueArgumentProto;
+&nbsp;
+&nbsp;@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = &quot;type&quot;)
+&nbsp;@JsonSubTypes({
+&nbsp;        @Type(value = SimpleCalculatedFieldState.class, name = &quot;SIMPLE&quot;),
+&nbsp;        @Type(value = ScriptCalculatedFieldState.class, name = &quot;SCRIPT&quot;),
+&nbsp;        @Type(value = GeofencingCalculatedFieldState.class, name = &quot;GEOFENCING&quot;),
+&nbsp;        @Type(value = AlarmCalculatedFieldState.class, name = &quot;ALARM&quot;),
+&nbsp;        @Type(value = PropagationCalculatedFieldState.class, name = &quot;PROPAGATION&quot;),
+&nbsp;        @Type(value = RelatedEntitiesAggregationCalculatedFieldState.class, name = &quot;RELATED_ENTITIES_AGGREGATION&quot;),
+&nbsp;        @Type(value = EntityAggregationCalculatedFieldState.class, name = &quot;ENTITY_AGGREGATION&quot;)
+&nbsp;})
+&nbsp;public interface CalculatedFieldState extends Closeable {
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    CalculatedFieldType getType();
+&nbsp;
+&nbsp;    EntityId getEntityId();
+&nbsp;
+&nbsp;    Map&lt;String, ArgumentEntry&gt; getArguments();
+&nbsp;
+&nbsp;    JsonNode getArgumentsJson();
+&nbsp;
+&nbsp;    long getLatestTimestamp();
+&nbsp;
+&nbsp;    void setCtx(CalculatedFieldCtx ctx, TbActorRef actorCtx);
+&nbsp;
+&nbsp;    void init(boolean restored);
+&nbsp;
+&nbsp;    Map&lt;String, ArgumentEntry&gt; update(Map&lt;String, ArgumentEntry&gt; arguments, CalculatedFieldCtx ctx);
+&nbsp;
+&nbsp;    void reset();
+&nbsp;
+&nbsp;    ListenableFuture&lt;CalculatedFieldResult&gt; performCalculation(Map&lt;String, ArgumentEntry&gt; updatedArgs, CalculatedFieldCtx ctx) throws Exception;
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    boolean isReady();
+&nbsp;
+&nbsp;    ReadinessStatus getReadinessStatus();
+&nbsp;
+&nbsp;    boolean isSizeExceedsLimit();
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    default boolean isSizeOk() {
+<b class="nc">&nbsp;        return !isSizeExceedsLimit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    TopicPartitionInfo getPartition();
+&nbsp;
+&nbsp;    void setPartition(TopicPartitionInfo partition);
+&nbsp;
+&nbsp;    void checkStateSize(CalculatedFieldEntityCtxId ctxId, long maxStateSize);
+&nbsp;
+&nbsp;    default void checkArgumentSize(String name, ArgumentEntry entry, CalculatedFieldCtx ctx) {
+<b class="nc">&nbsp;        if (entry instanceof TsRollingArgumentEntry || entry instanceof GeofencingArgumentEntry) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (entry instanceof SingleValueArgumentEntry singleValueArgumentEntry) {</b>
+<b class="nc">&nbsp;            if (ctx.getMaxSingleValueArgumentSize() &gt; 0 &amp;&amp; toSingleValueArgumentProto(name, singleValueArgumentEntry).getSerializedSize() &gt; ctx.getMaxSingleValueArgumentSize()) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Single value size exceeds the maximum allowed limit. The argument will not be used for calculation.&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    record ReadinessStatus(boolean ready, String errorMsg) {</b>
+&nbsp;
+&nbsp;        private static final String MISSING_REQUIRED_ARGUMENTS_ERROR = &quot;Required arguments are missing: &quot;;
+&nbsp;        private static final String MISSING_PROPAGATION_TARGETS_ERROR = &quot;No entities found via &#39;Propagation path to related entities&#39;. &quot; +
+&nbsp;                                                                        &quot;Verify the configured relation type and direction.&quot;;
+&nbsp;        private static final String MISSING_PROPAGATION_TARGETS_AND_ARGUMENTS_ERROR = MISSING_PROPAGATION_TARGETS_ERROR + &quot; Missing arguments to propagate: &quot;;
+&nbsp;        public static final String MISSING_AGGREGATION_ENTITIES_ERROR = &quot;No entities found via &#39;Aggregation path to related entities&#39;. &quot; +
+&nbsp;                                                                        &quot;Verify the configured relation type and direction.&quot;;
+<b class="nc">&nbsp;        public static final ReadinessStatus READY = new ReadinessStatus(true, null);</b>
+&nbsp;
+&nbsp;        public static ReadinessStatus notReady(String errorMsg) {
+<b class="nc">&nbsp;            return new ReadinessStatus(false, errorMsg);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public static ReadinessStatus from(List&lt;String&gt; emptyOrMissingArguments) {
+<b class="nc">&nbsp;            if (CollectionsUtil.isEmpty(emptyOrMissingArguments)) {</b>
+<b class="nc">&nbsp;                return ReadinessStatus.READY;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            boolean propagationCtxIsEmpty = emptyOrMissingArguments.remove(PROPAGATION_CONFIG_ARGUMENT);</b>
+<b class="nc">&nbsp;            if (!propagationCtxIsEmpty) {</b>
+<b class="nc">&nbsp;                return notReady(MISSING_REQUIRED_ARGUMENTS_ERROR + String.join(&quot;, &quot;, emptyOrMissingArguments));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (emptyOrMissingArguments.isEmpty()) {</b>
+<b class="nc">&nbsp;                return notReady(MISSING_PROPAGATION_TARGETS_ERROR);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return notReady(MISSING_PROPAGATION_TARGETS_AND_ARGUMENTS_ERROR + String.join(&quot;, &quot;, emptyOrMissingArguments));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

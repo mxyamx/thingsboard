@@ -1,0 +1,728 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultNotifications</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.notification</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultNotifications (org.thingsboard.server.dao.notification)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultNotifications</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/323)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultNotifications$DefaultEmailTemplate</td>
+  </tr>
+  <tr>
+    <td class="name">DefaultNotifications$DefaultNotification</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DefaultNotifications$DefaultRule</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/379)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.notification;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageStateValue;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationTargetId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationTemplateId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.limit.LimitedApi;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationType;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.DefaultNotificationRuleRecipientsConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.EscalatedNotificationRuleRecipientsConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.NotificationRuleConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.AlarmAssignmentNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.AlarmCommentNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.AlarmNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.AlarmNotificationRuleTriggerConfig.AlarmAction;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.ApiUsageLimitNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.DeviceActivityNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.DeviceActivityNotificationRuleTriggerConfig.DeviceEvent;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeCommunicationFailureNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeConnectionNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeConnectionNotificationRuleTriggerConfig.EdgeConnectivityEvent;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.EntitiesLimitNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.EntityActionNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.NewPlatformVersionNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.RateLimitsNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.ResourcesShortageNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.TaskProcessingFailureNotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.NotificationTemplateConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.template.WebDeliveryMethodNotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static java.util.function.Predicate.not;
+&nbsp;import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultNotifications {
+&nbsp;
+&nbsp;    private static final String YELLOW_COLOR = &quot;#F9D916&quot;;
+&nbsp;    private static final String RED_COLOR = &quot;#e91a1a&quot;;
+&nbsp;
+<b class="nc">&nbsp;    public static final DefaultNotification maintenanceWork = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Maintenance work notification&quot;)</b>
+<b class="nc">&nbsp;            .subject(&quot;Infrastructure maintenance&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Maintenance work is scheduled for tomorrow (7:00 a.m. - 9:00 a.m. UTC)&quot;)</b>
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final DefaultNotification entitiesLimitForSysadmin = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Entities count limit notification for sysadmin&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.ENTITIES_LIMIT)</b>
+<b class="nc">&nbsp;            .subject(&quot;${entityType}s limit will be reached soon for tenant ${tenantName}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;${entityType}s usage: ${currentCount}/${limit} (${percents}%)&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;warning&quot;).color(YELLOW_COLOR)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Entities count limit (sysadmin)&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(EntitiesLimitNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .entityTypes(null).threshold(0.8f)</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to system admins when count of entities of some type reached 80% threshold of the limit for a tenant&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification entitiesLimitForTenant = entitiesLimitForSysadmin.toBuilder()</b>
+<b class="nc">&nbsp;            .name(&quot;Entities count limit notification for tenant&quot;)</b>
+<b class="nc">&nbsp;            .subject(&quot;WARNING: ${entityType}s limit will be reached soon&quot;)</b>
+<b class="nc">&nbsp;            .rule(entitiesLimitForSysadmin.getRule().toBuilder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Entities count limit&quot;)</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when count of entities of some type reached 80% threshold of the limit&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification entitiesLimitIncreaseRequest = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Entities limit increase request&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.ENTITIES_LIMIT_INCREASE_REQUEST)</b>
+<b class="nc">&nbsp;            .subject(&quot;${entityType} limit increase request&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;${userEmail} has reached the maximum number of ${entityType:lowerCase}s allowed and is requesting an increase to the ${entityType:lowerCase} limit.&quot;)</b>
+<b class="nc">&nbsp;            .button(&quot;${increaseLimitActionLabel}&quot;).link(&quot;${increaseLimitLink}&quot;)</b>
+<b class="nc">&nbsp;            .emailTemplate(DefaultEmailTemplate.builder()</b>
+<b class="nc">&nbsp;                    .subject(&quot;${entityType} limit increase request&quot;)</b>
+<b class="nc">&nbsp;                    .body(&quot;&quot;&quot;</b>
+&nbsp;                            &lt;table style=&quot;box-sizing: border-box; border-radius: 3px; width: 100%; background-color: #f6f6f6; margin: 0px auto;&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot; bgcolor=&quot;#f6f6f6&quot;&gt;
+&nbsp;                            &lt;tbody&gt;
+&nbsp;                            &lt;tr style=&quot;box-sizing: border-box; margin: 0px;&quot;&gt;
+&nbsp;                            &lt;td style=&quot;box-sizing: border-box; vertical-align: middle; margin: 0px; padding: 40px;&quot; align=&quot;center&quot; valign=&quot;middle&quot;&gt;
+&nbsp;                            &lt;table style=&quot;box-sizing: border-box; border: 1px solid #E0E0E0; border-radius: 3px; margin: 0px; background-color: #ffffff; max-width: 600px !important;&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot;&gt;
+&nbsp;                            &lt;tbody&gt;
+&nbsp;                            &lt;tr style=&quot;box-sizing: border-box; margin: 0px;&quot;&gt;
+&nbsp;                            &lt;td style=&quot;box-sizing: border-box; vertical-align: middle; border-bottom: 1px solid #E0E0E0; margin: 0px; padding: 20px; color: #212121; font-family: Arial; font-size: 20px; line-height: 20px; font-style: normal; font-weight: bold;&quot; valign=&quot;middle&quot;&gt;${entityType} limit increase request&lt;/td&gt;
+&nbsp;                            &lt;/tr&gt;
+&nbsp;                            &lt;tr style=&quot;box-sizing: border-box; margin: 0px;&quot;&gt;
+&nbsp;                            &lt;td style=&quot;box-sizing: border-box; vertical-align: top; margin: 0px; padding: 16px 24px; color: #212121; font-family: Arial; font-size: 16px; line-height: 24px; font-weight: 400;&quot; valign=&quot;top&quot;&gt;${userEmail} has reached the maximum number of ${entityType:lowerCase}s allowed and is requesting an increase to the ${entityType:lowerCase} limit.&lt;/td&gt;
+&nbsp;                            &lt;/tr&gt;
+&nbsp;                            &lt;tr style=&quot;box-sizing: border-box; margin: 0px;&quot;&gt;
+&nbsp;                            &lt;td style=&quot;box-sizing: border-box; vertical-align: top; margin: 0px; padding: 0 24px 16px 24px; color: #212121; font-family: Arial; font-size: 16px; line-height: 24px; font-weight: 400;&quot; valign=&quot;top&quot;&gt;
+&nbsp;                            &lt;a style=&quot;display: inline-block; padding: 10px 16px; border-radius: 4px; background: #106CC8; color: #fff; font-family: Arial; font-size: 14px; line-height: 20px; font-weight: bold; text-decoration: none;&quot; href=&quot;${baseUrl}${increaseLimitLink}&quot;&gt;${increaseLimitActionLabel}&lt;/a&gt;
+&nbsp;                            &lt;/td&gt;
+&nbsp;                            &lt;/tr&gt;
+&nbsp;                            &lt;/tbody&gt;
+&nbsp;                            &lt;/table&gt;
+&nbsp;                            &lt;/td&gt;
+&nbsp;                            &lt;/tr&gt;
+&nbsp;                            &lt;/tbody&gt;
+&nbsp;                            &lt;/table&gt;&quot;&quot;&quot;)
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification apiFeatureWarningForSysadmin = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;API feature warning notification for sysadmin&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.API_USAGE_LIMIT)</b>
+<b class="nc">&nbsp;            .subject(&quot;${feature} feature will be disabled soon for tenant ${tenantName}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Usage: ${currentValue} out of ${limit} ${unitLabel}s&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;warning&quot;).color(YELLOW_COLOR)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;API feature warning (sysadmin)&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(ApiUsageLimitNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .apiFeatures(null)</b>
+<b class="nc">&nbsp;                            .notifyOn(Set.of(ApiUsageStateValue.WARNING))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to system admins on API feature usage WARNING state for a tenant&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification apiFeatureWarningForTenant = apiFeatureWarningForSysadmin.toBuilder()</b>
+<b class="nc">&nbsp;            .name(&quot;API feature warning notification for tenant&quot;)</b>
+<b class="nc">&nbsp;            .subject(&quot;WARNING: ${feature} feature will be disabled soon&quot;)</b>
+<b class="nc">&nbsp;            .rule(apiFeatureWarningForSysadmin.getRule().toBuilder()</b>
+<b class="nc">&nbsp;                    .name(&quot;API feature warning&quot;)</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins on API feature usage WARNING state&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification apiFeatureDisabledForSysadmin = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;API feature disabled notification for sysadmin&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.API_USAGE_LIMIT)</b>
+<b class="nc">&nbsp;            .subject(&quot;${feature} feature was disabled for tenant ${tenantName}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Used ${currentValue} out of ${limit} ${unitLabel}s&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;block&quot;).color(RED_COLOR)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;API feature disabled (sysadmin)&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(ApiUsageLimitNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .apiFeatures(null)</b>
+<b class="nc">&nbsp;                            .notifyOn(Set.of(ApiUsageStateValue.DISABLED))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to system admins when API feature is disabled for a tenant&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification apiFeatureDisabledForTenant = apiFeatureDisabledForSysadmin.toBuilder()</b>
+<b class="nc">&nbsp;            .name(&quot;API feature disabled notification for tenant&quot;)</b>
+<b class="nc">&nbsp;            .subject(&quot;${feature} feature was disabled&quot;)</b>
+<b class="nc">&nbsp;            .rule(apiFeatureDisabledForSysadmin.getRule().toBuilder()</b>
+<b class="nc">&nbsp;                    .name(&quot;API feature disabled&quot;)</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when API feature is disabled&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final DefaultNotification exceededRateLimits = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Exceeded per-tenant rate limits notification for tenant&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.RATE_LIMITS)</b>
+<b class="nc">&nbsp;            .subject(&quot;Rate limits exceeded&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Rate limits for ${api} exceeded&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;block&quot;).color(RED_COLOR)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Per-tenant rate limits exceeded&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(RateLimitsNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .apis(Arrays.stream(LimitedApi.values())</b>
+<b class="nc">&nbsp;                                    .filter(LimitedApi::isPerTenant)</b>
+<b class="nc">&nbsp;                                    .filter(api -&gt; api.getLabel() != null)</b>
+<b class="nc">&nbsp;                                    .collect(Collectors.toSet()))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when some per-tenant rate limit is exceeded&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification exceededPerEntityRateLimits = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Exceeded per-entity rate limits notification for tenant&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.RATE_LIMITS)</b>
+<b class="nc">&nbsp;            .subject(&quot;Rate limits exceeded&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Rate limits for ${api} exceeded for &#39;${limitLevelEntityName}&#39;&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;block&quot;).color(RED_COLOR)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Per-entity rate limits exceeded&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(RateLimitsNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .apis(Arrays.stream(LimitedApi.values())</b>
+<b class="nc">&nbsp;                                    .filter(not(LimitedApi::isPerTenant))</b>
+<b class="nc">&nbsp;                                    .filter(api -&gt; api.getLabel() != null)</b>
+<b class="nc">&nbsp;                                    .collect(Collectors.toSet()))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when some per-entity rate limit is exceeded for an entity&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification exceededRateLimitsForSysadmin = exceededRateLimits.toBuilder()</b>
+<b class="nc">&nbsp;            .name(&quot;Exceeded per-tenant rate limits notification for sysadmin&quot;)</b>
+<b class="nc">&nbsp;            .subject(&quot;Rate limits exceeded for tenant ${tenantName}&quot;)</b>
+<b class="nc">&nbsp;            .button(&quot;Go to tenant&quot;).link(&quot;/tenants/${tenantId}&quot;)</b>
+<b class="nc">&nbsp;            .rule(exceededRateLimits.getRule().toBuilder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Per-tenant rate limits exceeded (sysadmin)&quot;)</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to system admins when a tenant exceeds some per-tenant rate limit&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final DefaultNotification newPlatformVersion = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;New platform version notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.NEW_PLATFORM_VERSION)</b>
+<b class="nc">&nbsp;            .subject(&quot;New version &lt;b&gt;${latestVersion}&lt;/b&gt; is available&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Current platform version is ${currentVersion}&quot;)</b>
+<b class="nc">&nbsp;            .button(&quot;Open release notes&quot;).link(&quot;${latestVersionReleaseNotesUrl}&quot;)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;New platform version&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(new NewPlatformVersionNotificationRuleTriggerConfig())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to system admins when new platform version is available&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final DefaultNotification newAlarm = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;New alarm notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.ALARM)</b>
+<b class="nc">&nbsp;            .subject(&quot;New alarm &#39;${alarmType}&#39;&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Severity: ${alarmSeverity}, originator: ${alarmOriginatorEntityType} &#39;${alarmOriginatorName}&#39;&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;notifications&quot;).color(null)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;New alarm&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(AlarmNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .alarmTypes(null)</b>
+<b class="nc">&nbsp;                            .alarmSeverities(null)</b>
+<b class="nc">&nbsp;                            .notifyOn(Set.of(AlarmAction.CREATED))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when an alarm is created&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification alarmUpdate = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Alarm update notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.ALARM)</b>
+<b class="nc">&nbsp;            .subject(&quot;Alarm &#39;${alarmType}&#39; - ${action}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Severity: ${alarmSeverity}, originator: ${alarmOriginatorEntityType} &#39;${alarmOriginatorName}&#39;&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;notifications&quot;).color(null)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Alarm update&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(AlarmNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .alarmTypes(null)</b>
+<b class="nc">&nbsp;                            .alarmSeverities(null)</b>
+<b class="nc">&nbsp;                            .notifyOn(Set.of(AlarmAction.SEVERITY_CHANGED, AlarmAction.ACKNOWLEDGED, AlarmAction.CLEARED))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when any alarm is updated or cleared&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification entityAction = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Entity action notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.ENTITY_ACTION)</b>
+<b class="nc">&nbsp;            .subject(&quot;${entityType} was ${actionType}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;${entityType} &#39;${entityName}&#39; was ${actionType} by user ${userEmail}&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;info&quot;).color(null)</b>
+<b class="nc">&nbsp;            .button(&quot;Go to ${entityType:lowerCase}&quot;).link(&quot;/${entityType:lowerCase}s/${entityId}&quot;)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Device created&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(EntityActionNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .entityTypes(Set.of(EntityType.DEVICE))</b>
+<b class="nc">&nbsp;                            .created(true)</b>
+<b class="nc">&nbsp;                            .updated(false)</b>
+<b class="nc">&nbsp;                            .deleted(false)</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when device is created&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification deviceActivity = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Device activity notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.DEVICE_ACTIVITY)</b>
+<b class="nc">&nbsp;            .subject(&quot;Device &#39;${deviceName}&#39; became ${eventType}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Device &#39;${deviceName}&#39; of type &#39;${deviceType}&#39; is now ${eventType}&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;info&quot;).color(null)</b>
+<b class="nc">&nbsp;            .button(&quot;Go to device&quot;).link(&quot;/devices/${deviceId}&quot;)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Device activity status change&quot;)</b>
+<b class="nc">&nbsp;                    .enabled(false)</b>
+<b class="nc">&nbsp;                    .triggerConfig(DeviceActivityNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .devices(null)</b>
+<b class="nc">&nbsp;                            .deviceProfiles(null)</b>
+<b class="nc">&nbsp;                            .notifyOn(Set.of(DeviceEvent.ACTIVE, DeviceEvent.INACTIVE))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when any device changes its activity state&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification alarmComment = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Alarm comment notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.ALARM_COMMENT)</b>
+<b class="nc">&nbsp;            .subject(&quot;Comment on &#39;${alarmType}&#39; alarm&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;${userEmail} ${action} comment: ${comment}&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;people&quot;).color(null)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Comment on active alarm&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(AlarmCommentNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .alarmTypes(null)</b>
+<b class="nc">&nbsp;                            .alarmSeverities(null)</b>
+<b class="nc">&nbsp;                            .alarmStatuses(Set.of(AlarmSearchStatus.ACTIVE))</b>
+<b class="nc">&nbsp;                            .onlyUserComments(true)</b>
+<b class="nc">&nbsp;                            .notifyOnCommentUpdate(false)</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when comment is added by user on active alarm&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification alarmAssignment = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Alarm assigned notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.ALARM_ASSIGNMENT)</b>
+<b class="nc">&nbsp;            .subject(&quot;Alarm &#39;${alarmType}&#39; (${alarmSeverity}) was assigned to user&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;${userEmail} assigned alarm on ${alarmOriginatorEntityType} &#39;${alarmOriginatorName}&#39; to ${assigneeEmail}&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;person&quot;).color(null)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Alarm assignment&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(AlarmAssignmentNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .alarmTypes(null)</b>
+<b class="nc">&nbsp;                            .alarmSeverities(null)</b>
+<b class="nc">&nbsp;                            .alarmStatuses(null)</b>
+<b class="nc">&nbsp;                            .notifyOn(Set.of(AlarmAssignmentNotificationRuleTriggerConfig.Action.ASSIGNED))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to user when any alarm was assigned to him&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification ruleEngineComponentLifecycleFailure = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Rule chain/node lifecycle failure notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT)</b>
+<b class="nc">&nbsp;            .subject(&quot;${action:capitalize} failure in Rule chain &#39;${ruleChainName}&#39;&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;${componentType} &#39;${componentName}&#39; failed to ${action}&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;warning&quot;).color(null)</b>
+<b class="nc">&nbsp;            .button(&quot;Go to rule chain&quot;).link(&quot;/ruleChains/${ruleChainId}&quot;)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Rule node initialization failure&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .ruleChains(null)</b>
+<b class="nc">&nbsp;                            .ruleChainEvents(Set.of(ComponentLifecycleEvent.STARTED, ComponentLifecycleEvent.UPDATED, ComponentLifecycleEvent.STOPPED))</b>
+<b class="nc">&nbsp;                            .onlyRuleChainLifecycleFailures(true)</b>
+<b class="nc">&nbsp;                            .trackRuleNodeEvents(true)</b>
+<b class="nc">&nbsp;                            .ruleNodeEvents(Set.of(ComponentLifecycleEvent.STARTED, ComponentLifecycleEvent.UPDATED, ComponentLifecycleEvent.STOPPED))</b>
+<b class="nc">&nbsp;                            .onlyRuleNodeLifecycleFailures(true)</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when any Rule chain or Rule node failed to start, update or stop&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification edgeConnection = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Edge connection notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.EDGE_CONNECTION)</b>
+<b class="nc">&nbsp;            .subject(&quot;Edge connection status change&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Edge &#39;${edgeName}&#39; is now ${eventType}&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;info&quot;).color(null)</b>
+<b class="nc">&nbsp;            .button(&quot;Go to Edge&quot;).link(&quot;/edgeManagement/instances/${edgeId}&quot;)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Edge connection status change&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(EdgeConnectionNotificationRuleTriggerConfig.builder()</b>
+<b class="nc">&nbsp;                            .edges(null)</b>
+<b class="nc">&nbsp;                            .notifyOn(Set.of(EdgeConnectivityEvent.CONNECTED, EdgeConnectivityEvent.DISCONNECTED))</b>
+<b class="nc">&nbsp;                            .build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when the connection status between TB and Edge changes&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+<b class="nc">&nbsp;    public static final DefaultNotification edgeCommunicationFailures = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Edge communication failure notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.EDGE_COMMUNICATION_FAILURE)</b>
+<b class="nc">&nbsp;            .subject(&quot;Edge &#39;${edgeName}&#39; communication failure occurred&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Failure message: &#39;${failureMsg}&#39;&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;error&quot;).color(RED_COLOR)</b>
+<b class="nc">&nbsp;            .button(&quot;Go to Edge&quot;).link(&quot;/edgeManagement/instances/${edgeId}&quot;)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Edge communication failure&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(EdgeCommunicationFailureNotificationRuleTriggerConfig.builder().edges(null).build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to tenant admins when communication failures occur&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final DefaultNotification taskProcessingFailure = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Task processing failure notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.TASK_PROCESSING_FAILURE)</b>
+<b class="nc">&nbsp;            .subject(&quot;Failed to process ${taskType}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;Failed to process ${taskDescription} for tenant ${tenantId}: ${error}&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;warning&quot;).color(YELLOW_COLOR)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Task processing failure&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(TaskProcessingFailureNotificationRuleTriggerConfig.builder().build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to system admins when task processing fails&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final DefaultNotification resourcesShortage = DefaultNotification.builder()</b>
+<b class="nc">&nbsp;            .name(&quot;Resources shortage notification&quot;)</b>
+<b class="nc">&nbsp;            .type(NotificationType.RESOURCES_SHORTAGE)</b>
+<b class="nc">&nbsp;            .subject(&quot;Warning: ${resource} shortage for ${serviceId}&quot;)</b>
+<b class="nc">&nbsp;            .text(&quot;${resource} usage is at ${usage}%.&quot;)</b>
+<b class="nc">&nbsp;            .icon(&quot;warning&quot;)</b>
+<b class="nc">&nbsp;            .rule(DefaultRule.builder()</b>
+<b class="nc">&nbsp;                    .name(&quot;Resources shortage&quot;)</b>
+<b class="nc">&nbsp;                    .triggerConfig(ResourcesShortageNotificationRuleTriggerConfig.builder().cpuThreshold(0.8f).storageThreshold(0.8f).ramThreshold(0.8f).build())</b>
+<b class="nc">&nbsp;                    .description(&quot;Send notification to system admins on resource shortage&quot;)</b>
+<b class="nc">&nbsp;                    .build())</b>
+<b class="nc">&nbsp;            .color(RED_COLOR)</b>
+<b class="nc">&nbsp;            .build();</b>
+&nbsp;
+&nbsp;    private final NotificationTemplateService templateService;
+&nbsp;    private final NotificationRuleService ruleService;
+&nbsp;
+&nbsp;    public final void create(TenantId tenantId, DefaultNotification defaultNotification, NotificationTargetId... targets) {
+<b class="nc">&nbsp;        NotificationTemplate template = defaultNotification.toTemplate();</b>
+<b class="nc">&nbsp;        template.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        template = templateService.saveNotificationTemplate(tenantId, template);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (defaultNotification.getRule() != null &amp;&amp; targets.length &gt; 0) {</b>
+<b class="nc">&nbsp;            NotificationRule rule = defaultNotification.toRule(template.getId(), targets);</b>
+<b class="nc">&nbsp;            rule.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;            ruleService.saveNotificationRule(tenantId, rule);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Data
+&nbsp;    @Builder(toBuilder = true)
+&nbsp;    public static class DefaultNotification {
+&nbsp;
+&nbsp;        private final String name;
+&nbsp;        private final NotificationType type;
+&nbsp;        private final String subject;
+&nbsp;        private final String text;
+&nbsp;        private final String icon;
+&nbsp;        private final String color;
+&nbsp;        private final String button;
+&nbsp;        private final String link;
+&nbsp;
+&nbsp;        private final DefaultEmailTemplate emailTemplate;
+&nbsp;
+&nbsp;        private final DefaultRule rule;
+&nbsp;
+&nbsp;        public NotificationTemplate toTemplate() {
+<b class="nc">&nbsp;            NotificationTemplate template = new NotificationTemplate();</b>
+<b class="nc">&nbsp;            template.setName(name);</b>
+<b class="nc">&nbsp;            template.setNotificationType(type != null ? type : NotificationType.GENERAL);</b>
+&nbsp;
+<b class="nc">&nbsp;            NotificationTemplateConfig templateConfig = new NotificationTemplateConfig();</b>
+<b class="nc">&nbsp;            WebDeliveryMethodNotificationTemplate webTemplate = new WebDeliveryMethodNotificationTemplate();</b>
+<b class="nc">&nbsp;            webTemplate.setSubject(subject);</b>
+<b class="nc">&nbsp;            webTemplate.setBody(text);</b>
+<b class="nc">&nbsp;            ObjectNode additionalConfig = newObjectNode();</b>
+<b class="nc">&nbsp;            ObjectNode iconConfig = newObjectNode();</b>
+<b class="nc">&nbsp;            additionalConfig.set(&quot;icon&quot;, iconConfig);</b>
+<b class="nc">&nbsp;            ObjectNode buttonConfig = newObjectNode();</b>
+<b class="nc">&nbsp;            additionalConfig.set(&quot;actionButtonConfig&quot;, buttonConfig);</b>
+<b class="nc">&nbsp;            if (icon != null) {</b>
+<b class="nc">&nbsp;                iconConfig.put(&quot;enabled&quot;, true)</b>
+<b class="nc">&nbsp;                        .put(&quot;icon&quot;, icon)</b>
+<b class="nc">&nbsp;                        .put(&quot;color&quot;, color != null ? color : &quot;#757575&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                iconConfig.put(&quot;enabled&quot;, false);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (button != null) {</b>
+<b class="nc">&nbsp;                buttonConfig.put(&quot;enabled&quot;, true)</b>
+<b class="nc">&nbsp;                        .put(&quot;text&quot;, button)</b>
+<b class="nc">&nbsp;                        .put(&quot;linkType&quot;, &quot;LINK&quot;)</b>
+<b class="nc">&nbsp;                        .put(&quot;link&quot;, link);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                buttonConfig.put(&quot;enabled&quot;, false);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            webTemplate.setAdditionalConfig(additionalConfig);</b>
+<b class="nc">&nbsp;            webTemplate.setEnabled(true);</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;NotificationDeliveryMethod, DeliveryMethodNotificationTemplate&gt; deliveryMethodsTemplates = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            deliveryMethodsTemplates.put(NotificationDeliveryMethod.WEB, webTemplate);</b>
+<b class="nc">&nbsp;            if (this.emailTemplate != null) {</b>
+<b class="nc">&nbsp;                EmailDeliveryMethodNotificationTemplate emailTemplate = new EmailDeliveryMethodNotificationTemplate();</b>
+<b class="nc">&nbsp;                emailTemplate.setSubject(this.emailTemplate.getSubject());</b>
+<b class="nc">&nbsp;                emailTemplate.setBody(this.emailTemplate.getBody());</b>
+<b class="nc">&nbsp;                emailTemplate.setEnabled(true);</b>
+<b class="nc">&nbsp;                deliveryMethodsTemplates.put(NotificationDeliveryMethod.EMAIL, emailTemplate);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            templateConfig.setDeliveryMethodsTemplates(deliveryMethodsTemplates);</b>
+<b class="nc">&nbsp;            template.setConfiguration(templateConfig);</b>
+<b class="nc">&nbsp;            return template;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public NotificationRule toRule(NotificationTemplateId templateId, NotificationTargetId... targets) {
+<b class="nc">&nbsp;            DefaultRule defaultRule = this.rule;</b>
+<b class="nc">&nbsp;            NotificationRule rule = new NotificationRule();</b>
+<b class="nc">&nbsp;            rule.setName(defaultRule.getName());</b>
+<b class="nc">&nbsp;            rule.setEnabled(defaultRule.getEnabled() == null || defaultRule.getEnabled());</b>
+<b class="nc">&nbsp;            rule.setTemplateId(templateId);</b>
+<b class="nc">&nbsp;            rule.setTriggerType(defaultRule.getTriggerConfig().getTriggerType());</b>
+<b class="nc">&nbsp;            rule.setTriggerConfig(defaultRule.getTriggerConfig());</b>
+<b class="nc">&nbsp;            if (rule.getTriggerType() == NotificationRuleTriggerType.ALARM) {</b>
+<b class="nc">&nbsp;                EscalatedNotificationRuleRecipientsConfig recipientsConfig = new EscalatedNotificationRuleRecipientsConfig();</b>
+<b class="nc">&nbsp;                recipientsConfig.setTriggerType(rule.getTriggerType());</b>
+<b class="nc">&nbsp;                recipientsConfig.setEscalationTable(Map.of(0, toUUIDs(List.of(targets))));</b>
+<b class="nc">&nbsp;                rule.setRecipientsConfig(recipientsConfig);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                DefaultNotificationRuleRecipientsConfig recipientsConfig = new DefaultNotificationRuleRecipientsConfig();</b>
+<b class="nc">&nbsp;                recipientsConfig.setTriggerType(rule.getTriggerType());</b>
+<b class="nc">&nbsp;                recipientsConfig.setTargets(toUUIDs(List.of(targets)));</b>
+<b class="nc">&nbsp;                rule.setRecipientsConfig(recipientsConfig);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            NotificationRuleConfig additionalConfig = new NotificationRuleConfig();</b>
+<b class="nc">&nbsp;            additionalConfig.setDescription(defaultRule.getDescription());</b>
+<b class="nc">&nbsp;            rule.setAdditionalConfig(additionalConfig);</b>
+<b class="nc">&nbsp;            return rule;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    @Data
+&nbsp;    @Builder(toBuilder = true)
+&nbsp;    public static class DefaultEmailTemplate {
+&nbsp;        private final String subject;
+&nbsp;        private final String body;
+&nbsp;    }
+&nbsp;
+&nbsp;    @Data
+&nbsp;    @Builder(toBuilder = true)
+&nbsp;    public static class DefaultRule {
+&nbsp;        private final String name;
+&nbsp;        private final Boolean enabled;
+&nbsp;        private final NotificationRuleTriggerConfig triggerConfig;
+&nbsp;        private final String description;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

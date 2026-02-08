@@ -1,0 +1,337 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > GeoUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.common.util.geo</a>
+</div>
+
+<h1>Coverage Summary for Class: GeoUtil (org.thingsboard.common.util.geo)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GeoUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/85)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.common.util.geo;
+&nbsp;
+&nbsp;import com.google.gson.JsonArray;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonParser;
+&nbsp;import lombok.NonNull;
+&nbsp;import org.locationtech.jts.geom.Coordinate;
+&nbsp;import org.locationtech.jts.geom.CoordinateSequence;
+&nbsp;import org.locationtech.jts.geom.Geometry;
+&nbsp;import org.locationtech.jts.geom.util.GeometryFixer;
+&nbsp;import org.locationtech.spatial4j.context.SpatialContext;
+&nbsp;import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
+&nbsp;import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+&nbsp;import org.locationtech.spatial4j.distance.DistanceUtils;
+&nbsp;import org.locationtech.spatial4j.shape.Point;
+&nbsp;import org.locationtech.spatial4j.shape.SpatialRelation;
+&nbsp;import org.locationtech.spatial4j.shape.jts.JtsGeometry;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.LinkedList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;public class GeoUtil {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final SpatialContext distCtx = SpatialContext.GEO;</b>
+&nbsp;    private static final JtsSpatialContext jtsCtx;
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        JtsSpatialContextFactory factory = new JtsSpatialContextFactory();</b>
+<b class="nc">&nbsp;        factory.normWrapLongitude = true;</b>
+<b class="nc">&nbsp;        jtsCtx = factory.newSpatialContext();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static synchronized double distance(Coordinates x, Coordinates y, RangeUnit unit) {
+<b class="nc">&nbsp;        Point xLL = distCtx.getShapeFactory().pointXY(x.getLongitude(), x.getLatitude());</b>
+<b class="nc">&nbsp;        Point yLL = distCtx.getShapeFactory().pointXY(y.getLongitude(), y.getLatitude());</b>
+<b class="nc">&nbsp;        return unit.fromKm(distCtx.getDistCalc().distance(xLL, yLL) * DistanceUtils.DEG_TO_KM);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public static synchronized boolean contains(@NonNull String polygonInString, @NonNull Coordinates coordinates) {</b>
+<b class="nc">&nbsp;        if (polygonInString.isEmpty() || polygonInString.isBlank()) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Polygon string can&#39;t be empty or null!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        JsonArray polygonsJson = normalizePolygonsJson(JsonParser.parseString(polygonInString).getAsJsonArray());</b>
+<b class="nc">&nbsp;        List&lt;Geometry&gt; polygons = buildPolygonsFromJson(polygonsJson);</b>
+<b class="nc">&nbsp;        Set&lt;Geometry&gt; holes = extractHolesFrom(polygons);</b>
+<b class="nc">&nbsp;        polygons.removeIf(holes::contains);</b>
+&nbsp;
+<b class="nc">&nbsp;        Geometry globalGeometry = unionToGlobalGeometry(polygons, holes);</b>
+<b class="nc">&nbsp;        var point = jtsCtx.getShapeFactory().getGeometryFactory()</b>
+<b class="nc">&nbsp;                .createPoint(new Coordinate(coordinates.getLatitude(), coordinates.getLongitude()));</b>
+&nbsp;
+<b class="nc">&nbsp;        return globalGeometry.contains(point);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Geometry unionToGlobalGeometry(List&lt;Geometry&gt; polygons, Set&lt;Geometry&gt; holes) {
+<b class="nc">&nbsp;        Geometry globalPolygon = polygons.stream().reduce(Geometry::union).orElseThrow(() -&gt;</b>
+<b class="nc">&nbsp;                new RuntimeException(&quot;Error while calculating globalPolygon - the result of all polygons union is null&quot;));</b>
+<b class="nc">&nbsp;        Optional&lt;Geometry&gt; globalHole = holes.stream().reduce(Geometry::union);</b>
+<b class="nc">&nbsp;        if (globalHole.isEmpty()) {</b>
+<b class="nc">&nbsp;            return globalPolygon;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return globalPolygon.difference(globalHole.get());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static JsonArray normalizePolygonsJson(JsonArray polygonsJsonArray) {
+<b class="nc">&nbsp;        JsonArray result = new JsonArray();</b>
+<b class="nc">&nbsp;        normalizePolygonsJson(polygonsJsonArray, result);</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void normalizePolygonsJson(JsonArray polygonsJsonArray, JsonArray result) {
+<b class="nc">&nbsp;        if (containsArrayWithPrimitives(polygonsJsonArray)) {</b>
+<b class="nc">&nbsp;            result.add(polygonsJsonArray);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            for (JsonElement element : polygonsJsonArray) {</b>
+<b class="nc">&nbsp;                if (containsArrayWithPrimitives(element.getAsJsonArray())) {</b>
+<b class="nc">&nbsp;                    result.add(element);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    normalizePolygonsJson(element.getAsJsonArray(), result);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Set&lt;Geometry&gt; extractHolesFrom(List&lt;Geometry&gt; polygons) {
+<b class="nc">&nbsp;        Map&lt;Geometry, List&lt;Geometry&gt;&gt; polygonsHoles = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        for (Geometry polygon : polygons) {</b>
+<b class="nc">&nbsp;            List&lt;Geometry&gt; holes = polygons.stream()</b>
+<b class="nc">&nbsp;                    .filter(another -&gt; !another.equalsExact(polygon))</b>
+<b class="nc">&nbsp;                    .filter(another -&gt; {</b>
+<b class="nc">&nbsp;                        JtsGeometry currentGeo = jtsCtx.getShapeFactory().makeShape(polygon);</b>
+<b class="nc">&nbsp;                        JtsGeometry anotherGeo = jtsCtx.getShapeFactory().makeShape(another);</b>
+&nbsp;
+<b class="nc">&nbsp;                        boolean currentContainsAnother = currentGeo</b>
+<b class="nc">&nbsp;                                .relate(anotherGeo)</b>
+<b class="nc">&nbsp;                                .equals(SpatialRelation.CONTAINS);</b>
+&nbsp;
+<b class="nc">&nbsp;                        boolean anotherWithinCurrent = anotherGeo</b>
+<b class="nc">&nbsp;                                .relate(currentGeo)</b>
+<b class="nc">&nbsp;                                .equals(SpatialRelation.WITHIN);</b>
+&nbsp;
+<b class="nc">&nbsp;                        return currentContainsAnother &amp;&amp; anotherWithinCurrent;</b>
+&nbsp;                    })
+<b class="nc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+<b class="nc">&nbsp;            if (!holes.isEmpty()) {</b>
+<b class="nc">&nbsp;                polygonsHoles.put(polygon, holes);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return polygonsHoles.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;Geometry&gt; buildPolygonsFromJson(JsonArray polygonsJsonArray) {
+<b class="nc">&nbsp;        List&lt;Geometry&gt; polygons = new LinkedList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        for (JsonElement polygonJsonArray : polygonsJsonArray) {</b>
+<b class="nc">&nbsp;            polygons.add(</b>
+<b class="nc">&nbsp;                    buildPolygonFromCoordinates(parseCoordinates(polygonJsonArray.getAsJsonArray()))</b>
+&nbsp;            );
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return polygons;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Geometry buildPolygonFromCoordinates(List&lt;Coordinate&gt; coordinates) {
+<b class="nc">&nbsp;        if (coordinates.size() == 2) {</b>
+<b class="nc">&nbsp;            Coordinate a = coordinates.get(0);</b>
+<b class="nc">&nbsp;            Coordinate c = coordinates.get(1);</b>
+<b class="nc">&nbsp;            coordinates.clear();</b>
+&nbsp;
+<b class="nc">&nbsp;            Coordinate b = new Coordinate(a.x, c.y);</b>
+<b class="nc">&nbsp;            Coordinate d = new Coordinate(c.x, a.y);</b>
+<b class="nc">&nbsp;            coordinates.addAll(List.of(a, b, c, d, a));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        CoordinateSequence coordinateSequence = jtsCtx</b>
+<b class="nc">&nbsp;                .getShapeFactory()</b>
+<b class="nc">&nbsp;                .getGeometryFactory()</b>
+<b class="nc">&nbsp;                .getCoordinateSequenceFactory()</b>
+<b class="nc">&nbsp;                .create(coordinates.toArray(new Coordinate[0]));</b>
+&nbsp;
+<b class="nc">&nbsp;        return GeometryFixer.fix(jtsCtx.getShapeFactory().getGeometryFactory().createPolygon(coordinateSequence));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;Coordinate&gt; parseCoordinates(JsonArray coordinatesJson) {
+<b class="nc">&nbsp;        List&lt;Coordinate&gt; result = new LinkedList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        for (JsonElement coords : coordinatesJson) {</b>
+<b class="nc">&nbsp;            double x = coords.getAsJsonArray().get(0).getAsDouble();</b>
+<b class="nc">&nbsp;            double y = coords.getAsJsonArray().get(1).getAsDouble();</b>
+<b class="nc">&nbsp;            result.add(new Coordinate(x, y));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (result.size() &gt;= 3) {</b>
+<b class="nc">&nbsp;            result.add(result.get(0));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean containsPrimitives(JsonArray array) {
+<b class="nc">&nbsp;        for (JsonElement element : array) {</b>
+<b class="nc">&nbsp;            return element.isJsonPrimitive();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean containsArrayWithPrimitives(JsonArray array) {
+<b class="nc">&nbsp;        for (JsonElement element : array) {</b>
+<b class="nc">&nbsp;            if (!containsPrimitives(element.getAsJsonArray())) {</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

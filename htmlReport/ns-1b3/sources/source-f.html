@@ -1,0 +1,223 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbPackProcessingContext</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: TbPackProcessingContext (org.thingsboard.server.service.queue)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbPackProcessingContext</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbPackProcessingContext&lt;T&gt; {
+&nbsp;
+&nbsp;    private final AtomicInteger pendingCount;
+&nbsp;    private final CountDownLatch processingTimeoutLatch;
+&nbsp;    private final ConcurrentMap&lt;UUID, T&gt; ackMap;
+&nbsp;    private final ConcurrentMap&lt;UUID, T&gt; failedMap;
+&nbsp;
+&nbsp;    public TbPackProcessingContext(CountDownLatch processingTimeoutLatch,
+&nbsp;                                   ConcurrentMap&lt;UUID, T&gt; ackMap,
+<b class="nc">&nbsp;                                   ConcurrentMap&lt;UUID, T&gt; failedMap) {</b>
+<b class="nc">&nbsp;        this.processingTimeoutLatch = processingTimeoutLatch;</b>
+<b class="nc">&nbsp;        this.pendingCount = new AtomicInteger(ackMap.size());</b>
+<b class="nc">&nbsp;        this.ackMap = ackMap;</b>
+<b class="nc">&nbsp;        this.failedMap = failedMap;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean await(long packProcessingTimeout, TimeUnit milliseconds) throws InterruptedException {
+<b class="nc">&nbsp;        return processingTimeoutLatch.await(packProcessingTimeout, milliseconds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onSuccess(UUID id) {
+<b class="nc">&nbsp;        boolean empty = false;</b>
+<b class="nc">&nbsp;        T msg = ackMap.remove(id);</b>
+<b class="nc">&nbsp;        if (msg != null) {</b>
+<b class="nc">&nbsp;            empty = pendingCount.decrementAndGet() == 0;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (empty) {</b>
+<b class="nc">&nbsp;            processingTimeoutLatch.countDown();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (log.isTraceEnabled()) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;Items left: {}&quot;, ackMap.size());</b>
+<b class="nc">&nbsp;                for (T t : ackMap.values()) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;left item: {}&quot;, t);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onFailure(UUID id, Throwable t) {
+<b class="nc">&nbsp;        boolean empty = false;</b>
+<b class="nc">&nbsp;        T msg = ackMap.remove(id);</b>
+<b class="nc">&nbsp;        if (msg != null) {</b>
+<b class="nc">&nbsp;            empty = pendingCount.decrementAndGet() == 0;</b>
+<b class="nc">&nbsp;            failedMap.put(id, msg);</b>
+<b class="nc">&nbsp;            if (log.isTraceEnabled()) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;Items left: {}&quot;, ackMap.size());</b>
+<b class="nc">&nbsp;                for (T v : ackMap.values()) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;left item: {}&quot;, v);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (empty) {</b>
+<b class="nc">&nbsp;            processingTimeoutLatch.countDown();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public ConcurrentMap&lt;UUID, T&gt; getAckMap() {
+<b class="nc">&nbsp;        return ackMap;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ConcurrentMap&lt;UUID, T&gt; getFailedMap() {
+<b class="nc">&nbsp;        return failedMap;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

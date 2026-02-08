@@ -1,0 +1,247 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EntityDataAdapter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.query</a>
+</div>
+
+<h1>Coverage Summary for Class: EntityDataAdapter (org.thingsboard.server.dao.sql.query)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EntityDataAdapter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/39)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.query;
+&nbsp;
+&nbsp;import org.apache.commons.lang3.math.NumberUtils;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataPageLink;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.query.TsValue;
+&nbsp;
+&nbsp;import java.math.BigInteger;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;public class EntityDataAdapter {</b>
+&nbsp;
+&nbsp;    public static PageData&lt;EntityData&gt; createEntityData(EntityDataPageLink pageLink,
+&nbsp;                                                        List&lt;EntityKeyMapping&gt; selectionMapping,
+&nbsp;                                                        List&lt;Map&lt;String, Object&gt;&gt; rows,
+&nbsp;                                                        int totalElements) {
+<b class="nc">&nbsp;        int totalPages = pageLink.getPageSize() &gt; 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;</b>
+<b class="nc">&nbsp;        int startIndex = pageLink.getPageSize() * pageLink.getPage();</b>
+<b class="nc">&nbsp;        boolean hasNext = pageLink.getPageSize() &gt; 0 &amp;&amp; totalElements &gt; startIndex + rows.size();</b>
+<b class="nc">&nbsp;        List&lt;EntityData&gt; entitiesData = convertListToEntityData(rows, selectionMapping);</b>
+<b class="nc">&nbsp;        return new PageData&lt;&gt;(entitiesData, totalPages, totalElements, hasNext);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;EntityData&gt; convertListToEntityData(List&lt;Map&lt;String, Object&gt;&gt; result, List&lt;EntityKeyMapping&gt; selectionMapping) {
+<b class="nc">&nbsp;        return result.stream().map(row -&gt; toEntityData(row, selectionMapping)).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static EntityData toEntityData(Map&lt;String, Object&gt; row, List&lt;EntityKeyMapping&gt; selectionMapping) {
+<b class="nc">&nbsp;        UUID id = (UUID)row.get(&quot;id&quot;);</b>
+<b class="nc">&nbsp;        EntityType entityType = EntityType.valueOf((String) row.get(&quot;entity_type&quot;));</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, id);</b>
+<b class="nc">&nbsp;        Map&lt;EntityKeyType, Map&lt;String, TsValue&gt;&gt; latest = new HashMap&lt;&gt;();</b>
+&nbsp;        //Maybe avoid empty hashmaps?
+<b class="nc">&nbsp;        EntityData entityData = new EntityData(entityId, latest, new HashMap&lt;&gt;(), new HashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;        for (EntityKeyMapping mapping : selectionMapping) {</b>
+<b class="nc">&nbsp;            if (!mapping.isIgnore()) {</b>
+<b class="nc">&nbsp;                EntityKey entityKey = mapping.getEntityKey();</b>
+<b class="nc">&nbsp;                Object value = row.get(mapping.getValueAlias());</b>
+&nbsp;                String strValue;
+&nbsp;                long ts;
+<b class="nc">&nbsp;                if (entityKey.getType().equals(EntityKeyType.ENTITY_FIELD)) {</b>
+<b class="nc">&nbsp;                    strValue = value != null ? value.toString() : &quot;&quot;;</b>
+<b class="nc">&nbsp;                    ts = System.currentTimeMillis();</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    strValue = convertValue(value);</b>
+<b class="nc">&nbsp;                    Object tsObject = row.get(mapping.getTsAlias());</b>
+<b class="nc">&nbsp;                    ts = tsObject != null ? Long.parseLong(tsObject.toString()) : 0;</b>
+&nbsp;                }
+<b class="nc">&nbsp;                TsValue tsValue = new TsValue(ts, strValue);</b>
+<b class="nc">&nbsp;                latest.computeIfAbsent(entityKey.getType(), entityKeyType -&gt; new HashMap&lt;&gt;()).put(entityKey.getKey(), tsValue);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return entityData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static String convertValue(Object value) {
+<b class="nc">&nbsp;        if (value != null) {</b>
+<b class="nc">&nbsp;            String strVal = value.toString();</b>
+&nbsp;            // check number
+<b class="nc">&nbsp;            if (NumberUtils.isParsable(strVal)) {</b>
+<b class="nc">&nbsp;                if (strVal.startsWith(&quot;0&quot;) &amp;&amp; !strVal.startsWith(&quot;0.&quot;)) {</b>
+<b class="nc">&nbsp;                    return strVal;</b>
+&nbsp;                }
+&nbsp;                try {
+<b class="nc">&nbsp;                    BigInteger longVal = new BigInteger(strVal);</b>
+<b class="nc">&nbsp;                    return longVal.toString();</b>
+&nbsp;                } catch (NumberFormatException ignored) {
+&nbsp;                }
+&nbsp;                try {
+<b class="nc">&nbsp;                    double dblVal = Double.parseDouble(strVal);</b>
+<b class="nc">&nbsp;                    String doubleAsString = Double.toString(dblVal);</b>
+<b class="nc">&nbsp;                    if (!Double.isInfinite(dblVal) &amp;&amp; isSimpleDouble(doubleAsString)) {</b>
+<b class="nc">&nbsp;                        return doubleAsString;</b>
+&nbsp;                    }
+&nbsp;                } catch (NumberFormatException ignored) {
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return strVal;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return &quot;&quot;;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean isSimpleDouble(String valueAsString) {
+<b class="nc">&nbsp;        return valueAsString.contains(&quot;.&quot;) &amp;&amp; !valueAsString.contains(&quot;E&quot;) &amp;&amp; !valueAsString.contains(&quot;e&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

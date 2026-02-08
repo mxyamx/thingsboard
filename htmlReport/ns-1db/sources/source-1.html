@@ -1,0 +1,735 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultClusterVersionControlService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.sync.vc</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultClusterVersionControlService (org.thingsboard.server.service.sync.vc)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultClusterVersionControlService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/256)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultClusterVersionControlService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/259)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.sync.vc;
+&nbsp;
+&nbsp;import com.google.common.collect.Iterables;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.ListeningExecutorService;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.checkerframework.checker.nullness.qual.Nullable;
+&nbsp;import org.eclipse.jgit.errors.LargeObjectException;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.page.SortOrder;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
+&nbsp;import org.thingsboard.server.common.data.util.CollectionsUtil;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.common.util.ProtoUtils;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.AddMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.BranchInfoProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.CommitRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.CommitResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.DeleteMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EntityContentRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EntityContentResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.EntityVersionProto;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ListEntitiesRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ListEntitiesResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ListVersionsRequestMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ListVersionsResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.PrepareMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.VersionControlResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.VersionedEntityInfoProto;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.TbQueueProducer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+&nbsp;import org.thingsboard.server.queue.discovery.TopicService;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+&nbsp;import org.thingsboard.server.queue.provider.TbVersionControlQueueFactory;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.queue.util.TbVersionControlComponent;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.TimeoutException;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.service.sync.vc.DefaultGitRepositoryService.fromRelativePath;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@TbVersionControlComponent
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultClusterVersionControlService extends TbApplicationEventListener&lt;PartitionChangeEvent&gt; implements ClusterVersionControlService {
+&nbsp;
+&nbsp;    private final PartitionService partitionService;
+&nbsp;    private final TbQueueProducerProvider producerProvider;
+&nbsp;    private final TbVersionControlQueueFactory queueFactory;
+&nbsp;    private final GitRepositoryService vcService;
+&nbsp;    private final TopicService topicService;
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;TenantId, Lock&gt; tenantRepoLocks = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final Map&lt;TenantId, PendingCommit&gt; pendingCommitMap = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private volatile ExecutorService consumerExecutor;
+&nbsp;    private volatile QueueConsumerManager&lt;TbProtoQueueMsg&lt;ToVersionControlServiceMsg&gt;&gt; consumer;
+&nbsp;    private volatile TbQueueProducer&lt;TbProtoQueueMsg&lt;ToCoreNotificationMsg&gt;&gt; producer;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.vc.poll-interval:25}&quot;)
+&nbsp;    private long pollDuration;
+&nbsp;    @Value(&quot;${queue.vc.pack-processing-timeout:180000}&quot;)
+&nbsp;    private long packProcessingTimeout;
+&nbsp;    @Value(&quot;${vc.git.io_pool_size:3}&quot;)
+&nbsp;    private int ioPoolSize;
+&nbsp;    @Value(&quot;${queue.vc.msg-chunk-size:250000}&quot;)
+&nbsp;    private int msgChunkSize;
+&nbsp;
+&nbsp;    //We need to manually manage the threads since tasks for particular tenant need to be processed sequentially.
+&nbsp;    private final List&lt;ListeningExecutorService&gt; ioThreads = new ArrayList&lt;&gt;();
+&nbsp;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        consumerExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName(&quot;vc-consumer&quot;));</b>
+<b class="nc">&nbsp;        var threadFactory = ThingsBoardThreadFactory.forName(&quot;vc-io-thread&quot;);</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; ioPoolSize; i++) {</b>
+<b class="nc">&nbsp;            ioThreads.add(MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(threadFactory)));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        producer = producerProvider.getTbCoreNotificationsMsgProducer();</b>
+<b class="nc">&nbsp;        consumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToVersionControlServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .name(&quot;TB Version Control&quot;)</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                .pollInterval(pollDuration)</b>
+<b class="nc">&nbsp;                .consumerCreator(queueFactory::createToVersionControlMsgConsumer)</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumerExecutor)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        if (consumer != null) {</b>
+<b class="nc">&nbsp;            consumer.stop();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (consumerExecutor != null) {</b>
+<b class="nc">&nbsp;            consumerExecutor.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ioThreads.forEach(ExecutorService::shutdownNow);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+<b class="nc">&nbsp;        for (TenantId tenantId : vcService.getActiveRepositoryTenants()) {</b>
+<b class="nc">&nbsp;            if (!partitionService.isMyPartition(ServiceType.TB_VC_EXECUTOR, tenantId, tenantId)) {</b>
+<b class="nc">&nbsp;                var lock = getRepoLock(tenantId);</b>
+<b class="nc">&nbsp;                lock.lock();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    pendingCommitMap.remove(tenantId);</b>
+<b class="nc">&nbsp;                    vcService.clearRepository(tenantId);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Failed to cleanup the tenant repository&quot;, tenantId, e);</b>
+&nbsp;                } finally {
+<b class="nc">&nbsp;                    lock.unlock();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.subscribe(event.getNewPartitions().values().stream().findAny().orElse(Collections.emptySet()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
+<b class="nc">&nbsp;        return ServiceType.TB_VC_EXECUTOR.equals(event.getServiceType());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @AfterStartUp(order = 2)
+&nbsp;    public void afterStartUp() {
+<b class="nc">&nbsp;        consumer.launch();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void processMsgs(List&lt;TbProtoQueueMsg&lt;ToVersionControlServiceMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToVersionControlServiceMsg&gt;&gt; consumer) throws Exception {
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;?&gt;&gt; futures = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (TbProtoQueueMsg&lt;ToVersionControlServiceMsg&gt; msgWrapper : msgs) {</b>
+<b class="nc">&nbsp;            ToVersionControlServiceMsg msg = msgWrapper.getValue();</b>
+<b class="nc">&nbsp;            var ctx = new VersionControlRequestCtx(msg, msg.hasClearRepositoryRequest() ? null : ProtoUtils.fromProto(msg.getVcSettings()));</b>
+<b class="nc">&nbsp;            long startTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] RECEIVED task: {}&quot;, ctx.getTenantId(), ctx.getRequestId(), msg);</b>
+<b class="nc">&nbsp;            int threadIdx = Math.abs(ctx.getTenantId().hashCode() % ioPoolSize);</b>
+<b class="nc">&nbsp;            ListenableFuture&lt;Void&gt; future = ioThreads.get(threadIdx).submit(() -&gt; processMessage(ctx, msg));</b>
+<b class="nc">&nbsp;            logTaskExecution(ctx, future, startTs);</b>
+<b class="nc">&nbsp;            futures.add(future);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            Futures.allAsList(futures).get(packProcessingTimeout, TimeUnit.MILLISECONDS);</b>
+&nbsp;        } catch (TimeoutException e) {
+<b class="nc">&nbsp;            log.error(&quot;Timeout for processing the version control tasks.&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Void processMessage(VersionControlRequestCtx ctx, ToVersionControlServiceMsg msg) {
+<b class="nc">&nbsp;        var lock = getRepoLock(ctx.getTenantId());</b>
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (msg.hasClearRepositoryRequest()) {</b>
+<b class="nc">&nbsp;                handleClearRepositoryCommand(ctx);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (msg.hasTestRepositoryRequest()) {</b>
+<b class="nc">&nbsp;                    handleTestRepositoryCommand(ctx);</b>
+<b class="nc">&nbsp;                } else if (msg.hasInitRepositoryRequest()) {</b>
+<b class="nc">&nbsp;                    handleInitRepositoryCommand(ctx);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    var currentSettings = vcService.getRepositorySettings(ctx.getTenantId());</b>
+<b class="nc">&nbsp;                    var newSettings = ctx.getSettings();</b>
+<b class="nc">&nbsp;                    if (!newSettings.equals(currentSettings)) {</b>
+<b class="nc">&nbsp;                        vcService.initRepository(ctx.getTenantId(), ctx.getSettings(), false);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (msg.hasCommitRequest()) {</b>
+<b class="nc">&nbsp;                        handleCommitRequest(ctx, msg.getCommitRequest());</b>
+<b class="nc">&nbsp;                    } else if (msg.hasListBranchesRequest()) {</b>
+<b class="nc">&nbsp;                        vcService.fetch(ctx.getTenantId());</b>
+<b class="nc">&nbsp;                        handleListBranches(ctx, msg.getListBranchesRequest());</b>
+<b class="nc">&nbsp;                    } else if (msg.hasListEntitiesRequest()) {</b>
+<b class="nc">&nbsp;                        handleListEntities(ctx, msg.getListEntitiesRequest());</b>
+<b class="nc">&nbsp;                    } else if (msg.hasListVersionRequest()) {</b>
+<b class="nc">&nbsp;                        vcService.fetch(ctx.getTenantId());</b>
+<b class="nc">&nbsp;                        handleListVersions(ctx, msg.getListVersionRequest());</b>
+<b class="nc">&nbsp;                    } else if (msg.hasEntityContentRequest()) {</b>
+<b class="nc">&nbsp;                        handleEntityContentRequest(ctx, msg.getEntityContentRequest());</b>
+<b class="nc">&nbsp;                    } else if (msg.hasEntitiesContentRequest()) {</b>
+<b class="nc">&nbsp;                        handleEntitiesContentRequest(ctx, msg.getEntitiesContentRequest());</b>
+<b class="nc">&nbsp;                    } else if (msg.hasVersionsDiffRequest()) {</b>
+<b class="nc">&nbsp;                        handleVersionsDiffRequest(ctx, msg.getVersionsDiffRequest());</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            reply(ctx, Optional.of(handleError(e)));</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleEntitiesContentRequest(VersionControlRequestCtx ctx, EntitiesContentRequestMsg request) throws Exception {
+<b class="nc">&nbsp;        var entityType = EntityType.valueOf(request.getEntityType());</b>
+<b class="nc">&nbsp;        String path = getRelativePath(entityType, null);</b>
+<b class="nc">&nbsp;        var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), path)</b>
+<b class="nc">&nbsp;                .stream().skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        if (!ids.isEmpty()) {</b>
+<b class="nc">&nbsp;            for (int i = 0; i &lt; ids.size(); i++) {</b>
+<b class="nc">&nbsp;                VersionedEntityInfo info = ids.get(i);</b>
+<b class="nc">&nbsp;                var data = vcService.getFileContentAtCommit(ctx.getTenantId(),</b>
+<b class="nc">&nbsp;                        getRelativePath(info.getExternalId().getEntityType(), info.getExternalId().getId().toString()), request.getVersionId());</b>
+<b class="nc">&nbsp;                Iterable&lt;String&gt; dataChunks = StringUtils.split(data, msgChunkSize);</b>
+<b class="nc">&nbsp;                int chunksCount = Iterables.size(dataChunks);</b>
+<b class="nc">&nbsp;                AtomicInteger chunkIndex = new AtomicInteger();</b>
+<b class="nc">&nbsp;                int itemIdx = i;</b>
+<b class="nc">&nbsp;                dataChunks.forEach(chunk -&gt; {</b>
+<b class="nc">&nbsp;                    EntitiesContentResponseMsg.Builder response = EntitiesContentResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setItemsCount(ids.size())</b>
+<b class="nc">&nbsp;                            .setItemIdx(itemIdx)</b>
+<b class="nc">&nbsp;                            .setItem(EntityContentResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                                    .setData(chunk)</b>
+<b class="nc">&nbsp;                                    .setChunksCount(chunksCount)</b>
+<b class="nc">&nbsp;                                    .setChunkIndex(chunkIndex.getAndIncrement())</b>
+<b class="nc">&nbsp;                                    .build());</b>
+<b class="nc">&nbsp;                    reply(ctx, Optional.empty(), builder -&gt; builder.setEntitiesContentResponse(response));</b>
+&nbsp;                });
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            reply(ctx, Optional.empty(), builder -&gt; builder.setEntitiesContentResponse(</b>
+<b class="nc">&nbsp;                    EntitiesContentResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setItemsCount(0)));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleEntityContentRequest(VersionControlRequestCtx ctx, EntityContentRequestMsg request) throws IOException {
+<b class="nc">&nbsp;        String path = getRelativePath(EntityType.valueOf(request.getEntityType()), new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());</b>
+<b class="nc">&nbsp;        log.debug(&quot;Executing handleEntityContentRequest [{}][{}]&quot;, ctx.getTenantId(), path);</b>
+<b class="nc">&nbsp;        String data = vcService.getFileContentAtCommit(ctx.getTenantId(), path, request.getVersionId());</b>
+&nbsp;
+<b class="nc">&nbsp;        Iterable&lt;String&gt; dataChunks = StringUtils.split(data, msgChunkSize);</b>
+<b class="nc">&nbsp;        String chunkedMsgId = UUID.randomUUID().toString();</b>
+<b class="nc">&nbsp;        int chunksCount = Iterables.size(dataChunks);</b>
+&nbsp;
+<b class="nc">&nbsp;        AtomicInteger chunkIndex = new AtomicInteger();</b>
+<b class="nc">&nbsp;        dataChunks.forEach(chunk -&gt; {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] sending chunk {} for &#39;getEntity&#39;&quot;, chunkedMsgId, chunkIndex.get());</b>
+<b class="nc">&nbsp;            reply(ctx, Optional.empty(), builder -&gt; builder.setEntityContentResponse(EntityContentResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                    .setData(chunk).setChunksCount(chunksCount)</b>
+<b class="nc">&nbsp;                    .setChunkIndex(chunkIndex.getAndIncrement())));</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleListVersions(VersionControlRequestCtx ctx, ListVersionsRequestMsg request) throws Exception {
+&nbsp;        String path;
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(request.getEntityType())) {</b>
+<b class="nc">&nbsp;            var entityType = EntityType.valueOf(request.getEntityType());</b>
+<b class="nc">&nbsp;            if (request.getEntityIdLSB() != 0 || request.getEntityIdMSB() != 0) {</b>
+<b class="nc">&nbsp;                path = getRelativePath(entityType, new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                path = getRelativePath(entityType, null);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            path = null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        SortOrder sortOrder = null;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(request.getSortProperty())) {</b>
+<b class="nc">&nbsp;            var direction = SortOrder.Direction.DESC;</b>
+<b class="nc">&nbsp;            if (StringUtils.isNotEmpty(request.getSortDirection())) {</b>
+<b class="nc">&nbsp;                direction = SortOrder.Direction.valueOf(request.getSortDirection());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            sortOrder = new SortOrder(request.getSortProperty(), direction);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var data = vcService.listVersions(ctx.getTenantId(), request.getBranchName(), path,</b>
+<b class="nc">&nbsp;                new PageLink(request.getPageSize(), request.getPage(), request.getTextSearch(), sortOrder));</b>
+<b class="nc">&nbsp;        reply(ctx, Optional.empty(), builder -&gt;</b>
+<b class="nc">&nbsp;                builder.setListVersionsResponse(ListVersionsResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                        .setTotalPages(data.getTotalPages())</b>
+<b class="nc">&nbsp;                        .setTotalElements(data.getTotalElements())</b>
+<b class="nc">&nbsp;                        .setHasNext(data.hasNext())</b>
+<b class="nc">&nbsp;                        .addAllVersions(data.getData().stream().map(</b>
+<b class="nc">&nbsp;                                v -&gt; EntityVersionProto.newBuilder().setTs(v.getTimestamp()).setId(v.getId()).setName(v.getName()).setAuthor(v.getAuthor()).build()</b>
+<b class="nc">&nbsp;                        ).collect(Collectors.toList())))</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleListEntities(VersionControlRequestCtx ctx, ListEntitiesRequestMsg request) throws Exception {
+<b class="nc">&nbsp;        EntityType entityType = StringUtils.isNotEmpty(request.getEntityType()) ? EntityType.valueOf(request.getEntityType()) : null;</b>
+<b class="nc">&nbsp;        var path = entityType != null ? getRelativePath(entityType, null) : null;</b>
+<b class="nc">&nbsp;        var data = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), path);</b>
+<b class="nc">&nbsp;        reply(ctx, Optional.empty(), builder -&gt;</b>
+<b class="nc">&nbsp;                builder.setListEntitiesResponse(ListEntitiesResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                        .addAllEntities(data.stream().map(VersionedEntityInfo::getExternalId).map(</b>
+<b class="nc">&nbsp;                                id -&gt; VersionedEntityInfoProto.newBuilder()</b>
+<b class="nc">&nbsp;                                        .setEntityType(id.getEntityType().name())</b>
+<b class="nc">&nbsp;                                        .setEntityIdMSB(id.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                                        .setEntityIdLSB(id.getId().getLeastSignificantBits()).build()</b>
+<b class="nc">&nbsp;                        ).collect(Collectors.toList()))));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleListBranches(VersionControlRequestCtx ctx, ListBranchesRequestMsg request) {
+<b class="nc">&nbsp;        var branches = vcService.listBranches(ctx.getTenantId()).stream()</b>
+<b class="nc">&nbsp;                .map(branchInfo -&gt; BranchInfoProto.newBuilder()</b>
+<b class="nc">&nbsp;                        .setName(branchInfo.getName())</b>
+<b class="nc">&nbsp;                        .setIsDefault(branchInfo.isDefault()).build()).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        reply(ctx, Optional.empty(), builder -&gt; builder.setListBranchesResponse(ListBranchesResponseMsg.newBuilder().addAllBranches(branches)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleVersionsDiffRequest(VersionControlRequestCtx ctx, TransportProtos.VersionsDiffRequestMsg request) throws IOException {
+<b class="nc">&nbsp;        List&lt;TransportProtos.EntityVersionsDiff&gt; diffList = vcService.getVersionsDiffList(ctx.getTenantId(), request.getPath(), request.getVersionId1(), request.getVersionId2()).stream()</b>
+<b class="nc">&nbsp;                .map(diff -&gt; {</b>
+<b class="nc">&nbsp;                    EntityId entityId = fromRelativePath(diff.getFilePath());</b>
+<b class="nc">&nbsp;                    return TransportProtos.EntityVersionsDiff.newBuilder()</b>
+<b class="nc">&nbsp;                            .setEntityType(entityId.getEntityType().name())</b>
+<b class="nc">&nbsp;                            .setEntityIdMSB(entityId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setEntityIdLSB(entityId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .setEntityDataAtVersion1(diff.getFileContentAtCommit1())</b>
+<b class="nc">&nbsp;                            .setEntityDataAtVersion2(diff.getFileContentAtCommit2())</b>
+<b class="nc">&nbsp;                            .setRawDiff(diff.getDiffStringValue())</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;
+<b class="nc">&nbsp;        reply(ctx, builder -&gt; builder.setVersionsDiffResponse(TransportProtos.VersionsDiffResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .addAllDiff(diffList)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleCommitRequest(VersionControlRequestCtx ctx, CommitRequestMsg request) throws Exception {
+<b class="nc">&nbsp;        log.debug(&quot;Executing handleCommitRequest [{}][{}]&quot;, ctx.getTenantId(), ctx.getRequestId());</b>
+<b class="nc">&nbsp;        var tenantId = ctx.getTenantId();</b>
+<b class="nc">&nbsp;        UUID txId = UUID.fromString(request.getTxId());</b>
+<b class="nc">&nbsp;        if (request.hasPrepareMsg()) {</b>
+<b class="nc">&nbsp;            vcService.fetch(ctx.getTenantId());</b>
+<b class="nc">&nbsp;            prepareCommit(ctx, txId, request.getPrepareMsg());</b>
+<b class="nc">&nbsp;        } else if (request.hasAbortMsg()) {</b>
+<b class="nc">&nbsp;            PendingCommit current = pendingCommitMap.get(tenantId);</b>
+<b class="nc">&nbsp;            if (current != null &amp;&amp; current.getTxId().equals(txId)) {</b>
+<b class="nc">&nbsp;                doAbortCurrentCommit(tenantId, current);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            PendingCommit current = pendingCommitMap.get(tenantId);</b>
+<b class="nc">&nbsp;            if (current != null &amp;&amp; current.getTxId().equals(txId)) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    if (request.hasAddMsg()) {</b>
+<b class="nc">&nbsp;                        addToCommit(ctx, current, request.getAddMsg());</b>
+<b class="nc">&nbsp;                    } else if (request.hasDeleteMsg()) {</b>
+<b class="nc">&nbsp;                        deleteFromCommit(ctx, current, request.getDeleteMsg());</b>
+<b class="nc">&nbsp;                    } else if (request.hasPushMsg()) {</b>
+<b class="nc">&nbsp;                        var result = vcService.push(current);</b>
+<b class="nc">&nbsp;                        pendingCommitMap.remove(ctx.getTenantId());</b>
+<b class="nc">&nbsp;                        reply(ctx, result);</b>
+&nbsp;                    }
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    doAbortCurrentCommit(tenantId, current, e);</b>
+&nbsp;                    throw e;
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Ignore request due to stale commit: {}&quot;, txId, request);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void prepareCommit(VersionControlRequestCtx ctx, UUID txId, PrepareMsg prepareMsg) {
+<b class="nc">&nbsp;        var tenantId = ctx.getTenantId();</b>
+<b class="nc">&nbsp;        var pendingCommit = new PendingCommit(tenantId, ctx.getNodeId(), txId, prepareMsg.getBranchName(),</b>
+<b class="nc">&nbsp;                prepareMsg.getCommitMsg(), prepareMsg.getAuthorName(), prepareMsg.getAuthorEmail());</b>
+<b class="nc">&nbsp;        PendingCommit old = pendingCommitMap.get(tenantId);</b>
+<b class="nc">&nbsp;        if (old != null) {</b>
+<b class="nc">&nbsp;            doAbortCurrentCommit(tenantId, old);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        pendingCommitMap.put(tenantId, pendingCommit);</b>
+<b class="nc">&nbsp;        vcService.prepareCommit(pendingCommit);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteFromCommit(VersionControlRequestCtx ctx, PendingCommit commit, DeleteMsg deleteMsg) throws IOException {
+<b class="nc">&nbsp;        vcService.deleteFolderContent(commit, deleteMsg.getRelativePath());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addToCommit(VersionControlRequestCtx ctx, PendingCommit commit, AddMsg addMsg) throws IOException {
+<b class="nc">&nbsp;        log.debug(&quot;Executing addToCommit [{}][{}]&quot;, ctx.getTenantId(), ctx.getRequestId());</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}] received chunk {} for &#39;addToCommit&#39;&quot;, addMsg.getChunkedMsgId(), addMsg.getChunkIndex());</b>
+<b class="nc">&nbsp;        Map&lt;String, String[]&gt; chunkedMsgs = commit.getChunkedMsgs();</b>
+<b class="nc">&nbsp;        String[] msgChunks = chunkedMsgs.computeIfAbsent(addMsg.getChunkedMsgId(), id -&gt; new String[addMsg.getChunksCount()]);</b>
+<b class="nc">&nbsp;        msgChunks[addMsg.getChunkIndex()] = addMsg.getEntityDataJsonChunk();</b>
+<b class="nc">&nbsp;        if (CollectionsUtil.countNonNull(msgChunks) == msgChunks.length) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] collected all chunks for &#39;addToCommit&#39;&quot;, addMsg.getChunkedMsgId());</b>
+<b class="nc">&nbsp;            String entityDataJson = String.join(&quot;&quot;, msgChunks);</b>
+<b class="nc">&nbsp;            chunkedMsgs.remove(addMsg.getChunkedMsgId());</b>
+<b class="nc">&nbsp;            vcService.add(commit, addMsg.getRelativePath(), entityDataJson);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void doAbortCurrentCommit(TenantId tenantId, PendingCommit current) {
+<b class="nc">&nbsp;        doAbortCurrentCommit(tenantId, current, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void doAbortCurrentCommit(TenantId tenantId, PendingCommit current, Exception e) {
+<b class="nc">&nbsp;        vcService.abort(current);</b>
+<b class="nc">&nbsp;        pendingCommitMap.remove(tenantId);</b>
+&nbsp;        //TODO: push notification to core using old.getNodeId() to cancel old commit processing on the caller side.
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleClearRepositoryCommand(VersionControlRequestCtx ctx) {
+&nbsp;        try {
+<b class="nc">&nbsp;            vcService.clearRepository(ctx.getTenantId());</b>
+<b class="nc">&nbsp;            reply(ctx, Optional.empty());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Failed to connect to the repository: &quot;, ctx, e);</b>
+<b class="nc">&nbsp;            reply(ctx, Optional.of(e));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleInitRepositoryCommand(VersionControlRequestCtx ctx) {
+&nbsp;        try {
+<b class="nc">&nbsp;            vcService.initRepository(ctx.getTenantId(), ctx.getSettings(), false);</b>
+<b class="nc">&nbsp;            reply(ctx, Optional.empty());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Failed to connect to the repository: &quot;, ctx, e);</b>
+<b class="nc">&nbsp;            reply(ctx, Optional.of(e));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private void handleTestRepositoryCommand(VersionControlRequestCtx ctx) {
+&nbsp;        try {
+<b class="nc">&nbsp;            vcService.testRepository(ctx.getTenantId(), ctx.getSettings());</b>
+<b class="nc">&nbsp;            reply(ctx, Optional.empty());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Failed to connect to the repository: &quot;, ctx, e);</b>
+<b class="nc">&nbsp;            reply(ctx, Optional.of(e));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Exception handleError(Exception e) {
+<b class="nc">&nbsp;        if (e instanceof LargeObjectException) {</b>
+<b class="nc">&nbsp;            return new RuntimeException(&quot;Version is too big&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return e;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reply(VersionControlRequestCtx ctx, VersionCreationResult result) {
+<b class="nc">&nbsp;        var responseBuilder = CommitResponseMsg.newBuilder().setAdded(result.getAdded())</b>
+<b class="nc">&nbsp;                .setModified(result.getModified())</b>
+<b class="nc">&nbsp;                .setRemoved(result.getRemoved());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (result.getVersion() != null) {</b>
+<b class="nc">&nbsp;            responseBuilder.setTs(result.getVersion().getTimestamp())</b>
+<b class="nc">&nbsp;                    .setCommitId(result.getVersion().getId())</b>
+<b class="nc">&nbsp;                    .setName(result.getVersion().getName())</b>
+<b class="nc">&nbsp;                    .setAuthor(result.getVersion().getAuthor());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        reply(ctx, Optional.empty(), builder -&gt; builder.setCommitResponse(responseBuilder));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reply(VersionControlRequestCtx ctx, Optional&lt;Exception&gt; e) {
+<b class="nc">&nbsp;        reply(ctx, e, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reply(VersionControlRequestCtx ctx, Function&lt;VersionControlResponseMsg.Builder, VersionControlResponseMsg.Builder&gt; enrichFunction) {
+<b class="nc">&nbsp;        reply(ctx, Optional.empty(), enrichFunction);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void reply(VersionControlRequestCtx ctx, Optional&lt;Exception&gt; e, Function&lt;VersionControlResponseMsg.Builder, VersionControlResponseMsg.Builder&gt; enrichFunction) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, ctx.getNodeId());</b>
+<b class="nc">&nbsp;        VersionControlResponseMsg.Builder builder = VersionControlResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setRequestIdMSB(ctx.getRequestId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setRequestIdLSB(ctx.getRequestId().getLeastSignificantBits());</b>
+<b class="nc">&nbsp;        if (e.isPresent()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Failed to process task&quot;, ctx.getTenantId(), ctx.getRequestId(), e.get());</b>
+<b class="nc">&nbsp;            var message = e.get().getMessage();</b>
+<b class="nc">&nbsp;            builder.setError(message != null ? message : e.get().getClass().getSimpleName());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (enrichFunction != null) {</b>
+<b class="nc">&nbsp;                builder = enrichFunction.apply(builder);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                builder.setGenericResponse(TransportProtos.GenericRepositoryResponseMsg.newBuilder().build());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Processed task&quot;, ctx.getTenantId(), ctx.getRequestId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setVcResponseMsg(builder).build();</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}] PUSHING reply: {} to: {}&quot;, ctx.getTenantId(), ctx.getRequestId(), msg, tpi);</b>
+<b class="nc">&nbsp;        producer.send(tpi, new TbProtoQueueMsg&lt;&gt;(UUID.randomUUID(), msg), null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getRelativePath(EntityType entityType, String entityId) {
+<b class="nc">&nbsp;        String path = entityType.name().toLowerCase();</b>
+<b class="nc">&nbsp;        if (entityId != null) {</b>
+<b class="nc">&nbsp;            path += &quot;/&quot; + entityId + &quot;.json&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return path;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Lock getRepoLock(TenantId tenantId) {
+<b class="nc">&nbsp;        return tenantRepoLocks.computeIfAbsent(tenantId, t -&gt; new ReentrantLock(true));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void logTaskExecution(VersionControlRequestCtx ctx, ListenableFuture&lt;Void&gt; future, long startTs) {
+<b class="nc">&nbsp;        if (log.isTraceEnabled()) {</b>
+<b class="nc">&nbsp;            Futures.addCallback(future, new FutureCallback&lt;Object&gt;() {</b>
+&nbsp;
+&nbsp;                @Override
+&nbsp;                public void onSuccess(@Nullable Object result) {
+<b class="nc">&nbsp;                    log.trace(&quot;[{}][{}] Task processing took: {}ms&quot;, ctx.getTenantId(), ctx.getRequestId(), (System.currentTimeMillis() - startTs));</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                @Override
+&nbsp;                public void onFailure(Throwable t) {
+<b class="nc">&nbsp;                    log.trace(&quot;[{}][{}] Task failed: &quot;, ctx.getTenantId(), ctx.getRequestId(), t);</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }, MoreExecutors.directExecutor());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

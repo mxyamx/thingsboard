@@ -1,0 +1,341 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTwoFaConfigManager</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.security.auth.mfa.config</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTwoFaConfigManager (org.thingsboard.server.service.security.auth.mfa.config)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTwoFaConfigManager</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.security.auth.mfa.config;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.AdminSettings;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.security.UserAuthSettings;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettings;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.account.AccountTwoFaSettings;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.account.TwoFaAccountConfig;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderConfig;
+&nbsp;import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
+&nbsp;import org.thingsboard.server.dao.service.ConstraintValidator;
+&nbsp;import org.thingsboard.server.dao.settings.AdminSettingsDao;
+&nbsp;import org.thingsboard.server.dao.settings.AdminSettingsService;
+&nbsp;import org.thingsboard.server.dao.user.UserAuthSettingsDao;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
+&nbsp;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultTwoFaConfigManager implements TwoFaConfigManager {
+&nbsp;
+&nbsp;    private final UserAuthSettingsDao userAuthSettingsDao;
+&nbsp;    private final AdminSettingsService adminSettingsService;
+&nbsp;    private final AdminSettingsDao adminSettingsDao;
+&nbsp;    @Lazy
+&nbsp;    private final TwoFactorAuthService twoFactorAuthService;
+&nbsp;
+&nbsp;    protected static final String TWO_FACTOR_AUTH_SETTINGS_KEY = &quot;twoFaSettings&quot;;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;AccountTwoFaSettings&gt; getAccountTwoFaSettings(TenantId tenantId, User user) {
+<b class="nc">&nbsp;        PlatformTwoFaSettings platformTwoFaSettings = getPlatformTwoFaSettings(tenantId, true).orElse(null);</b>
+<b class="nc">&nbsp;        return Optional.ofNullable(userAuthSettingsDao.findByUserId(user.getId()))</b>
+<b class="nc">&nbsp;                .map(userAuthSettings -&gt; {</b>
+<b class="nc">&nbsp;                    AccountTwoFaSettings twoFaSettings = userAuthSettings.getTwoFaSettings();</b>
+<b class="nc">&nbsp;                    if (twoFaSettings == null) return null;</b>
+&nbsp;                    boolean updateNeeded;
+&nbsp;
+<b class="nc">&nbsp;                    Map&lt;TwoFaProviderType, TwoFaAccountConfig&gt; configs = twoFaSettings.getConfigs();</b>
+<b class="nc">&nbsp;                    updateNeeded = configs.keySet().removeIf(providerType -&gt; {</b>
+<b class="nc">&nbsp;                        return platformTwoFaSettings == null || platformTwoFaSettings.getProviderConfig(providerType).isEmpty();</b>
+&nbsp;                    });
+<b class="nc">&nbsp;                    if (configs.size() == 1 &amp;&amp; configs.containsKey(TwoFaProviderType.BACKUP_CODE)) {</b>
+<b class="nc">&nbsp;                        configs.remove(TwoFaProviderType.BACKUP_CODE);</b>
+<b class="nc">&nbsp;                        updateNeeded = true;</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (!configs.isEmpty() &amp;&amp; configs.values().stream().noneMatch(TwoFaAccountConfig::isUseByDefault)) {</b>
+<b class="nc">&nbsp;                        configs.values().stream()</b>
+<b class="nc">&nbsp;                                .filter(config -&gt; config.getProviderType() != TwoFaProviderType.BACKUP_CODE)</b>
+<b class="nc">&nbsp;                                .findFirst().ifPresent(config -&gt; config.setUseByDefault(true));</b>
+<b class="nc">&nbsp;                        updateNeeded = true;</b>
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    if (updateNeeded) {</b>
+<b class="nc">&nbsp;                        twoFaSettings = saveAccountTwoFaSettings(tenantId, user, twoFaSettings);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return twoFaSettings;</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    protected AccountTwoFaSettings saveAccountTwoFaSettings(TenantId tenantId, User user, AccountTwoFaSettings settings) {
+<b class="nc">&nbsp;        UserAuthSettings userAuthSettings = Optional.ofNullable(userAuthSettingsDao.findByUserId(user.getId()))</b>
+<b class="nc">&nbsp;                .orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;                    UserAuthSettings newUserAuthSettings = new UserAuthSettings();</b>
+<b class="nc">&nbsp;                    newUserAuthSettings.setUserId(user.getId());</b>
+<b class="nc">&nbsp;                    return newUserAuthSettings;</b>
+&nbsp;                });
+<b class="nc">&nbsp;        userAuthSettings.setTwoFaSettings(settings);</b>
+<b class="nc">&nbsp;        settings.getConfigs().values().forEach(accountConfig -&gt; accountConfig.setSerializeHiddenFields(true));</b>
+<b class="nc">&nbsp;        userAuthSettingsDao.save(tenantId, userAuthSettings);</b>
+<b class="nc">&nbsp;        settings.getConfigs().values().forEach(accountConfig -&gt; accountConfig.setSerializeHiddenFields(false));</b>
+<b class="nc">&nbsp;        return settings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;TwoFaAccountConfig&gt; getTwoFaAccountConfig(TenantId tenantId, User user, TwoFaProviderType providerType) {
+<b class="nc">&nbsp;        return getAccountTwoFaSettings(tenantId, user)</b>
+<b class="nc">&nbsp;                .map(AccountTwoFaSettings::getConfigs)</b>
+<b class="nc">&nbsp;                .flatMap(configs -&gt; Optional.ofNullable(configs.get(providerType)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AccountTwoFaSettings saveTwoFaAccountConfig(TenantId tenantId, User user, TwoFaAccountConfig accountConfig) {
+<b class="nc">&nbsp;        getTwoFaProviderConfig(tenantId, accountConfig.getProviderType())</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;2FA provider is not configured&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        AccountTwoFaSettings settings = getAccountTwoFaSettings(tenantId, user).orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;            AccountTwoFaSettings newSettings = new AccountTwoFaSettings();</b>
+<b class="nc">&nbsp;            newSettings.setConfigs(new LinkedHashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;            return newSettings;</b>
+&nbsp;        });
+<b class="nc">&nbsp;        Map&lt;TwoFaProviderType, TwoFaAccountConfig&gt; configs = settings.getConfigs();</b>
+<b class="nc">&nbsp;        if (configs.isEmpty() &amp;&amp; accountConfig.getProviderType() == TwoFaProviderType.BACKUP_CODE) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;To use 2FA backup codes you first need to configure at least one provider&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (accountConfig.isUseByDefault()) {</b>
+<b class="nc">&nbsp;            configs.values().forEach(config -&gt; config.setUseByDefault(false));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        configs.put(accountConfig.getProviderType(), accountConfig);</b>
+<b class="nc">&nbsp;        if (configs.values().stream().noneMatch(TwoFaAccountConfig::isUseByDefault)) {</b>
+<b class="nc">&nbsp;            configs.values().stream().findFirst().ifPresent(config -&gt; config.setUseByDefault(true));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        checkAccountTwoFaSettings(tenantId, user, settings);</b>
+<b class="nc">&nbsp;        return saveAccountTwoFaSettings(tenantId, user, settings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AccountTwoFaSettings deleteTwoFaAccountConfig(TenantId tenantId, User user, TwoFaProviderType providerType) {
+<b class="nc">&nbsp;        AccountTwoFaSettings settings = getAccountTwoFaSettings(tenantId, user)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;2FA not configured&quot;));</b>
+<b class="nc">&nbsp;        settings.getConfigs().remove(providerType);</b>
+<b class="nc">&nbsp;        if (settings.getConfigs().size() == 1) {</b>
+<b class="nc">&nbsp;            settings.getConfigs().remove(TwoFaProviderType.BACKUP_CODE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!settings.getConfigs().isEmpty() &amp;&amp; settings.getConfigs().values().stream()</b>
+<b class="nc">&nbsp;                .noneMatch(TwoFaAccountConfig::isUseByDefault)) {</b>
+<b class="nc">&nbsp;            settings.getConfigs().values().stream()</b>
+<b class="nc">&nbsp;                    .min(Comparator.comparing(TwoFaAccountConfig::getProviderType))</b>
+<b class="nc">&nbsp;                    .ifPresent(config -&gt; config.setUseByDefault(true));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        checkAccountTwoFaSettings(tenantId, user, settings);</b>
+<b class="nc">&nbsp;        return saveAccountTwoFaSettings(tenantId, user, settings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private Optional&lt;TwoFaProviderConfig&gt; getTwoFaProviderConfig(TenantId tenantId, TwoFaProviderType providerType) {
+<b class="nc">&nbsp;        return getPlatformTwoFaSettings(tenantId, true)</b>
+<b class="nc">&nbsp;                .flatMap(twoFaSettings -&gt; twoFaSettings.getProviderConfig(providerType));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;PlatformTwoFaSettings&gt; getPlatformTwoFaSettings(TenantId tenantId, boolean sysadminSettingsAsDefault) {
+<b class="nc">&nbsp;        return Optional.ofNullable(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, TWO_FACTOR_AUTH_SETTINGS_KEY))</b>
+<b class="nc">&nbsp;                .map(adminSettings -&gt; JacksonUtil.treeToValue(adminSettings.getJsonValue(), PlatformTwoFaSettings.class));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PlatformTwoFaSettings savePlatformTwoFaSettings(TenantId tenantId, PlatformTwoFaSettings twoFactorAuthSettings) throws ThingsboardException {
+<b class="nc">&nbsp;        ConstraintValidator.validateFields(twoFactorAuthSettings);</b>
+<b class="nc">&nbsp;        for (TwoFaProviderConfig providerConfig : twoFactorAuthSettings.getProviders()) {</b>
+<b class="nc">&nbsp;            twoFactorAuthService.checkProvider(tenantId, providerConfig.getProviderType());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            if (twoFactorAuthSettings.isEnforceTwoFa()) {</b>
+<b class="nc">&nbsp;                if (twoFactorAuthSettings.getProviders().isEmpty()) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(&quot;At least one 2FA provider is required if enforcing is enabled&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (twoFactorAuthSettings.getEnforcedUsersFilter() == null) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(&quot;Users filter to enforce 2FA for is required&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            twoFactorAuthSettings.setEnforceTwoFa(false);</b>
+<b class="nc">&nbsp;            twoFactorAuthSettings.setEnforcedUsersFilter(null);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        AdminSettings settings = Optional.ofNullable(adminSettingsService.findAdminSettingsByKey(tenantId, TWO_FACTOR_AUTH_SETTINGS_KEY))</b>
+<b class="nc">&nbsp;                .orElseGet(() -&gt; {</b>
+<b class="nc">&nbsp;                    AdminSettings newSettings = new AdminSettings();</b>
+<b class="nc">&nbsp;                    newSettings.setKey(TWO_FACTOR_AUTH_SETTINGS_KEY);</b>
+<b class="nc">&nbsp;                    return newSettings;</b>
+&nbsp;                });
+<b class="nc">&nbsp;        settings.setJsonValue(JacksonUtil.valueToTree(twoFactorAuthSettings));</b>
+<b class="nc">&nbsp;        adminSettingsService.saveAdminSettings(tenantId, settings);</b>
+<b class="nc">&nbsp;        return twoFactorAuthSettings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deletePlatformTwoFaSettings(TenantId tenantId) {
+<b class="nc">&nbsp;        Optional.ofNullable(adminSettingsService.findAdminSettingsByKey(tenantId, TWO_FACTOR_AUTH_SETTINGS_KEY))</b>
+<b class="nc">&nbsp;                .ifPresent(adminSettings -&gt; adminSettingsDao.removeById(tenantId, adminSettings.getId().getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkAccountTwoFaSettings(TenantId tenantId, User user, AccountTwoFaSettings settings) {
+<b class="nc">&nbsp;        if (settings.getConfigs().isEmpty()) {</b>
+<b class="nc">&nbsp;            if (twoFactorAuthService.isEnforceTwoFaEnabled(tenantId, user)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;At least one 2FA provider is required&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

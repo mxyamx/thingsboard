@@ -1,0 +1,375 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CassandraBaseTimeseriesLatestDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.timeseries</a>
+</div>
+
+<h1>Coverage Summary for Class: CassandraBaseTimeseriesLatestDao (org.thingsboard.server.dao.timeseries)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CassandraBaseTimeseriesLatestDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/79)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.timeseries;
+&nbsp;
+&nbsp;import com.datastax.oss.driver.api.core.cql.BoundStatement;
+&nbsp;import com.datastax.oss.driver.api.core.cql.BoundStatementBuilder;
+&nbsp;import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+&nbsp;import com.datastax.oss.driver.api.core.cql.Statement;
+&nbsp;import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.Aggregation;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;import org.thingsboard.server.dao.nosql.TbResultSet;
+&nbsp;import org.thingsboard.server.dao.sqlts.AggregationTimeseriesDao;
+&nbsp;import org.thingsboard.server.dao.util.NoSqlTsLatestDao;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
+&nbsp;
+&nbsp;@Component
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@NoSqlTsLatestDao
+<b class="nc">&nbsp;public class CassandraBaseTimeseriesLatestDao extends AbstractCassandraBaseTimeseriesDao implements TimeseriesLatestDao {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AggregationTimeseriesDao aggregationTimeseriesDao;
+&nbsp;
+&nbsp;    private PreparedStatement latestInsertStmt;
+&nbsp;    private PreparedStatement findLatestStmt;
+&nbsp;    private PreparedStatement findAllLatestStmt;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Optional&lt;TsKvEntry&gt;&gt; findLatestOpt(TenantId tenantId, EntityId entityId, String key) {
+<b class="nc">&nbsp;        return findLatest(tenantId, entityId, key, rs -&gt; convertResultToTsKvEntryOpt(key, rs.one()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TsKvEntry&gt; findLatest(TenantId tenantId, EntityId entityId, String key) {
+<b class="nc">&nbsp;        return findLatest(tenantId, entityId, key, rs -&gt; convertResultToTsKvEntry(key, rs.one()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; ListenableFuture&lt;T&gt; findLatest(TenantId tenantId, EntityId entityId, String key, java.util.function.Function&lt;TbResultSet, T&gt; function) {
+<b class="nc">&nbsp;        BoundStatementBuilder stmtBuilder = new BoundStatementBuilder(getFindLatestStmt().bind());</b>
+<b class="nc">&nbsp;        stmtBuilder.setString(0, entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        stmtBuilder.setUuid(1, entityId.getId());</b>
+<b class="nc">&nbsp;        stmtBuilder.setString(2, key);</b>
+<b class="nc">&nbsp;        BoundStatement stmt = stmtBuilder.build();</b>
+<b class="nc">&nbsp;        log.debug(GENERATED_QUERY_FOR_ENTITY_TYPE_AND_ENTITY_ID, stmt, entityId.getEntityType(), entityId.getId());</b>
+<b class="nc">&nbsp;        return getFuture(executeAsyncRead(tenantId, stmt), function);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; findAllLatest(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        BoundStatementBuilder stmtBuilder = new BoundStatementBuilder(getFindAllLatestStmt().bind());</b>
+<b class="nc">&nbsp;        stmtBuilder.setString(0, entityId.getEntityType().name());</b>
+<b class="nc">&nbsp;        stmtBuilder.setUuid(1, entityId.getId());</b>
+<b class="nc">&nbsp;        BoundStatement stmt = stmtBuilder.build();</b>
+<b class="nc">&nbsp;        log.debug(GENERATED_QUERY_FOR_ENTITY_TYPE_AND_ENTITY_ID, stmt, entityId.getEntityType(), entityId.getId());</b>
+<b class="nc">&nbsp;        return getFutureAsync(executeAsyncRead(tenantId, stmt), rs -&gt; convertAsyncResultSetToTsKvEntryList(rs));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId) {
+<b class="nc">&nbsp;        return Collections.emptyList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByEntityIds(TenantId tenantId, List&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        return Collections.emptyList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;String&gt;&gt; findAllKeysByEntityIdsAsync(TenantId tenantId, List&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        return Futures.immediateFuture(Collections.emptyList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Long&gt; saveLatest(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
+<b class="nc">&nbsp;        BoundStatementBuilder stmtBuilder = new BoundStatementBuilder(getLatestStmt().bind());</b>
+<b class="nc">&nbsp;        stmtBuilder.setString(0, entityId.getEntityType().name())</b>
+<b class="nc">&nbsp;                .setUuid(1, entityId.getId())</b>
+<b class="nc">&nbsp;                .setString(2, tsKvEntry.getKey())</b>
+<b class="nc">&nbsp;                .setLong(3, tsKvEntry.getTs())</b>
+<b class="nc">&nbsp;                .set(4, tsKvEntry.getBooleanValue().orElse(null), Boolean.class)</b>
+<b class="nc">&nbsp;                .set(5, tsKvEntry.getStrValue().orElse(null), String.class)</b>
+<b class="nc">&nbsp;                .set(6, tsKvEntry.getLongValue().orElse(null), Long.class)</b>
+<b class="nc">&nbsp;                .set(7, tsKvEntry.getDoubleValue().orElse(null), Double.class);</b>
+<b class="nc">&nbsp;        Optional&lt;String&gt; jsonV = tsKvEntry.getJsonValue();</b>
+<b class="nc">&nbsp;        if (jsonV.isPresent()) {</b>
+<b class="nc">&nbsp;            stmtBuilder.setString(8, tsKvEntry.getJsonValue().get());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            stmtBuilder.setToNull(8);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        BoundStatement stmt = stmtBuilder.build();</b>
+&nbsp;
+<b class="nc">&nbsp;        return getFuture(executeAsyncWrite(tenantId, stmt), rs -&gt; null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TsKvLatestRemovingResult&gt; removeLatest(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        ListenableFuture&lt;TsKvEntry&gt; latestEntryFuture = findLatest(tenantId, entityId, query.getKey());</b>
+&nbsp;
+<b class="nc">&nbsp;        ListenableFuture&lt;Boolean&gt; booleanFuture = Futures.transform(latestEntryFuture, latestEntry -&gt; {</b>
+<b class="nc">&nbsp;            long ts = latestEntry.getTs();</b>
+<b class="nc">&nbsp;            if (ts &gt; query.getStartTs() &amp;&amp; ts &lt;= query.getEndTs()) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;Won&#39;t be deleted latest value for [{}], key - {}&quot;, entityId, query.getKey());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }, readResultsProcessingExecutor);
+&nbsp;
+<b class="nc">&nbsp;        ListenableFuture&lt;Boolean&gt; removedLatestFuture = Futures.transformAsync(booleanFuture, isRemove -&gt; {</b>
+<b class="nc">&nbsp;            if (isRemove) {</b>
+<b class="nc">&nbsp;                return Futures.transform(deleteLatest(tenantId, entityId, query.getKey()), res -&gt; true, MoreExecutors.directExecutor());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return Futures.immediateFuture(false);</b>
+&nbsp;        }, readResultsProcessingExecutor);
+&nbsp;
+<b class="nc">&nbsp;        return Futures.transformAsync(removedLatestFuture, isRemoved -&gt; {</b>
+<b class="nc">&nbsp;            if (isRemoved &amp;&amp; query.getRewriteLatestIfDeleted()) {</b>
+<b class="nc">&nbsp;                return getNewLatestEntryFuture(tenantId, entityId, query);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return Futures.immediateFuture(new TsKvLatestRemovingResult(query.getKey(), isRemoved));</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TsKvLatestRemovingResult&gt; getNewLatestEntryFuture(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        long startTs = 0;</b>
+<b class="nc">&nbsp;        long endTs = query.getStartTs() - 1;</b>
+<b class="nc">&nbsp;        ReadTsKvQuery findNewLatestQuery = new BaseReadTsKvQuery(query.getKey(), startTs, endTs, endTs - startTs, 1,</b>
+&nbsp;                Aggregation.NONE, DESC_ORDER);
+<b class="nc">&nbsp;        ListenableFuture&lt;ReadTsKvQueryResult&gt; future = aggregationTimeseriesDao.findAllAsync(tenantId, entityId, findNewLatestQuery);</b>
+&nbsp;
+<b class="nc">&nbsp;        return Futures.transformAsync(future, result -&gt; {</b>
+<b class="nc">&nbsp;            var entryList = result.getData();</b>
+<b class="nc">&nbsp;            if (entryList.size() == 1) {</b>
+<b class="nc">&nbsp;                TsKvEntry entry = entryList.get(0);</b>
+<b class="nc">&nbsp;                return Futures.transform(saveLatest(tenantId, entityId, entryList.get(0)), v -&gt; new TsKvLatestRemovingResult(entry, v), MoreExecutors.directExecutor());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;Could not find new latest value for [{}], key - {}&quot;, entityId, query.getKey());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return Futures.immediateFuture(new TsKvLatestRemovingResult(query.getKey(), true));</b>
+&nbsp;        }, readResultsProcessingExecutor);
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; deleteLatest(TenantId tenantId, EntityId entityId, String key) {
+<b class="nc">&nbsp;        Statement delete = QueryBuilder.deleteFrom(ModelConstants.TS_KV_LATEST_CF)</b>
+<b class="nc">&nbsp;                .whereColumn(ModelConstants.ENTITY_TYPE_COLUMN).isEqualTo(literal(entityId.getEntityType().name()))</b>
+<b class="nc">&nbsp;                .whereColumn(ModelConstants.ENTITY_ID_COLUMN).isEqualTo(literal(entityId.getId()))</b>
+<b class="nc">&nbsp;                .whereColumn(ModelConstants.KEY_COLUMN).isEqualTo(literal(key)).build();</b>
+<b class="nc">&nbsp;        log.debug(&quot;Remove request: {}&quot;, delete.toString());</b>
+<b class="nc">&nbsp;        return getFuture(executeAsyncWrite(tenantId, delete), rs -&gt; null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; convertAsyncResultSetToTsKvEntryList(TbResultSet rs) {
+<b class="nc">&nbsp;        return Futures.transform(rs.allRows(readResultsProcessingExecutor),</b>
+<b class="nc">&nbsp;                rows -&gt; this.convertResultToTsKvEntryList(rows), readResultsProcessingExecutor);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PreparedStatement getLatestStmt() {
+<b class="nc">&nbsp;        if (latestInsertStmt == null) {</b>
+<b class="nc">&nbsp;            latestInsertStmt = prepare(INSERT_INTO + ModelConstants.TS_KV_LATEST_CF +</b>
+&nbsp;                    &quot;(&quot; + ModelConstants.ENTITY_TYPE_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.ENTITY_ID_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.KEY_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.TS_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.BOOLEAN_VALUE_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.STRING_VALUE_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.LONG_VALUE_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.DOUBLE_VALUE_COLUMN +
+&nbsp;                    &quot;,&quot; + ModelConstants.JSON_VALUE_COLUMN + &quot;)&quot; +
+&nbsp;                    &quot; VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)&quot;);
+&nbsp;        }
+<b class="nc">&nbsp;        return latestInsertStmt;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PreparedStatement getFindLatestStmt() {
+<b class="nc">&nbsp;        if (findLatestStmt == null) {</b>
+<b class="nc">&nbsp;            findLatestStmt = prepare(SELECT_PREFIX +</b>
+&nbsp;                    ModelConstants.KEY_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.TS_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.STRING_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.BOOLEAN_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.LONG_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.DOUBLE_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.JSON_VALUE_COLUMN + &quot; &quot; +
+&nbsp;                    &quot;FROM &quot; + ModelConstants.TS_KV_LATEST_CF + &quot; &quot; +
+&nbsp;                    &quot;WHERE &quot; + ModelConstants.ENTITY_TYPE_COLUMN + EQUALS_PARAM +
+&nbsp;                    &quot;AND &quot; + ModelConstants.ENTITY_ID_COLUMN + EQUALS_PARAM +
+&nbsp;                    &quot;AND &quot; + ModelConstants.KEY_COLUMN + EQUALS_PARAM);
+&nbsp;        }
+<b class="nc">&nbsp;        return findLatestStmt;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PreparedStatement getFindAllLatestStmt() {
+<b class="nc">&nbsp;        if (findAllLatestStmt == null) {</b>
+<b class="nc">&nbsp;            findAllLatestStmt = prepare(SELECT_PREFIX +</b>
+&nbsp;                    ModelConstants.KEY_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.TS_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.STRING_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.BOOLEAN_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.LONG_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.DOUBLE_VALUE_COLUMN + &quot;,&quot; +
+&nbsp;                    ModelConstants.JSON_VALUE_COLUMN + &quot; &quot; +
+&nbsp;                    &quot;FROM &quot; + ModelConstants.TS_KV_LATEST_CF + &quot; &quot; +
+&nbsp;                    &quot;WHERE &quot; + ModelConstants.ENTITY_TYPE_COLUMN + EQUALS_PARAM +
+&nbsp;                    &quot;AND &quot; + ModelConstants.ENTITY_ID_COLUMN + EQUALS_PARAM);
+&nbsp;        }
+<b class="nc">&nbsp;        return findAllLatestStmt;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

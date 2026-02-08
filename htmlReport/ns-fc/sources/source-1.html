@@ -1,0 +1,1145 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseRuleChainService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.rule</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseRuleChainService (org.thingsboard.server.dao.rule)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseRuleChainService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/61)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/212)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/449)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseRuleChainService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">BaseRuleChainService$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/65)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/212)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/453)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.rule;
+&nbsp;
+&nbsp;import com.datastax.oss.driver.api.core.uuid.Uuids;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.collections4.CollectionUtils;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.hibernate.exception.ConstraintViolationException;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.BaseData;
+&nbsp;import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.exception.EntityVersionMismatchException;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UUIDBased;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageDataIterable;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentClusteringMode;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainData;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainImportResult;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNode;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNodeUpdateResult;
+&nbsp;import org.thingsboard.server.common.data.util.ReflectionUtils;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractEntityService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityCountService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.dao.service.validator.RuleChainDataValidator;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.common.data.DataConstants.TENANT;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateIds;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validatePositiveNumber;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateString;
+&nbsp;
+<b class="nc">&nbsp;@Service(&quot;RuleChainDaoService&quot;)</b>
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class BaseRuleChainService extends AbstractEntityService implements RuleChainService {</b>
+&nbsp;
+&nbsp;    private static final int DEFAULT_PAGE_SIZE = 1000;
+&nbsp;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;    public static final String TB_RULE_CHAIN_INPUT_NODE = &quot;org.thingsboard.rule.engine.flow.TbRuleChainInputNode&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RuleChainDao ruleChainDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RuleNodeDao ruleNodeDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityCountService entityCountService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;RuleChain&gt; ruleChainValidator;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public RuleChain saveRuleChain(RuleChain ruleChain) {
+<b class="nc">&nbsp;        return saveRuleChain(ruleChain, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent) {
+<b class="nc">&nbsp;        return saveRuleChain(ruleChain, publishSaveEvent, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent, boolean doValidate) {
+<b class="nc">&nbsp;        return saveEntity(ruleChain, () -&gt; doSaveRuleChain(ruleChain, publishSaveEvent, doValidate));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private RuleChain doSaveRuleChain(RuleChain ruleChain, boolean publishSaveEvent, boolean doValidate) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing doSaveRuleChain [{}]&quot;, ruleChain);</b>
+<b class="nc">&nbsp;        if (doValidate) {</b>
+<b class="nc">&nbsp;            ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            RuleChain savedRuleChain = ruleChainDao.saveAndFlush(ruleChain.getTenantId(), ruleChain);</b>
+<b class="nc">&nbsp;            if (ruleChain.getId() == null) {</b>
+<b class="nc">&nbsp;                entityCountService.publishCountEntityEvictEvent(ruleChain.getTenantId(), EntityType.RULE_CHAIN);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedRuleChain.getTenantId())</b>
+<b class="nc">&nbsp;                    .entity(savedRuleChain).entityId(savedRuleChain.getId()).created(ruleChain.getId() == null)</b>
+<b class="nc">&nbsp;                    .broadcastEvent(publishSaveEvent).build());</b>
+<b class="nc">&nbsp;            return savedRuleChain;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            checkConstraintViolation(e, &quot;rule_chain_external_id_unq_key&quot;, &quot;Rule Chain with such external id already exists!&quot;);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public boolean setRootRuleChain(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        RuleChain ruleChain = ruleChainDao.findById(tenantId, ruleChainId.getId());</b>
+<b class="nc">&nbsp;        if (!ruleChain.isRoot()) {</b>
+<b class="nc">&nbsp;            RuleChain previousRootRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());</b>
+<b class="nc">&nbsp;            if (previousRootRuleChain == null) {</b>
+<b class="nc">&nbsp;                setRootAndSave(tenantId, ruleChain);</b>
+<b class="nc">&nbsp;                return true;</b>
+<b class="nc">&nbsp;            } else if (!previousRootRuleChain.getId().equals(ruleChain.getId())) {</b>
+<b class="nc">&nbsp;                previousRootRuleChain.setRoot(false);</b>
+<b class="nc">&nbsp;                ruleChainDao.save(tenantId, previousRootRuleChain);</b>
+<b class="nc">&nbsp;                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)</b>
+<b class="nc">&nbsp;                        .entityId(previousRootRuleChain.getId()).entity(previousRootRuleChain).created(false).build());</b>
+<b class="nc">&nbsp;                setRootAndSave(tenantId, ruleChain);</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setRootAndSave(TenantId tenantId, RuleChain ruleChain) {
+<b class="nc">&nbsp;        ruleChain.setRoot(true);</b>
+<b class="nc">&nbsp;        ruleChainDao.save(tenantId, ruleChain);</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(ruleChain.getId()).entity(ruleChain).created(false).build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public RuleChainUpdateResult saveRuleChainMetaData(TenantId tenantId, RuleChainMetaData ruleChainMetaData, Function&lt;RuleNode, RuleNode&gt; ruleNodeUpdater) {
+<b class="nc">&nbsp;        return saveRuleChainMetaData(tenantId, ruleChainMetaData, ruleNodeUpdater, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public RuleChainUpdateResult saveRuleChainMetaData(TenantId tenantId, RuleChainMetaData ruleChainMetaData, Function&lt;RuleNode, RuleNode&gt; ruleNodeUpdater, boolean publishSaveEvent) {
+<b class="nc">&nbsp;        Validator.validateId(ruleChainMetaData.getRuleChainId(), &quot;Incorrect rule chain id.&quot;);</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = findRuleChainById(tenantId, ruleChainMetaData.getRuleChainId());</b>
+<b class="nc">&nbsp;        if (ruleChain == null) {</b>
+<b class="nc">&nbsp;            return RuleChainUpdateResult.failed();</b>
+<b class="nc">&nbsp;        } else if (ruleChainMetaData.getVersion() != null &amp;&amp; !ruleChainMetaData.getVersion().equals(ruleChain.getVersion())) {</b>
+<b class="nc">&nbsp;            throw new EntityVersionMismatchException(EntityType.RULE_CHAIN, null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        RuleChainDataValidator.validateMetaDataFieldsAndConnections(ruleChainMetaData);</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; nodes = ruleChainMetaData.getNodes();</b>
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; toAddOrUpdate = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; toDelete = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; relations = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;RuleNodeId, Integer&gt; ruleNodeIndexMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        if (nodes != null) {</b>
+<b class="nc">&nbsp;            for (RuleNode node : nodes) {</b>
+<b class="nc">&nbsp;                setSingletonMode(node);</b>
+<b class="nc">&nbsp;                if (node.getId() != null) {</b>
+<b class="nc">&nbsp;                    ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    toAddOrUpdate.add(node);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleChain.getId();</b>
+<b class="nc">&nbsp;        List&lt;RuleNodeUpdateResult&gt; updatedRuleNodes = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; existingRuleNodes = getRuleChainNodes(tenantId, ruleChainMetaData.getRuleChainId());</b>
+<b class="nc">&nbsp;        for (RuleNode existingNode : existingRuleNodes) {</b>
+<b class="nc">&nbsp;            relationService.deleteEntityRelations(tenantId, existingNode.getId());</b>
+<b class="nc">&nbsp;            if (existingNode.getType().equals(TB_RULE_CHAIN_INPUT_NODE)) {</b>
+<b class="nc">&nbsp;                EntityRelation relation = getRuleChainInputRelation(ruleChainId, existingNode);</b>
+<b class="nc">&nbsp;                if (relation != null) {</b>
+<b class="nc">&nbsp;                    relationService.deleteRelation(tenantId, relation);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            Integer index = ruleNodeIndexMap.get(existingNode.getId());</b>
+<b class="nc">&nbsp;            RuleNode newRuleNode = null;</b>
+<b class="nc">&nbsp;            if (index != null) {</b>
+<b class="nc">&nbsp;                newRuleNode = ruleChainMetaData.getNodes().get(index);</b>
+<b class="nc">&nbsp;                toAddOrUpdate.add(newRuleNode);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                updatedRuleNodes.add(new RuleNodeUpdateResult(existingNode, null));</b>
+<b class="nc">&nbsp;                toDelete.add(existingNode);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            updatedRuleNodes.add(new RuleNodeUpdateResult(existingNode, newRuleNode));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (nodes != null) {</b>
+<b class="nc">&nbsp;            long now = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            for (RuleNode node : toAddOrUpdate) {</b>
+<b class="nc">&nbsp;                node.setRuleChainId(ruleChainId);</b>
+<b class="nc">&nbsp;                node = ruleNodeUpdater.apply(node);</b>
+&nbsp;
+<b class="nc">&nbsp;                updateDebugSettings(tenantId, node, now);</b>
+&nbsp;
+<b class="nc">&nbsp;                RuleChainDataValidator.validateRuleNode(node);</b>
+<b class="nc">&nbsp;                RuleNode savedNode = ruleNodeDao.save(tenantId, node);</b>
+<b class="nc">&nbsp;                relations.add(new EntityRelation(ruleChainMetaData.getRuleChainId(), savedNode.getId(),</b>
+&nbsp;                        EntityRelation.CONTAINS_TYPE, RelationTypeGroup.RULE_CHAIN));
+<b class="nc">&nbsp;                if (node.getType().equals(TB_RULE_CHAIN_INPUT_NODE)) {</b>
+<b class="nc">&nbsp;                    EntityRelation relation = getRuleChainInputRelation(ruleChainId, node);</b>
+<b class="nc">&nbsp;                    if (relation != null) {</b>
+<b class="nc">&nbsp;                        relations.add(relation);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                int index = nodes.indexOf(node);</b>
+<b class="nc">&nbsp;                nodes.set(index, savedNode);</b>
+<b class="nc">&nbsp;                ruleNodeIndexMap.put(savedNode.getId(), index);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (!toDelete.isEmpty()) {</b>
+<b class="nc">&nbsp;            deleteRuleNodes(tenantId, toDelete);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        RuleNodeId firstRuleNodeId = null;</b>
+<b class="nc">&nbsp;        if (nodes != null) {</b>
+<b class="nc">&nbsp;            if (ruleChainMetaData.getFirstNodeIndex() != null) {</b>
+<b class="nc">&nbsp;                firstRuleNodeId = nodes.get(ruleChainMetaData.getFirstNodeIndex()).getId();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if ((ruleChain.getFirstRuleNodeId() != null &amp;&amp; !ruleChain.getFirstRuleNodeId().equals(firstRuleNodeId))</b>
+<b class="nc">&nbsp;                    || (ruleChain.getFirstRuleNodeId() == null &amp;&amp; firstRuleNodeId != null)) {</b>
+<b class="nc">&nbsp;                ruleChain.setFirstRuleNodeId(firstRuleNodeId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (ruleChainMetaData.getConnections() != null) {</b>
+<b class="nc">&nbsp;                for (NodeConnectionInfo nodeConnection : ruleChainMetaData.getConnections()) {</b>
+<b class="nc">&nbsp;                    EntityId from = nodes.get(nodeConnection.getFromIndex()).getId();</b>
+<b class="nc">&nbsp;                    EntityId to = nodes.get(nodeConnection.getToIndex()).getId();</b>
+<b class="nc">&nbsp;                    String type = nodeConnection.getType();</b>
+<b class="nc">&nbsp;                    relations.add(new EntityRelation(from, to, type, RelationTypeGroup.RULE_NODE));</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (ruleChainMetaData.getRuleChainConnections() != null) {</b>
+<b class="nc">&nbsp;                for (RuleChainConnectionInfo nodeToRuleChainConnection : ruleChainMetaData.getRuleChainConnections()) {</b>
+<b class="nc">&nbsp;                    RuleChainId targetRuleChainId = nodeToRuleChainConnection.getTargetRuleChainId();</b>
+<b class="nc">&nbsp;                    RuleChain targetRuleChain = findRuleChainById(TenantId.SYS_TENANT_ID, targetRuleChainId);</b>
+<b class="nc">&nbsp;                    RuleNode targetNode = new RuleNode();</b>
+<b class="nc">&nbsp;                    targetNode.setName(targetRuleChain != null ? targetRuleChain.getName() : &quot;Rule Chain Input&quot;);</b>
+<b class="nc">&nbsp;                    targetNode.setRuleChainId(ruleChainId);</b>
+<b class="nc">&nbsp;                    targetNode.setType(TB_RULE_CHAIN_INPUT_NODE);</b>
+<b class="nc">&nbsp;                    var configuration = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;                    configuration.put(&quot;ruleChainId&quot;, targetRuleChainId.getId().toString());</b>
+<b class="nc">&nbsp;                    targetNode.setConfiguration(configuration);</b>
+<b class="nc">&nbsp;                    ObjectNode layout = (ObjectNode) nodeToRuleChainConnection.getAdditionalInfo();</b>
+<b class="nc">&nbsp;                    layout.remove(&quot;description&quot;);</b>
+<b class="nc">&nbsp;                    layout.remove(&quot;ruleChainNodeId&quot;);</b>
+<b class="nc">&nbsp;                    targetNode.setAdditionalInfo(layout);</b>
+<b class="nc">&nbsp;                    targetNode = ruleNodeDao.save(tenantId, targetNode);</b>
+&nbsp;
+<b class="nc">&nbsp;                    EntityRelation sourceRuleChainToRuleNode = new EntityRelation();</b>
+<b class="nc">&nbsp;                    sourceRuleChainToRuleNode.setFrom(ruleChainId);</b>
+<b class="nc">&nbsp;                    sourceRuleChainToRuleNode.setTo(targetNode.getId());</b>
+<b class="nc">&nbsp;                    sourceRuleChainToRuleNode.setType(EntityRelation.CONTAINS_TYPE);</b>
+<b class="nc">&nbsp;                    sourceRuleChainToRuleNode.setTypeGroup(RelationTypeGroup.RULE_CHAIN);</b>
+<b class="nc">&nbsp;                    relations.add(sourceRuleChainToRuleNode);</b>
+&nbsp;
+<b class="nc">&nbsp;                    EntityRelation sourceRuleNodeToTargetRuleNode = new EntityRelation();</b>
+<b class="nc">&nbsp;                    EntityId from = nodes.get(nodeToRuleChainConnection.getFromIndex()).getId();</b>
+<b class="nc">&nbsp;                    sourceRuleNodeToTargetRuleNode.setFrom(from);</b>
+<b class="nc">&nbsp;                    sourceRuleNodeToTargetRuleNode.setTo(targetNode.getId());</b>
+<b class="nc">&nbsp;                    sourceRuleNodeToTargetRuleNode.setType(nodeToRuleChainConnection.getType());</b>
+<b class="nc">&nbsp;                    sourceRuleNodeToTargetRuleNode.setTypeGroup(RelationTypeGroup.RULE_NODE);</b>
+<b class="nc">&nbsp;                    relations.add(sourceRuleNodeToTargetRuleNode);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!relations.isEmpty()) {</b>
+<b class="nc">&nbsp;            relationService.saveRelations(tenantId, relations);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ruleChain = ruleChainDao.save(tenantId, ruleChain);</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(ruleChain)</b>
+<b class="nc">&nbsp;                .entityId(ruleChain.getId()).broadcastEvent(publishSaveEvent).build());</b>
+<b class="nc">&nbsp;        return RuleChainUpdateResult.successful(updatedRuleNodes);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityRelation getRuleChainInputRelation(RuleChainId ruleChainId, RuleNode inputNode) {
+<b class="nc">&nbsp;        RuleChainId targetRuleChainId = Optional.ofNullable(inputNode.getConfiguration().get(&quot;ruleChainId&quot;))</b>
+<b class="nc">&nbsp;                .filter(JsonNode::isTextual).map(JsonNode::asText).map(id -&gt; new RuleChainId(UUID.fromString(id)))</b>
+<b class="nc">&nbsp;                .orElse(null);</b>
+<b class="nc">&nbsp;        if (targetRuleChainId != null) {</b>
+<b class="nc">&nbsp;            EntityRelation relation = new EntityRelation();</b>
+<b class="nc">&nbsp;            relation.setFrom(ruleChainId);</b>
+<b class="nc">&nbsp;            relation.setTo(targetRuleChainId);</b>
+<b class="nc">&nbsp;            relation.setType(EntityRelation.USES_TYPE);</b>
+<b class="nc">&nbsp;            relation.setTypeGroup(RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;            return relation;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChainMetaData loadRuleChainMetaData(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleChainId, &quot;Incorrect rule chain id.&quot;);</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = findRuleChainById(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        if (ruleChain == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();</b>
+<b class="nc">&nbsp;        ruleChainMetaData.setRuleChainId(ruleChainId);</b>
+<b class="nc">&nbsp;        ruleChainMetaData.setVersion(ruleChain.getVersion());</b>
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; ruleNodes = getRuleChainNodes(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        Collections.sort(ruleNodes, Comparator.comparingLong(RuleNode::getCreatedTime).thenComparing(RuleNode::getId, Comparator.comparing(RuleNodeId::getId)));</b>
+<b class="nc">&nbsp;        Map&lt;RuleNodeId, Integer&gt; ruleNodeIndexMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (RuleNode node : ruleNodes) {</b>
+<b class="nc">&nbsp;            ruleNodeIndexMap.put(node.getId(), ruleNodes.indexOf(node));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ruleChainMetaData.setNodes(ruleNodes);</b>
+<b class="nc">&nbsp;        if (ruleChain.getFirstRuleNodeId() != null) {</b>
+<b class="nc">&nbsp;            ruleChainMetaData.setFirstNodeIndex(ruleNodeIndexMap.get(ruleChain.getFirstRuleNodeId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (RuleNode node : ruleNodes) {</b>
+<b class="nc">&nbsp;            int fromIndex = ruleNodeIndexMap.get(node.getId());</b>
+<b class="nc">&nbsp;            List&lt;EntityRelation&gt; nodeRelations = getRuleNodeRelations(tenantId, node.getId());</b>
+<b class="nc">&nbsp;            for (EntityRelation nodeRelation : nodeRelations) {</b>
+<b class="nc">&nbsp;                String type = nodeRelation.getType();</b>
+<b class="nc">&nbsp;                if (EntityType.RULE_NODE.equals(nodeRelation.getTo().getEntityType())) {</b>
+<b class="nc">&nbsp;                    RuleNodeId toNodeId = new RuleNodeId(nodeRelation.getTo().getId());</b>
+<b class="nc">&nbsp;                    int toIndex = ruleNodeIndexMap.get(toNodeId);</b>
+<b class="nc">&nbsp;                    ruleChainMetaData.addConnectionInfo(fromIndex, toIndex, type);</b>
+<b class="nc">&nbsp;                } else if (EntityType.RULE_CHAIN.equals(nodeRelation.getTo().getEntityType())) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;[{}][{}] Unsupported node relation: {}&quot;, tenantId, ruleChainId, nodeRelation.getTo());</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (ruleChainMetaData.getConnections() != null) {</b>
+<b class="nc">&nbsp;            Collections.sort(ruleChainMetaData.getConnections(), Comparator.comparingInt(NodeConnectionInfo::getFromIndex)</b>
+<b class="nc">&nbsp;                    .thenComparing(NodeConnectionInfo::getToIndex).thenComparing(NodeConnectionInfo::getType));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ruleChainMetaData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain findRuleChainById(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleChainId, &quot;Incorrect rule chain id for search request.&quot;);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findById(tenantId, ruleChainId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleNode findRuleNodeById(TenantId tenantId, RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleNodeId, &quot;Incorrect rule node id for search request.&quot;);</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findById(tenantId, ruleNodeId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;RuleChain&gt; findRuleChainByIdAsync(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleChainId, &quot;Incorrect rule chain id for search request.&quot;);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findByIdAsync(tenantId, ruleChainId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;RuleNode&gt; findRuleNodeByIdAsync(TenantId tenantId, RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleNodeId, &quot;Incorrect rule node id for search request.&quot;);</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findByIdAsync(tenantId, ruleNodeId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain getRootTenantRuleChain(TenantId tenantId) {
+<b class="nc">&nbsp;        Validator.validateId(tenantId, &quot;Incorrect tenant id for search request.&quot;);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.CORE);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleNode&gt; getRuleChainNodes(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleChainId, &quot;Incorrect rule chain id for search request.&quot;);</b>
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; relations = getRuleChainToNodeRelations(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; ruleNodes = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (EntityRelation relation : relations) {</b>
+<b class="nc">&nbsp;            RuleNode ruleNode = ruleNodeDao.findById(tenantId, relation.getTo().getId());</b>
+<b class="nc">&nbsp;            if (ruleNode != null) {</b>
+<b class="nc">&nbsp;                ruleNodes.add(ruleNode);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                relationService.deleteRelation(tenantId, relation);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return ruleNodes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleNode&gt; getReferencingRuleChainNodes(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleChainId, &quot;Incorrect rule chain id for search request.&quot;);</b>
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; relations = getNodeToRuleChainRelations(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; ruleNodes = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (EntityRelation relation : relations) {</b>
+<b class="nc">&nbsp;            RuleNode ruleNode = ruleNodeDao.findById(tenantId, relation.getFrom().getId());</b>
+<b class="nc">&nbsp;            if (ruleNode != null) {</b>
+<b class="nc">&nbsp;                ruleNodes.add(ruleNode);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return ruleNodes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; getRuleNodeRelations(TenantId tenantId, RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleNodeId, &quot;Incorrect rule node id for search request.&quot;);</b>
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; relations = relationService.findByFrom(tenantId, ruleNodeId, RelationTypeGroup.RULE_NODE);</b>
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; validRelations = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (EntityRelation relation : relations) {</b>
+<b class="nc">&nbsp;            boolean valid = true;</b>
+<b class="nc">&nbsp;            EntityType toType = relation.getTo().getEntityType();</b>
+<b class="nc">&nbsp;            if (toType == EntityType.RULE_NODE || toType == EntityType.RULE_CHAIN) {</b>
+&nbsp;                BaseData&lt;?&gt; entity;
+<b class="nc">&nbsp;                if (relation.getTo().getEntityType() == EntityType.RULE_NODE) {</b>
+<b class="nc">&nbsp;                    entity = ruleNodeDao.findById(tenantId, relation.getTo().getId());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    entity = ruleChainDao.findById(tenantId, relation.getTo().getId());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (entity == null) {</b>
+<b class="nc">&nbsp;                    relationService.deleteRelation(tenantId, relation);</b>
+<b class="nc">&nbsp;                    valid = false;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (valid) {</b>
+<b class="nc">&nbsp;                validRelations.add(relation);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return validRelations;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;RuleChain&gt; findTenantRuleChainsByType(TenantId tenantId, RuleChainType type, PageLink pageLink) {
+<b class="nc">&nbsp;        Validator.validateId(tenantId, &quot;Incorrect tenant id for search rule chain request.&quot;);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findRuleChainsByTenantIdAndType(tenantId.getId(), type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;RuleChain&gt; findTenantRuleChainsByTypeAndName(TenantId tenantId, RuleChainType type, String name) {
+<b class="nc">&nbsp;        return ruleChainDao.findByTenantIdAndTypeAndName(tenantId, type, name);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteRuleChainById(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        Validator.validateId(ruleChainId, &quot;Incorrect rule chain id for delete request.&quot;);</b>
+<b class="nc">&nbsp;        RuleChain ruleChain = ruleChainDao.findById(tenantId, ruleChainId.getId());</b>
+<b class="nc">&nbsp;        if (ruleChain == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;RuleNode&gt; referencingRuleNodes = getReferencingRuleChainNodes(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        Set&lt;RuleChainId&gt; referencingRuleChainIds = referencingRuleNodes.stream().map(RuleNode::getRuleChainId).collect(Collectors.toSet());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (ruleChain.isRoot()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Deletion of Root Tenant Rule Chain is prohibited!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (RuleChainType.EDGE.equals(ruleChain.getType())) {</b>
+<b class="nc">&nbsp;            for (Edge edge : new PageDataIterable&lt;&gt;(link -&gt; edgeService.findEdgesByTenantIdAndEntityId(tenantId, ruleChainId, link), DEFAULT_PAGE_SIZE)) {</b>
+<b class="nc">&nbsp;                if (edge.getRootRuleChainId() != null &amp;&amp; edge.getRootRuleChainId().equals(ruleChainId)) {</b>
+<b class="nc">&nbsp;                    throw new DataValidationException(&quot;Can&#39;t delete rule chain that is root for edge [&quot; + edge.getName() + &quot;]. Please assign another root rule chain first to the edge!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        checkRuleNodesAndDelete(tenantId, ruleChain, referencingRuleChainIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        if (force) {</b>
+<b class="nc">&nbsp;            RuleChain ruleChain = findRuleChainById(tenantId, (RuleChainId) id);</b>
+<b class="nc">&nbsp;            if (ruleChain == null) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            checkRuleNodesAndDelete(tenantId, ruleChain, null);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            deleteRuleChainById(tenantId, (RuleChainId) id);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void deleteRuleChainsByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        Validator.validateId(tenantId, &quot;Incorrect tenant id for delete rule chains request.&quot;);</b>
+<b class="nc">&nbsp;        tenantRuleChainsRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteRuleChainsByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChainData exportTenantRuleChains(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        Validator.validateId(tenantId, &quot;Incorrect tenant id for search rule chain request.&quot;);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        PageData&lt;RuleChain&gt; ruleChainData = ruleChainDao.findRuleChainsByTenantId(tenantId.getId(), pageLink);</b>
+<b class="nc">&nbsp;        List&lt;RuleChain&gt; ruleChains = ruleChainData.getData();</b>
+<b class="nc">&nbsp;        List&lt;RuleChainMetaData&gt; metadata = ruleChains.stream().map(rc -&gt; loadRuleChainMetaData(tenantId, rc.getId())).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        RuleChainData rcData = new RuleChainData();</b>
+<b class="nc">&nbsp;        rcData.setRuleChains(ruleChains);</b>
+<b class="nc">&nbsp;        rcData.setMetadata(metadata);</b>
+<b class="nc">&nbsp;        setRandomRuleChainIds(rcData);</b>
+<b class="nc">&nbsp;        resetRuleNodeIds(metadata);</b>
+<b class="nc">&nbsp;        return rcData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleChainImportResult&gt; importTenantRuleChains(TenantId tenantId, RuleChainData ruleChainData, boolean overwrite, Function&lt;RuleNode, RuleNode&gt; ruleNodeUpdater) {
+<b class="nc">&nbsp;        List&lt;RuleChainImportResult&gt; importResults = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        setRandomRuleChainIds(ruleChainData);</b>
+<b class="nc">&nbsp;        resetRuleNodeIds(ruleChainData.getMetadata());</b>
+<b class="nc">&nbsp;        resetRuleChainMetadataTenantIds(tenantId, ruleChainData.getMetadata());</b>
+&nbsp;
+<b class="nc">&nbsp;        for (RuleChain ruleChain : ruleChainData.getRuleChains()) {</b>
+<b class="nc">&nbsp;            RuleChainImportResult importResult = new RuleChainImportResult();</b>
+&nbsp;
+<b class="nc">&nbsp;            ruleChain.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;            ruleChain.setRoot(false);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (overwrite) {</b>
+<b class="nc">&nbsp;                Collection&lt;RuleChain&gt; existingRuleChains = findTenantRuleChainsByTypeAndName(tenantId,</b>
+<b class="nc">&nbsp;                        Optional.ofNullable(ruleChain.getType()).orElse(RuleChainType.CORE), ruleChain.getName());</b>
+<b class="nc">&nbsp;                Optional&lt;RuleChain&gt; existingRuleChain = existingRuleChains.stream().findFirst();</b>
+<b class="nc">&nbsp;                if (existingRuleChain.isPresent()) {</b>
+<b class="nc">&nbsp;                    setNewRuleChainId(ruleChain, ruleChainData.getMetadata(), ruleChain.getId(), existingRuleChain.get().getId());</b>
+<b class="nc">&nbsp;                    ruleChain.setRoot(existingRuleChain.get().isRoot());</b>
+<b class="nc">&nbsp;                    importResult.setUpdated(true);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            try {
+<b class="nc">&nbsp;                ruleChain = saveRuleChain(ruleChain);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                importResult.setError(ExceptionUtils.getRootCauseMessage(e));</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            importResult.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;            importResult.setRuleChainId(ruleChain.getId());</b>
+<b class="nc">&nbsp;            importResult.setRuleChainName(ruleChain.getName());</b>
+<b class="nc">&nbsp;            importResults.add(importResult);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (CollectionUtils.isNotEmpty(ruleChainData.getMetadata())) {</b>
+<b class="nc">&nbsp;            ruleChainData.getMetadata().forEach(md -&gt; saveRuleChainMetaData(tenantId, md, ruleNodeUpdater));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return importResults;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void resetRuleChainMetadataTenantIds(TenantId tenantId, List&lt;RuleChainMetaData&gt; metaData) {
+<b class="nc">&nbsp;        for (RuleChainMetaData md : metaData) {</b>
+<b class="nc">&nbsp;            for (RuleNode node : md.getNodes()) {</b>
+<b class="nc">&nbsp;                JsonNode nodeConfiguration = node.getConfiguration();</b>
+<b class="nc">&nbsp;                searchTenantIdRecursive(tenantId, nodeConfiguration);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void searchTenantIdRecursive(TenantId tenantId, JsonNode node) {
+<b class="nc">&nbsp;        Iterator&lt;String&gt; iter = node.fieldNames();</b>
+<b class="nc">&nbsp;        boolean isTenantId = false;</b>
+<b class="nc">&nbsp;        while (iter.hasNext()) {</b>
+<b class="nc">&nbsp;            String field = iter.next();</b>
+<b class="nc">&nbsp;            if (&quot;entityType&quot;.equals(field) &amp;&amp; TENANT.equals(node.get(field).asText())) {</b>
+<b class="nc">&nbsp;                isTenantId = true;</b>
+&nbsp;                break;
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (isTenantId) {</b>
+<b class="nc">&nbsp;            ObjectNode objNode = (ObjectNode) node;</b>
+<b class="nc">&nbsp;            if (objNode.has(&quot;id&quot;)) {</b>
+<b class="nc">&nbsp;                objNode.put(&quot;id&quot;, tenantId.getId().toString());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            for (JsonNode jsonNode : node) {</b>
+<b class="nc">&nbsp;                searchTenantIdRecursive(tenantId, jsonNode);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setRandomRuleChainIds(RuleChainData ruleChainData) {
+<b class="nc">&nbsp;        for (RuleChain ruleChain : ruleChainData.getRuleChains()) {</b>
+<b class="nc">&nbsp;            RuleChainId oldRuleChainId = ruleChain.getId();</b>
+<b class="nc">&nbsp;            RuleChainId newRuleChainId = new RuleChainId(Uuids.timeBased());</b>
+<b class="nc">&nbsp;            setNewRuleChainId(ruleChain, ruleChainData.getMetadata(), oldRuleChainId, newRuleChainId);</b>
+<b class="nc">&nbsp;            ruleChain.setTenantId(null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void resetRuleNodeIds(List&lt;RuleChainMetaData&gt; metaData) {
+<b class="nc">&nbsp;        for (RuleChainMetaData md : metaData) {</b>
+<b class="nc">&nbsp;            for (RuleNode node : md.getNodes()) {</b>
+<b class="nc">&nbsp;                node.setId(null);</b>
+<b class="nc">&nbsp;                node.setRuleChainId(null);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setNewRuleChainId(RuleChain ruleChain, List&lt;RuleChainMetaData&gt; metadata, RuleChainId oldRuleChainId, RuleChainId newRuleChainId) {
+<b class="nc">&nbsp;        ruleChain.setId(newRuleChainId);</b>
+<b class="nc">&nbsp;        for (RuleChainMetaData metaData : metadata) {</b>
+<b class="nc">&nbsp;            if (metaData.getRuleChainId().equals(oldRuleChainId)) {</b>
+<b class="nc">&nbsp;                metaData.setRuleChainId(newRuleChainId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (!CollectionUtils.isEmpty(metaData.getRuleChainConnections())) {</b>
+<b class="nc">&nbsp;                for (RuleChainConnectionInfo rcConnInfo : metaData.getRuleChainConnections()) {</b>
+<b class="nc">&nbsp;                    if (rcConnInfo.getTargetRuleChainId().equals(oldRuleChainId)) {</b>
+<b class="nc">&nbsp;                        rcConnInfo.setTargetRuleChainId(newRuleChainId);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (!CollectionUtils.isEmpty(metaData.getNodes())) {</b>
+<b class="nc">&nbsp;                metaData.getNodes().stream()</b>
+<b class="nc">&nbsp;                        .filter(ruleNode -&gt; ruleNode.getType().equals(TB_RULE_CHAIN_INPUT_NODE))</b>
+<b class="nc">&nbsp;                        .forEach(ruleNode -&gt; {</b>
+<b class="nc">&nbsp;                            ObjectNode configuration = (ObjectNode) ruleNode.getConfiguration();</b>
+<b class="nc">&nbsp;                            if (configuration.has(&quot;ruleChainId&quot;)) {</b>
+<b class="nc">&nbsp;                                if (configuration.get(&quot;ruleChainId&quot;).asText().equals(oldRuleChainId.toString())) {</b>
+<b class="nc">&nbsp;                                    configuration.put(&quot;ruleChainId&quot;, newRuleChainId.toString());</b>
+<b class="nc">&nbsp;                                    ruleNode.setConfiguration(configuration);</b>
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        });
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain assignRuleChainToEdge(TenantId tenantId, RuleChainId ruleChainId, EdgeId edgeId) {
+<b class="nc">&nbsp;        RuleChain ruleChain = findRuleChainById(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        Edge edge = edgeService.findEdgeById(tenantId, edgeId);</b>
+<b class="nc">&nbsp;        if (edge == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign ruleChain to non-existent edge!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!edge.getTenantId().equals(ruleChain.getTenantId())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign ruleChain to edge from different tenant!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!RuleChainType.EDGE.equals(ruleChain.getType())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign non EDGE ruleChain to edge!&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            createRelation(tenantId, new EntityRelation(edgeId, ruleChainId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to create ruleChain relation. Edge Id: [{}]&quot;, ruleChainId, edgeId);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(ruleChainId)</b>
+<b class="nc">&nbsp;                .actionType(ActionType.ASSIGNED_TO_EDGE).body(JacksonUtil.toString(edge)).build());</b>
+<b class="nc">&nbsp;        return ruleChain;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain unassignRuleChainFromEdge(TenantId tenantId, RuleChainId ruleChainId, EdgeId edgeId, boolean remove) {
+<b class="nc">&nbsp;        RuleChain ruleChain = findRuleChainById(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        Edge edge = edgeService.findEdgeById(tenantId, edgeId);</b>
+<b class="nc">&nbsp;        if (edge == null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t unassign rule chain from non-existent edge!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!remove &amp;&amp; edge.getRootRuleChainId() != null &amp;&amp; edge.getRootRuleChainId().equals(ruleChainId)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t unassign root rule chain from edge [&quot; + edge.getName() + &quot;]. Please assign another root rule chain first!&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            deleteRelation(tenantId, new EntityRelation(edgeId, ruleChainId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to delete rule chain relation. Edge Id: [{}]&quot;, ruleChainId, edgeId);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).edgeId(edgeId).entityId(ruleChainId)</b>
+<b class="nc">&nbsp;                .actionType(ActionType.UNASSIGNED_FROM_EDGE).build());</b>
+<b class="nc">&nbsp;        return ruleChain;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;RuleChain&gt; findRuleChainsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findRuleChainsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]&quot;, tenantId, edgeId, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        Validator.validateId(edgeId, id -&gt; &quot;Incorrect edgeId &quot; + id);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findRuleChainsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChain getEdgeTemplateRootRuleChain(TenantId tenantId) {
+<b class="nc">&nbsp;        Validator.validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.EDGE);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean setEdgeTemplateRootRuleChain(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        RuleChain ruleChain = ruleChainDao.findById(tenantId, ruleChainId.getId());</b>
+<b class="nc">&nbsp;        RuleChain previousEdgeTemplateRootRuleChain = getEdgeTemplateRootRuleChain(ruleChain.getTenantId());</b>
+<b class="nc">&nbsp;        if (previousEdgeTemplateRootRuleChain == null || !previousEdgeTemplateRootRuleChain.getId().equals(ruleChain.getId())) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (previousEdgeTemplateRootRuleChain != null) {</b>
+<b class="nc">&nbsp;                    previousEdgeTemplateRootRuleChain.setRoot(false);</b>
+<b class="nc">&nbsp;                    ruleChainDao.save(tenantId, previousEdgeTemplateRootRuleChain);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                ruleChain.setRoot(true);</b>
+<b class="nc">&nbsp;                ruleChainDao.save(tenantId, ruleChain);</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to set edge template root rule chain, ruleChainId: [{}]&quot;, ruleChainId, e);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean setAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId) {
+&nbsp;        try {
+<b class="nc">&nbsp;            createRelation(tenantId, new EntityRelation(tenantId, ruleChainId,</b>
+&nbsp;                    EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_AUTO_ASSIGN_RULE_CHAIN));
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to set auto assign to edge rule chain, ruleChainId: [{}]&quot;, ruleChainId, e);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean unsetAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId) {
+&nbsp;        try {
+<b class="nc">&nbsp;            deleteRelation(tenantId, new EntityRelation(tenantId, ruleChainId,</b>
+&nbsp;                    EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_AUTO_ASSIGN_RULE_CHAIN));
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to unset auto assign to edge rule chain, ruleChainId: [{}]&quot;, ruleChainId, e);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;RuleChain&gt; findAutoAssignToEdgeRuleChainsByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAutoAssignToEdgeRuleChainsByTenantId, tenantId [{}], pageLink {}&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findAutoAssignToEdgeRuleChainsByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleNode&gt; findRuleNodesByTenantIdAndType(TenantId tenantId, String type, String search) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findRuleNodes, tenantId [{}], type {}, search {}&quot;, tenantId, type, search);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateString(type, &quot;Incorrect type of the rule node&quot;);</b>
+<b class="nc">&nbsp;        validateString(search, &quot;Incorrect search text&quot;);</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findRuleNodesByTenantIdAndType(tenantId, type, search);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleNode&gt; findRuleNodesByTenantIdAndType(TenantId tenantId, String type) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findRuleNodes, tenantId [{}], type {}&quot;, tenantId, type);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateString(type, &quot;Incorrect type of the rule node&quot;);</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findRuleNodesByTenantIdAndType(tenantId, type, &quot;&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;RuleNode&gt; findAllRuleNodesByType(String type, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllRuleNodesByType, type {}, pageLink {}&quot;, type, pageLink);</b>
+<b class="nc">&nbsp;        validateString(type, &quot;Incorrect type of the rule node&quot;);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findAllRuleNodesByType(type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;RuleNode&gt; findAllRuleNodesByTypeAndVersionLessThan(String type, int version, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllRuleNodesByTypeAndVersionLessThan, type {}, pageLink {}, version {}&quot;, type, pageLink, version);</b>
+<b class="nc">&nbsp;        validateString(type, &quot;Incorrect type of the rule node&quot;);</b>
+<b class="nc">&nbsp;        validatePositiveNumber(version, &quot;Incorrect version to compare with. Version should be greater than 0!&quot;);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findAllRuleNodesByTypeAndVersionLessThan(type, version, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;RuleNodeId&gt; findAllRuleNodeIdsByTypeAndVersionLessThan(String type, int version, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllRuleNodeIdsByTypeAndVersionLessThan, type {}, pageLink {}, version {}&quot;, type, pageLink, version);</b>
+<b class="nc">&nbsp;        validateString(type, &quot;Incorrect type of the rule node&quot;);</b>
+<b class="nc">&nbsp;        validatePositiveNumber(version, &quot;Incorrect version to compare with. Version should be greater than 0!&quot;);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findAllRuleNodeIdsByTypeAndVersionLessThan(type, version, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleNode&gt; findAllRuleNodesByIds(List&lt;RuleNodeId&gt; ruleNodeIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllRuleNodesByIds, ruleNodeIds {}&quot;, ruleNodeIds);</b>
+<b class="nc">&nbsp;        validateIds(ruleNodeIds, ids -&gt; &quot;Incorrect ruleNodeIds &quot; + ids);</b>
+<b class="nc">&nbsp;        assert ruleNodeIds.size() &lt;= 1024;</b>
+<b class="nc">&nbsp;        return ruleNodeDao.findAllRuleNodeByIds(ruleNodeIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleNode saveRuleNode(TenantId tenantId, RuleNode ruleNode) {
+<b class="nc">&nbsp;        return ruleNodeDao.save(tenantId, ruleNode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkRuleNodesAndDelete(TenantId tenantId, RuleChain ruleChain, Set&lt;RuleChainId&gt; referencingRuleChainIds) {
+&nbsp;        try {
+<b class="nc">&nbsp;            entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.RULE_CHAIN);</b>
+<b class="nc">&nbsp;            ruleChainDao.removeById(tenantId, ruleChain.getUuidId());</b>
+&nbsp;
+<b class="nc">&nbsp;            if (referencingRuleChainIds != null) {</b>
+<b class="nc">&nbsp;                referencingRuleChainIds.remove(ruleChain.getId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(ruleChain.getId()).entity(ruleChain).body(JacksonUtil.toString(referencingRuleChainIds)).build());</b>
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);</b>
+<b class="nc">&nbsp;            if (e != null &amp;&amp; e.getConstraintName() != null &amp;&amp; e.getConstraintName().equalsIgnoreCase(&quot;fk_default_rule_chain_device_profile&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;The rule chain referenced by the device profiles cannot be deleted!&quot;);</b>
+<b class="nc">&nbsp;            } else if (e != null &amp;&amp; e.getConstraintName() != null &amp;&amp; e.getConstraintName().equalsIgnoreCase(&quot;fk_default_rule_chain_asset_profile&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;The rule chain referenced by the asset profiles cannot be deleted!&quot;);</b>
+&nbsp;            } else {
+&nbsp;                throw t;
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        deleteRuleNodes(tenantId, ruleChain.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteRuleNodes(TenantId tenantId, List&lt;RuleNode&gt; ruleNodes) {
+<b class="nc">&nbsp;        List&lt;RuleNodeId&gt; ruleNodeIds = ruleNodes.stream().map(RuleNode::getId).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        ruleNodeDao.deleteByIdIn(ruleNodeIds);</b>
+<b class="nc">&nbsp;        for (var nodeId : ruleNodeIds) {</b>
+<b class="nc">&nbsp;            cleanUpService.cleanUpRelatedData(tenantId, nodeId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteRuleNodes(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        List&lt;EntityRelation&gt; nodeRelations = getRuleChainToNodeRelations(tenantId, ruleChainId);</b>
+<b class="nc">&nbsp;        for (EntityRelation relation : nodeRelations) {</b>
+<b class="nc">&nbsp;            deleteRuleNode(tenantId, relation.getTo());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleChain&gt; findRuleChainsByIds(TenantId tenantId, List&lt;RuleChainId&gt; ruleChainIds) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findRuleChainsByIds, tenantId [{}], ruleChainIds [{}]&quot;, tenantId, ruleChainIds);</b>
+<b class="nc">&nbsp;        return ruleChainDao.findRuleChainsByTenantIdAndIds(tenantId.getId(), toUUIDs(ruleChainIds));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        HasId&lt;?&gt; hasId = EntityType.RULE_NODE.equals(entityId.getEntityType()) ?</b>
+<b class="nc">&nbsp;                findRuleNodeById(tenantId, new RuleNodeId(entityId.getId())) :</b>
+<b class="nc">&nbsp;                findRuleChainById(tenantId, new RuleChainId(entityId.getId()));</b>
+<b class="nc">&nbsp;        return Optional.ofNullable(hasId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+&nbsp;        ListenableFuture&lt;? extends BaseDataWithAdditionalInfo&lt;? extends UUIDBased&gt;&gt; future;
+<b class="nc">&nbsp;        if (entityId.getEntityType() == EntityType.RULE_NODE) {</b>
+<b class="nc">&nbsp;            future = findRuleNodeByIdAsync(tenantId, new RuleNodeId(entityId.getId()));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            future = findRuleChainByIdAsync(tenantId, new RuleChainId(entityId.getId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return FluentFuture.from(future).transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        return ruleChainDao.countByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.RULE_CHAIN;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityRelation&gt; getRuleChainToNodeRelations(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        return relationService.findByFrom(tenantId, ruleChainId, RelationTypeGroup.RULE_CHAIN);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityRelation&gt; getNodeToRuleChainRelations(TenantId tenantId, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        return relationService.findByTo(tenantId, ruleChainId, RelationTypeGroup.RULE_NODE);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteRuleNode(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        ruleNodeDao.removeById(tenantId, entityId.getId());</b>
+<b class="nc">&nbsp;        cleanUpService.cleanUpRelatedData(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, RuleChain&gt; tenantRuleChainsRemover =</b>
+<b class="nc">&nbsp;            new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;                @Override
+&nbsp;                protected PageData&lt;RuleChain&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;                    return ruleChainDao.findRuleChainsByTenantId(id.getId(), pageLink);</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                @Override
+&nbsp;                protected void removeEntity(TenantId tenantId, RuleChain entity) {
+<b class="nc">&nbsp;                    checkRuleNodesAndDelete(tenantId, entity, null);</b>
+&nbsp;                }
+&nbsp;            };
+&nbsp;
+&nbsp;    private void setSingletonMode(RuleNode ruleNode) {
+&nbsp;        boolean singletonMode;
+&nbsp;        try {
+<b class="nc">&nbsp;            ComponentClusteringMode nodeConfigType = ReflectionUtils.getAnnotationProperty(ruleNode.getType(),</b>
+&nbsp;                    &quot;org.thingsboard.rule.engine.api.RuleNode&quot;, &quot;clusteringMode&quot;);
+&nbsp;
+<b class="nc">&nbsp;            singletonMode = switch (nodeConfigType) {</b>
+<b class="nc">&nbsp;                case ENABLED -&gt; false;</b>
+<b class="nc">&nbsp;                case SINGLETON -&gt; true;</b>
+<b class="nc">&nbsp;                default -&gt; ruleNode.isSingletonMode();</b>
+&nbsp;            };
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to get clustering mode: {}&quot;, ExceptionUtils.getRootCauseMessage(e));</b>
+<b class="nc">&nbsp;            singletonMode = false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ruleNode.setSingletonMode(singletonMode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

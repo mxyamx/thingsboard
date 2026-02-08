@@ -1,0 +1,607 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AuditLogServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.audit</a>
+</div>
+
+<h1>Coverage Summary for Class: AuditLogServiceImpl (org.thingsboard.server.dao.audit)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AuditLogServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/85)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/182)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AuditLogServiceImpl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/85)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/183)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.audit;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ArrayNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import jakarta.validation.constraints.NotNull;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.HasName;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmComment;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionStatus;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.audit.AuditLog;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.TimePageLink;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+&nbsp;import org.thingsboard.server.common.data.security.DeviceCredentials;
+&nbsp;import org.thingsboard.server.dao.audit.sink.AuditLogSink;
+&nbsp;import org.thingsboard.server.dao.device.provision.ProvisionRequest;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.sql.JpaExecutorService;
+&nbsp;
+&nbsp;import java.io.PrintWriter;
+&nbsp;import java.io.StringWriter;
+&nbsp;import java.util.List;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateEntityId;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@ConditionalOnProperty(prefix = &quot;audit-log&quot;, value = &quot;enabled&quot;, havingValue = &quot;true&quot;)
+<b class="nc">&nbsp;public class AuditLogServiceImpl implements AuditLogService {</b>
+&nbsp;
+&nbsp;    private static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AuditLogLevelFilter auditLogLevelFilter;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AuditLogDao auditLogDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityService entityService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AuditLogSink auditLogSink;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private JpaExecutorService executor;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;AuditLog&gt; auditLogValidator;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAuditLogsByTenantIdAndCustomerId [{}], [{}], [{}]&quot;, tenantId, customerId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; &quot;Incorrect customerId &quot; + id);</b>
+<b class="nc">&nbsp;        return auditLogDao.findAuditLogsByTenantIdAndCustomerId(tenantId.getId(), customerId, actionTypes, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantIdAndUserId(TenantId tenantId, UserId userId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAuditLogsByTenantIdAndUserId [{}], [{}], [{}]&quot;, tenantId, userId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(userId, id -&gt; &quot;Incorrect userId&quot; + id);</b>
+<b class="nc">&nbsp;        return auditLogDao.findAuditLogsByTenantIdAndUserId(tenantId.getId(), userId, actionTypes, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAuditLogsByTenantIdAndEntityId [{}], [{}], [{}]&quot;, tenantId, entityId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateEntityId(entityId, id -&gt; &quot;Incorrect entityId&quot; + id);</b>
+<b class="nc">&nbsp;        return auditLogDao.findAuditLogsByTenantIdAndEntityId(tenantId.getId(), entityId, actionTypes, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantId(TenantId tenantId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAuditLogs [{}]&quot;, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return auditLogDao.findAuditLogsByTenantId(tenantId.getId(), actionTypes, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends HasName, I extends EntityId&gt; ListenableFuture&lt;Void&gt;
+&nbsp;    logEntityAction(TenantId tenantId, CustomerId customerId, UserId userId, String userName, @NotNull I entityId, E entity,
+&nbsp;                    ActionType actionType, Exception e, Object... additionalInfo) {
+<b class="nc">&nbsp;        if (canLog(entityId.getEntityType(), actionType) || (tenantId != null &amp;&amp; tenantId.isSysTenantId())) {</b>
+<b class="nc">&nbsp;            JsonNode actionData = constructActionData(entityId, entity, actionType, additionalInfo);</b>
+<b class="nc">&nbsp;            ActionStatus actionStatus = ActionStatus.SUCCESS;</b>
+<b class="nc">&nbsp;            String failureDetails = &quot;&quot;;</b>
+<b class="nc">&nbsp;            String entityName = getEntityName(tenantId, entityId, entity, actionType);</b>
+<b class="nc">&nbsp;            if (e != null) {</b>
+<b class="nc">&nbsp;                actionStatus = ActionStatus.FAILURE;</b>
+<b class="nc">&nbsp;                failureDetails = getFailureStack(e);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (actionType == ActionType.RPC_CALL) {</b>
+<b class="nc">&nbsp;                String rpcErrorString = extractParameter(String.class, additionalInfo);</b>
+<b class="nc">&nbsp;                if (!StringUtils.isEmpty(rpcErrorString)) {</b>
+<b class="nc">&nbsp;                    actionStatus = ActionStatus.FAILURE;</b>
+<b class="nc">&nbsp;                    failureDetails = rpcErrorString;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return logAction(tenantId,</b>
+&nbsp;                    entityId,
+&nbsp;                    entityName,
+&nbsp;                    customerId,
+&nbsp;                    userId,
+&nbsp;                    userName,
+&nbsp;                    actionType,
+&nbsp;                    actionData,
+&nbsp;                    actionStatus,
+&nbsp;                    failureDetails);
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;E extends HasName, I extends EntityId&gt; String getEntityName(TenantId tenantId, I entityId, E entity, ActionType actionType) {
+<b class="nc">&nbsp;        if (entity == null) {</b>
+<b class="nc">&nbsp;            return fetchEntityName(tenantId, entityId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!actionType.isAlarmAction()) {</b>
+<b class="nc">&nbsp;            return entity.getName();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (entity instanceof AlarmInfo alarmInfo) {</b>
+<b class="nc">&nbsp;            return alarmInfo.getOriginatorName();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return fetchEntityName(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;I extends EntityId&gt; String fetchEntityName(TenantId tenantId, I entityId) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return entityService.fetchEntityName(tenantId, entityId).orElse(&quot;N/A&quot;);</b>
+&nbsp;        } catch (Exception ignored) {
+<b class="nc">&nbsp;            return &quot;N/A&quot;;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;E extends HasName, I extends EntityId&gt; JsonNode constructActionData(I entityId, E entity,
+&nbsp;                                                                                 ActionType actionType,
+&nbsp;                                                                                 Object... additionalInfo) {
+<b class="nc">&nbsp;        ObjectNode actionData = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;        switch (actionType) {</b>
+&nbsp;            case ADDED:
+&nbsp;            case UPDATED:
+&nbsp;            case ALARM_ACK:
+&nbsp;            case ALARM_CLEAR:
+&nbsp;            case ALARM_ASSIGNED:
+&nbsp;            case ALARM_UNASSIGNED:
+&nbsp;            case RELATIONS_DELETED:
+&nbsp;            case ASSIGNED_TO_TENANT:
+<b class="nc">&nbsp;                if (entity != null) {</b>
+<b class="nc">&nbsp;                    ObjectNode entityNode = (ObjectNode) JacksonUtil.valueToTree(entity);</b>
+<b class="nc">&nbsp;                    if (entityId.getEntityType() == EntityType.DASHBOARD) {</b>
+<b class="nc">&nbsp;                        entityNode.put(&quot;configuration&quot;, &quot;&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    actionData.set(&quot;entity&quot;, entityNode);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (entityId.getEntityType() == EntityType.RULE_CHAIN) {</b>
+<b class="nc">&nbsp;                    RuleChainMetaData ruleChainMetaData = extractParameter(RuleChainMetaData.class, additionalInfo);</b>
+<b class="nc">&nbsp;                    if (ruleChainMetaData != null) {</b>
+<b class="nc">&nbsp;                        ObjectNode ruleChainMetaDataNode = (ObjectNode) JacksonUtil.valueToTree(ruleChainMetaData);</b>
+<b class="nc">&nbsp;                        actionData.set(&quot;metadata&quot;, ruleChainMetaDataNode);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            case ADDED_COMMENT:
+&nbsp;            case UPDATED_COMMENT:
+&nbsp;            case DELETED_COMMENT:
+<b class="nc">&nbsp;                AlarmComment comment = extractParameter(AlarmComment.class, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.set(&quot;comment&quot;, comment.getComment());</b>
+&nbsp;                break;
+&nbsp;            case ALARM_DELETE:
+<b class="nc">&nbsp;                EntityId alarmId = extractParameter(EntityId.class, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;alarmId&quot;, alarmId != null ? alarmId.toString() : null);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;originatorId&quot;, entityId.toString());</b>
+&nbsp;                break;
+&nbsp;            case DELETED:
+&nbsp;            case ACTIVATED:
+&nbsp;            case SUSPENDED:
+&nbsp;            case CREDENTIALS_READ:
+<b class="nc">&nbsp;                String strEntityId = extractParameter(String.class, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, strEntityId);</b>
+&nbsp;                break;
+&nbsp;            case ATTRIBUTES_UPDATED:
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, entityId.toString());</b>
+<b class="nc">&nbsp;                AttributeScope scope = extractParameter(AttributeScope.class, 0, additionalInfo);</b>
+&nbsp;                @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;                List&lt;AttributeKvEntry&gt; attributes = extractParameter(List.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;scope&quot;, scope.name());</b>
+<b class="nc">&nbsp;                ObjectNode attrsNode = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;                if (attributes != null) {</b>
+<b class="nc">&nbsp;                    for (AttributeKvEntry attr : attributes) {</b>
+<b class="nc">&nbsp;                        attrsNode.put(attr.getKey(), attr.getValueAsString());</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                actionData.set(&quot;attributes&quot;, attrsNode);</b>
+&nbsp;                break;
+&nbsp;            case ATTRIBUTES_DELETED:
+&nbsp;            case ATTRIBUTES_READ:
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, entityId.toString());</b>
+<b class="nc">&nbsp;                scope = extractParameter(AttributeScope.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;scope&quot;, scope.name());</b>
+&nbsp;                @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;                List&lt;String&gt; keys = extractParameter(List.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                ArrayNode attrsArrayNode = actionData.putArray(&quot;attributes&quot;);</b>
+<b class="nc">&nbsp;                if (keys != null) {</b>
+<b class="nc">&nbsp;                    keys.forEach(attrsArrayNode::add);</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            case RPC_CALL:
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, entityId.toString());</b>
+<b class="nc">&nbsp;                Boolean oneWay = extractParameter(Boolean.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                String method = extractParameter(String.class, 2, additionalInfo);</b>
+<b class="nc">&nbsp;                String params = extractParameter(String.class, 3, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;oneWay&quot;, oneWay);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;method&quot;, method);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;params&quot;, params);</b>
+&nbsp;                break;
+&nbsp;            case CREDENTIALS_UPDATED:
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, entityId.toString());</b>
+<b class="nc">&nbsp;                DeviceCredentials deviceCredentials = extractParameter(DeviceCredentials.class, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.set(&quot;credentials&quot;, JacksonUtil.valueToTree(deviceCredentials));</b>
+&nbsp;                break;
+&nbsp;            case ASSIGNED_TO_CUSTOMER:
+<b class="nc">&nbsp;                strEntityId = extractParameter(String.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                String strCustomerId = extractParameter(String.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                String strCustomerName = extractParameter(String.class, 2, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, strEntityId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;assignedCustomerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;assignedCustomerName&quot;, strCustomerName);</b>
+&nbsp;                break;
+&nbsp;            case UNASSIGNED_FROM_CUSTOMER:
+<b class="nc">&nbsp;                strEntityId = extractParameter(String.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                strCustomerId = extractParameter(String.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                strCustomerName = extractParameter(String.class, 2, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, strEntityId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;unassignedCustomerId&quot;, strCustomerId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;unassignedCustomerName&quot;, strCustomerName);</b>
+&nbsp;                break;
+&nbsp;            case RELATION_ADD_OR_UPDATE:
+&nbsp;            case RELATION_DELETED:
+<b class="nc">&nbsp;                EntityRelation relation = extractParameter(EntityRelation.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.set(&quot;relation&quot;, JacksonUtil.valueToTree(relation));</b>
+&nbsp;                break;
+&nbsp;            case LOGIN:
+&nbsp;            case LOGOUT:
+&nbsp;            case LOCKOUT:
+<b class="nc">&nbsp;                String clientAddress = extractParameter(String.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                String browser = extractParameter(String.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                String os = extractParameter(String.class, 2, additionalInfo);</b>
+<b class="nc">&nbsp;                String device = extractParameter(String.class, 3, additionalInfo);</b>
+<b class="nc">&nbsp;                String provider = extractParameter(String.class, 4, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;clientAddress&quot;, clientAddress);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;browser&quot;, browser);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;os&quot;, os);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;device&quot;, device);</b>
+<b class="nc">&nbsp;                if (StringUtils.hasText(provider)) {</b>
+<b class="nc">&nbsp;                    actionData.put(&quot;provider&quot;, provider);</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            case PROVISION_SUCCESS:
+&nbsp;            case PROVISION_FAILURE:
+<b class="nc">&nbsp;                ProvisionRequest request = extractParameter(ProvisionRequest.class, additionalInfo);</b>
+<b class="nc">&nbsp;                if (request != null) {</b>
+<b class="nc">&nbsp;                    actionData.set(&quot;provisionRequest&quot;, JacksonUtil.valueToTree(request));</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            case TIMESERIES_UPDATED:
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, entityId.toString());</b>
+&nbsp;                @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;                List&lt;TsKvEntry&gt; updatedTimeseries = extractParameter(List.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                if (updatedTimeseries != null) {</b>
+<b class="nc">&nbsp;                    ArrayNode result = actionData.putArray(&quot;timeseries&quot;);</b>
+<b class="nc">&nbsp;                    updatedTimeseries.stream()</b>
+<b class="nc">&nbsp;                            .collect(Collectors.groupingBy(TsKvEntry::getTs))</b>
+<b class="nc">&nbsp;                            .forEach((k, v) -&gt; {</b>
+<b class="nc">&nbsp;                                ObjectNode element = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;                                element.put(&quot;ts&quot;, k);</b>
+<b class="nc">&nbsp;                                ObjectNode values = element.putObject(&quot;values&quot;);</b>
+<b class="nc">&nbsp;                                v.forEach(kvEntry -&gt; values.put(kvEntry.getKey(), kvEntry.getValueAsString()));</b>
+<b class="nc">&nbsp;                                result.add(element);</b>
+&nbsp;                            });
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            case TIMESERIES_DELETED:
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, entityId.toString());</b>
+&nbsp;                @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;                List&lt;String&gt; timeseriesKeys = extractParameter(List.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                if (timeseriesKeys != null) {</b>
+<b class="nc">&nbsp;                    ArrayNode timeseriesArrayNode = actionData.putArray(&quot;timeseries&quot;);</b>
+<b class="nc">&nbsp;                    timeseriesKeys.forEach(timeseriesArrayNode::add);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                actionData.put(&quot;startTs&quot;, extractParameter(Long.class, 1, additionalInfo));</b>
+<b class="nc">&nbsp;                actionData.put(&quot;endTs&quot;, extractParameter(Long.class, 2, additionalInfo));</b>
+&nbsp;                break;
+&nbsp;            case ASSIGNED_TO_EDGE:
+<b class="nc">&nbsp;                strEntityId = extractParameter(String.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                String strEdgeId = extractParameter(String.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                String strEdgeName = extractParameter(String.class, 2, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, strEntityId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;assignedEdgeId&quot;, strEdgeId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;assignedEdgeName&quot;, strEdgeName);</b>
+&nbsp;                break;
+&nbsp;            case UNASSIGNED_FROM_EDGE:
+<b class="nc">&nbsp;                strEntityId = extractParameter(String.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                strEdgeId = extractParameter(String.class, 1, additionalInfo);</b>
+<b class="nc">&nbsp;                strEdgeName = extractParameter(String.class, 2, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;entityId&quot;, strEntityId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;unassignedEdgeId&quot;, strEdgeId);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;unassignedEdgeName&quot;, strEdgeName);</b>
+&nbsp;                break;
+&nbsp;            case SMS_SENT:
+<b class="nc">&nbsp;                String number = extractParameter(String.class, 0, additionalInfo);</b>
+<b class="nc">&nbsp;                actionData.put(&quot;recipientNumber&quot;, number);</b>
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        return actionData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; T extractParameter(Class&lt;T&gt; clazz, Object... additionalInfo) {
+<b class="nc">&nbsp;        return extractParameter(clazz, 0, additionalInfo);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; T extractParameter(Class&lt;T&gt; clazz, int index, Object... additionalInfo) {
+<b class="nc">&nbsp;        T result = null;</b>
+<b class="nc">&nbsp;        if (additionalInfo != null &amp;&amp; additionalInfo.length &gt; index) {</b>
+<b class="nc">&nbsp;            Object paramObject = additionalInfo[index];</b>
+<b class="nc">&nbsp;            if (clazz.isInstance(paramObject)) {</b>
+<b class="nc">&nbsp;                result = clazz.cast(paramObject);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getFailureStack(Exception e) {
+<b class="nc">&nbsp;        StringWriter sw = new StringWriter();</b>
+<b class="nc">&nbsp;        e.printStackTrace(new PrintWriter(sw));</b>
+<b class="nc">&nbsp;        return sw.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean canLog(EntityType entityType, ActionType actionType) {
+<b class="nc">&nbsp;        return auditLogLevelFilter.logEnabled(entityType, actionType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AuditLog createAuditLogEntry(TenantId tenantId,
+&nbsp;                                         EntityId entityId,
+&nbsp;                                         String entityName,
+&nbsp;                                         CustomerId customerId,
+&nbsp;                                         UserId userId,
+&nbsp;                                         String userName,
+&nbsp;                                         ActionType actionType,
+&nbsp;                                         JsonNode actionData,
+&nbsp;                                         ActionStatus actionStatus,
+&nbsp;                                         String actionFailureDetails) {
+<b class="nc">&nbsp;        AuditLog result = new AuditLog();</b>
+<b class="nc">&nbsp;        result.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        result.setEntityId(entityId);</b>
+<b class="nc">&nbsp;        result.setEntityName(entityName);</b>
+<b class="nc">&nbsp;        result.setCustomerId(customerId);</b>
+<b class="nc">&nbsp;        result.setUserId(userId);</b>
+<b class="nc">&nbsp;        result.setUserName(userName);</b>
+<b class="nc">&nbsp;        result.setActionType(actionType);</b>
+<b class="nc">&nbsp;        result.setActionData(actionData);</b>
+<b class="nc">&nbsp;        result.setActionStatus(actionStatus);</b>
+<b class="nc">&nbsp;        result.setActionFailureDetails(actionFailureDetails);</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; logAction(TenantId tenantId,
+&nbsp;                                             EntityId entityId,
+&nbsp;                                             String entityName,
+&nbsp;                                             CustomerId customerId,
+&nbsp;                                             UserId userId,
+&nbsp;                                             String userName,
+&nbsp;                                             ActionType actionType,
+&nbsp;                                             JsonNode actionData,
+&nbsp;                                             ActionStatus actionStatus,
+&nbsp;                                             String actionFailureDetails) {
+<b class="nc">&nbsp;        AuditLog auditLogEntry = createAuditLogEntry(tenantId, entityId, entityName, customerId, userId, userName,</b>
+&nbsp;                actionType, actionData, actionStatus, actionFailureDetails);
+<b class="nc">&nbsp;        log.trace(&quot;Executing logAction [{}]&quot;, auditLogEntry);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            auditLogValidator.validate(auditLogEntry, AuditLog::getTenantId);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            if (StringUtils.contains(e.getMessage(), &quot;is malformed&quot;)) {</b>
+<b class="nc">&nbsp;                auditLogEntry.setEntityName(&quot;MALFORMED&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return Futures.immediateFailedFuture(e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return executor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                AuditLog auditLog = auditLogDao.save(tenantId, auditLogEntry);</b>
+<b class="nc">&nbsp;                auditLogSink.logAction(auditLog);</b>
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.error(&quot;[{}] Failed to save audit log: {}&quot;, tenantId, auditLogEntry, e);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

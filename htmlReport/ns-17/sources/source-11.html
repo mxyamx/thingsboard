@@ -1,0 +1,269 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RetransmissionHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.mqtt</a>
+</div>
+
+<h1>Coverage Summary for Class: RetransmissionHandler (org.thingsboard.mqtt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RetransmissionHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.mqtt;
+&nbsp;
+&nbsp;import io.netty.channel.EventLoop;
+&nbsp;import io.netty.handler.codec.mqtt.MqttFixedHeader;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessageType;
+&nbsp;import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
+&nbsp;import io.netty.handler.codec.mqtt.MqttQoS;
+&nbsp;import io.netty.util.concurrent.ScheduledFuture;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.Setter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;
+&nbsp;import java.util.concurrent.ThreadLocalRandom;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;final class RetransmissionHandler&lt;T extends MqttMessage&gt; {
+&nbsp;
+&nbsp;    private final MqttClientConfig.RetransmissionConfig config;
+&nbsp;    private final PendingOperation pendingOperation;
+&nbsp;
+&nbsp;    private volatile boolean stopped;
+&nbsp;    private ScheduledFuture&lt;?&gt; timer;
+&nbsp;    private int attemptCount = 0;
+&nbsp;
+&nbsp;    @Setter
+&nbsp;    private BiConsumer&lt;MqttFixedHeader, T&gt; handler;
+&nbsp;
+&nbsp;    // the three fields below are used for logging only
+&nbsp;    private final String ownerId;
+&nbsp;    private String originalMessageId;
+&nbsp;    private long totalWaitingTimeMillis;
+&nbsp;
+&nbsp;    private T originalMessage;
+&nbsp;
+&nbsp;    void setOriginalMessage(T originalMessage) {
+<b class="nc">&nbsp;        this.originalMessage = originalMessage;</b>
+<b class="nc">&nbsp;        var variableHeader = originalMessage.variableHeader();</b>
+<b class="nc">&nbsp;        if (variableHeader instanceof MqttMessageIdVariableHeader messageIdVariableHeader) {</b>
+<b class="nc">&nbsp;            originalMessageId = String.valueOf(messageIdVariableHeader.messageId());</b>
+<b class="nc">&nbsp;        } else if (variableHeader instanceof MqttPublishVariableHeader publishVariableHeader) {</b>
+<b class="nc">&nbsp;            originalMessageId = String.valueOf(publishVariableHeader.packetId());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            originalMessageId = &quot;N/A&quot;;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    void start(EventLoop eventLoop) {
+<b class="nc">&nbsp;        if (eventLoop == null) {</b>
+<b class="nc">&nbsp;            throw new NullPointerException(&quot;eventLoop&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (handler == null) {</b>
+<b class="nc">&nbsp;            throw new NullPointerException(&quot;handler&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.debug(&quot;{}MessageID[{}] Starting retransmission handler&quot;, ownerId, originalMessageId);</b>
+<b class="nc">&nbsp;        startTimer(eventLoop);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void startTimer(EventLoop eventLoop) {
+<b class="nc">&nbsp;        if (stopped || pendingOperation.isCancelled()) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        // Calculate the base delay using exponential backoff.
+&nbsp;        // For attemptCount == 0, delay = initial delay; for each subsequent attempt, the base delay doubles.
+<b class="nc">&nbsp;        long baseDelay = config.initialDelayMillis() * (long) Math.pow(2, attemptCount);</b>
+&nbsp;        // Apply jitter: random factor between (1 - jitterFactor) and (1 + jitterFactor).
+<b class="nc">&nbsp;        double minFactor = 1.0 - config.jitterFactor();</b>
+<b class="nc">&nbsp;        double maxFactor = 1.0 + config.jitterFactor();</b>
+<b class="nc">&nbsp;        double randomFactor = config.jitterFactor() == 0 ? 1 : ThreadLocalRandom.current().nextDouble(minFactor, maxFactor);</b>
+<b class="nc">&nbsp;        long delayMillisWithJitter = (long) (baseDelay * randomFactor);</b>
+<b class="nc">&nbsp;        totalWaitingTimeMillis += delayMillisWithJitter;</b>
+&nbsp;
+<b class="nc">&nbsp;        timer = eventLoop.schedule(() -&gt; {</b>
+<b class="nc">&nbsp;            if (stopped || pendingOperation.isCancelled()) {</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            attemptCount++;</b>
+<b class="nc">&nbsp;            if (attemptCount &gt; config.maxAttempts()) {</b>
+<b class="nc">&nbsp;                log.debug(</b>
+&nbsp;                        &quot;{}MessageID[{}] Gave up after {} retransmission attempts; waited a total of {} ms without receiving acknowledgement&quot;,
+<b class="nc">&nbsp;                        ownerId, originalMessageId, config.maxAttempts(), totalWaitingTimeMillis</b>
+&nbsp;                );
+<b class="nc">&nbsp;                stop();</b>
+<b class="nc">&nbsp;                pendingOperation.onMaxRetransmissionAttemptsReached();</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            log.debug(&quot;{}MessageID[{}] Retransmission attempt #{} out of {}&quot;, ownerId, originalMessageId, attemptCount, config.maxAttempts());</b>
+&nbsp;
+<b class="nc">&nbsp;            var originalFixedHeader = originalMessage.fixedHeader();</b>
+<b class="nc">&nbsp;            var newFixedHeader = new MqttFixedHeader(</b>
+<b class="nc">&nbsp;                    originalFixedHeader.messageType(),</b>
+<b class="nc">&nbsp;                    isDup(originalFixedHeader),</b>
+<b class="nc">&nbsp;                    originalFixedHeader.qosLevel(),</b>
+<b class="nc">&nbsp;                    originalFixedHeader.isRetain(),</b>
+<b class="nc">&nbsp;                    originalFixedHeader.remainingLength()</b>
+&nbsp;            );
+<b class="nc">&nbsp;            handler.accept(newFixedHeader, originalMessage);</b>
+<b class="nc">&nbsp;            startTimer(eventLoop);</b>
+&nbsp;        }, delayMillisWithJitter, TimeUnit.MILLISECONDS);
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean isDup(MqttFixedHeader originalFixedHeader) {
+<b class="nc">&nbsp;        return originalFixedHeader.isDup() || (originalFixedHeader.messageType() == MqttMessageType.PUBLISH &amp;&amp; originalFixedHeader.qosLevel() != MqttQoS.AT_MOST_ONCE);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void stop() {
+<b class="nc">&nbsp;        log.debug(&quot;{}MessageID[{}] Stopping retransmission handler&quot;, ownerId, originalMessageId);</b>
+<b class="nc">&nbsp;        stopped = true;</b>
+<b class="nc">&nbsp;        if (timer != null) {</b>
+<b class="nc">&nbsp;            timer.cancel(true);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

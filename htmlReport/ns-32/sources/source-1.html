@@ -1,0 +1,268 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbNotificationNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.notification</a>
+</div>
+
+<h1>Coverage Summary for Class: TbNotificationNode (org.thingsboard.rule.engine.notification)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbNotificationNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbNotificationNode$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.notification;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import org.thingsboard.common.util.DonAsynchron;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.external.TbAbstractExternalNode;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequest;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestStats;
+&nbsp;import org.thingsboard.server.common.data.notification.info.RuleEngineOriginatedNotificationInfo;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.EXTERNAL,
+&nbsp;        name = &quot;send notification&quot;,
+&nbsp;        configClazz = TbNotificationNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Sends notification to targets using the template&quot;,
+&nbsp;        nodeDetails = &quot;Will send notification to the specified targets using the template&quot;,
+&nbsp;        configDirective = &quot;tbExternalNodeNotificationConfig&quot;,
+&nbsp;        icon = &quot;notifications&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/external/send-notification/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbNotificationNode extends TbAbstractExternalNode {</b>
+&nbsp;
+&nbsp;    private TbNotificationNodeConfiguration config;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        super.init(ctx);</b>
+<b class="nc">&nbsp;        config = TbNodeUtils.convert(configuration, TbNotificationNodeConfiguration.class);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+<b class="nc">&nbsp;        RuleEngineOriginatedNotificationInfo notificationInfo = RuleEngineOriginatedNotificationInfo.builder()</b>
+<b class="nc">&nbsp;                .msgOriginator(msg.getOriginator())</b>
+<b class="nc">&nbsp;                .msgCustomerId(msg.getOriginator().getEntityType() == EntityType.CUSTOMER</b>
+<b class="nc">&nbsp;                        &amp;&amp; msg.getOriginator().equals(msg.getCustomerId()) ? null : msg.getCustomerId())</b>
+<b class="nc">&nbsp;                .msgMetadata(msg.getMetaData().getData())</b>
+<b class="nc">&nbsp;                .msgData(JacksonUtil.toFlatMap(JacksonUtil.toJsonNode(msg.getData())))</b>
+<b class="nc">&nbsp;                .msgType(msg.getType())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        NotificationRequest notificationRequest = NotificationRequest.builder()</b>
+<b class="nc">&nbsp;                .tenantId(ctx.getTenantId())</b>
+<b class="nc">&nbsp;                .targets(config.getTargets())</b>
+<b class="nc">&nbsp;                .templateId(config.getTemplateId())</b>
+<b class="nc">&nbsp;                .info(notificationInfo)</b>
+<b class="nc">&nbsp;                .additionalConfig(new NotificationRequestConfig())</b>
+<b class="nc">&nbsp;                .originatorEntityId(ctx.getSelf().getRuleChainId())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        var tbMsg = ackIfNeeded(ctx, msg);</b>
+&nbsp;
+<b class="nc">&nbsp;        var callback = new FutureCallback&lt;NotificationRequestStats&gt;() {</b>
+&nbsp;            @Override
+&nbsp;            public void onSuccess(NotificationRequestStats stats) {
+<b class="nc">&nbsp;                TbMsgMetaData metaData = tbMsg.getMetaData().copy();</b>
+<b class="nc">&nbsp;                metaData.putValue(&quot;notificationRequestResult&quot;, JacksonUtil.toString(stats));</b>
+<b class="nc">&nbsp;                tellSuccess(ctx, tbMsg.transform()</b>
+<b class="nc">&nbsp;                        .metaData(metaData)</b>
+<b class="nc">&nbsp;                        .build());</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            @Override
+&nbsp;            public void onFailure(Throwable e) {
+<b class="nc">&nbsp;                tellFailure(ctx, tbMsg, e);</b>
+&nbsp;            }
+&nbsp;        };
+&nbsp;
+<b class="nc">&nbsp;        var future = ctx.getNotificationExecutor().executeAsync(() -&gt;</b>
+<b class="nc">&nbsp;                ctx.getNotificationCenter().processNotificationRequest(ctx.getTenantId(), notificationRequest, callback));</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future, r -&gt; {}, callback::onFailure);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

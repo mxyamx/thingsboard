@@ -1,0 +1,311 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbQueueResponseTemplate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.common</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbQueueResponseTemplate (org.thingsboard.server.queue.common)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbQueueResponseTemplate</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/62)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.common;
+&nbsp;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.common.stats.MessagesStats;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.TbQueueHandler;
+&nbsp;import org.thingsboard.server.queue.TbQueueMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueProducer;
+&nbsp;import org.thingsboard.server.queue.TbQueueResponseTemplate;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.TimeoutException;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultTbQueueResponseTemplate&lt;Request extends TbQueueMsg, Response extends TbQueueMsg&gt; extends AbstractTbQueueTemplate
+&nbsp;        implements TbQueueResponseTemplate&lt;Request, Response&gt; {
+&nbsp;
+&nbsp;    private final TbQueueConsumer&lt;Request&gt; requestTemplate;
+&nbsp;    private final TbQueueProducer&lt;Response&gt; responseTemplate;
+&nbsp;    private final ExecutorService loopExecutor;
+&nbsp;    private final ScheduledExecutorService timeoutExecutor;
+&nbsp;    private final ExecutorService callbackExecutor;
+&nbsp;    private final MessagesStats stats;
+&nbsp;    private final int maxPendingRequests;
+&nbsp;    private final long requestTimeout;
+&nbsp;
+&nbsp;    private final long pollInterval;
+<b class="nc">&nbsp;    private volatile boolean stopped = false;</b>
+<b class="nc">&nbsp;    private final AtomicInteger pendingRequestCount = new AtomicInteger();</b>
+&nbsp;
+&nbsp;    @Builder
+&nbsp;    public DefaultTbQueueResponseTemplate(TbQueueConsumer&lt;Request&gt; requestTemplate,
+&nbsp;                                          TbQueueProducer&lt;Response&gt; responseTemplate,
+&nbsp;                                          TbQueueHandler&lt;Request, Response&gt; handler,
+&nbsp;                                          long pollInterval,
+&nbsp;                                          long requestTimeout,
+&nbsp;                                          int maxPendingRequests,
+&nbsp;                                          ExecutorService executor,
+<b class="nc">&nbsp;                                          MessagesStats stats) {</b>
+<b class="nc">&nbsp;        this.requestTemplate = requestTemplate;</b>
+<b class="nc">&nbsp;        this.responseTemplate = responseTemplate;</b>
+<b class="nc">&nbsp;        this.maxPendingRequests = maxPendingRequests;</b>
+<b class="nc">&nbsp;        this.pollInterval = pollInterval;</b>
+<b class="nc">&nbsp;        this.requestTimeout = requestTimeout;</b>
+<b class="nc">&nbsp;        this.callbackExecutor = executor;</b>
+<b class="nc">&nbsp;        this.stats = stats;</b>
+<b class="nc">&nbsp;        this.timeoutExecutor = ThingsBoardExecutors.newSingleThreadScheduledExecutor(&quot;tb-queue-response-template-timeout-&quot; + requestTemplate.getTopic());</b>
+<b class="nc">&nbsp;        this.loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;tb-queue-response-template-loop-&quot; + requestTemplate.getTopic()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void subscribe() {
+<b class="nc">&nbsp;        requestTemplate.subscribe();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void subscribe(Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        requestTemplate.subscribe(partitions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void launch(TbQueueHandler&lt;Request, Response&gt; handler) {
+<b class="nc">&nbsp;        loopExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;            while (!stopped) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    while (pendingRequestCount.get() &gt;= maxPendingRequests) {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            Thread.sleep(pollInterval);</b>
+&nbsp;                        } catch (InterruptedException e) {
+<b class="nc">&nbsp;                            log.trace(&quot;Failed to wait until the server has capacity to handle new requests&quot;, e);</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    List&lt;Request&gt; requests = requestTemplate.poll(pollInterval);</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (requests.isEmpty()) {</b>
+&nbsp;                        continue;
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    requests.forEach(request -&gt; {</b>
+<b class="nc">&nbsp;                        long currentTime = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;                        long expireTs = bytesToLong(request.getHeaders().get(EXPIRE_TS_HEADER));</b>
+<b class="nc">&nbsp;                        if (expireTs &gt;= currentTime) {</b>
+<b class="nc">&nbsp;                            byte[] requestIdHeader = request.getHeaders().get(REQUEST_ID_HEADER);</b>
+<b class="nc">&nbsp;                            if (requestIdHeader == null) {</b>
+<b class="nc">&nbsp;                                log.error(&quot;[{}] Missing requestId in header&quot;, request);</b>
+&nbsp;                                return;
+&nbsp;                            }
+<b class="nc">&nbsp;                            byte[] responseTopicHeader = request.getHeaders().get(RESPONSE_TOPIC_HEADER);</b>
+<b class="nc">&nbsp;                            if (responseTopicHeader == null) {</b>
+<b class="nc">&nbsp;                                log.error(&quot;[{}] Missing response topic in header&quot;, request);</b>
+&nbsp;                                return;
+&nbsp;                            }
+<b class="nc">&nbsp;                            UUID requestId = bytesToUuid(requestIdHeader);</b>
+<b class="nc">&nbsp;                            String responseTopic = bytesToString(responseTopicHeader);</b>
+&nbsp;                            try {
+<b class="nc">&nbsp;                                pendingRequestCount.getAndIncrement();</b>
+<b class="nc">&nbsp;                                stats.incrementTotal();</b>
+<b class="nc">&nbsp;                                AsyncCallbackTemplate.withCallbackAndTimeout(handler.handle(request),</b>
+&nbsp;                                        response -&gt; {
+<b class="nc">&nbsp;                                            pendingRequestCount.decrementAndGet();</b>
+<b class="nc">&nbsp;                                            response.getHeaders().put(REQUEST_ID_HEADER, uuidToBytes(requestId));</b>
+<b class="nc">&nbsp;                                            responseTemplate.send(TopicPartitionInfo.builder().topic(responseTopic).build(), response, null);</b>
+<b class="nc">&nbsp;                                            stats.incrementSuccessful();</b>
+&nbsp;                                        },
+&nbsp;                                        e -&gt; {
+<b class="nc">&nbsp;                                            pendingRequestCount.decrementAndGet();</b>
+<b class="nc">&nbsp;                                            if (e.getCause() != null &amp;&amp; e.getCause() instanceof TimeoutException) {</b>
+<b class="nc">&nbsp;                                                log.warn(&quot;[{}] Timeout to process the request: {}&quot;, requestId, request, e);</b>
+&nbsp;                                            } else {
+<b class="nc">&nbsp;                                                log.trace(&quot;[{}] Failed to process the request: {}&quot;, requestId, request, e);</b>
+&nbsp;                                            }
+<b class="nc">&nbsp;                                            stats.incrementFailed();</b>
+&nbsp;                                        },
+&nbsp;                                        requestTimeout,
+&nbsp;                                        timeoutExecutor,
+&nbsp;                                        callbackExecutor);
+&nbsp;                            } catch (Throwable e) {
+<b class="nc">&nbsp;                                pendingRequestCount.decrementAndGet();</b>
+<b class="nc">&nbsp;                                log.warn(&quot;[{}] Failed to process the request: {}&quot;, requestId, request, e);</b>
+<b class="nc">&nbsp;                                stats.incrementFailed();</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    });
+<b class="nc">&nbsp;                    requestTemplate.commit();</b>
+&nbsp;                } catch (Throwable e) {
+<b class="nc">&nbsp;                    log.warn(&quot;Failed to obtain messages from queue.&quot;, e);</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        Thread.sleep(pollInterval);</b>
+&nbsp;                    } catch (InterruptedException e2) {
+<b class="nc">&nbsp;                        log.trace(&quot;Failed to wait until the server has capacity to handle new requests&quot;, e2);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        stopped = true;</b>
+<b class="nc">&nbsp;        if (requestTemplate != null) {</b>
+<b class="nc">&nbsp;            requestTemplate.unsubscribe();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (responseTemplate != null) {</b>
+<b class="nc">&nbsp;            responseTemplate.stop();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (timeoutExecutor != null) {</b>
+<b class="nc">&nbsp;            timeoutExecutor.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (loopExecutor != null) {</b>
+<b class="nc">&nbsp;            loopExecutor.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

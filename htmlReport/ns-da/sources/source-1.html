@@ -1,0 +1,376 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseCalculatedFieldService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.cf</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseCalculatedFieldService (org.thingsboard.server.dao.cf)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseCalculatedFieldService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/85)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.cf;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldFilter;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldInfo;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+&nbsp;import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
+&nbsp;import org.thingsboard.server.common.data.id.CalculatedFieldId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractEntityService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.service.validator.CalculatedFieldDataValidator;
+&nbsp;
+&nbsp;import java.util.EnumSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+&nbsp;
+&nbsp;@Service(&quot;CalculatedFieldDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class BaseCalculatedFieldService extends AbstractEntityService implements CalculatedFieldService {
+&nbsp;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;    public static final String INCORRECT_CALCULATED_FIELD_ID = &quot;Incorrect calculatedFieldId &quot;;
+&nbsp;    public static final String INCORRECT_ENTITY_ID = &quot;Incorrect entityId &quot;;
+&nbsp;
+&nbsp;    private final EntityService entityService;
+&nbsp;    private final CalculatedFieldDao calculatedFieldDao;
+&nbsp;    private final CalculatedFieldDataValidator calculatedFieldDataValidator;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedField save(CalculatedField calculatedField) {
+<b class="nc">&nbsp;        return save(calculatedField, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedField save(CalculatedField calculatedField, boolean doValidate) {
+<b class="nc">&nbsp;        CalculatedField oldCalculatedField = null;</b>
+<b class="nc">&nbsp;        if (doValidate) {</b>
+<b class="nc">&nbsp;            oldCalculatedField = calculatedFieldDataValidator.validate(calculatedField, CalculatedField::getTenantId);</b>
+<b class="nc">&nbsp;        } else if (calculatedField.getId() != null) {</b>
+<b class="nc">&nbsp;            oldCalculatedField = findById(calculatedField.getTenantId(), calculatedField.getId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return doSave(calculatedField, oldCalculatedField);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private CalculatedField doSave(CalculatedField calculatedField, CalculatedField oldCalculatedField) {
+&nbsp;        try {
+<b class="nc">&nbsp;            TenantId tenantId = calculatedField.getTenantId();</b>
+<b class="nc">&nbsp;            log.trace(&quot;Executing save calculated field, [{}]&quot;, calculatedField);</b>
+<b class="nc">&nbsp;            updateDebugSettings(tenantId, calculatedField, System.currentTimeMillis());</b>
+<b class="nc">&nbsp;            CalculatedField savedCalculatedField = calculatedFieldDao.save(tenantId, calculatedField);</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(savedCalculatedField.getTenantId())</b>
+<b class="nc">&nbsp;                    .entityId(savedCalculatedField.getId())</b>
+<b class="nc">&nbsp;                    .entity(savedCalculatedField)</b>
+<b class="nc">&nbsp;                    .oldEntity(oldCalculatedField)</b>
+<b class="nc">&nbsp;                    .created(calculatedField.getId() == null)</b>
+<b class="nc">&nbsp;                    .build());</b>
+<b class="nc">&nbsp;            return savedCalculatedField;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            checkConstraintViolation(e,</b>
+<b class="nc">&nbsp;                    &quot;calculated_field_unq_key&quot;, calculatedField.getType() == CalculatedFieldType.ALARM ?</b>
+<b class="nc">&nbsp;                            &quot;Alarm rule with such type already exists&quot; : &quot;Calculated field with such name and type already exists&quot;,</b>
+&nbsp;                    &quot;calculated_field_external_id_unq_key&quot;, &quot;Calculated field with such external id already exists&quot;);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedField findById(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findById, tenantId [{}], calculatedFieldId [{}]&quot;, tenantId, calculatedFieldId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(calculatedFieldId, id -&gt; INCORRECT_CALCULATED_FIELD_ID + id);</b>
+<b class="nc">&nbsp;        return calculatedFieldDao.findById(tenantId, calculatedFieldId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedField findByEntityIdAndTypeAndName(EntityId entityId, CalculatedFieldType type, String name) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findByEntityIdAndTypeAndName entityId [{}], type [{}], name [{}]&quot;, entityId, type, name);</b>
+<b class="nc">&nbsp;        validateId(entityId.getId(), id -&gt; INCORRECT_ENTITY_ID + id);</b>
+<b class="nc">&nbsp;        return calculatedFieldDao.findByEntityIdAndTypeAndName(entityId, type, name);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;CalculatedFieldId&gt; findCalculatedFieldIdsByEntityId(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCalculatedFieldIdsByEntityId [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        validateId(entityId.getId(), id -&gt; INCORRECT_ENTITY_ID + id);</b>
+<b class="nc">&nbsp;        return calculatedFieldDao.findCalculatedFieldIdsByEntityId(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;CalculatedField&gt; findCalculatedFieldsByEntityId(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findCalculatedFieldsByEntityId [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        validateId(entityId.getId(), id -&gt; INCORRECT_ENTITY_ID + id);</b>
+<b class="nc">&nbsp;        return calculatedFieldDao.findCalculatedFieldsByEntityId(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;CalculatedField&gt; findAllCalculatedFields(PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAll, pageLink [{}]&quot;, pageLink);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return calculatedFieldDao.findAll(pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;CalculatedField&gt; findCalculatedFieldsByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllByTenantId, tenantId [{}], pageLink [{}]&quot;, tenantId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return calculatedFieldDao.findAllByTenantId(tenantId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;CalculatedFieldInfo&gt; findCalculatedFieldsByTenantIdAndFilter(TenantId tenantId, CalculatedFieldFilter filter, PageLink pageLink) {
+<b class="nc">&nbsp;        PageData&lt;CalculatedField&gt; calculatedFields = calculatedFieldDao.findByTenantIdAndFilter(tenantId, filter, pageLink);</b>
+<b class="nc">&nbsp;        Set&lt;EntityId&gt; entityIds = calculatedFields.getData().stream()</b>
+<b class="nc">&nbsp;                .map(CalculatedField::getEntityId)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;        Map&lt;EntityId, EntityInfo&gt; entityInfos = entityService.fetchEntityInfos(tenantId, null, entityIds);</b>
+<b class="nc">&nbsp;        return calculatedFields.mapData(calculatedField -&gt; {</b>
+<b class="nc">&nbsp;            EntityInfo entityInfo = entityInfos.get(calculatedField.getEntityId());</b>
+<b class="nc">&nbsp;            return new CalculatedFieldInfo(calculatedField, entityInfo.getName());</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;String&gt; findCalculatedFieldNamesByTenantIdAndType(TenantId tenantId, CalculatedFieldType type, PageLink pageLink) {
+<b class="nc">&nbsp;        return calculatedFieldDao.findNamesByTenantIdAndType(tenantId, type, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;CalculatedField&gt; findCalculatedFieldsByEntityId(TenantId tenantId, EntityId entityId, CalculatedFieldType type, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllByEntityId, entityId [{}], pageLink [{}]&quot;, entityId, pageLink);</b>
+<b class="nc">&nbsp;        validateId(entityId.getId(), id -&gt; INCORRECT_ENTITY_ID + id);</b>
+<b class="nc">&nbsp;        validatePageLink(pageLink);</b>
+&nbsp;        Set&lt;CalculatedFieldType&gt; types;
+<b class="nc">&nbsp;        if (type == null) {</b>
+<b class="nc">&nbsp;            types = EnumSet.allOf(CalculatedFieldType.class);</b>
+<b class="nc">&nbsp;            types.remove(CalculatedFieldType.ALARM);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            types = Set.of(type);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return calculatedFieldDao.findByEntityIdAndTypes(tenantId, entityId, types, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteCalculatedField(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(calculatedFieldId, id -&gt; INCORRECT_CALCULATED_FIELD_ID + id);</b>
+<b class="nc">&nbsp;        deleteEntity(tenantId, calculatedFieldId, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        CalculatedField calculatedField = calculatedFieldDao.findById(tenantId, id.getId());</b>
+<b class="nc">&nbsp;        if (calculatedField == null) {</b>
+<b class="nc">&nbsp;            if (force) {</b>
+&nbsp;                return;
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new IncorrectParameterException(&quot;Unable to delete non-existent calculated field.&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        deleteCalculatedField(tenantId, calculatedField);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteCalculatedField(TenantId tenantId, CalculatedField calculatedField) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteCalculatedField, tenantId [{}], calculatedFieldId [{}]&quot;, tenantId, calculatedField.getId());</b>
+<b class="nc">&nbsp;        calculatedFieldDao.removeById(tenantId, calculatedField.getUuidId());</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(calculatedField.getId()).entity(calculatedField).build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int deleteAllCalculatedFieldsByEntityId(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteAllCalculatedFieldsByEntityId, tenantId [{}], entityId [{}]&quot;, tenantId, entityId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(entityId.getId(), id -&gt; INCORRECT_ENTITY_ID + id);</b>
+<b class="nc">&nbsp;        List&lt;CalculatedField&gt; calculatedFields = calculatedFieldDao.removeAllByEntityId(tenantId, entityId);</b>
+<b class="nc">&nbsp;        return calculatedFields.size();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean referencedInAnyCalculatedField(TenantId tenantId, EntityId referencedEntityId) {
+<b class="nc">&nbsp;        return calculatedFieldDao.findAllByTenantId(tenantId).stream()</b>
+<b class="nc">&nbsp;                .filter(calculatedField -&gt; !referencedEntityId.equals(calculatedField.getEntityId()))</b>
+<b class="nc">&nbsp;                .map(CalculatedField::getConfiguration)</b>
+<b class="nc">&nbsp;                .map(CalculatedFieldConfiguration::getReferencedEntities)</b>
+<b class="nc">&nbsp;                .anyMatch(referencedEntities -&gt; referencedEntities.contains(referencedEntityId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findById(tenantId, new CalculatedFieldId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(calculatedFieldDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.CALCULATED_FIELD;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

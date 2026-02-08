@@ -1,0 +1,295 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TopicService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.discovery</a>
+</div>
+
+<h1>Coverage Summary for Class: TopicService (org.thingsboard.server.queue.discovery)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TopicService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TopicService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.discovery;
+&nbsp;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.util.ConcurrentReferenceHashMap;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;public class TopicService {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${queue.prefix:}&quot;)
+&nbsp;    private String prefix;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.core.notifications-topic:tb_core.notifications}&quot;)
+&nbsp;    private String tbCoreNotificationsTopic;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.rule-engine.notifications-topic:tb_rule_engine.notifications}&quot;)
+&nbsp;    private String tbRuleEngineNotificationsTopic;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.transport.notifications-topic:tb_transport.notifications}&quot;)
+&nbsp;    private String tbTransportNotificationsTopic;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.edge.notifications-topic:tb_edge.notifications}&quot;)
+&nbsp;    private String tbEdgeNotificationsTopic;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.edge.event-notifications-topic:tb_edge_event.notifications}&quot;)
+&nbsp;    private String tbEdgeEventNotificationsTopic;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.calculated-fields.notifications-topic:calculated_field.notifications}&quot;)
+&nbsp;    private String tbCalculatedFieldNotificationsTopic;
+&nbsp;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, TopicPartitionInfo&gt; tbCoreNotificationTopics = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, TopicPartitionInfo&gt; tbRuleEngineNotificationTopics = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, TopicPartitionInfo&gt; tbEdgeNotificationTopics = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, TopicPartitionInfo&gt; tbCalculatedFieldNotificationTopics = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentReferenceHashMap&lt;EdgeId, TopicPartitionInfo&gt; tbEdgeEventsNotificationTopics = new ConcurrentReferenceHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Each Service should start a consumer for messages that target individual service instance based on serviceId.
+&nbsp;     * This topic is likely to have single partition, and is always assigned to the service.
+&nbsp;     * @param serviceType
+&nbsp;     * @param serviceId
+&nbsp;     * @return
+&nbsp;     */
+&nbsp;    public TopicPartitionInfo getNotificationsTopic(ServiceType serviceType, String serviceId) {
+<b class="nc">&nbsp;        return switch (serviceType) {</b>
+<b class="nc">&nbsp;            case TB_CORE -&gt; tbCoreNotificationTopics.computeIfAbsent(serviceId,</b>
+<b class="nc">&nbsp;                    id -&gt; buildNotificationsTopicPartitionInfo(tbCoreNotificationsTopic, serviceId));</b>
+<b class="nc">&nbsp;            case TB_RULE_ENGINE -&gt; tbRuleEngineNotificationTopics.computeIfAbsent(serviceId,</b>
+<b class="nc">&nbsp;                    id -&gt; buildNotificationsTopicPartitionInfo(tbRuleEngineNotificationsTopic, serviceId));</b>
+<b class="nc">&nbsp;            case TB_TRANSPORT -&gt; buildNotificationsTopicPartitionInfo(tbTransportNotificationsTopic, serviceId);</b>
+<b class="nc">&nbsp;            default -&gt; throw new IllegalStateException(&quot;Unexpected service type: &quot; + serviceType);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private TopicPartitionInfo buildNotificationsTopicPartitionInfo(String topic, String serviceId) {
+<b class="nc">&nbsp;        return buildTopicPartitionInfo(buildNotificationTopicName(topic, serviceId), null, null, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TopicPartitionInfo buildTopicPartitionInfo(String topic, TenantId tenantId, Integer partition, boolean myPartition) {
+<b class="nc">&nbsp;        return new TopicPartitionInfo(buildTopicName(topic), tenantId, partition, myPartition);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TopicPartitionInfo getEdgeNotificationsTopic(String serviceId) {
+<b class="nc">&nbsp;        return tbEdgeNotificationTopics.computeIfAbsent(serviceId, id -&gt; buildEdgeNotificationsTopicPartitionInfo(serviceId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TopicPartitionInfo buildEdgeNotificationsTopicPartitionInfo(String serviceId) {
+<b class="nc">&nbsp;        return buildTopicPartitionInfo(buildNotificationTopicName(tbEdgeNotificationsTopic, serviceId), null, null, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TopicPartitionInfo getCalculatedFieldNotificationsTopic(String serviceId) {
+<b class="nc">&nbsp;        return tbCalculatedFieldNotificationTopics.computeIfAbsent(serviceId, id -&gt; buildNotificationsTopicPartitionInfo(tbCalculatedFieldNotificationsTopic, serviceId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TopicPartitionInfo getEdgeEventNotificationsTopic(TenantId tenantId, EdgeId edgeId) {
+<b class="nc">&nbsp;        return tbEdgeEventsNotificationTopics.computeIfAbsent(edgeId, id -&gt; buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edgeId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TopicPartitionInfo buildEdgeEventNotificationsTopicPartitionInfo(TenantId tenantId, EdgeId edgeId) {
+<b class="nc">&nbsp;        return buildTopicPartitionInfo(tbEdgeEventNotificationsTopic + &quot;.&quot; + tenantId + &quot;.&quot; + edgeId, null, null, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String buildTopicName(String topic) {
+<b class="nc">&nbsp;        if (topic == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return prefix.isBlank() ? topic : prefix + &quot;.&quot; + topic;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String buildNotificationTopicName(String topic, String serviceId) {
+<b class="nc">&nbsp;        return topic + &quot;.&quot; + serviceId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String buildConsumerGroupId(String servicePrefix, TenantId tenantId, String queueName, Integer partitionId) {
+<b class="nc">&nbsp;        return this.buildTopicName(</b>
+&nbsp;                servicePrefix + queueName
+<b class="nc">&nbsp;                        + (tenantId.isSysTenantId() ? &quot;&quot; : (&quot;-isolated-&quot; + tenantId))</b>
+&nbsp;                        + &quot;-consumer&quot;
+<b class="nc">&nbsp;                        + suffix(partitionId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    String suffix(Integer partitionId) {
+<b class="nc">&nbsp;        return partitionId == null ? &quot;&quot; : &quot;-&quot; + partitionId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractSubscriptionService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.telemetry</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractSubscriptionService (org.thingsboard.server.service.telemetry)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractSubscriptionService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AbstractSubscriptionService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.telemetry;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FutureCallback;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import jakarta.annotation.Nullable;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.service.subscription.SubscriptionManagerService;
+&nbsp;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.Executor;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.function.Consumer;
+&nbsp;import java.util.function.Supplier;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 27.03.18.
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class AbstractSubscriptionService extends TbApplicationEventListener&lt;PartitionChangeEvent&gt; {</b>
+&nbsp;
+<b class="nc">&nbsp;    protected final Set&lt;TopicPartitionInfo&gt; currentPartitions = ConcurrentHashMap.newKeySet();</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbClusterService clusterService;
+&nbsp;    @Autowired
+&nbsp;    protected PartitionService partitionService;
+&nbsp;    @Autowired
+&nbsp;    protected Optional&lt;SubscriptionManagerService&gt; subscriptionManagerService;
+&nbsp;
+&nbsp;    protected ExecutorService wsCallBackExecutor;
+&nbsp;
+&nbsp;    protected abstract String getExecutorPrefix();
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void initExecutor() {
+<b class="nc">&nbsp;        wsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getExecutorPrefix() + &quot;-service-ws-callback&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void shutdownExecutor() {
+<b class="nc">&nbsp;        if (wsCallBackExecutor != null) {</b>
+<b class="nc">&nbsp;            wsCallBackExecutor.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+<b class="nc">&nbsp;        if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {</b>
+<b class="nc">&nbsp;            currentPartitions.clear();</b>
+<b class="nc">&nbsp;            currentPartitions.addAll(partitionChangeEvent.getCorePartitions());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void forwardToSubscriptionManagerService(TenantId tenantId, EntityId entityId,
+&nbsp;                                                       Consumer&lt;SubscriptionManagerService&gt; toSubscriptionManagerService,
+&nbsp;                                                       Supplier&lt;TransportProtos.ToCoreMsg&gt; toCore) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId);</b>
+<b class="nc">&nbsp;        if (currentPartitions.contains(tpi)) {</b>
+<b class="nc">&nbsp;            if (subscriptionManagerService.isPresent()) {</b>
+<b class="nc">&nbsp;                toSubscriptionManagerService.accept(subscriptionManagerService.get());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;Possible misconfiguration because subscriptionManagerService is null!&quot;);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            TransportProtos.ToCoreMsg toCoreMsg = toCore.get();</b>
+<b class="nc">&nbsp;            clusterService.pushMsgToCore(tpi, entityId.getId(), toCoreMsg, null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;T&gt; void addWsCallback(ListenableFuture&lt;T&gt; saveFuture, Consumer&lt;T&gt; callback) {
+<b class="nc">&nbsp;        addCallback(saveFuture, callback, wsCallBackExecutor);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;T&gt; void addCallback(ListenableFuture&lt;T&gt; saveFuture, Consumer&lt;T&gt; callback, Executor executor) {
+<b class="nc">&nbsp;        Futures.addCallback(saveFuture, new FutureCallback&lt;&gt;() {</b>
+&nbsp;            @Override
+&nbsp;            public void onSuccess(@Nullable T result) {
+<b class="nc">&nbsp;                callback.accept(result);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            @Override
+<b class="nc">&nbsp;            public void onFailure(Throwable t) {}</b>
+&nbsp;        }, executor);
+&nbsp;    }
+&nbsp;
+&nbsp;    protected static Consumer&lt;Throwable&gt; safeCallback(FutureCallback&lt;Void&gt; callback) {
+<b class="nc">&nbsp;        if (callback != null) {</b>
+<b class="nc">&nbsp;            return callback::onFailure;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return throwable -&gt; {};</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

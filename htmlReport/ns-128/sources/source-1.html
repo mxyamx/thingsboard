@@ -1,0 +1,243 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AggregationRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sqlts.timescale</a>
+</div>
+
+<h1>Coverage Summary for Class: AggregationRepository (org.thingsboard.server.dao.sqlts.timescale)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AggregationRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sqlts.timescale;
+&nbsp;
+&nbsp;import jakarta.persistence.EntityManager;
+&nbsp;import jakarta.persistence.PersistenceContext;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvEntity;
+&nbsp;import org.thingsboard.server.dao.util.TimescaleDBTsOrTsLatestDao;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@Repository
+&nbsp;@TimescaleDBTsOrTsLatestDao
+<b class="nc">&nbsp;public class AggregationRepository {</b>
+&nbsp;
+&nbsp;    public static final String FIND_AVG = &quot;findAvg&quot;;
+&nbsp;    public static final String FIND_MAX = &quot;findMax&quot;;
+&nbsp;    public static final String FIND_MIN = &quot;findMin&quot;;
+&nbsp;    public static final String FIND_SUM = &quot;findSum&quot;;
+&nbsp;    public static final String FIND_COUNT = &quot;findCount&quot;;
+&nbsp;
+&nbsp;    public static final String FROM_WHERE_CLAUSE = &quot;FROM ts_kv tskv WHERE &quot; +
+&nbsp;            &quot;tskv.entity_id = cast(:entityId AS uuid) &quot; +
+&nbsp;            &quot;AND tskv.key= cast(:entityKey AS int) &quot; +
+&nbsp;            &quot;AND tskv.ts &gt;= :startTs AND tskv.ts &lt; :endTs &quot; +
+&nbsp;            &quot;GROUP BY tskv.entity_id, tskv.key, tsBucket &quot; +
+&nbsp;            &quot;ORDER BY tskv.entity_id, tskv.key, tsBucket&quot;;
+&nbsp;
+&nbsp;    public static final String FIND_AVG_QUERY = &quot;SELECT &quot; +
+&nbsp;            &quot;time_bucket(:timeBucket, tskv.ts, :startTs) AS tsBucket, :timeBucket AS interval, &quot; +
+&nbsp;            &quot;SUM(COALESCE(tskv.long_v, 0)) AS longValue, &quot; +
+&nbsp;            &quot;SUM(COALESCE(tskv.dbl_v, 0.0)) AS doubleValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.long_v IS NULL THEN 0 ELSE 1 END) AS longCountValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.dbl_v IS NULL THEN 0 ELSE 1 END) AS doubleCountValue, &quot; +
+&nbsp;            &quot;null AS strValue, &#39;AVG&#39; AS aggType, MAX(tskv.ts) AS maxAggTs &quot;;
+&nbsp;
+&nbsp;    public static final String FIND_MAX_QUERY = &quot;SELECT &quot; +
+&nbsp;            &quot;time_bucket(:timeBucket, tskv.ts, :startTs) AS tsBucket, :timeBucket AS interval, &quot; +
+&nbsp;            &quot;MAX(COALESCE(tskv.long_v, -9223372036854775807)) AS longValue, &quot; +
+&nbsp;            &quot;MAX(COALESCE(tskv.dbl_v, -1.79769E+308)) as doubleValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.long_v IS NULL THEN 0 ELSE 1 END) AS longCountValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.dbl_v IS NULL THEN 0 ELSE 1 END) AS doubleCountValue, &quot; +
+&nbsp;            &quot;MAX(tskv.str_v) AS strValue, &#39;MAX&#39; AS aggType, MAX(tskv.ts) AS maxAggTs &quot;;
+&nbsp;
+&nbsp;    public static final String FIND_MIN_QUERY = &quot;SELECT &quot; +
+&nbsp;            &quot;time_bucket(:timeBucket, tskv.ts, :startTs) AS tsBucket, :timeBucket AS interval, &quot; +
+&nbsp;            &quot;MIN(COALESCE(tskv.long_v, 9223372036854775807)) AS longValue, &quot; +
+&nbsp;            &quot;MIN(COALESCE(tskv.dbl_v, 1.79769E+308)) as doubleValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.long_v IS NULL THEN 0 ELSE 1 END) AS longCountValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.dbl_v IS NULL THEN 0 ELSE 1 END) AS doubleCountValue, &quot; +
+&nbsp;            &quot;MIN(tskv.str_v) AS strValue, &#39;MIN&#39; AS aggType, MAX(tskv.ts) AS maxAggTs &quot;;
+&nbsp;
+&nbsp;    public static final String FIND_SUM_QUERY = &quot;SELECT &quot; +
+&nbsp;            &quot;time_bucket(:timeBucket, tskv.ts, :startTs) AS tsBucket, :timeBucket AS interval, &quot; +
+&nbsp;            &quot;SUM(COALESCE(tskv.long_v, 0)) AS longValue, SUM(COALESCE(tskv.dbl_v, 0.0)) AS doubleValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.long_v IS NULL THEN 0 ELSE 1 END) AS longCountValue, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.dbl_v IS NULL THEN 0 ELSE 1 END) AS doubleCountValue, &quot; +
+&nbsp;            &quot;null AS strValue, null AS jsonValue, &#39;SUM&#39; AS aggType, MAX(tskv.ts) AS maxAggTs &quot;;
+&nbsp;
+&nbsp;    public static final String FIND_COUNT_QUERY = &quot;SELECT &quot; +
+&nbsp;            &quot;time_bucket(:timeBucket, tskv.ts, :startTs) AS tsBucket, :timeBucket AS interval, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.bool_v IS NULL THEN 0 ELSE 1 END) AS booleanValueCount, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.str_v IS NULL THEN 0 ELSE 1 END) AS strValueCount, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.long_v IS NULL THEN 0 ELSE 1 END) AS longValueCount, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.dbl_v IS NULL THEN 0 ELSE 1 END) AS doubleValueCount, &quot; +
+&nbsp;            &quot;SUM(CASE WHEN tskv.json_v IS NULL THEN 0 ELSE 1 END) AS jsonValueCount, &quot; +
+&nbsp;            &quot;MAX(tskv.ts) AS maxAggTs &quot;;
+&nbsp;
+&nbsp;    @PersistenceContext
+&nbsp;    private EntityManager entityManager;
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    public List&lt;TimescaleTsKvEntity&gt; findAvg(UUID entityId, int entityKey, long timeBucket, long startTs, long endTs) {
+<b class="nc">&nbsp;        return getResultList(entityId, entityKey, timeBucket, startTs, endTs, FIND_AVG);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    public List&lt;TimescaleTsKvEntity&gt; findMax(UUID entityId, int entityKey, long timeBucket, long startTs, long endTs) {
+<b class="nc">&nbsp;        return getResultList(entityId, entityKey, timeBucket, startTs, endTs, FIND_MAX);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    public List&lt;TimescaleTsKvEntity&gt; findMin(UUID entityId, int entityKey, long timeBucket, long startTs, long endTs) {
+<b class="nc">&nbsp;        return getResultList(entityId, entityKey, timeBucket, startTs, endTs, FIND_MIN);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    public List&lt;TimescaleTsKvEntity&gt; findSum(UUID entityId, int entityKey, long timeBucket, long startTs, long endTs) {
+<b class="nc">&nbsp;        return getResultList(entityId, entityKey, timeBucket, startTs, endTs, FIND_SUM);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    public List&lt;TimescaleTsKvEntity&gt; findCount(UUID entityId, int entityKey, long timeBucket, long startTs, long endTs) {
+<b class="nc">&nbsp;        return getResultList(entityId, entityKey, timeBucket, startTs, endTs, FIND_COUNT);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List getResultList(UUID entityId, int entityKey, long timeBucket, long startTs, long endTs, String query) {
+<b class="nc">&nbsp;        return entityManager.createNamedQuery(query)</b>
+<b class="nc">&nbsp;                .setParameter(&quot;entityId&quot;, entityId)</b>
+<b class="nc">&nbsp;                .setParameter(&quot;entityKey&quot;, entityKey)</b>
+<b class="nc">&nbsp;                .setParameter(&quot;timeBucket&quot;, timeBucket)</b>
+<b class="nc">&nbsp;                .setParameter(&quot;startTs&quot;, startTs)</b>
+<b class="nc">&nbsp;                .setParameter(&quot;endTs&quot;, endTs)</b>
+<b class="nc">&nbsp;                .getResultList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AuditLogRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.audit</a>
+</div>
+
+<h1>Coverage Summary for Class: AuditLogRepository (org.thingsboard.server.dao.sql.audit)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">AuditLogRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.audit;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.dao.model.sql.AuditLogEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface AuditLogRepository extends JpaRepository&lt;AuditLogEntity, UUID&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AuditLogEntity a WHERE &quot; +
+&nbsp;            &quot;a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:#{#actionTypes == null} = true) OR a.actionType IN (:actionTypes)) &quot; + //HHH-15968
+&nbsp;//            &quot;AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.entityType, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.entityName, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.userName, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionType, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionStatus, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;
+&nbsp;    )
+&nbsp;    Page&lt;AuditLogEntity&gt; findByTenantId(
+&nbsp;                                 @Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                 @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                 @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                 @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                 @Param(&quot;actionTypes&quot;) List&lt;ActionType&gt; actionTypes,
+&nbsp;                                 Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AuditLogEntity a WHERE &quot; +
+&nbsp;            &quot;a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.entityType = :entityType AND a.entityId = :entityId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:#{#actionTypes == null} = true) OR a.actionType IN (:actionTypes)) &quot; + //HHH-15968
+&nbsp;//            &quot;AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.entityName, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.userName, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionType, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionStatus, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;
+&nbsp;    )
+&nbsp;    Page&lt;AuditLogEntity&gt; findAuditLogsByTenantIdAndEntityId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                            @Param(&quot;entityType&quot;) EntityType entityType,
+&nbsp;                                                            @Param(&quot;entityId&quot;) UUID entityId,
+&nbsp;                                                            @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                            @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                                            @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                                            @Param(&quot;actionTypes&quot;) List&lt;ActionType&gt; actionTypes,
+&nbsp;                                                            Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AuditLogEntity a WHERE &quot; +
+&nbsp;            &quot;a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:#{#actionTypes == null} = true) OR a.actionType IN (:actionTypes)) &quot; + //HHH-15968
+&nbsp;//            &quot;AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.entityType, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.entityName, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.userName, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionType, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionStatus, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;
+&nbsp;    )
+&nbsp;    Page&lt;AuditLogEntity&gt; findAuditLogsByTenantIdAndCustomerId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                              @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                              @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                              @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                                              @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                                              @Param(&quot;actionTypes&quot;) List&lt;ActionType&gt; actionTypes,
+&nbsp;                                                              Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT a FROM AuditLogEntity a WHERE &quot; +
+&nbsp;            &quot;a.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND a.userId = :userId &quot; +
+&nbsp;            &quot;AND (:startTime IS NULL OR a.createdTime &gt;= :startTime) &quot; +
+&nbsp;            &quot;AND (:endTime IS NULL OR a.createdTime &lt;= :endTime) &quot; +
+&nbsp;            &quot;AND ((:#{#actionTypes == null} = true) OR a.actionType IN (:actionTypes)) &quot; + //HHH-15968
+&nbsp;//            &quot;AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(a.entityType, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.entityName, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionType, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true &quot; +
+&nbsp;            &quot;OR ilike(a.actionStatus, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;
+&nbsp;    )
+&nbsp;    Page&lt;AuditLogEntity&gt; findAuditLogsByTenantIdAndUserId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                          @Param(&quot;userId&quot;) UUID userId,
+&nbsp;                                                          @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                          @Param(&quot;startTime&quot;) Long startTime,
+&nbsp;                                                          @Param(&quot;endTime&quot;) Long endTime,
+&nbsp;                                                          @Param(&quot;actionTypes&quot;) List&lt;ActionType&gt; actionTypes,
+&nbsp;                                                          Pageable pageable);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

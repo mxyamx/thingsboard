@@ -1,0 +1,181 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RuleChainRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.rule</a>
+</div>
+
+<h1>Coverage Summary for Class: RuleChainRepository (org.thingsboard.server.dao.sql.rule)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">RuleChainRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.rule;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Limit;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.edqs.fields.RuleChainFields;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.dao.ExportableEntityRepository;
+&nbsp;import org.thingsboard.server.dao.model.sql.RuleChainEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface RuleChainRepository extends JpaRepository&lt;RuleChainEntity, UUID&gt;, ExportableEntityRepository&lt;RuleChainEntity&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;SELECT rc FROM RuleChainEntity rc WHERE rc.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(rc.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;RuleChainEntity&gt; findByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                         @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                         Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT rc FROM RuleChainEntity rc WHERE rc.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND rc.type = :type &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(rc.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;RuleChainEntity&gt; findByTenantIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                @Param(&quot;type&quot;) RuleChainType type,
+&nbsp;                                                @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT rc FROM RuleChainEntity rc, RelationEntity re WHERE rc.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND rc.id = re.toId AND re.toType = &#39;RULE_CHAIN&#39; AND re.relationTypeGroup = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :edgeId AND re.fromType = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(rc.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;RuleChainEntity&gt; findByTenantIdAndEdgeId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                  @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                                  @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                  Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT rc FROM RuleChainEntity rc, RelationEntity re WHERE rc.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND rc.id = re.toId AND re.toType = &#39;RULE_CHAIN&#39; AND re.relationTypeGroup = &#39;EDGE_AUTO_ASSIGN_RULE_CHAIN&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :tenantId AND re.fromType = &#39;TENANT&#39; &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(rc.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;RuleChainEntity&gt; findAutoAssignByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                   @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                   Pageable pageable);
+&nbsp;
+&nbsp;
+&nbsp;    RuleChainEntity findByTenantIdAndTypeAndRootIsTrue(UUID tenantId, RuleChainType ruleChainType);
+&nbsp;
+&nbsp;    Long countByTenantId(UUID tenantId);
+&nbsp;
+&nbsp;    List&lt;RuleChainEntity&gt; findByTenantIdAndTypeAndName(UUID tenantId, RuleChainType type, String name);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT externalId FROM RuleChainEntity WHERE id = :id&quot;)
+&nbsp;    UUID getExternalIdById(@Param(&quot;id&quot;) UUID id);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.EntityInfo(rc.id, &#39;RULE_CHAIN&#39;, rc.name) &quot; +
+&nbsp;            &quot;FROM RuleChainEntity rc WHERE rc.tenantId = :tenantId AND EXISTS &quot; +
+&nbsp;            &quot;(SELECT 1 FROM RuleNodeEntity rn WHERE rn.ruleChainId = rc.id AND cast(rn.configuration as string) LIKE CONCAT(&#39;%&#39;, :resourceId, &#39;%&#39;))&quot;)
+&nbsp;    List&lt;EntityInfo&gt; findRuleChainsByTenantIdAndResource(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                         @Param(&quot;resourceId&quot;) String resourceId,
+&nbsp;                                                         PageRequest of);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.EntityInfo(rc.id, &#39;RULE_CHAIN&#39;, rc.name) &quot; +
+&nbsp;            &quot;FROM RuleChainEntity rc WHERE EXISTS &quot; +
+&nbsp;            &quot;(SELECT 1 FROM RuleNodeEntity rn WHERE rn.ruleChainId = rc.id AND cast(rn.configuration as string) LIKE CONCAT(&#39;%&#39;, :resourceId, &#39;%&#39;))&quot;)
+&nbsp;    List&lt;EntityInfo&gt; findRuleChainsByResource(@Param(&quot;resourceId&quot;) String resourceId,
+&nbsp;                                              Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.edqs.fields.RuleChainFields(r.id, r.createdTime, r.tenantId,&quot; +
+&nbsp;            &quot;r.name, r.version, r.additionalInfo) FROM RuleChainEntity r WHERE r.id &gt; :id ORDER BY r.id&quot;)
+&nbsp;    List&lt;RuleChainFields&gt; findNextBatch(@Param(&quot;id&quot;) UUID id, Limit limit);
+&nbsp;
+&nbsp;    List&lt;RuleChainEntity&gt; findRuleChainsByTenantIdAndIdIn(UUID tenantId, List&lt;UUID&gt; ruleChainIds);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

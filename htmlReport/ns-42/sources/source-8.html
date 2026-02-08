@@ -1,0 +1,403 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbActorMailbox</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.actors</a>
+</div>
+
+<h1>Coverage Summary for Class: TbActorMailbox (org.thingsboard.server.actors)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbActorMailbox</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/95)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.actors;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.common.util.RecoveryAware;
+&nbsp;import org.thingsboard.server.common.msg.MsgType;
+&nbsp;import org.thingsboard.server.common.msg.TbActorMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbActorStopReason;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.concurrent.ConcurrentLinkedQueue;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;import java.util.function.Predicate;
+&nbsp;import java.util.function.Supplier;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Getter
+&nbsp;@RequiredArgsConstructor
+&nbsp;public final class TbActorMailbox implements TbActorCtx {
+&nbsp;
+&nbsp;    private static final boolean HIGH_PRIORITY = true;
+&nbsp;    private static final boolean NORMAL_PRIORITY = false;
+&nbsp;
+&nbsp;    private static final boolean FREE = false;
+&nbsp;    private static final boolean BUSY = true;
+&nbsp;
+&nbsp;    private static final boolean NOT_READY = false;
+&nbsp;    private static final boolean READY = true;
+&nbsp;
+&nbsp;    private final TbActorSystem system;
+&nbsp;    private final TbActorSystemSettings settings;
+&nbsp;    private final TbActorId selfId;
+&nbsp;    private final TbActorRef parentRef;
+&nbsp;    private final TbActor actor;
+&nbsp;    private final Dispatcher dispatcher;
+&nbsp;    private final ConcurrentLinkedQueue&lt;TbActorMsg&gt; highPriorityMsgs = new ConcurrentLinkedQueue&lt;&gt;();
+&nbsp;    private final ConcurrentLinkedQueue&lt;TbActorMsg&gt; normalPriorityMsgs = new ConcurrentLinkedQueue&lt;&gt;();
+&nbsp;    private final AtomicBoolean busy = new AtomicBoolean(FREE);
+&nbsp;    private final AtomicBoolean ready = new AtomicBoolean(NOT_READY);
+&nbsp;    private final AtomicBoolean destroyInProgress = new AtomicBoolean();
+&nbsp;    private volatile TbActorStopReason stopReason;
+&nbsp;
+&nbsp;    public void initActor() {
+<b class="nc">&nbsp;        dispatcher.getExecutor().execute(() -&gt; tryInit(1));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void tryInit(int attempt) {
+&nbsp;        try {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Trying to init actor, attempt: {}&quot;, selfId, attempt);</b>
+<b class="nc">&nbsp;            if (!destroyInProgress.get()) {</b>
+<b class="nc">&nbsp;                actor.init(this);</b>
+<b class="nc">&nbsp;                if (!destroyInProgress.get()) {</b>
+<b class="nc">&nbsp;                    ready.set(READY);</b>
+<b class="nc">&nbsp;                    tryProcessQueue(false);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Throwable t) {
+&nbsp;            InitFailureStrategy strategy;
+<b class="nc">&nbsp;            int attemptIdx = attempt + 1;</b>
+<b class="nc">&nbsp;            if (isUnrecoverable(t)) {</b>
+<b class="nc">&nbsp;                strategy = InitFailureStrategy.stop();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Failed to init actor, attempt: {}&quot;, selfId, attempt, t);</b>
+<b class="nc">&nbsp;                strategy = actor.onInitFailure(attempt, t);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (strategy.isStop() || (settings.getMaxActorInitAttempts() &gt; 0 &amp;&amp; attemptIdx &gt; settings.getMaxActorInitAttempts())) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] Failed to init actor, attempt {}, going to stop attempts.&quot;, selfId, attempt, t);</b>
+<b class="nc">&nbsp;                stopReason = TbActorStopReason.INIT_FAILED;</b>
+<b class="nc">&nbsp;                destroy(t.getCause());</b>
+<b class="nc">&nbsp;            } else if (strategy.getRetryDelay() &gt; 0) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] Failed to init actor, attempt {}, going to retry in attempts in {}ms&quot;, selfId, attempt, strategy.getRetryDelay());</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Error&quot;, selfId, t);</b>
+<b class="nc">&nbsp;                system.getScheduler().schedule(() -&gt; dispatcher.getExecutor().execute(() -&gt; tryInit(attemptIdx)), strategy.getRetryDelay(), TimeUnit.MILLISECONDS);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.info(&quot;[{}] Failed to init actor, attempt {}, going to retry immediately&quot;, selfId, attempt);</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Error&quot;, selfId, t);</b>
+<b class="nc">&nbsp;                dispatcher.getExecutor().execute(() -&gt; tryInit(attemptIdx));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean isUnrecoverable(Throwable t) {
+<b class="nc">&nbsp;        if (t instanceof TbActorException &amp;&amp; t.getCause() != null) {</b>
+<b class="nc">&nbsp;            t = t.getCause();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return t instanceof RecoveryAware recoveryAware &amp;&amp; recoveryAware.isUnrecoverable();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void enqueue(TbActorMsg msg, boolean highPriority) {
+<b class="nc">&nbsp;        if (!destroyInProgress.get()) {</b>
+<b class="nc">&nbsp;            if (highPriority) {</b>
+<b class="nc">&nbsp;                highPriorityMsgs.add(msg);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                normalPriorityMsgs.add(msg);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            tryProcessQueue(true);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (highPriority &amp;&amp; msg.getMsgType().equals(MsgType.RULE_NODE_UPDATED_MSG)) {</b>
+<b class="nc">&nbsp;                synchronized (this) {</b>
+<b class="nc">&nbsp;                    if (stopReason == TbActorStopReason.INIT_FAILED) {</b>
+<b class="nc">&nbsp;                        destroyInProgress.set(false);</b>
+<b class="nc">&nbsp;                        stopReason = null;</b>
+<b class="nc">&nbsp;                        initActor();</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        msg.onTbActorStopped(stopReason);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                msg.onTbActorStopped(stopReason);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void tryProcessQueue(boolean newMsg) {
+<b class="nc">&nbsp;        if (ready.get() == READY) {</b>
+<b class="nc">&nbsp;            if (newMsg || !highPriorityMsgs.isEmpty() || !normalPriorityMsgs.isEmpty()) {</b>
+<b class="nc">&nbsp;                if (busy.compareAndSet(FREE, BUSY)) {</b>
+<b class="nc">&nbsp;                    dispatcher.getExecutor().execute(this::processMailbox);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.trace(&quot;[{}] MessageBox is busy, new msg: {}&quot;, selfId, newMsg);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;[{}] MessageBox is empty, new msg: {}&quot;, selfId, newMsg);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] MessageBox is not ready, new msg: {}&quot;, selfId, newMsg);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMailbox() {
+<b class="nc">&nbsp;        boolean noMoreElements = false;</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; settings.getActorThroughput(); i++) {</b>
+<b class="nc">&nbsp;            TbActorMsg msg = highPriorityMsgs.poll();</b>
+<b class="nc">&nbsp;            if (msg == null) {</b>
+<b class="nc">&nbsp;                msg = normalPriorityMsgs.poll();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (msg != null) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    log.trace(&quot;[{}] Going to process message: {}&quot;, selfId, msg);</b>
+<b class="nc">&nbsp;                    actor.process(msg);</b>
+&nbsp;                } catch (TbRuleNodeUpdateException updateException) {
+<b class="nc">&nbsp;                    stopReason = TbActorStopReason.INIT_FAILED;</b>
+<b class="nc">&nbsp;                    destroy(updateException.getCause());</b>
+&nbsp;                } catch (Throwable t) {
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Failed to process message: {}&quot;, selfId, msg, t);</b>
+<b class="nc">&nbsp;                    ProcessFailureStrategy strategy = actor.onProcessFailure(msg, t);</b>
+<b class="nc">&nbsp;                    if (strategy.isStop()) {</b>
+<b class="nc">&nbsp;                        system.stop(selfId);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                noMoreElements = true;</b>
+&nbsp;                break;
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (noMoreElements) {</b>
+<b class="nc">&nbsp;            busy.set(FREE);</b>
+<b class="nc">&nbsp;            dispatcher.getExecutor().execute(() -&gt; tryProcessQueue(false));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            dispatcher.getExecutor().execute(this::processMailbox);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbActorId getSelf() {
+<b class="nc">&nbsp;        return selfId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tell(TbActorId target, TbActorMsg actorMsg) {
+<b class="nc">&nbsp;        system.tell(target, actorMsg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void broadcastToChildren(TbActorMsg msg) {
+<b class="nc">&nbsp;        broadcastToChildren(msg, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void broadcastToChildren(TbActorMsg msg, boolean highPriority) {
+<b class="nc">&nbsp;        system.broadcastToChildren(selfId, msg, highPriority);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void broadcastToChildrenByType(TbActorMsg msg, EntityType entityType) {
+<b class="nc">&nbsp;        broadcastToChildren(msg, actorId -&gt; entityType.equals(actorId.getEntityType()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void broadcastToChildren(TbActorMsg msg, Predicate&lt;TbActorId&gt; childFilter) {
+<b class="nc">&nbsp;        system.broadcastToChildren(selfId, childFilter, msg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TbActorId&gt; filterChildren(Predicate&lt;TbActorId&gt; childFilter) {
+<b class="nc">&nbsp;        return system.filterChildren(selfId, childFilter);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void stop(TbActorId target) {
+<b class="nc">&nbsp;        system.stop(target);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbActorRef getOrCreateChildActor(TbActorId actorId, Supplier&lt;String&gt; dispatcher, Supplier&lt;TbActorCreator&gt; creator, Supplier&lt;Boolean&gt; createCondition) {
+<b class="nc">&nbsp;        TbActorRef actorRef = system.getActor(actorId);</b>
+<b class="nc">&nbsp;        if (actorRef == null &amp;&amp; createCondition.get()) {</b>
+<b class="nc">&nbsp;            return system.createChildActor(dispatcher.get(), creator.get(), selfId);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return actorRef;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void destroy(Throwable cause) {
+<b class="nc">&nbsp;        if (stopReason == null) {</b>
+<b class="nc">&nbsp;            stopReason = TbActorStopReason.STOPPED;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        destroyInProgress.set(true);</b>
+<b class="nc">&nbsp;        dispatcher.getExecutor().execute(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                ready.set(NOT_READY);</b>
+<b class="nc">&nbsp;                actor.destroy(stopReason, cause);</b>
+<b class="nc">&nbsp;                highPriorityMsgs.removeIf(msg -&gt; {</b>
+<b class="nc">&nbsp;                    msg.onTbActorStopped(stopReason);</b>
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                });
+<b class="nc">&nbsp;                normalPriorityMsgs.removeIf(msg -&gt; {</b>
+<b class="nc">&nbsp;                    msg.onTbActorStopped(stopReason);</b>
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                });
+&nbsp;            } catch (Throwable t) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Failed to destroy actor: &quot;, selfId, t);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbActorId getActorId() {
+<b class="nc">&nbsp;        return selfId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tell(TbActorMsg actorMsg) {
+<b class="nc">&nbsp;        enqueue(actorMsg, NORMAL_PRIORITY);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tellWithHighPriority(TbActorMsg actorMsg) {
+<b class="nc">&nbsp;        enqueue(actorMsg, HIGH_PRIORITY);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RuleNodeScriptEngine</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.script</a>
+</div>
+
+<h1>Coverage Summary for Class: RuleNodeScriptEngine (org.thingsboard.server.service.script)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RuleNodeScriptEngine</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.script;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.api.ScriptEngine;
+&nbsp;import org.thingsboard.script.api.ScriptInvokeService;
+&nbsp;import org.thingsboard.script.api.ScriptType;
+&nbsp;import org.thingsboard.script.api.TbScriptException;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public abstract class RuleNodeScriptEngine&lt;T extends ScriptInvokeService, R&gt; implements ScriptEngine {
+&nbsp;
+&nbsp;    private final T scriptInvokeService;
+&nbsp;
+&nbsp;    protected final UUID scriptId;
+&nbsp;    private final TenantId tenantId;
+&nbsp;
+<b class="nc">&nbsp;    public RuleNodeScriptEngine(TenantId tenantId, T scriptInvokeService, String script, String... argNames) {</b>
+<b class="nc">&nbsp;        this.tenantId = tenantId;</b>
+<b class="nc">&nbsp;        this.scriptInvokeService = scriptInvokeService;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            scriptId = this.scriptInvokeService.eval(tenantId, ScriptType.RULE_NODE_SCRIPT, script, argNames).get();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            Throwable t = e;</b>
+<b class="nc">&nbsp;            if (e instanceof ExecutionException) {</b>
+<b class="nc">&nbsp;                t = e.getCause();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (t instanceof TbScriptException scriptException) {</b>
+&nbsp;                throw scriptException;
+&nbsp;            }
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Unexpected error when creating script engine: &quot; + t.getMessage(), t);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract Object[] prepareArgs(TbMsg msg);
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TbMsg&gt;&gt; executeUpdateAsync(TbMsg msg) {
+<b class="nc">&nbsp;        ListenableFuture&lt;R&gt; result = executeScriptAsync(msg);</b>
+<b class="nc">&nbsp;        return Futures.transform(result, json -&gt; executeUpdateTransform(msg, json), directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract List&lt;TbMsg&gt; executeUpdateTransform(TbMsg msg, R result);
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TbMsg&gt; executeGenerateAsync(TbMsg prevMsg) {
+<b class="nc">&nbsp;        return Futures.transform(executeScriptAsync(prevMsg), result -&gt; executeGenerateTransform(prevMsg, result), directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract TbMsg executeGenerateTransform(TbMsg prevMsg, R result);
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Boolean&gt; executeFilterAsync(TbMsg msg) {
+<b class="nc">&nbsp;        return Futures.transform(executeScriptAsync(msg), this::executeFilterTransform, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract boolean executeFilterTransform(R result);
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Set&lt;String&gt;&gt; executeSwitchAsync(TbMsg msg) {
+<b class="nc">&nbsp;        return Futures.transform(executeScriptAsync(msg), this::executeSwitchTransform, directExecutor()); // usually runs on a callbackExecutor</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract Set&lt;String&gt; executeSwitchTransform(R result);
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;String&gt; executeToStringAsync(TbMsg msg) {
+<b class="nc">&nbsp;        return Futures.transform(executeScriptAsync(msg), this::executeToStringTransform, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract String executeToStringTransform(R result);
+&nbsp;
+&nbsp;    ListenableFuture&lt;R&gt; executeScriptAsync(TbMsg msg) {
+<b class="nc">&nbsp;        log.trace(&quot;execute script async, msg {}&quot;, msg);</b>
+<b class="nc">&nbsp;        Object[] inArgs = prepareArgs(msg);</b>
+<b class="nc">&nbsp;        return executeScriptAsync(msg.getCustomerId(), inArgs[0], inArgs[1], inArgs[2]);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;R&gt; executeScriptAsync(CustomerId customerId, Object... args) {
+<b class="nc">&nbsp;        return Futures.transform(scriptInvokeService.invokeScript(tenantId, customerId, scriptId, args), this::convertResult, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        scriptInvokeService.release(scriptId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract R convertResult(Object result);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

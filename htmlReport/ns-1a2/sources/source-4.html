@@ -1,0 +1,437 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CassandraToSqlTable</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.install.migrate</a>
+</div>
+
+<h1>Coverage Summary for Class: CassandraToSqlTable (org.thingsboard.server.service.install.migrate)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CassandraToSqlTable</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/148)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.install.migrate;
+&nbsp;
+&nbsp;import com.datastax.oss.driver.api.core.cql.ResultSet;
+&nbsp;import com.datastax.oss.driver.api.core.cql.Row;
+&nbsp;import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+&nbsp;import com.datastax.oss.driver.api.core.cql.Statement;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.hibernate.internal.util.JdbcExceptionHelper;
+&nbsp;import org.postgresql.util.PSQLException;
+&nbsp;import org.thingsboard.server.common.data.UUIDConverter;
+&nbsp;import org.thingsboard.server.dao.cassandra.guava.GuavaSession;
+&nbsp;
+&nbsp;import java.sql.Connection;
+&nbsp;import java.sql.DatabaseMetaData;
+&nbsp;import java.sql.PreparedStatement;
+&nbsp;import java.sql.SQLException;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;@Data
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class CassandraToSqlTable {
+&nbsp;
+&nbsp;    private static final int DEFAULT_BATCH_SIZE = 10000;
+&nbsp;
+&nbsp;    private String cassandraCf;
+&nbsp;    private String sqlTableName;
+&nbsp;
+&nbsp;    private List&lt;CassandraToSqlColumn&gt; columns;
+&nbsp;
+<b class="nc">&nbsp;    private int batchSize = DEFAULT_BATCH_SIZE;</b>
+&nbsp;
+&nbsp;    private PreparedStatement sqlInsertStatement;
+&nbsp;
+&nbsp;    public CassandraToSqlTable(String tableName, CassandraToSqlColumn... columns) {
+<b class="nc">&nbsp;        this(tableName, tableName, DEFAULT_BATCH_SIZE, columns);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public CassandraToSqlTable(String tableName, String sqlTableName, CassandraToSqlColumn... columns) {
+<b class="nc">&nbsp;        this(tableName, sqlTableName, DEFAULT_BATCH_SIZE, columns);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public CassandraToSqlTable(String tableName, int batchSize, CassandraToSqlColumn... columns) {
+<b class="nc">&nbsp;        this(tableName, tableName, batchSize, columns);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public CassandraToSqlTable(String cassandraCf, String sqlTableName, int batchSize, CassandraToSqlColumn... columns) {</b>
+<b class="nc">&nbsp;        this.cassandraCf = cassandraCf;</b>
+<b class="nc">&nbsp;        this.sqlTableName = sqlTableName;</b>
+<b class="nc">&nbsp;        this.batchSize = batchSize;</b>
+<b class="nc">&nbsp;        this.columns = Arrays.asList(columns);</b>
+<b class="nc">&nbsp;        for (int i=0;i&lt;columns.length;i++) {</b>
+<b class="nc">&nbsp;            this.columns.get(i).setIndex(i);</b>
+<b class="nc">&nbsp;            this.columns.get(i).setSqlIndex(i+1);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void migrateToSql(GuavaSession session, Connection conn) throws SQLException {
+<b class="nc">&nbsp;        log.info(&quot;[{}] Migrating data from cassandra &#39;{}&#39; Column Family to &#39;{}&#39; SQL table...&quot;, this.sqlTableName, this.cassandraCf, this.sqlTableName);</b>
+<b class="nc">&nbsp;        DatabaseMetaData metadata = conn.getMetaData();</b>
+<b class="nc">&nbsp;        java.sql.ResultSet resultSet = metadata.getColumns(null, null, this.sqlTableName, null);</b>
+<b class="nc">&nbsp;        while (resultSet.next()) {</b>
+<b class="nc">&nbsp;            String name = resultSet.getString(&quot;COLUMN_NAME&quot;);</b>
+<b class="nc">&nbsp;            int sqlType = resultSet.getInt(&quot;DATA_TYPE&quot;);</b>
+<b class="nc">&nbsp;            int size = resultSet.getInt(&quot;COLUMN_SIZE&quot;);</b>
+<b class="nc">&nbsp;            CassandraToSqlColumn column = this.getColumn(name);</b>
+<b class="nc">&nbsp;            column.setSize(size);</b>
+<b class="nc">&nbsp;            column.setSqlType(sqlType);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        this.sqlInsertStatement = createSqlInsertStatement(conn);</b>
+<b class="nc">&nbsp;        Statement cassandraSelectStatement = createCassandraSelectStatement();</b>
+<b class="nc">&nbsp;        cassandraSelectStatement.setPageSize(100);</b>
+<b class="nc">&nbsp;        ResultSet rs = session.execute(cassandraSelectStatement);</b>
+<b class="nc">&nbsp;        Iterator&lt;Row&gt; iter = rs.iterator();</b>
+<b class="nc">&nbsp;        int rowCounter = 0;</b>
+&nbsp;        List&lt;CassandraToSqlColumnData[]&gt; batchData;
+&nbsp;        boolean hasNext;
+&nbsp;        do {
+<b class="nc">&nbsp;            batchData = this.extractBatchData(iter);</b>
+<b class="nc">&nbsp;            hasNext = batchData.size() == this.batchSize;</b>
+<b class="nc">&nbsp;            this.batchInsert(batchData, conn);</b>
+<b class="nc">&nbsp;            rowCounter += batchData.size();</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}] {} records migrated so far...&quot;, this.sqlTableName, rowCounter);</b>
+<b class="nc">&nbsp;        } while (hasNext);</b>
+<b class="nc">&nbsp;        this.sqlInsertStatement.close();</b>
+<b class="nc">&nbsp;        log.info(&quot;[{}] {} total records migrated.&quot;, this.sqlTableName, rowCounter);</b>
+<b class="nc">&nbsp;        log.info(&quot;[{}] Finished migration data from cassandra &#39;{}&#39; Column Family to &#39;{}&#39; SQL table.&quot;,</b>
+&nbsp;                this.sqlTableName, this.cassandraCf, this.sqlTableName);
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;CassandraToSqlColumnData[]&gt; extractBatchData(Iterator&lt;Row&gt; iter) {
+<b class="nc">&nbsp;        List&lt;CassandraToSqlColumnData[]&gt; batchData = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        while (iter.hasNext() &amp;&amp; batchData.size() &lt; this.batchSize) {</b>
+<b class="nc">&nbsp;            Row row = iter.next();</b>
+<b class="nc">&nbsp;            if (row != null) {</b>
+<b class="nc">&nbsp;                CassandraToSqlColumnData[] data = this.extractRowData(row);</b>
+<b class="nc">&nbsp;                batchData.add(data);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return batchData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private CassandraToSqlColumnData[] extractRowData(Row row) {
+<b class="nc">&nbsp;        CassandraToSqlColumnData[] data = new CassandraToSqlColumnData[this.columns.size()];</b>
+<b class="nc">&nbsp;        for (CassandraToSqlColumn column: this.columns) {</b>
+<b class="nc">&nbsp;            String value = column.getColumnValue(row);</b>
+<b class="nc">&nbsp;            data[column.getIndex()] = new CassandraToSqlColumnData(value);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return this.validateColumnData(data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected CassandraToSqlColumnData[] validateColumnData(CassandraToSqlColumnData[] data) {
+<b class="nc">&nbsp;        for (int i=0;i&lt;data.length;i++) {</b>
+<b class="nc">&nbsp;            CassandraToSqlColumn column = this.columns.get(i);</b>
+<b class="nc">&nbsp;            if (column.getType() == CassandraToSqlColumnType.STRING) {</b>
+<b class="nc">&nbsp;                CassandraToSqlColumnData columnData = data[i];</b>
+<b class="nc">&nbsp;                String value = columnData.getValue();</b>
+<b class="nc">&nbsp;                if (value != null &amp;&amp; value.length() &gt; column.getSize()) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Value size [{}] exceeds maximum size [{}] of column [{}] and will be truncated!&quot;,</b>
+&nbsp;                            this.sqlTableName,
+<b class="nc">&nbsp;                            value.length(), column.getSize(), column.getSqlColumnName());</b>
+<b class="nc">&nbsp;                    log.warn(&quot;[{}] Affected data:\n{}&quot;, this.sqlTableName, this.dataToString(data));</b>
+<b class="nc">&nbsp;                    value = value.substring(0, column.getSize());</b>
+<b class="nc">&nbsp;                    columnData.setOriginalValue(value);</b>
+<b class="nc">&nbsp;                    columnData.setValue(value);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return data;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void batchInsert(List&lt;CassandraToSqlColumnData[]&gt; batchData, Connection conn) throws SQLException {
+<b class="nc">&nbsp;        boolean retry = false;</b>
+<b class="nc">&nbsp;        for (CassandraToSqlColumnData[] data : batchData) {</b>
+<b class="nc">&nbsp;            for (CassandraToSqlColumn column: this.columns) {</b>
+<b class="nc">&nbsp;                column.setColumnValue(this.sqlInsertStatement, data[column.getIndex()].getValue());</b>
+&nbsp;            }
+&nbsp;            try {
+<b class="nc">&nbsp;                this.sqlInsertStatement.executeUpdate();</b>
+&nbsp;            } catch (SQLException e) {
+<b class="nc">&nbsp;                if (this.handleInsertException(batchData, data, conn, e)) {</b>
+<b class="nc">&nbsp;                    retry = true;</b>
+&nbsp;                    break;
+&nbsp;                } else {
+&nbsp;                    throw e;
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (retry) {</b>
+<b class="nc">&nbsp;            this.batchInsert(batchData, conn);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            conn.commit();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean handleInsertException(List&lt;CassandraToSqlColumnData[]&gt; batchData,
+&nbsp;                                          CassandraToSqlColumnData[] data,
+&nbsp;                                          Connection conn, SQLException ex) throws SQLException {
+<b class="nc">&nbsp;        conn.commit();</b>
+<b class="nc">&nbsp;        String constraint = extractConstraintName(ex).orElse(null);</b>
+<b class="nc">&nbsp;        if (constraint != null) {</b>
+<b class="nc">&nbsp;            if (this.onConstraintViolation(batchData, data, constraint)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.error(&quot;[{}] Unhandled constraint violation [{}] during insert!&quot;, this.sqlTableName, constraint);</b>
+<b class="nc">&nbsp;                log.error(&quot;[{}] Affected data:\n{}&quot;, this.sqlTableName, this.dataToString(data));</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Unhandled exception during insert!&quot;, this.sqlTableName);</b>
+<b class="nc">&nbsp;            log.error(&quot;[{}] Affected data:\n{}&quot;, this.sqlTableName, this.dataToString(data));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String dataToString(CassandraToSqlColumnData[] data) {
+<b class="nc">&nbsp;        StringBuffer stringData = new StringBuffer(&quot;{\n&quot;);</b>
+<b class="nc">&nbsp;        for (int i=0;i&lt;data.length;i++) {</b>
+<b class="nc">&nbsp;            String columnName = this.columns.get(i).getSqlColumnName();</b>
+<b class="nc">&nbsp;            String value = data[i].getLogValue();</b>
+<b class="nc">&nbsp;            stringData.append(&quot;\&quot;&quot;).append(columnName).append(&quot;\&quot;: &quot;).append(&quot;[&quot;).append(value).append(&quot;]\n&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stringData.append(&quot;}&quot;);</b>
+<b class="nc">&nbsp;        return stringData.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected boolean onConstraintViolation(List&lt;CassandraToSqlColumnData[]&gt; batchData,
+&nbsp;                                            CassandraToSqlColumnData[] data, String constraint) {
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void handleUniqueNameViolation(CassandraToSqlColumnData[] data, String entityType) {
+<b class="nc">&nbsp;        CassandraToSqlColumn nameColumn = this.getColumn(&quot;name&quot;);</b>
+<b class="nc">&nbsp;        CassandraToSqlColumn searchTextColumn = this.getColumn(&quot;search_text&quot;);</b>
+<b class="nc">&nbsp;        CassandraToSqlColumnData nameColumnData = data[nameColumn.getIndex()];</b>
+<b class="nc">&nbsp;        CassandraToSqlColumnData searchTextColumnData = data[searchTextColumn.getIndex()];</b>
+<b class="nc">&nbsp;        String prevName = nameColumnData.getValue();</b>
+<b class="nc">&nbsp;        String newName = nameColumnData.getNextConstraintStringValue(nameColumn);</b>
+<b class="nc">&nbsp;        nameColumnData.setValue(newName);</b>
+<b class="nc">&nbsp;        searchTextColumnData.setValue(searchTextColumnData.getNextConstraintStringValue(searchTextColumn));</b>
+<b class="nc">&nbsp;        String id = UUIDConverter.fromString(this.getColumnData(data, &quot;id&quot;).getValue()).toString();</b>
+<b class="nc">&nbsp;        log.warn(&quot;Found {} with duplicate name [id:[{}]]. Attempting to rename {} from &#39;{}&#39; to &#39;{}&#39;...&quot;, entityType, id, entityType, prevName, newName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void handleUniqueEmailViolation(CassandraToSqlColumnData[] data) {
+<b class="nc">&nbsp;        CassandraToSqlColumn emailColumn = this.getColumn(&quot;email&quot;);</b>
+<b class="nc">&nbsp;        CassandraToSqlColumn searchTextColumn = this.getColumn(&quot;search_text&quot;);</b>
+<b class="nc">&nbsp;        CassandraToSqlColumnData emailColumnData = data[emailColumn.getIndex()];</b>
+<b class="nc">&nbsp;        CassandraToSqlColumnData searchTextColumnData = data[searchTextColumn.getIndex()];</b>
+<b class="nc">&nbsp;        String prevEmail = emailColumnData.getValue();</b>
+<b class="nc">&nbsp;        String newEmail = emailColumnData.getNextConstraintEmailValue(emailColumn);</b>
+<b class="nc">&nbsp;        emailColumnData.setValue(newEmail);</b>
+<b class="nc">&nbsp;        searchTextColumnData.setValue(searchTextColumnData.getNextConstraintEmailValue(searchTextColumn));</b>
+<b class="nc">&nbsp;        String id = UUIDConverter.fromString(this.getColumnData(data, &quot;id&quot;).getValue()).toString();</b>
+<b class="nc">&nbsp;        log.warn(&quot;Found user with duplicate email [id:[{}]]. Attempting to rename email from &#39;{}&#39; to &#39;{}&#39;...&quot;, id, prevEmail, newEmail);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void ignoreRecord(List&lt;CassandraToSqlColumnData[]&gt; batchData, CassandraToSqlColumnData[] data) {
+<b class="nc">&nbsp;        log.warn(&quot;[{}] Affected data:\n{}&quot;, this.sqlTableName, this.dataToString(data));</b>
+<b class="nc">&nbsp;        int index = batchData.indexOf(data);</b>
+<b class="nc">&nbsp;        if (index &gt; 0) {</b>
+<b class="nc">&nbsp;            batchData.remove(index);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected CassandraToSqlColumn getColumn(String sqlColumnName) {
+<b class="nc">&nbsp;        return this.columns.stream().filter(col -&gt; col.getSqlColumnName().equals(sqlColumnName)).findFirst().get();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected CassandraToSqlColumnData getColumnData(CassandraToSqlColumnData[] data, String sqlColumnName) {
+<b class="nc">&nbsp;        CassandraToSqlColumn column = this.getColumn(sqlColumnName);</b>
+<b class="nc">&nbsp;        return data[column.getIndex()];</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;String&gt; extractConstraintName(SQLException ex) {
+<b class="nc">&nbsp;        final String sqlState = JdbcExceptionHelper.extractSqlState( ex );</b>
+<b class="nc">&nbsp;        if (sqlState != null) {</b>
+<b class="nc">&nbsp;            String sqlStateClassCode = JdbcExceptionHelper.determineSqlStateClassCode( sqlState );</b>
+<b class="nc">&nbsp;            if ( sqlStateClassCode != null ) {</b>
+<b class="nc">&nbsp;                if (Arrays.asList(</b>
+&nbsp;                        &quot;23&quot;,	// &quot;integrity constraint violation&quot;
+&nbsp;                        &quot;27&quot;,	// &quot;triggered data change violation&quot;
+&nbsp;                        &quot;44&quot;	// &quot;with check option violation&quot;
+<b class="nc">&nbsp;                ).contains(sqlStateClassCode)) {</b>
+<b class="nc">&nbsp;                    if (ex instanceof PSQLException) {</b>
+<b class="nc">&nbsp;                        return Optional.of(((PSQLException)ex).getServerErrorMessage().getConstraint());</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Statement createCassandraSelectStatement() {
+<b class="nc">&nbsp;        StringBuilder selectStatementBuilder = new StringBuilder();</b>
+<b class="nc">&nbsp;        selectStatementBuilder.append(&quot;SELECT &quot;);</b>
+<b class="nc">&nbsp;        for (CassandraToSqlColumn column : columns) {</b>
+<b class="nc">&nbsp;            selectStatementBuilder.append(column.getCassandraColumnName()).append(&quot;,&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        selectStatementBuilder.deleteCharAt(selectStatementBuilder.length() - 1);</b>
+<b class="nc">&nbsp;        selectStatementBuilder.append(&quot; FROM &quot;).append(cassandraCf);</b>
+<b class="nc">&nbsp;        return SimpleStatement.newInstance(selectStatementBuilder.toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PreparedStatement createSqlInsertStatement(Connection conn) throws SQLException {
+<b class="nc">&nbsp;        StringBuilder insertStatementBuilder = new StringBuilder();</b>
+<b class="nc">&nbsp;        insertStatementBuilder.append(&quot;INSERT INTO &quot;).append(this.sqlTableName).append(&quot; (&quot;);</b>
+<b class="nc">&nbsp;        for (CassandraToSqlColumn column : columns) {</b>
+<b class="nc">&nbsp;            insertStatementBuilder.append(column.getSqlColumnName()).append(&quot;,&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        insertStatementBuilder.deleteCharAt(insertStatementBuilder.length() - 1);</b>
+<b class="nc">&nbsp;        insertStatementBuilder.append(&quot;) VALUES (&quot;);</b>
+<b class="nc">&nbsp;        for (CassandraToSqlColumn column : columns) {</b>
+<b class="nc">&nbsp;            if (column.getType() == CassandraToSqlColumnType.JSON) {</b>
+<b class="nc">&nbsp;                insertStatementBuilder.append(&quot;cast(? AS json)&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                insertStatementBuilder.append(&quot;?&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            insertStatementBuilder.append(&quot;,&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        insertStatementBuilder.deleteCharAt(insertStatementBuilder.length() - 1);</b>
+<b class="nc">&nbsp;        insertStatementBuilder.append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;        return conn.prepareStatement(insertStatementBuilder.toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

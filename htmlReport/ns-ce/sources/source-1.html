@@ -1,0 +1,865 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbWebSocketHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller.plugin</a>
+</div>
+
+<h1>Coverage Summary for Class: TbWebSocketHandler (org.thingsboard.server.controller.plugin)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbWebSocketHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/123)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/235)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbWebSocketHandler$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">TbWebSocketHandler$SessionMetaData</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/60)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/145)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/296)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller.plugin;
+&nbsp;
+&nbsp;import com.github.benmanes.caffeine.cache.Cache;
+&nbsp;import com.github.benmanes.caffeine.cache.Caffeine;
+&nbsp;import com.github.benmanes.caffeine.cache.RemovalCause;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import jakarta.websocket.RemoteEndpoint;
+&nbsp;import jakarta.websocket.SendHandler;
+&nbsp;import jakarta.websocket.SendResult;
+&nbsp;import jakarta.websocket.Session;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.Setter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.beans.factory.BeanCreationNotAllowedException;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.web.socket.CloseStatus;
+&nbsp;import org.springframework.web.socket.PongMessage;
+&nbsp;import org.springframework.web.socket.TextMessage;
+&nbsp;import org.springframework.web.socket.WebSocketSession;
+&nbsp;import org.springframework.web.socket.adapter.NativeWebSocketSession;
+&nbsp;import org.springframework.web.socket.handler.TextWebSocketHandler;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.cache.limits.RateLimitService;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.limit.LimitedApi;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+&nbsp;import org.thingsboard.server.config.WebSocketConfiguration;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.JwtAuthenticationProvider;
+&nbsp;import org.thingsboard.server.service.security.exception.JwtExpiredTokenException;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.model.UserPrincipal;
+&nbsp;import org.thingsboard.server.service.subscription.SubscriptionErrorCode;
+&nbsp;import org.thingsboard.server.service.ws.AuthCmd;
+&nbsp;import org.thingsboard.server.service.ws.SessionEvent;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketMsgEndpoint;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketService;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketSessionRef;
+&nbsp;import org.thingsboard.server.service.ws.WebSocketSessionType;
+&nbsp;import org.thingsboard.server.service.ws.WsCommandsWrapper;
+&nbsp;import org.thingsboard.server.service.ws.notification.cmd.NotificationCmdsWrapper;
+&nbsp;import org.thingsboard.server.service.ws.telemetry.cmd.TelemetryCmdsWrapper;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.security.InvalidParameterException;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Queue;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentLinkedQueue;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+&nbsp;import static org.thingsboard.server.service.ws.DefaultWebSocketService.NUMBER_OF_PING_ATTEMPTS;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocketMsgEndpoint {
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;String, SessionMetaData&gt; internalSessionMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;String, String&gt; externalSessionMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    @Autowired @Lazy
+&nbsp;    private WebSocketService webSocketService;
+&nbsp;    @Autowired
+&nbsp;    private TbTenantProfileCache tenantProfileCache;
+&nbsp;    @Autowired
+&nbsp;    private RateLimitService rateLimitService;
+&nbsp;    @Autowired
+&nbsp;    private JwtAuthenticationProvider authenticationProvider;
+&nbsp;
+&nbsp;    @Value(&quot;${server.ws.send_timeout:5000}&quot;)
+&nbsp;    private long sendTimeout;
+&nbsp;    @Value(&quot;${server.ws.ping_timeout:30000}&quot;)
+&nbsp;    private long pingTimeout;
+&nbsp;    @Value(&quot;${server.ws.max_queue_messages_per_session:1000}&quot;)
+&nbsp;    private int wsMaxQueueMessagesPerSession;
+&nbsp;    @Value(&quot;${server.ws.auth_timeout_ms:10000}&quot;)
+&nbsp;    private int authTimeoutMs;
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;String, WebSocketSessionRef&gt; blacklistedSessions = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;TenantId, Set&lt;String&gt;&gt; tenantSessionsMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;CustomerId, Set&lt;String&gt;&gt; customerSessionsMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;UserId, Set&lt;String&gt;&gt; regularUserSessionsMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;UserId, Set&lt;String&gt;&gt; publicUserSessionsMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private Cache&lt;String, SessionMetaData&gt; pendingSessions;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    private void init() {
+<b class="nc">&nbsp;        pendingSessions = Caffeine.newBuilder()</b>
+<b class="nc">&nbsp;                .expireAfterWrite(authTimeoutMs, TimeUnit.MILLISECONDS)</b>
+<b class="nc">&nbsp;                .&lt;String, SessionMetaData&gt;removalListener((sessionId, sessionMd, removalCause) -&gt; {</b>
+<b class="nc">&nbsp;                    if (removalCause == RemovalCause.EXPIRED &amp;&amp; sessionMd != null) {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            close(sessionMd.sessionRef, CloseStatus.POLICY_VIOLATION);</b>
+&nbsp;                        } catch (IOException e) {
+<b class="nc">&nbsp;                            log.warn(&quot;IO error&quot;, e);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                })
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void stop() {
+<b class="nc">&nbsp;        internalSessionMap.clear();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleTextMessage(WebSocketSession session, TextMessage message) {
+&nbsp;        try {
+<b class="nc">&nbsp;            SessionMetaData sessionMd = getSessionMd(session.getId());</b>
+<b class="nc">&nbsp;            if (sessionMd == null) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to find session&quot;, session.getId());</b>
+<b class="nc">&nbsp;                session.close(CloseStatus.SERVER_ERROR.withReason(&quot;Session not found!&quot;));</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            sessionMd.onMsg(message.getPayload());</b>
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            log.warn(&quot;IO error&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    void processMsg(SessionMetaData sessionMd, String msg) throws IOException {
+<b class="nc">&nbsp;        WebSocketSessionRef sessionRef = sessionMd.sessionRef;</b>
+&nbsp;        WsCommandsWrapper cmdsWrapper;
+&nbsp;        try {
+<b class="nc">&nbsp;            switch (sessionRef.getSessionType()) {</b>
+&nbsp;                case GENERAL:
+<b class="nc">&nbsp;                    cmdsWrapper = JacksonUtil.fromString(msg, WsCommandsWrapper.class);</b>
+&nbsp;                    break;
+&nbsp;                case TELEMETRY:
+<b class="nc">&nbsp;                    cmdsWrapper = JacksonUtil.fromString(msg, TelemetryCmdsWrapper.class).toCommonCmdsWrapper();</b>
+&nbsp;                    break;
+&nbsp;                case NOTIFICATIONS:
+<b class="nc">&nbsp;                    cmdsWrapper = JacksonUtil.fromString(msg, NotificationCmdsWrapper.class).toCommonCmdsWrapper();</b>
+&nbsp;                    break;
+&nbsp;                default:
+&nbsp;                    return;
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;{} Failed to decode subscription cmd: {}&quot;, sessionRef, e.getMessage(), e);</b>
+<b class="nc">&nbsp;            if (sessionRef.getSecurityCtx() != null) {</b>
+<b class="nc">&nbsp;                webSocketService.sendError(sessionRef, 1, SubscriptionErrorCode.BAD_REQUEST, &quot;Failed to parse the payload&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                close(sessionRef, CloseStatus.BAD_DATA.withReason(e.getMessage()));</b>
+&nbsp;            }
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (sessionRef.getSecurityCtx() != null) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;{} Processing {}&quot;, sessionRef, msg);</b>
+<b class="nc">&nbsp;            webSocketService.handleCommands(sessionRef, cmdsWrapper);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            AuthCmd authCmd = cmdsWrapper.getAuthCmd();</b>
+<b class="nc">&nbsp;            if (authCmd == null) {</b>
+<b class="nc">&nbsp;                close(sessionRef, CloseStatus.POLICY_VIOLATION.withReason(&quot;Auth cmd is missing&quot;));</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            log.trace(&quot;{} Authenticating session&quot;, sessionRef);</b>
+&nbsp;            SecurityUser securityCtx;
+&nbsp;            try {
+<b class="nc">&nbsp;                securityCtx = authenticationProvider.authenticate(authCmd.getToken());</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                close(sessionRef, CloseStatus.BAD_DATA.withReason(e.getMessage()));</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            sessionRef.setSecurityCtx(securityCtx);</b>
+<b class="nc">&nbsp;            pendingSessions.invalidate(sessionMd.session.getId());</b>
+<b class="nc">&nbsp;            establishSession(sessionMd.session, sessionRef, sessionMd);</b>
+&nbsp;
+<b class="nc">&nbsp;            webSocketService.handleCommands(sessionRef, cmdsWrapper);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void handlePongMessage(WebSocketSession session, PongMessage message) throws Exception {
+&nbsp;        try {
+<b class="nc">&nbsp;            SessionMetaData sessionMd = getSessionMd(session.getId());</b>
+<b class="nc">&nbsp;            if (sessionMd != null) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;{} Processing pong response {}&quot;, sessionMd.sessionRef, message.getPayload());</b>
+<b class="nc">&nbsp;                sessionMd.processPongMessage(System.currentTimeMillis());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Failed to find session&quot;, session.getId());</b>
+<b class="nc">&nbsp;                session.close(CloseStatus.SERVER_ERROR.withReason(&quot;Session not found!&quot;));</b>
+&nbsp;            }
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            log.warn(&quot;IO error&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+<b class="nc">&nbsp;        super.afterConnectionEstablished(session);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (session instanceof NativeWebSocketSession) {</b>
+<b class="nc">&nbsp;                Session nativeSession = ((NativeWebSocketSession) session).getNativeSession(Session.class);</b>
+<b class="nc">&nbsp;                if (nativeSession != null) {</b>
+<b class="nc">&nbsp;                    nativeSession.getAsyncRemote().setSendTimeout(sendTimeout);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            WebSocketSessionRef sessionRef = toRef(session);</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Session opened from address: {}&quot;, sessionRef.getSessionId(), session.getId(), session.getRemoteAddress());</b>
+<b class="nc">&nbsp;            establishSession(session, sessionRef, null);</b>
+&nbsp;        } catch (InvalidParameterException e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to start session&quot;, session.getId(), e);</b>
+<b class="nc">&nbsp;            session.close(CloseStatus.BAD_DATA.withReason(e.getMessage()));</b>
+&nbsp;        } catch (JwtExpiredTokenException e) {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Failed to start session&quot;, session.getId(), e);</b>
+<b class="nc">&nbsp;            session.close(CloseStatus.SERVER_ERROR.withReason(e.getMessage()));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to start session&quot;, session.getId(), e);</b>
+<b class="nc">&nbsp;            session.close(CloseStatus.SERVER_ERROR.withReason(e.getMessage()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void establishSession(WebSocketSession session, WebSocketSessionRef sessionRef, SessionMetaData sessionMd) throws IOException {
+<b class="nc">&nbsp;        if (sessionRef.getSecurityCtx() != null) {</b>
+<b class="nc">&nbsp;            if (!checkLimits(session, sessionRef)) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            int maxMsgQueueSize = Optional.ofNullable(getTenantProfileConfiguration(sessionRef))</b>
+<b class="nc">&nbsp;                    .map(DefaultTenantProfileConfiguration::getWsMsgQueueLimitPerSession)</b>
+<b class="nc">&nbsp;                    .filter(profileLimit -&gt; profileLimit &gt; 0 &amp;&amp; profileLimit &lt; wsMaxQueueMessagesPerSession)</b>
+<b class="nc">&nbsp;                    .orElse(wsMaxQueueMessagesPerSession);</b>
+<b class="nc">&nbsp;            if (sessionMd == null) {</b>
+<b class="nc">&nbsp;                sessionMd = new SessionMetaData(session, sessionRef);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            sessionMd.setMaxMsgQueueSize(maxMsgQueueSize);</b>
+&nbsp;
+<b class="nc">&nbsp;            internalSessionMap.put(session.getId(), sessionMd);</b>
+<b class="nc">&nbsp;            externalSessionMap.put(sessionRef.getSessionId(), session.getId());</b>
+<b class="nc">&nbsp;            processInWebSocketService(sessionRef, SessionEvent.onEstablished());</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}][{}][{}][{}] Session established from address: {}&quot;, sessionRef.getSecurityCtx().getTenantId(),</b>
+<b class="nc">&nbsp;                    sessionRef.getSecurityCtx().getId(), sessionRef.getSessionId(), session.getId(), session.getRemoteAddress());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sessionMd = new SessionMetaData(session, sessionRef);</b>
+<b class="nc">&nbsp;            pendingSessions.put(session.getId(), sessionMd);</b>
+<b class="nc">&nbsp;            externalSessionMap.put(sessionRef.getSessionId(), session.getId());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void handleTransportError(WebSocketSession session, Throwable tError) throws Exception {
+<b class="nc">&nbsp;        super.handleTransportError(session, tError);</b>
+<b class="nc">&nbsp;        SessionMetaData sessionMd = getSessionMd(session.getId());</b>
+<b class="nc">&nbsp;        if (sessionMd != null) {</b>
+<b class="nc">&nbsp;            processInWebSocketService(sessionMd.sessionRef, SessionEvent.onError(tError));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Failed to find session&quot;, session.getId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Session transport error&quot;, session.getId(), tError);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+<b class="nc">&nbsp;        super.afterConnectionClosed(session, closeStatus);</b>
+<b class="nc">&nbsp;        SessionMetaData sessionMd = internalSessionMap.remove(session.getId());</b>
+<b class="nc">&nbsp;        if (sessionMd == null) {</b>
+<b class="nc">&nbsp;            sessionMd = pendingSessions.asMap().remove(session.getId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (sessionMd != null) {</b>
+<b class="nc">&nbsp;            externalSessionMap.remove(sessionMd.sessionRef.getSessionId());</b>
+<b class="nc">&nbsp;            if (sessionMd.sessionRef.getSecurityCtx() != null) {</b>
+<b class="nc">&nbsp;                cleanupLimits(session, sessionMd.sessionRef);</b>
+<b class="nc">&nbsp;                processInWebSocketService(sessionMd.sessionRef, SessionEvent.onClosed());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            log.info(&quot;{} Session is closed&quot;, sessionMd.sessionRef);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.info(&quot;[{}] Session is closed&quot;, session.getId());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processInWebSocketService(WebSocketSessionRef sessionRef, SessionEvent event) {
+<b class="nc">&nbsp;        if (sessionRef.getSecurityCtx() == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            webSocketService.handleSessionEvent(sessionRef, event);</b>
+&nbsp;        } catch (BeanCreationNotAllowedException e) {
+<b class="nc">&nbsp;            log.warn(&quot;{} Failed to close session due to possible shutdown state&quot;, sessionRef);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private WebSocketSessionRef toRef(WebSocketSession session) {
+<b class="nc">&nbsp;        String path = session.getUri().getPath();</b>
+&nbsp;        WebSocketSessionType sessionType;
+<b class="nc">&nbsp;        if (path.equals(WebSocketConfiguration.WS_API_ENDPOINT)) {</b>
+<b class="nc">&nbsp;            sessionType = WebSocketSessionType.GENERAL;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            String type = StringUtils.substringAfter(path, WebSocketConfiguration.WS_PLUGINS_ENDPOINT);</b>
+<b class="nc">&nbsp;            sessionType = WebSocketSessionType.forName(type)</b>
+<b class="nc">&nbsp;                    .orElseThrow(() -&gt; new InvalidParameterException(&quot;Unknown session type&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        SecurityUser securityCtx = null;</b>
+<b class="nc">&nbsp;        String token = StringUtils.substringAfter(session.getUri().getQuery(), &quot;token=&quot;);</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(token)) {</b>
+<b class="nc">&nbsp;            securityCtx = authenticationProvider.authenticate(token);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return WebSocketSessionRef.builder()</b>
+<b class="nc">&nbsp;                .sessionId(UUID.randomUUID().toString())</b>
+<b class="nc">&nbsp;                .securityCtx(securityCtx)</b>
+<b class="nc">&nbsp;                .localAddress(session.getLocalAddress())</b>
+<b class="nc">&nbsp;                .remoteAddress(session.getRemoteAddress())</b>
+<b class="nc">&nbsp;                .sessionType(sessionType)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private SessionMetaData getSessionMd(String internalSessionId) {
+<b class="nc">&nbsp;        SessionMetaData sessionMd = internalSessionMap.get(internalSessionId);</b>
+<b class="nc">&nbsp;        if (sessionMd == null) {</b>
+<b class="nc">&nbsp;            sessionMd = pendingSessions.getIfPresent(internalSessionId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return sessionMd;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    class SessionMetaData implements SendHandler {
+&nbsp;        private final WebSocketSession session;
+&nbsp;        private final RemoteEndpoint.Async asyncRemote;
+&nbsp;        private final WebSocketSessionRef sessionRef;
+&nbsp;
+<b class="nc">&nbsp;        final AtomicBoolean isSending = new AtomicBoolean(false);</b>
+<b class="nc">&nbsp;        private final Queue&lt;TbWebSocketMsg&lt;?&gt;&gt; outboundMsgQueue = new ConcurrentLinkedQueue&lt;&gt;();</b>
+<b class="nc">&nbsp;        private final AtomicInteger outboundMsgQueueSize = new AtomicInteger();</b>
+<b class="nc">&nbsp;        @Setter</b>
+&nbsp;        private int maxMsgQueueSize = wsMaxQueueMessagesPerSession;
+&nbsp;
+<b class="nc">&nbsp;        private final Queue&lt;String&gt; inboundMsgQueue = new ConcurrentLinkedQueue&lt;&gt;();</b>
+<b class="nc">&nbsp;        private final Lock inboundMsgQueueProcessorLock = new ReentrantLock();</b>
+&nbsp;
+&nbsp;        private volatile long lastActivityTime;
+&nbsp;
+<b class="nc">&nbsp;        SessionMetaData(WebSocketSession session, WebSocketSessionRef sessionRef) {</b>
+<b class="nc">&nbsp;            super();</b>
+<b class="nc">&nbsp;            this.session = session;</b>
+<b class="nc">&nbsp;            Session nativeSession = ((NativeWebSocketSession) session).getNativeSession(Session.class);</b>
+<b class="nc">&nbsp;            this.asyncRemote = nativeSession.getAsyncRemote();</b>
+<b class="nc">&nbsp;            this.sessionRef = sessionRef;</b>
+<b class="nc">&nbsp;            this.lastActivityTime = System.currentTimeMillis();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        void sendPing(long currentTime) {
+&nbsp;            try {
+<b class="nc">&nbsp;                long timeSinceLastActivity = currentTime - lastActivityTime;</b>
+<b class="nc">&nbsp;                if (timeSinceLastActivity &gt;= pingTimeout) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;{} Closing session due to ping timeout&quot;, sessionRef);</b>
+<b class="nc">&nbsp;                    closeSession(CloseStatus.SESSION_NOT_RELIABLE);</b>
+<b class="nc">&nbsp;                } else if (timeSinceLastActivity &gt;= pingTimeout / NUMBER_OF_PING_ATTEMPTS) {</b>
+<b class="nc">&nbsp;                    sendMsg(TbWebSocketPingMsg.INSTANCE);</b>
+&nbsp;                }
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.trace(&quot;{} Failed to send ping msg&quot;, sessionRef, e);</b>
+<b class="nc">&nbsp;                closeSession(CloseStatus.SESSION_NOT_RELIABLE);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        void closeSession(CloseStatus reason) {
+&nbsp;            try {
+<b class="nc">&nbsp;                close(this.sessionRef, reason);</b>
+&nbsp;            } catch (IOException ioe) {
+<b class="nc">&nbsp;                log.trace(&quot;{} Session transport error&quot;, sessionRef, ioe);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                outboundMsgQueue.clear();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        void processPongMessage(long currentTime) {
+<b class="nc">&nbsp;            lastActivityTime = currentTime;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        void sendMsg(String msg) {
+<b class="nc">&nbsp;            sendMsg(new TbWebSocketTextMsg(msg));</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        void sendMsg(TbWebSocketMsg&lt;?&gt; msg) {
+<b class="nc">&nbsp;            if (outboundMsgQueueSize.get() &lt; maxMsgQueueSize) {</b>
+<b class="nc">&nbsp;                outboundMsgQueue.add(msg);</b>
+<b class="nc">&nbsp;                outboundMsgQueueSize.incrementAndGet();</b>
+<b class="nc">&nbsp;                processNextMsg();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.info(&quot;{} Session closed due to updates queue size exceeded&quot;, sessionRef);</b>
+<b class="nc">&nbsp;                closeSession(CloseStatus.POLICY_VIOLATION.withReason(&quot;Max pending updates limit reached!&quot;));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        private void sendMsgInternal(TbWebSocketMsg&lt;?&gt; msg) {
+&nbsp;            try {
+<b class="nc">&nbsp;                if (TbWebSocketMsgType.TEXT.equals(msg.getType())) {</b>
+<b class="nc">&nbsp;                    TbWebSocketTextMsg textMsg = (TbWebSocketTextMsg) msg;</b>
+<b class="nc">&nbsp;                    this.asyncRemote.sendText(textMsg.getMsg(), this);</b>
+&nbsp;                    // isSending status will be reset in the onResult method by call back
+&nbsp;                } else {
+<b class="nc">&nbsp;                    TbWebSocketPingMsg pingMsg = (TbWebSocketPingMsg) msg;</b>
+<b class="nc">&nbsp;                    this.asyncRemote.sendPing(pingMsg.getMsg()); // blocking call</b>
+<b class="nc">&nbsp;                    isSending.set(false);</b>
+<b class="nc">&nbsp;                    processNextMsg();</b>
+&nbsp;                }
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.trace(&quot;{} Failed to send msg&quot;, sessionRef, e);</b>
+<b class="nc">&nbsp;                closeSession(CloseStatus.SESSION_NOT_RELIABLE);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void onResult(SendResult result) {
+<b class="nc">&nbsp;            if (!result.isOK()) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;{} Failed to send msg&quot;, sessionRef, result.getException());</b>
+<b class="nc">&nbsp;                closeSession(CloseStatus.SESSION_NOT_RELIABLE);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            isSending.set(false);</b>
+<b class="nc">&nbsp;            processNextMsg();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private void processNextMsg() {
+<b class="nc">&nbsp;            if (outboundMsgQueue.isEmpty() || !isSending.compareAndSet(false, true)) {</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="nc">&nbsp;            TbWebSocketMsg&lt;?&gt; msg = outboundMsgQueue.poll();</b>
+<b class="nc">&nbsp;            if (msg != null) {</b>
+<b class="nc">&nbsp;                outboundMsgQueueSize.decrementAndGet();</b>
+<b class="nc">&nbsp;                sendMsgInternal(msg);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                isSending.set(false);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        public void onMsg(String msg) throws IOException {
+<b class="nc">&nbsp;            inboundMsgQueue.add(msg);</b>
+<b class="nc">&nbsp;            tryProcessInboundMsgs();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        void tryProcessInboundMsgs() throws IOException {
+<b class="nc">&nbsp;            while (!inboundMsgQueue.isEmpty()) {</b>
+<b class="nc">&nbsp;                if (inboundMsgQueueProcessorLock.tryLock()) {</b>
+&nbsp;                    try {
+&nbsp;                        String msg;
+<b class="nc">&nbsp;                        while ((msg = inboundMsgQueue.poll()) != null) {</b>
+<b class="nc">&nbsp;                            processMsg(this, msg);</b>
+&nbsp;                        }
+&nbsp;                    } finally {
+<b class="nc">&nbsp;                        inboundMsgQueueProcessorLock.unlock();</b>
+<b class="nc">&nbsp;                    }</b>
+&nbsp;                } else {
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void send(WebSocketSessionRef sessionRef, int subscriptionId, String msg) throws IOException {
+<b class="nc">&nbsp;        log.debug(&quot;{} Sending {}&quot;, sessionRef, msg);</b>
+<b class="nc">&nbsp;        String externalId = sessionRef.getSessionId();</b>
+<b class="nc">&nbsp;        String internalId = externalSessionMap.get(externalId);</b>
+<b class="nc">&nbsp;        if (internalId != null) {</b>
+<b class="nc">&nbsp;            SessionMetaData sessionMd = internalSessionMap.get(internalId);</b>
+<b class="nc">&nbsp;            if (sessionMd != null) {</b>
+<b class="nc">&nbsp;                TenantId tenantId = sessionRef.getSecurityCtx().getTenantId();</b>
+<b class="nc">&nbsp;                if (!rateLimitService.checkRateLimit(LimitedApi.WS_UPDATES_PER_SESSION, tenantId, (Object) sessionRef.getSessionId())) {</b>
+<b class="nc">&nbsp;                    if (blacklistedSessions.putIfAbsent(externalId, sessionRef) == null) {</b>
+<b class="nc">&nbsp;                        log.info(&quot;{} Failed to process session update. Max session updates limit reached&quot;, sessionRef);</b>
+<b class="nc">&nbsp;                        sessionMd.sendMsg(&quot;{\&quot;subscriptionId\&quot;:&quot; + subscriptionId + &quot;, \&quot;errorCode\&quot;:&quot; + ThingsboardErrorCode.TOO_MANY_UPDATES.getErrorCode() + &quot;, \&quot;errorMsg\&quot;:\&quot;Too many updates!\&quot;}&quot;);</b>
+&nbsp;                    }
+&nbsp;                    return;
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.debug(&quot;{} Session is no longer blacklisted.&quot;, sessionRef);</b>
+<b class="nc">&nbsp;                    blacklistedSessions.remove(externalId);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                sessionMd.sendMsg(msg);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;[{}][{}] Failed to find session by internal id&quot;, externalId, internalId);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to find session by external id&quot;, externalId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendPing(WebSocketSessionRef sessionRef, long currentTime) throws IOException {
+<b class="nc">&nbsp;        String externalId = sessionRef.getSessionId();</b>
+<b class="nc">&nbsp;        String internalId = externalSessionMap.get(externalId);</b>
+<b class="nc">&nbsp;        if (internalId != null) {</b>
+<b class="nc">&nbsp;            SessionMetaData sessionMd = internalSessionMap.get(internalId);</b>
+<b class="nc">&nbsp;            if (sessionMd != null) {</b>
+<b class="nc">&nbsp;                sessionMd.sendPing(currentTime);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;[{}][{}] Failed to find session by internal id&quot;, externalId, internalId);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to find session by external id&quot;, externalId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void close(WebSocketSessionRef sessionRef, CloseStatus reason) throws IOException {
+<b class="nc">&nbsp;        String externalId = sessionRef.getSessionId();</b>
+<b class="nc">&nbsp;        log.debug(&quot;{} Processing close request&quot;, sessionRef.toString());</b>
+<b class="nc">&nbsp;        String internalId = externalSessionMap.get(externalId);</b>
+<b class="nc">&nbsp;        if (internalId != null) {</b>
+<b class="nc">&nbsp;            SessionMetaData sessionMd = getSessionMd(internalId);</b>
+<b class="nc">&nbsp;            if (sessionMd != null) {</b>
+<b class="nc">&nbsp;                sessionMd.session.close(reason);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;[{}][{}] Failed to find session by internal id&quot;, externalId, internalId);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to find session by external id&quot;, externalId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isOpen(String externalId) {
+<b class="nc">&nbsp;        String internalId = externalSessionMap.get(externalId);</b>
+<b class="nc">&nbsp;        if (internalId != null) {</b>
+<b class="nc">&nbsp;            SessionMetaData sessionMd = getSessionMd(internalId);</b>
+<b class="nc">&nbsp;            if (sessionMd != null) {</b>
+<b class="nc">&nbsp;                return sessionMd.session.isOpen();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean checkLimits(WebSocketSession session, WebSocketSessionRef sessionRef) throws IOException {
+<b class="nc">&nbsp;        var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);</b>
+<b class="nc">&nbsp;        if (tenantProfileConfiguration == null) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+&nbsp;        boolean limitAllowed;
+<b class="nc">&nbsp;        String sessionId = session.getId();</b>
+<b class="nc">&nbsp;        if (tenantProfileConfiguration.getMaxWsSessionsPerTenant() &gt; 0) {</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; tenantSessions = tenantSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getTenantId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;            synchronized (tenantSessions) {</b>
+<b class="nc">&nbsp;                limitAllowed = tenantSessions.size() &lt; tenantProfileConfiguration.getMaxWsSessionsPerTenant();</b>
+<b class="nc">&nbsp;                if (limitAllowed) {</b>
+<b class="nc">&nbsp;                    tenantSessions.add(sessionId);</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+<b class="nc">&nbsp;            if (!limitAllowed) {</b>
+<b class="nc">&nbsp;                log.info(&quot;{} Failed to start session. Max tenant sessions limit reached&quot;, sessionRef.toString());</b>
+<b class="nc">&nbsp;                session.close(CloseStatus.POLICY_VIOLATION.withReason(&quot;Max tenant sessions limit reached!&quot;));</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (sessionRef.getSecurityCtx().isCustomerUser()) {</b>
+<b class="nc">&nbsp;            if (tenantProfileConfiguration.getMaxWsSessionsPerCustomer() &gt; 0) {</b>
+<b class="nc">&nbsp;                Set&lt;String&gt; customerSessions = customerSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getCustomerId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;                synchronized (customerSessions) {</b>
+<b class="nc">&nbsp;                    limitAllowed = customerSessions.size() &lt; tenantProfileConfiguration.getMaxWsSessionsPerCustomer();</b>
+<b class="nc">&nbsp;                    if (limitAllowed) {</b>
+<b class="nc">&nbsp;                        customerSessions.add(sessionId);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }</b>
+<b class="nc">&nbsp;                if (!limitAllowed) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;{} Failed to start session. Max customer sessions limit reached&quot;, sessionRef.toString());</b>
+<b class="nc">&nbsp;                    session.close(CloseStatus.POLICY_VIOLATION.withReason(&quot;Max customer sessions limit reached&quot;));</b>
+<b class="nc">&nbsp;                    return false;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (tenantProfileConfiguration.getMaxWsSessionsPerRegularUser() &gt; 0</b>
+<b class="nc">&nbsp;                    &amp;&amp; UserPrincipal.Type.USER_NAME.equals(sessionRef.getSecurityCtx().getUserPrincipal().getType())) {</b>
+<b class="nc">&nbsp;                Set&lt;String&gt; regularUserSessions = regularUserSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;                synchronized (regularUserSessions) {</b>
+<b class="nc">&nbsp;                    limitAllowed = regularUserSessions.size() &lt; tenantProfileConfiguration.getMaxWsSessionsPerRegularUser();</b>
+<b class="nc">&nbsp;                    if (limitAllowed) {</b>
+<b class="nc">&nbsp;                        regularUserSessions.add(sessionId);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }</b>
+<b class="nc">&nbsp;                if (!limitAllowed) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;{} Failed to start session. Max regular user sessions limit reached&quot;, sessionRef.toString());</b>
+<b class="nc">&nbsp;                    session.close(CloseStatus.POLICY_VIOLATION.withReason(&quot;Max regular user sessions limit reached&quot;));</b>
+<b class="nc">&nbsp;                    return false;</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (tenantProfileConfiguration.getMaxWsSessionsPerPublicUser() &gt; 0</b>
+<b class="nc">&nbsp;                    &amp;&amp; UserPrincipal.Type.PUBLIC_ID.equals(sessionRef.getSecurityCtx().getUserPrincipal().getType())) {</b>
+<b class="nc">&nbsp;                Set&lt;String&gt; publicUserSessions = publicUserSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;                synchronized (publicUserSessions) {</b>
+<b class="nc">&nbsp;                    limitAllowed = publicUserSessions.size() &lt; tenantProfileConfiguration.getMaxWsSessionsPerPublicUser();</b>
+<b class="nc">&nbsp;                    if (limitAllowed) {</b>
+<b class="nc">&nbsp;                        publicUserSessions.add(sessionId);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }</b>
+<b class="nc">&nbsp;                if (!limitAllowed) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;{} Failed to start session. Max public user sessions limit reached&quot;, sessionRef.toString());</b>
+<b class="nc">&nbsp;                    session.close(CloseStatus.POLICY_VIOLATION.withReason(&quot;Max public user sessions limit reached&quot;));</b>
+<b class="nc">&nbsp;                    return false;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cleanupLimits(WebSocketSession session, WebSocketSessionRef sessionRef) {
+<b class="nc">&nbsp;        var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);</b>
+<b class="nc">&nbsp;        if (tenantProfileConfiguration == null) return;</b>
+&nbsp;
+<b class="nc">&nbsp;        String sessionId = session.getId();</b>
+<b class="nc">&nbsp;        rateLimitService.cleanUp(LimitedApi.WS_UPDATES_PER_SESSION, sessionRef.getSessionId());</b>
+<b class="nc">&nbsp;        blacklistedSessions.remove(sessionRef.getSessionId());</b>
+<b class="nc">&nbsp;        if (tenantProfileConfiguration.getMaxWsSessionsPerTenant() &gt; 0) {</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; tenantSessions = tenantSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getTenantId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;            synchronized (tenantSessions) {</b>
+<b class="nc">&nbsp;                tenantSessions.remove(sessionId);</b>
+<b class="nc">&nbsp;            }</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (sessionRef.getSecurityCtx().isCustomerUser()) {</b>
+<b class="nc">&nbsp;            if (tenantProfileConfiguration.getMaxWsSessionsPerCustomer() &gt; 0) {</b>
+<b class="nc">&nbsp;                Set&lt;String&gt; customerSessions = customerSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getCustomerId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;                synchronized (customerSessions) {</b>
+<b class="nc">&nbsp;                    customerSessions.remove(sessionId);</b>
+<b class="nc">&nbsp;                }</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (tenantProfileConfiguration.getMaxWsSessionsPerRegularUser() &gt; 0 &amp;&amp; UserPrincipal.Type.USER_NAME.equals(sessionRef.getSecurityCtx().getUserPrincipal().getType())) {</b>
+<b class="nc">&nbsp;                Set&lt;String&gt; regularUserSessions = regularUserSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;                synchronized (regularUserSessions) {</b>
+<b class="nc">&nbsp;                    regularUserSessions.remove(sessionId);</b>
+<b class="nc">&nbsp;                }</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (tenantProfileConfiguration.getMaxWsSessionsPerPublicUser() &gt; 0 &amp;&amp; UserPrincipal.Type.PUBLIC_ID.equals(sessionRef.getSecurityCtx().getUserPrincipal().getType())) {</b>
+<b class="nc">&nbsp;                Set&lt;String&gt; publicUserSessions = publicUserSessionsMap.computeIfAbsent(sessionRef.getSecurityCtx().getId(), id -&gt; ConcurrentHashMap.newKeySet());</b>
+<b class="nc">&nbsp;                synchronized (publicUserSessions) {</b>
+<b class="nc">&nbsp;                    publicUserSessions.remove(sessionId);</b>
+<b class="nc">&nbsp;                }</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private DefaultTenantProfileConfiguration getTenantProfileConfiguration(WebSocketSessionRef sessionRef) {
+<b class="nc">&nbsp;        return Optional.ofNullable(tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()))</b>
+<b class="nc">&nbsp;                .map(TenantProfile::getDefaultProfileConfiguration).orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

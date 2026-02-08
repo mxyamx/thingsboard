@@ -1,0 +1,413 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbKafkaSettings</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.kafka</a>
+</div>
+
+<h1>Coverage Summary for Class: TbKafkaSettings (org.thingsboard.server.queue.kafka)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbKafkaSettings</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/76)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.kafka;
+&nbsp;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.kafka.clients.CommonClientConfigs;
+&nbsp;import org.apache.kafka.clients.admin.AdminClientConfig;
+&nbsp;import org.apache.kafka.clients.consumer.ConsumerConfig;
+&nbsp;import org.apache.kafka.clients.producer.ProducerConfig;
+&nbsp;import org.apache.kafka.common.config.SslConfigs;
+&nbsp;import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+&nbsp;import org.apache.kafka.common.serialization.ByteArraySerializer;
+&nbsp;import org.apache.kafka.common.serialization.StringDeserializer;
+&nbsp;import org.apache.kafka.common.serialization.StringSerializer;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.context.properties.ConfigurationProperties;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.TbProperty;
+&nbsp;import org.thingsboard.server.queue.util.PropertyUtils;
+&nbsp;import org.thingsboard.server.queue.util.TbKafkaComponent;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Properties;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 25.09.18.
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@TbKafkaComponent
+&nbsp;@ConfigurationProperties(prefix = &quot;queue.kafka&quot;)
+&nbsp;@Component
+<b class="nc">&nbsp;public class TbKafkaSettings {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.bootstrap.servers}&quot;)
+&nbsp;    private String servers;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.ssl.enabled:false}&quot;)
+&nbsp;    private boolean sslEnabled;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.ssl.truststore.location:}&quot;)
+&nbsp;    private String sslTruststoreLocation;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.ssl.truststore.password:}&quot;)
+&nbsp;    private String sslTruststorePassword;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.ssl.keystore.location:}&quot;)
+&nbsp;    private String sslKeystoreLocation;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.ssl.keystore.password:}&quot;)
+&nbsp;    private String sslKeystorePassword;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.ssl.key.password:}&quot;)
+&nbsp;    private String sslKeyPassword;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.acks:all}&quot;)
+&nbsp;    private String acks;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.retries:1}&quot;)
+&nbsp;    private int retries;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.compression.type:none}&quot;)
+&nbsp;    private String compressionType;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.batch.size:16384}&quot;)
+&nbsp;    private int batchSize;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.linger.ms:1}&quot;)
+&nbsp;    private long lingerMs;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.max.request.size:1048576}&quot;)
+&nbsp;    private int maxRequestSize;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.max.in.flight.requests.per.connection:5}&quot;)
+&nbsp;    private int maxInFlightRequestsPerConnection;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.buffer.memory:33554432}&quot;)
+&nbsp;    private long bufferMemory;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.replication_factor:1}&quot;)
+&nbsp;    @Getter
+&nbsp;    private short replicationFactor;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.max_poll_records:8192}&quot;)
+&nbsp;    private int maxPollRecords;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.max_poll_interval_ms:300000}&quot;)
+&nbsp;    private int maxPollIntervalMs;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.max_partition_fetch_bytes:16777216}&quot;)
+&nbsp;    private int maxPartitionFetchBytes;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.fetch_max_bytes:134217728}&quot;)
+&nbsp;    private int fetchMaxBytes;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${queue.kafka.request.timeout.ms:30000}&quot;)
+&nbsp;    private int requestTimeoutMs;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.session.timeout.ms:10000}&quot;)
+&nbsp;    private int sessionTimeoutMs;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.auto_offset_reset:earliest}&quot;)
+&nbsp;    private String autoOffsetReset;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.use_confluent_cloud:false}&quot;)
+&nbsp;    private boolean useConfluent;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.confluent.ssl.algorithm:}&quot;)
+&nbsp;    private String sslAlgorithm;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.confluent.sasl.mechanism:}&quot;)
+&nbsp;    private String saslMechanism;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.confluent.sasl.config:}&quot;)
+&nbsp;    private String saslConfig;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.confluent.security.protocol:}&quot;)
+&nbsp;    private String securityProtocol;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.other-inline:}&quot;)
+&nbsp;    private String otherInline;
+&nbsp;
+&nbsp;    @Value(&quot;${queue.kafka.consumer-properties-per-topic-inline:}&quot;)
+&nbsp;    private String consumerPropertiesPerTopicInline;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private KafkaAdmin kafkaAdmin;
+&nbsp;
+&nbsp;    @Deprecated
+&nbsp;    @Setter
+&nbsp;    private List&lt;TbProperty&gt; other;
+&nbsp;
+<b class="nc">&nbsp;    @Setter</b>
+&nbsp;    private Map&lt;String, List&lt;TbProperty&gt;&gt; consumerPropertiesPerTopic = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void initInlineTopicProperties() {
+<b class="nc">&nbsp;        Map&lt;String, List&lt;TbProperty&gt;&gt; inlineProps = parseTopicPropertyList(consumerPropertiesPerTopicInline);</b>
+<b class="nc">&nbsp;        if (!inlineProps.isEmpty()) {</b>
+<b class="nc">&nbsp;            consumerPropertiesPerTopic.putAll(inlineProps);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public Properties toConsumerProps(String topic) {
+<b class="nc">&nbsp;        Properties props = toProps();</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, sessionTimeoutMs);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, maxPartitionFetchBytes);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, fetchMaxBytes);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, maxPollIntervalMs);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);</b>
+&nbsp;
+<b class="nc">&nbsp;        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);</b>
+<b class="nc">&nbsp;        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (topic != null) {</b>
+<b class="nc">&nbsp;            List&lt;TbProperty&gt; properties = consumerPropertiesPerTopic.get(topic);</b>
+<b class="nc">&nbsp;            if (properties == null) {</b>
+<b class="nc">&nbsp;                for (Map.Entry&lt;String, List&lt;TbProperty&gt;&gt; entry : consumerPropertiesPerTopic.entrySet()) {</b>
+<b class="nc">&nbsp;                    if (topic.startsWith(entry.getKey())) {</b>
+<b class="nc">&nbsp;                        properties = entry.getValue();</b>
+&nbsp;                        break;
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (properties != null) {</b>
+<b class="nc">&nbsp;                properties.forEach(kv -&gt; props.put(kv.getKey(), kv.getValue()));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return props;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Properties toProducerProps() {
+<b class="nc">&nbsp;        Properties props = toProps();</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.RETRIES_CONFIG, retries);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.ACKS_CONFIG, acks);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.LINGER_MS_CONFIG, lingerMs);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, bufferMemory);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, compressionType);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, maxRequestSize);</b>
+<b class="nc">&nbsp;        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, maxInFlightRequestsPerConnection);</b>
+<b class="nc">&nbsp;        return props;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Properties toProps() {
+<b class="nc">&nbsp;        Properties props = new Properties();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (useConfluent) {</b>
+<b class="nc">&nbsp;            props.put(&quot;ssl.endpoint.identification.algorithm&quot;, sslAlgorithm);</b>
+<b class="nc">&nbsp;            props.put(&quot;sasl.mechanism&quot;, saslMechanism);</b>
+<b class="nc">&nbsp;            props.put(&quot;sasl.jaas.config&quot;, saslConfig);</b>
+<b class="nc">&nbsp;            props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        props.put(CommonClientConfigs.REQUEST_TIMEOUT_MS_CONFIG, requestTimeoutMs);</b>
+<b class="nc">&nbsp;        props.putAll(PropertyUtils.getProps(otherInline));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (other != null) {</b>
+<b class="nc">&nbsp;            other.forEach(kv -&gt; props.put(kv.getKey(), kv.getValue()));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        configureSSL(props);</b>
+&nbsp;
+<b class="nc">&nbsp;        return props;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void configureSSL(Properties props) {
+<b class="nc">&nbsp;        if (sslEnabled) {</b>
+<b class="nc">&nbsp;            props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, &quot;SSL&quot;);</b>
+<b class="nc">&nbsp;            props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);</b>
+<b class="nc">&nbsp;            props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);</b>
+<b class="nc">&nbsp;            props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);</b>
+<b class="nc">&nbsp;            props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeystorePassword);</b>
+<b class="nc">&nbsp;            props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, sslKeyPassword);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /*
+&nbsp;     * Temporary solution to avoid major code changes.
+&nbsp;     * FIXME: use single instance of Kafka queue admin, don&#39;t create a separate one for each consumer/producer
+&nbsp;     * */
+&nbsp;    public KafkaAdmin getAdmin() {
+<b class="nc">&nbsp;        return kafkaAdmin;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Properties toAdminProps() {
+<b class="nc">&nbsp;        Properties props = toProps();</b>
+<b class="nc">&nbsp;        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, servers);</b>
+<b class="nc">&nbsp;        props.put(AdminClientConfig.RETRIES_CONFIG, retries);</b>
+<b class="nc">&nbsp;        return props;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, List&lt;TbProperty&gt;&gt; parseTopicPropertyList(String inlineProperties) {
+<b class="nc">&nbsp;        Map&lt;String, List&lt;String&gt;&gt; grouped = PropertyUtils.getGroupedProps(inlineProperties);</b>
+<b class="nc">&nbsp;        Map&lt;String, List&lt;TbProperty&gt;&gt; result = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        grouped.forEach((topic, entries) -&gt; {</b>
+<b class="nc">&nbsp;            Map&lt;String, String&gt; merged = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (String entry : entries) {</b>
+<b class="nc">&nbsp;                String[] kv = entry.split(&quot;=&quot;, 2);</b>
+<b class="nc">&nbsp;                if (kv.length == 2) {</b>
+<b class="nc">&nbsp;                    merged.put(kv[0].trim(), kv[1].trim());</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            List&lt;TbProperty&gt; props = merged.entrySet().stream()</b>
+<b class="nc">&nbsp;                    .map(e -&gt; new TbProperty(e.getKey(), e.getValue()))</b>
+<b class="nc">&nbsp;                    .toList();</b>
+<b class="nc">&nbsp;            result.put(topic, props);</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbEntityRelationService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.entitiy.entity.relation</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbEntityRelationService (org.thingsboard.server.service.entitiy.entity.relation)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbEntityRelationService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.entitiy.entity.relation;
+&nbsp;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.dao.relation.RelationService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@AllArgsConstructor
+&nbsp;public class DefaultTbEntityRelationService extends AbstractTbEntityService implements TbEntityRelationService {
+&nbsp;
+&nbsp;    private final RelationService relationService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityRelation save(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = ActionType.RELATION_ADD_OR_UPDATE;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            var savedRelation = relationService.saveRelation(tenantId, relation);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityRelationAction(tenantId, customerId,</b>
+&nbsp;                    savedRelation, user, actionType, null, savedRelation);
+<b class="nc">&nbsp;            return savedRelation;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityRelationAction(tenantId, customerId,</b>
+&nbsp;                    relation, user, actionType, e, relation);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityRelation delete(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = ActionType.RELATION_DELETED;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            var found = relationService.deleteRelation(tenantId, relation.getFrom(), relation.getTo(), relation.getType(), relation.getTypeGroup());</b>
+<b class="nc">&nbsp;            if (found == null) {</b>
+<b class="nc">&nbsp;                throw new ThingsboardException(&quot;Requested item wasn&#39;t found!&quot;, ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            logEntityActionService.logEntityRelationAction(tenantId, customerId, found, user, actionType, null, found);</b>
+<b class="nc">&nbsp;            return found;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityRelationAction(tenantId, customerId,</b>
+&nbsp;                    relation, user, actionType, e, relation);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteCommonRelations(TenantId tenantId, CustomerId customerId, EntityId entityId, User user) {
+&nbsp;        try {
+<b class="nc">&nbsp;            relationService.deleteEntityCommonRelations(tenantId, entityId);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, entityId, null, customerId, ActionType.RELATIONS_DELETED, user);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, entityId, null, customerId,</b>
+&nbsp;                    ActionType.RELATIONS_DELETED, user, e);
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

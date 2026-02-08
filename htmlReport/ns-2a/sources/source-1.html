@@ -1,0 +1,327 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbPubSubNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.gcp.pubsub</a>
+</div>
+
+<h1>Coverage Summary for Class: TbPubSubNode (org.thingsboard.rule.engine.gcp.pubsub)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbPubSubNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/51)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbPubSubNode$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.gcp.pubsub;
+&nbsp;
+&nbsp;import com.google.api.core.ApiFuture;
+&nbsp;import com.google.api.core.ApiFutureCallback;
+&nbsp;import com.google.api.core.ApiFutures;
+&nbsp;import com.google.api.gax.core.CredentialsProvider;
+&nbsp;import com.google.api.gax.core.FixedCredentialsProvider;
+&nbsp;import com.google.api.gax.core.FixedExecutorProvider;
+&nbsp;import com.google.api.gax.retrying.RetrySettings;
+&nbsp;import com.google.auth.oauth2.ServiceAccountCredentials;
+&nbsp;import com.google.cloud.pubsub.v1.Publisher;
+&nbsp;import com.google.protobuf.ByteString;
+&nbsp;import com.google.pubsub.v1.ProjectTopicName;
+&nbsp;import com.google.pubsub.v1.PubsubMessage;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.external.TbAbstractExternalNode;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;import org.threeten.bp.Duration;
+&nbsp;
+&nbsp;import java.io.ByteArrayInputStream;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.EXTERNAL,
+&nbsp;        name = &quot;gcp pubsub&quot;,
+&nbsp;        configClazz = TbPubSubNodeConfiguration.class,
+&nbsp;        nodeDescription = &quot;Publish message to the Google Cloud PubSub&quot;,
+&nbsp;        nodeDetails = &quot;Will publish message payload to the Google Cloud Platform PubSub topic. Outbound message will contain response fields &quot; +
+&nbsp;                &quot;(&lt;code&gt;messageId&lt;/code&gt; in the Message Metadata from the GCP PubSub. &quot; +
+&nbsp;                &quot;&lt;b&gt;messageId&lt;/b&gt; field can be accessed with &lt;code&gt;metadata.messageId&lt;/code&gt;.&quot;,
+&nbsp;        configDirective = &quot;tbExternalNodePubSubConfig&quot;,
+&nbsp;        iconUrl = &quot;data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+Cjx0aXRsZT5DbG91ZCBQdWJTdWI8L3RpdGxlPgo8Zz4KPHBhdGggZD0iTTEyNi40Nyw1OC4xMmwtMjYuMy00NS43NEExMS41NiwxMS41NiwwLDAsMCw5MC4zMSw2LjVIMzcuN2ExMS41NSwxMS41NSwwLDAsMC05Ljg2LDUuODhMMS41Myw1OGExMS40OCwxMS40OCwwLDAsMCwwLDExLjQ0bDI2LjMsNDZhMTEuNzcsMTEuNzcsMCwwLDAsOS44Niw2LjA5SDkwLjNhMTEuNzMsMTEuNzMsMCwwLDAsOS44Ny02LjA2bDI2LjMtNDUuNzRBMTEuNzMsMTEuNzMsMCwwLDAsMTI2LjQ3LDU4LjEyWiIgc3R5bGU9ImZpbGw6ICM3MzViMmYiLz4KPHBhdGggZD0iTTg5LjIyLDQ3Ljc0LDgzLjM2LDQ5bC0xNC42LTE0LjZMNjQuMDksNDMuMSw2MS41NSw1My4ybDQuMjksNC4yOUw1Ny42LDU5LjE4LDQ2LjMsNDcuODhsLTcuNjcsNy4zOEw1Mi43Niw2OS4zN2wtMTUsMTEuOUw3OCwxMjEuNUg5MC4zYTExLjczLDExLjczLDAsMCwwLDkuODctNi4wNmwyMC43Mi0zNloiIHN0eWxlPSJvcGFjaXR5OiAwLjA3MDAwMDAwMDI5ODAyMztpc29sYXRpb246IGlzb2xhdGUiLz4KPHBhdGggZD0iTTgyLjg2LDQ3YTUuMzIsNS4zMiwwLDEsMS0xLjk1LDcuMjdBNS4zMiw1LjMyLDAsMCwxLDgyLjg2LDQ3IiBzdHlsZT0iZmlsbDogI2ZmZiIvPgo8cGF0aCBkPSJNMzkuODIsNTYuMThhNS4zMiw1LjMyLDAsMSwxLDcuMjctMS45NSw1LjMyLDUuMzIsMCwwLDEtNy4yNywxLjk1IiBzdHlsZT0iZmlsbDogI2ZmZiIvPgo8cGF0aCBkPSJNNjkuMzIsODguODVBNS4zMiw1LjMyLDAsMSwxLDY0LDgzLjUyYTUuMzIsNS4zMiwwLDAsMSw1LjMyLDUuMzIiIHN0eWxlPSJmaWxsOiAjZmZmIi8+CjxnPgo8cGF0aCBkPSJNNjQsNTIuOTRhMTEuMDYsMTEuMDYsMCwwLDEsMi40Ni4yOFYzOS4xNUg2MS41NFY1My4yMkExMS4wNiwxMS4wNiwwLDAsMSw2NCw1Mi45NFoiIHN0eWxlPSJmaWxsOiAjZmZmIi8+CjxwYXRoIGQ9Ik03NC41Nyw2Ny4yNmExMSwxMSwwLDAsMS0yLjQ3LDQuMjVsMTIuMTksNywyLjQ2LTQuMjZaIiBzdHlsZT0iZmlsbDogI2ZmZiIvPgo8cGF0aCBkPSJNNTMuNDMsNjcuMjZsLTEyLjE4LDcsMi40Niw0LjI2LDEyLjE5LTdBMTEsMTEsMCwwLDEsNTMuNDMsNjcuMjZaIiBzdHlsZT0iZmlsbDogI2ZmZiIvPgo8L2c+CjxwYXRoIGQ9Ik03Mi42LDY0QTguNiw4LjYsMCwxLDEsNjQsNTUuNCw4LjYsOC42LDAsMCwxLDcyLjYsNjQiIHN0eWxlPSJmaWxsOiAjZmZmIi8+CjxwYXRoIGQ9Ik0zOS4xLDcwLjU3YTYuNzYsNi43NiwwLDEsMS0yLjQ3LDkuMjMsNi43Niw2Ljc2LDAsMCwxLDIuNDctOS4yMyIgc3R5bGU9ImZpbGw6ICNmZmYiLz4KPHBhdGggZD0iTTgyLjE0LDgyLjI3YTYuNzYsNi43NiwwLDEsMSw5LjIzLTIuNDcsNi43NSw2Ljc1LDAsMCwxLTkuMjMsMi40NyIgc3R5bGU9ImZpbGw6ICNmZmYiLz4KPHBhdGggZD0iTTcwLjc2LDM5LjE1QTYuNzYsNi43NiwwLDEsMSw2NCwzMi4zOWE2Ljc2LDYuNzYsMCwwLDEsNi43Niw2Ljc2IiBzdHlsZT0iZmlsbDogI2ZmZiIvPgo8L2c+Cjwvc3ZnPgo=&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/external/gcp-pubsub/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbPubSubNode extends TbAbstractExternalNode {</b>
+&nbsp;
+&nbsp;    private static final String MESSAGE_ID = &quot;messageId&quot;;
+&nbsp;    private static final String ERROR = &quot;error&quot;;
+&nbsp;
+&nbsp;    private TbPubSubNodeConfiguration config;
+&nbsp;    private Publisher pubSubClient;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        super.init(ctx);</b>
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, TbPubSubNodeConfiguration.class);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            this.pubSubClient = initPubSubClient(ctx);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new TbNodeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        msg = ackIfNeeded(ctx, msg);</b>
+<b class="nc">&nbsp;        publishMessage(ctx, msg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        if (this.pubSubClient != null) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                this.pubSubClient.shutdown();</b>
+<b class="nc">&nbsp;                this.pubSubClient.awaitTermination(1, TimeUnit.SECONDS);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to shutdown PubSub client during destroy()&quot;, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void publishMessage(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        ByteString data = ByteString.copyFromUtf8(msg.getData());</b>
+<b class="nc">&nbsp;        PubsubMessage.Builder pubsubMessageBuilder = PubsubMessage.newBuilder();</b>
+<b class="nc">&nbsp;        pubsubMessageBuilder.setData(data);</b>
+<b class="nc">&nbsp;        this.config.getMessageAttributes().forEach((k, v) -&gt; {</b>
+<b class="nc">&nbsp;            String name = TbNodeUtils.processPattern(k, msg);</b>
+<b class="nc">&nbsp;            String val = TbNodeUtils.processPattern(v, msg);</b>
+<b class="nc">&nbsp;            pubsubMessageBuilder.putAttributes(name, val);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        ApiFuture&lt;String&gt; messageIdFuture = this.pubSubClient.publish(pubsubMessageBuilder.build());</b>
+<b class="nc">&nbsp;        ApiFutures.addCallback(messageIdFuture, new ApiFutureCallback&lt;String&gt;() {</b>
+&nbsp;                    public void onSuccess(String messageId) {
+<b class="nc">&nbsp;                        TbMsg next = processPublishResult(msg, messageId);</b>
+<b class="nc">&nbsp;                        tellSuccess(ctx, next);</b>
+&nbsp;                    }
+&nbsp;
+&nbsp;                    public void onFailure(Throwable t) {
+<b class="nc">&nbsp;                        TbMsg next = processException(msg, t);</b>
+<b class="nc">&nbsp;                        tellFailure(ctx, next, t);</b>
+&nbsp;                    }
+&nbsp;                },
+<b class="nc">&nbsp;                ctx.getExternalCallExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg processPublishResult(TbMsg origMsg, String messageId) {
+<b class="nc">&nbsp;        TbMsgMetaData metaData = origMsg.getMetaData().copy();</b>
+<b class="nc">&nbsp;        metaData.putValue(MESSAGE_ID, messageId);</b>
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg processException(TbMsg origMsg, Throwable t) {
+<b class="nc">&nbsp;        TbMsgMetaData metaData = origMsg.getMetaData().copy();</b>
+<b class="nc">&nbsp;        metaData.putValue(ERROR, t.getClass() + &quot;: &quot; + t.getMessage());</b>
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Publisher initPubSubClient(TbContext ctx) throws IOException {
+<b class="nc">&nbsp;        ProjectTopicName topicName = ProjectTopicName.of(config.getProjectId(), config.getTopicName());</b>
+<b class="nc">&nbsp;        ServiceAccountCredentials credentials =</b>
+<b class="nc">&nbsp;                ServiceAccountCredentials.fromStream(</b>
+<b class="nc">&nbsp;                        new ByteArrayInputStream(config.getServiceAccountKey().getBytes()));</b>
+<b class="nc">&nbsp;        CredentialsProvider credProvider = FixedCredentialsProvider.create(credentials);</b>
+&nbsp;
+<b class="nc">&nbsp;        var retrySettings = RetrySettings.newBuilder()</b>
+<b class="nc">&nbsp;                .setTotalTimeout(Duration.ofSeconds(10))</b>
+<b class="nc">&nbsp;                .setInitialRetryDelay(Duration.ofMillis(50))</b>
+<b class="nc">&nbsp;                .setRetryDelayMultiplier(1.1)</b>
+<b class="nc">&nbsp;                .setMaxRetryDelay(Duration.ofSeconds(2))</b>
+<b class="nc">&nbsp;                .setInitialRpcTimeout(Duration.ofSeconds(2))</b>
+<b class="nc">&nbsp;                .setRpcTimeoutMultiplier(1)</b>
+<b class="nc">&nbsp;                .setMaxRpcTimeout(Duration.ofSeconds(10))</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+<b class="nc">&nbsp;        return Publisher.newBuilder(topicName)</b>
+<b class="nc">&nbsp;                .setCredentialsProvider(credProvider)</b>
+<b class="nc">&nbsp;                .setRetrySettings(retrySettings)</b>
+<b class="nc">&nbsp;                .setExecutorProvider(FixedExecutorProvider.create(ctx.getPubSubRuleNodeExecutorProvider().getExecutor()))</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

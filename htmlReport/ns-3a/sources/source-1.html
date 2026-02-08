@@ -1,0 +1,222 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DeduplicateProcessingStrategy</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.telemetry.strategy</a>
+</div>
+
+<h1>Coverage Summary for Class: DeduplicateProcessingStrategy (org.thingsboard.rule.engine.telemetry.strategy)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DeduplicateProcessingStrategy</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.telemetry.strategy;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonCreator;
+&nbsp;import com.fasterxml.jackson.annotation.JsonProperty;
+&nbsp;import com.github.benmanes.caffeine.cache.Caffeine;
+&nbsp;import com.github.benmanes.caffeine.cache.LoadingCache;
+&nbsp;import com.google.common.collect.Sets;
+&nbsp;import com.google.common.primitives.Longs;
+&nbsp;
+&nbsp;import java.time.Duration;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;final class DeduplicateProcessingStrategy implements ProcessingStrategy {
+&nbsp;
+&nbsp;    private static final int MIN_DEDUPLICATION_INTERVAL_SECS = 1;
+<b class="nc">&nbsp;    private static final int MAX_DEDUPLICATION_INTERVAL_SECS = (int) Duration.ofDays(1L).toSeconds();</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final long MIN_INTERVAL_EXPIRY_MILLIS = Duration.ofMinutes(10L).toMillis();</b>
+&nbsp;    private static final int INTERVAL_EXPIRY_FACTOR = 10;
+<b class="nc">&nbsp;    private static final long MAX_INTERVAL_EXPIRY_MILLIS = Duration.ofDays(2L).toMillis();</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final int MAX_TOTAL_INTERVALS_DURATION_SECS = (int) Duration.ofDays(2L).toSeconds();</b>
+&nbsp;    private static final int MAX_NUMBER_OF_INTERVALS = 100;
+&nbsp;
+&nbsp;    private final long deduplicationIntervalMillis;
+&nbsp;    private final LoadingCache&lt;Long, Set&lt;UUID&gt;&gt; deduplicationCache;
+&nbsp;
+&nbsp;    @JsonCreator
+<b class="nc">&nbsp;    public DeduplicateProcessingStrategy(@JsonProperty(&quot;deduplicationIntervalSecs&quot;) int deduplicationIntervalSecs) {</b>
+<b class="nc">&nbsp;        if (deduplicationIntervalSecs &lt; MIN_DEDUPLICATION_INTERVAL_SECS || deduplicationIntervalSecs &gt; MAX_DEDUPLICATION_INTERVAL_SECS) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Deduplication interval must be at least &quot; + MIN_DEDUPLICATION_INTERVAL_SECS + &quot; second(s) &quot; +</b>
+&nbsp;                    &quot;and at most &quot; + MAX_DEDUPLICATION_INTERVAL_SECS + &quot; second(s), was &quot; + deduplicationIntervalSecs + &quot; second(s)&quot;);
+&nbsp;        }
+<b class="nc">&nbsp;        deduplicationIntervalMillis = Duration.ofSeconds(deduplicationIntervalSecs).toMillis();</b>
+<b class="nc">&nbsp;        deduplicationCache = Caffeine.newBuilder()</b>
+<b class="nc">&nbsp;                .softValues()</b>
+<b class="nc">&nbsp;                .expireAfterAccess(calculateExpireAfterAccess(deduplicationIntervalSecs))</b>
+<b class="nc">&nbsp;                .maximumSize(calculateMaxNumberOfDeduplicationIntervals(deduplicationIntervalSecs))</b>
+<b class="nc">&nbsp;                .build(__ -&gt; Sets.newConcurrentHashSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Calculates the expire-after-access duration. By default, we keep each deduplication interval
+&nbsp;     * alive for 10 “iterations” (interval duration × 10). However, we never let this drop below
+&nbsp;     * 10 minutes to ensure adequate retention for small intervals, nor exceed 48 hours to prevent
+&nbsp;     * storing stale data in memory.
+&nbsp;     */
+&nbsp;    private static Duration calculateExpireAfterAccess(int deduplicationIntervalSecs) {
+<b class="nc">&nbsp;        long desiredExpiryMillis = Duration.ofSeconds(deduplicationIntervalSecs).toMillis() * INTERVAL_EXPIRY_FACTOR;</b>
+<b class="nc">&nbsp;        return Duration.ofMillis(Longs.constrainToRange(desiredExpiryMillis, MIN_INTERVAL_EXPIRY_MILLIS, MAX_INTERVAL_EXPIRY_MILLIS));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Calculates the maximum number of deduplication intervals we will store in the cache.
+&nbsp;     * We limit retention to two days to avoid stale data and cap it at 100 intervals to manage memory usage.
+&nbsp;     */
+&nbsp;    private static long calculateMaxNumberOfDeduplicationIntervals(int deduplicationIntervalSecs) {
+<b class="nc">&nbsp;        int numberOfDeduplicationIntervals = MAX_TOTAL_INTERVALS_DURATION_SECS / deduplicationIntervalSecs;</b>
+<b class="nc">&nbsp;        return Math.min(numberOfDeduplicationIntervals, MAX_NUMBER_OF_INTERVALS);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @JsonProperty(&quot;deduplicationIntervalSecs&quot;)
+&nbsp;    public long getDeduplicationIntervalSecs() {
+<b class="nc">&nbsp;        return Duration.ofMillis(deduplicationIntervalMillis).toSeconds();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean shouldProcess(long ts, UUID originatorUuid) {
+<b class="nc">&nbsp;        long intervalNumber = ts / deduplicationIntervalMillis;</b>
+<b class="nc">&nbsp;        return deduplicationCache.get(intervalNumber).add(originatorUuid);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

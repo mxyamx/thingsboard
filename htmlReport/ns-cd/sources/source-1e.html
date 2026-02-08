@@ -1,0 +1,484 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ImageController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: ImageController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ImageController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/106)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.core.io.ByteArrayResource;
+&nbsp;import org.springframework.http.CacheControl;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.PutMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestHeader;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RequestPart;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.springframework.web.multipart.MultipartFile;
+&nbsp;import org.thingsboard.server.common.data.ImageDescriptor;
+&nbsp;import org.thingsboard.server.common.data.ResourceExportData;
+&nbsp;import org.thingsboard.server.common.data.ResourceSubType;
+&nbsp;import org.thingsboard.server.common.data.ResourceType;
+&nbsp;import org.thingsboard.server.common.data.TbImageDeleteResult;
+&nbsp;import org.thingsboard.server.common.data.TbResource;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfo;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.security.Authority;
+&nbsp;import org.thingsboard.server.common.data.util.ThrowingSupplier;
+&nbsp;import org.thingsboard.server.dao.resource.ImageCacheKey;
+&nbsp;import org.thingsboard.server.dao.resource.ImageService;
+&nbsp;import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.resource.TbImageService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.io.ByteArrayOutputStream;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.zip.GZIPOutputStream;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_IMAGE_SUB_TYPE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_TEXT_SEARCH_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.dao.util.ImageUtils.mediaTypeToFileExtension;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class ImageController extends BaseController {
+&nbsp;
+&nbsp;    private final ImageService imageService;
+&nbsp;    private final TbImageService tbImageService;
+&nbsp;    private final ResourceDataValidator resourceValidator;
+&nbsp;
+&nbsp;    @Value(&quot;${cache.image.systemImagesBrowserTtlInMinutes:0}&quot;)
+&nbsp;    private int systemImagesBrowserTtlInMinutes;
+&nbsp;    @Value(&quot;${cache.image.tenantImagesBrowserTtlInMinutes:0}&quot;)
+&nbsp;    private int tenantImagesBrowserTtlInMinutes;
+&nbsp;
+&nbsp;    private static final String IMAGE_URL = &quot;/api/images/{type}/{key}&quot;;
+&nbsp;    private static final String SYSTEM_IMAGE = &quot;system&quot;;
+&nbsp;    private static final String TENANT_IMAGE = &quot;tenant&quot;;
+&nbsp;
+&nbsp;    private static final String IMAGE_TYPE_PARAM_DESCRIPTION = &quot;Type of the image: tenant or system&quot;;
+&nbsp;    private static final String IMAGE_TYPE_PARAM_ALLOWABLE_VALUES = &quot;tenant, system&quot;;
+&nbsp;    private static final String IMAGE_KEY_PARAM_DESCRIPTION = &quot;Image resource key, for example thermostats_dashboard_background.jpeg&quot;;
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/api/image&quot;, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+&nbsp;    public TbResourceInfo uploadImage(@RequestPart MultipartFile file,
+&nbsp;                                      @RequestPart(required = false) String title,
+&nbsp;                                      @RequestPart(required = false) String imageSubType) throws Exception {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        TbResource image = new TbResource();</b>
+<b class="nc">&nbsp;        image.setTenantId(user.getTenantId());</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.CREATE, null, image);</b>
+<b class="nc">&nbsp;        resourceValidator.validateResourceSize(user.getTenantId(), null, file.getSize());</b>
+&nbsp;
+<b class="nc">&nbsp;        image.setFileName(file.getOriginalFilename());</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(title)) {</b>
+<b class="nc">&nbsp;            image.setTitle(title);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            image.setTitle(file.getOriginalFilename());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ResourceSubType subType = ResourceSubType.IMAGE;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(imageSubType)) {</b>
+<b class="nc">&nbsp;            subType = ResourceSubType.valueOf(imageSubType);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        image.setResourceType(ResourceType.IMAGE);</b>
+<b class="nc">&nbsp;        image.setResourceSubType(subType);</b>
+<b class="nc">&nbsp;        ImageDescriptor descriptor = new ImageDescriptor();</b>
+<b class="nc">&nbsp;        descriptor.setMediaType(file.getContentType());</b>
+<b class="nc">&nbsp;        image.setDescriptorValue(descriptor);</b>
+<b class="nc">&nbsp;        image.setData(file.getBytes());</b>
+<b class="nc">&nbsp;        image.setPublic(true);</b>
+<b class="nc">&nbsp;        return tbImageService.save(image, user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PutMapping(value = IMAGE_URL, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+&nbsp;    public TbResourceInfo updateImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                      @PathVariable String type,
+&nbsp;                                      @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                      @PathVariable String key,
+&nbsp;                                      @RequestPart MultipartFile file) throws Exception {
+<b class="nc">&nbsp;        TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.WRITE);</b>
+<b class="nc">&nbsp;        resourceValidator.validateResourceSize(getTenantId(), imageInfo.getId(), file.getSize());</b>
+&nbsp;
+<b class="nc">&nbsp;        TbResource image = new TbResource(imageInfo);</b>
+<b class="nc">&nbsp;        image.setData(file.getBytes());</b>
+<b class="nc">&nbsp;        image.setFileName(file.getOriginalFilename());</b>
+<b class="nc">&nbsp;        image.updateDescriptor(ImageDescriptor.class, descriptor -&gt; {</b>
+<b class="nc">&nbsp;            descriptor.setMediaType(file.getContentType());</b>
+<b class="nc">&nbsp;            return descriptor;</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return tbImageService.save(image, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PutMapping(IMAGE_URL + &quot;/info&quot;)
+&nbsp;    public TbResourceInfo updateImageInfo(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                          @PathVariable String type,
+&nbsp;                                          @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                          @PathVariable String key,
+&nbsp;                                          @RequestBody TbResourceInfo request) throws ThingsboardException {
+<b class="nc">&nbsp;        TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.WRITE);</b>
+<b class="nc">&nbsp;        TbResourceInfo newImageInfo = new TbResourceInfo(imageInfo);</b>
+<b class="nc">&nbsp;        newImageInfo.setTitle(request.getTitle());</b>
+<b class="nc">&nbsp;        return tbImageService.save(newImageInfo, imageInfo, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PutMapping(IMAGE_URL + &quot;/public/{isPublic}&quot;)
+&nbsp;    public TbResourceInfo updateImagePublicStatus(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                                  @PathVariable String type,
+&nbsp;                                                  @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                                  @PathVariable String key,
+&nbsp;                                                  @PathVariable boolean isPublic) throws ThingsboardException {
+<b class="nc">&nbsp;        TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.WRITE);</b>
+<b class="nc">&nbsp;        TbResourceInfo newImageInfo = new TbResourceInfo(imageInfo);</b>
+<b class="nc">&nbsp;        newImageInfo.setPublic(isPublic);</b>
+<b class="nc">&nbsp;        return tbImageService.save(newImageInfo, imageInfo, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = IMAGE_URL, produces = &quot;image/*&quot;)
+&nbsp;    public ResponseEntity&lt;ByteArrayResource&gt; downloadImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                                           @PathVariable String type,
+&nbsp;                                                           @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                                           @PathVariable String key,
+&nbsp;                                                           @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+&nbsp;                                                           @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
+<b class="nc">&nbsp;        return downloadIfChanged(type, key, etag, acceptEncodingHeader, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(value = &quot;/api/images/public/{publicResourceKey}&quot;, produces = &quot;image/*&quot;)
+&nbsp;    public ResponseEntity&lt;ByteArrayResource&gt; downloadPublicImage(@PathVariable String publicResourceKey,
+&nbsp;                                                                 @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+&nbsp;                                                                 @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
+<b class="nc">&nbsp;        ImageCacheKey cacheKey = ImageCacheKey.forPublicImage(publicResourceKey);</b>
+<b class="nc">&nbsp;        return downloadIfChanged(cacheKey, etag, acceptEncodingHeader, () -&gt; imageService.getPublicImageInfoByKey(publicResourceKey));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(value = IMAGE_URL + &quot;/export&quot;)
+&nbsp;    public ResourceExportData exportImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                          @PathVariable String type,
+&nbsp;                                          @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                          @PathVariable String key) throws Exception {
+<b class="nc">&nbsp;        TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.READ);</b>
+<b class="nc">&nbsp;        return imageService.exportImage(imageInfo);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PutMapping(&quot;/api/image/import&quot;)
+&nbsp;    public TbResourceInfo importImage(@RequestBody ResourceExportData imageData) throws Exception {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        return tbImageService.importImage(imageData, false, user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = IMAGE_URL + &quot;/preview&quot;, produces = &quot;image/png&quot;)
+&nbsp;    public ResponseEntity&lt;ByteArrayResource&gt; downloadImagePreview(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                                                  @PathVariable String type,
+&nbsp;                                                                  @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                                                  @PathVariable String key,
+&nbsp;                                                                  @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+&nbsp;                                                                  @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
+<b class="nc">&nbsp;        return downloadIfChanged(type, key, etag, acceptEncodingHeader, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(IMAGE_URL + &quot;/info&quot;)
+&nbsp;    public TbResourceInfo getImageInfo(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                       @PathVariable String type,
+&nbsp;                                       @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                       @PathVariable String key) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkImageInfo(type, key, Operation.READ);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @GetMapping(&quot;/api/images&quot;)
+&nbsp;    public PageData&lt;TbResourceInfo&gt; getImages(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;                                              @RequestParam int pageSize,
+&nbsp;                                              @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;                                              @RequestParam int page,
+&nbsp;                                              @Parameter(description = RESOURCE_IMAGE_SUB_TYPE_DESCRIPTION, schema = @Schema(allowableValues = {&quot;IMAGE&quot;, &quot;SCADA_SYMBOL&quot;}))
+&nbsp;                                              @RequestParam(required = false) String imageSubType,
+&nbsp;                                              @Parameter(description = RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION)
+&nbsp;                                              @RequestParam(required = false) boolean includeSystemImages,
+&nbsp;                                              @Parameter(description = RESOURCE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;                                              @RequestParam(required = false) String textSearch,
+&nbsp;                                              @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;title&quot;, &quot;resourceType&quot;, &quot;tenantId&quot;}))
+&nbsp;                                              @RequestParam(required = false) String sortProperty,
+&nbsp;                                              @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;                                              @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+&nbsp;        // PE: generic permission
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getTenantId();</b>
+<b class="nc">&nbsp;        ResourceSubType subType = ResourceSubType.IMAGE;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(imageSubType)) {</b>
+<b class="nc">&nbsp;            subType = ResourceSubType.valueOf(imageSubType);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN || !includeSystemImages) {</b>
+<b class="nc">&nbsp;            return checkNotNull(imageService.getImagesByTenantId(tenantId, subType, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return checkNotNull(imageService.getAllImagesByTenantId(tenantId, subType, pageLink));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(IMAGE_URL)
+&nbsp;    public ResponseEntity&lt;TbImageDeleteResult&gt; deleteImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {&quot;tenant&quot;, &quot;system&quot;}), required = true)
+&nbsp;                                                           @PathVariable String type,
+&nbsp;                                                           @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+&nbsp;                                                           @PathVariable String key,
+&nbsp;                                                           @RequestParam(name = &quot;force&quot;, required = false) boolean force) throws ThingsboardException {
+<b class="nc">&nbsp;        TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.DELETE);</b>
+<b class="nc">&nbsp;        TbImageDeleteResult result = tbImageService.delete(imageInfo, getCurrentUser(), force);</b>
+<b class="nc">&nbsp;        return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.badRequest()).body(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ResponseEntity&lt;ByteArrayResource&gt; downloadIfChanged(String type, String key, String etag, String acceptEncodingHeader, boolean preview) throws Exception {
+<b class="nc">&nbsp;        ImageCacheKey cacheKey = ImageCacheKey.forImage(getTenantId(type), key, preview);</b>
+<b class="nc">&nbsp;        return downloadIfChanged(cacheKey, etag, acceptEncodingHeader, () -&gt; checkImageInfo(type, key, Operation.READ));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ResponseEntity&lt;ByteArrayResource&gt; downloadIfChanged(ImageCacheKey cacheKey, String etag, String acceptEncodingHeader, ThrowingSupplier&lt;TbResourceInfo&gt; imageInfoSupplier) throws Exception {
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(etag)) {</b>
+<b class="nc">&nbsp;            etag = StringUtils.remove(etag, &#39;\&quot;&#39;); // etag is wrapped in double quotes due to HTTP specification</b>
+<b class="nc">&nbsp;            if (etag.equals(tbImageService.getETag(cacheKey))) {</b>
+<b class="nc">&nbsp;                return response(HttpStatus.NOT_MODIFIED);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TbResourceInfo imageInfo = checkNotNull(imageInfoSupplier.get());</b>
+<b class="nc">&nbsp;        String fileName = imageInfo.getFileName();</b>
+<b class="nc">&nbsp;        ImageDescriptor descriptor = imageInfo.getDescriptor(ImageDescriptor.class);</b>
+&nbsp;        byte[] data;
+<b class="nc">&nbsp;        if (cacheKey.isPreview()) {</b>
+<b class="nc">&nbsp;            descriptor = descriptor.getPreviewDescriptor();</b>
+<b class="nc">&nbsp;            data = imageService.getImagePreview(imageInfo.getTenantId(), imageInfo.getId());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            data = imageService.getImageData(imageInfo.getTenantId(), imageInfo.getId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        tbImageService.putETag(cacheKey, descriptor.getEtag());</b>
+<b class="nc">&nbsp;        var result = ResponseEntity.ok()</b>
+<b class="nc">&nbsp;                .header(&quot;Content-Type&quot;, descriptor.getMediaType())</b>
+<b class="nc">&nbsp;                .header(&quot;Content-Security-Policy&quot;, &quot;default-src &#39;none&#39;&quot;)</b>
+<b class="nc">&nbsp;                .eTag(descriptor.getEtag());</b>
+<b class="nc">&nbsp;        if (!cacheKey.isPublic()) {</b>
+<b class="nc">&nbsp;            result</b>
+<b class="nc">&nbsp;                    .header(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment;filename=&quot; + fileName)</b>
+<b class="nc">&nbsp;                    .header(&quot;x-filename&quot;, fileName);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (systemImagesBrowserTtlInMinutes &gt; 0 &amp;&amp; imageInfo.getTenantId().isSysTenantId()) {</b>
+<b class="nc">&nbsp;            result.cacheControl(CacheControl.maxAge(systemImagesBrowserTtlInMinutes, TimeUnit.MINUTES));</b>
+<b class="nc">&nbsp;        } else if (tenantImagesBrowserTtlInMinutes &gt; 0 &amp;&amp; !imageInfo.getTenantId().isSysTenantId()) {</b>
+<b class="nc">&nbsp;            result.cacheControl(CacheControl.maxAge(tenantImagesBrowserTtlInMinutes, TimeUnit.MINUTES));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result.cacheControl(CacheControl.noCache());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var responseData = data;</b>
+<b class="nc">&nbsp;        if (mediaTypeToFileExtension(descriptor.getMediaType()).equals(&quot;svg&quot;) &amp;&amp;</b>
+<b class="nc">&nbsp;                StringUtils.isNotEmpty(acceptEncodingHeader) &amp;&amp; acceptEncodingHeader.contains(&quot;gzip&quot;)) {</b>
+<b class="nc">&nbsp;            result.header(HttpHeaders.CONTENT_ENCODING, &quot;gzip&quot;);</b>
+<b class="nc">&nbsp;            var outputStream = new ByteArrayOutputStream();</b>
+<b class="nc">&nbsp;            try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream)) {</b>
+<b class="nc">&nbsp;                gzipOutputStream.write(data);</b>
+<b class="nc">&nbsp;                gzipOutputStream.finish();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            responseData = outputStream.toByteArray();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        result.contentLength(responseData.length);</b>
+<b class="nc">&nbsp;        return result.body(new ByteArrayResource(responseData));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbResourceInfo checkImageInfo(String imageType, String key, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        TenantId tenantId = getTenantId(imageType);</b>
+<b class="nc">&nbsp;        TbResourceInfo imageInfo = imageService.getImageInfoByTenantIdAndKey(tenantId, key);</b>
+<b class="nc">&nbsp;        checkEntity(getCurrentUser(), checkNotNull(imageInfo), operation);</b>
+<b class="nc">&nbsp;        return imageInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TenantId getTenantId(String imageType) throws ThingsboardException {
+&nbsp;        TenantId tenantId;
+<b class="nc">&nbsp;        if (imageType.equals(TENANT_IMAGE)) {</b>
+<b class="nc">&nbsp;            tenantId = getTenantId();</b>
+<b class="nc">&nbsp;        } else if (imageType.equals(SYSTEM_IMAGE)) {</b>
+<b class="nc">&nbsp;            tenantId = TenantId.SYS_TENANT_ID;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Invalid image URL&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return tenantId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HousekeeperStatsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.housekeeper.stats</a>
+</div>
+
+<h1>Coverage Summary for Class: HousekeeperStatsService (org.thingsboard.server.service.housekeeper.stats)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HousekeeperStatsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">HousekeeperStatsService$HousekeeperStats</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/39)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.housekeeper.stats;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.scheduling.annotation.Scheduled;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+&nbsp;import org.thingsboard.server.common.stats.DefaultCounter;
+&nbsp;import org.thingsboard.server.common.stats.StatsCounter;
+&nbsp;import org.thingsboard.server.common.stats.StatsFactory;
+&nbsp;import org.thingsboard.server.common.stats.StatsTimer;
+&nbsp;import org.thingsboard.server.common.stats.StatsType;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.EnumMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@ConditionalOnProperty(name = &quot;queue.core.housekeeper.stats.enabled&quot;, havingValue = &quot;true&quot;, matchIfMissing = true)
+&nbsp;public class HousekeeperStatsService {
+&nbsp;
+<b class="nc">&nbsp;    private final Map&lt;HousekeeperTaskType, HousekeeperStats&gt; stats = new EnumMap&lt;&gt;(HousekeeperTaskType.class);</b>
+&nbsp;
+<b class="nc">&nbsp;    public HousekeeperStatsService(StatsFactory statsFactory) {</b>
+<b class="nc">&nbsp;        for (HousekeeperTaskType taskType : HousekeeperTaskType.values()) {</b>
+<b class="nc">&nbsp;            stats.put(taskType, new HousekeeperStats(taskType, statsFactory));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Scheduled(initialDelayString = &quot;${queue.core.housekeeper.stats.print-interval-ms:60000}&quot;,
+&nbsp;            fixedDelayString = &quot;${queue.core.housekeeper.stats.print-interval-ms:60000}&quot;)
+&nbsp;    private void reportStats() {
+<b class="nc">&nbsp;        String statsStr = stats.values().stream().map(stats -&gt; {</b>
+<b class="nc">&nbsp;            String countersStr = stats.getCounters().stream()</b>
+<b class="nc">&nbsp;                    .filter(counter -&gt; counter.get() &gt; 0)</b>
+<b class="nc">&nbsp;                    .map(counter -&gt; counter.getName() + &quot; = [&quot; + counter.get() + &quot;]&quot;)</b>
+<b class="nc">&nbsp;                    .collect(Collectors.joining(&quot; &quot;));</b>
+<b class="nc">&nbsp;            if (countersStr.isEmpty()) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return stats.getTaskType() + &quot; &quot; + countersStr + &quot; avgProcessingTime [&quot; + stats.getProcessingTimer().getAvg() + &quot; ms]&quot;;</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }).filter(Objects::nonNull).collect(Collectors.joining(&quot;, &quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!statsStr.isEmpty()) {</b>
+<b class="nc">&nbsp;            stats.values().forEach(HousekeeperStats::reset);</b>
+<b class="nc">&nbsp;            log.info(&quot;Housekeeper stats: {}&quot;, statsStr);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void reportProcessed(HousekeeperTaskType taskType, ToHousekeeperServiceMsg msg, long timing) {
+<b class="nc">&nbsp;        HousekeeperStats stats = this.stats.get(taskType);</b>
+<b class="nc">&nbsp;        if (msg.getTask().getErrorsCount() == 0) {</b>
+<b class="nc">&nbsp;            stats.getProcessedCounter().increment();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            stats.getReprocessedCounter().increment();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        stats.getProcessingTimer().record(timing);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void reportFailure(HousekeeperTaskType taskType, ToHousekeeperServiceMsg msg) {
+<b class="nc">&nbsp;        HousekeeperStats stats = this.stats.get(taskType);</b>
+<b class="nc">&nbsp;        if (msg.getTask().getErrorsCount() == 0) {</b>
+<b class="nc">&nbsp;            stats.getFailedProcessingCounter().increment();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            stats.getFailedReprocessingCounter().increment();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    static class HousekeeperStats {
+&nbsp;        private final HousekeeperTaskType taskType;
+<b class="nc">&nbsp;        private final List&lt;StatsCounter&gt; counters = new ArrayList&lt;&gt;();</b>
+&nbsp;
+&nbsp;        private final StatsCounter processedCounter;
+&nbsp;        private final StatsCounter failedProcessingCounter;
+&nbsp;        private final StatsCounter reprocessedCounter;
+&nbsp;        private final StatsCounter failedReprocessingCounter;
+&nbsp;
+&nbsp;        private final StatsTimer processingTimer;
+&nbsp;
+<b class="nc">&nbsp;        public HousekeeperStats(HousekeeperTaskType taskType, StatsFactory statsFactory) {</b>
+<b class="nc">&nbsp;            this.taskType = taskType;</b>
+<b class="nc">&nbsp;            this.processedCounter = register(&quot;processed&quot;, statsFactory);</b>
+<b class="nc">&nbsp;            this.failedProcessingCounter = register(&quot;failedProcessing&quot;, statsFactory);</b>
+<b class="nc">&nbsp;            this.reprocessedCounter = register(&quot;reprocessed&quot;, statsFactory);</b>
+<b class="nc">&nbsp;            this.failedReprocessingCounter = register(&quot;failedReprocessing&quot;, statsFactory);</b>
+<b class="nc">&nbsp;            this.processingTimer = statsFactory.createStatsTimer(StatsType.HOUSEKEEPER.getName(), &quot;processingTime&quot;, &quot;taskType&quot;, taskType.name());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private StatsCounter register(String statsName, StatsFactory statsFactory) {
+<b class="nc">&nbsp;            StatsCounter counter = statsFactory.createStatsCounter(StatsType.HOUSEKEEPER.getName(), statsName, &quot;taskType&quot;, taskType.name());</b>
+<b class="nc">&nbsp;            counters.add(counter);</b>
+<b class="nc">&nbsp;            return counter;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void reset() {
+<b class="nc">&nbsp;            counters.forEach(DefaultCounter::clear);</b>
+<b class="nc">&nbsp;            processingTimer.reset();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

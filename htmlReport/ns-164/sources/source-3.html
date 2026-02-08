@@ -1,0 +1,294 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultEdgeUpgradeInstructionsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge.instructions</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultEdgeUpgradeInstructionsService (org.thingsboard.server.service.edge.instructions)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultEdgeUpgradeInstructionsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/71)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge.instructions;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.EdgeUpgradeInfo;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeInstructions;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.install.InstallScripts;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@ConditionalOnProperty(prefix = &quot;edges&quot;, value = &quot;enabled&quot;, havingValue = &quot;true&quot;)
+&nbsp;@TbCoreComponent
+&nbsp;public class DefaultEdgeUpgradeInstructionsService extends BaseEdgeInstallUpgradeInstructionsService implements EdgeUpgradeInstructionsService {
+&nbsp;
+<b class="nc">&nbsp;    private static final Map&lt;String, EdgeUpgradeInfo&gt; upgradeVersionHashMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    private static final String UPGRADE_DIR = &quot;upgrade&quot;;
+&nbsp;
+&nbsp;    private final AttributesService attributesService;
+&nbsp;
+&nbsp;    public DefaultEdgeUpgradeInstructionsService(AttributesService attributesService, InstallScripts installScripts) {
+<b class="nc">&nbsp;        super(installScripts);</b>
+<b class="nc">&nbsp;        this.attributesService = attributesService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EdgeInstructions getUpgradeInstructions(String edgeVersion, String upgradeMethod) {
+<b class="nc">&nbsp;        String currentEdgeVersion = convertEdgeVersionToDocsFormat(edgeVersion);</b>
+<b class="nc">&nbsp;        return switch (upgradeMethod.toLowerCase()) {</b>
+<b class="nc">&nbsp;            case &quot;docker&quot; -&gt; getDockerUpgradeInstructions(this.platformEdgeVersion, currentEdgeVersion);</b>
+&nbsp;            case &quot;ubuntu&quot;, &quot;centos&quot; -&gt;
+<b class="nc">&nbsp;                    getLinuxUpgradeInstructions(this.platformEdgeVersion, currentEdgeVersion, upgradeMethod.toLowerCase());</b>
+<b class="nc">&nbsp;            default -&gt; throw new IllegalArgumentException(&quot;Unsupported upgrade method for Edge: &quot; + upgradeMethod);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateInstructionMap(Map&lt;String, EdgeUpgradeInfo&gt; map) {
+<b class="nc">&nbsp;        for (String key : map.keySet()) {</b>
+<b class="nc">&nbsp;            upgradeVersionHashMap.put(key, map.get(key));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isUpgradeAvailable(TenantId tenantId, EdgeId edgeId) throws Exception {
+<b class="nc">&nbsp;        Optional&lt;AttributeKvEntry&gt; attributeKvEntryOpt = attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_VERSION_ATTR_KEY).get();</b>
+<b class="nc">&nbsp;        if (attributeKvEntryOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            String edgeVersionFormatted = convertEdgeVersionToDocsFormat(attributeKvEntryOpt.get().getValueAsString());</b>
+<b class="nc">&nbsp;            return isVersionGreaterOrEqualsThan(edgeVersionFormatted, &quot;3.6.0&quot;) &amp;&amp; !isVersionGreaterOrEqualsThan(edgeVersionFormatted, platformEdgeVersion);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isVersionGreaterOrEqualsThan(String version1, String version2) {
+<b class="nc">&nbsp;        String[] v1 = version1.split(&quot;\\.&quot;);</b>
+<b class="nc">&nbsp;        String[] v2 = version2.split(&quot;\\.&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        int length = Math.max(v1.length, v2.length);</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; length; i++) {</b>
+<b class="nc">&nbsp;            int num1 = i &lt; v1.length ? Integer.parseInt(v1[i]) : 0;</b>
+<b class="nc">&nbsp;            int num2 = i &lt; v2.length ? Integer.parseInt(v2[i]) : 0;</b>
+&nbsp;
+<b class="nc">&nbsp;            if (num1 &lt; num2) {</b>
+<b class="nc">&nbsp;                return false;</b>
+<b class="nc">&nbsp;            } else if (num1 &gt; num2) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdgeInstructions getDockerUpgradeInstructions(String platformEdgeVersion, String currentEdgeVersion) {
+<b class="nc">&nbsp;        EdgeUpgradeInfo edgeUpgradeInfo = upgradeVersionHashMap.get(currentEdgeVersion);</b>
+<b class="nc">&nbsp;        if (edgeUpgradeInfo == null || edgeUpgradeInfo.getNextEdgeVersion() == null || platformEdgeVersion.equals(currentEdgeVersion)) {</b>
+<b class="nc">&nbsp;            return new EdgeInstructions(&quot;Edge upgrade instruction for &quot; + currentEdgeVersion + &quot;EDGE is not available.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        StringBuilder result = new StringBuilder(readFile(resolveFile(&quot;docker&quot;, &quot;upgrade_preparing.md&quot;)));</b>
+<b class="nc">&nbsp;        while (edgeUpgradeInfo.getNextEdgeVersion() != null &amp;&amp; !platformEdgeVersion.equals(currentEdgeVersion)) {</b>
+<b class="nc">&nbsp;            String edgeVersion = edgeUpgradeInfo.getNextEdgeVersion();</b>
+<b class="nc">&nbsp;            String dockerUpgradeInstructions = readFile(resolveFile(&quot;docker&quot;, &quot;instructions.md&quot;));</b>
+<b class="nc">&nbsp;            if (edgeUpgradeInfo.isRequiresUpdateDb()) {</b>
+<b class="nc">&nbsp;                String upgradeDb = readFile(resolveFile(&quot;docker&quot;, &quot;upgrade_db.md&quot;));</b>
+<b class="nc">&nbsp;                dockerUpgradeInstructions = dockerUpgradeInstructions.replace(&quot;${UPGRADE_DB}&quot;, upgradeDb);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                dockerUpgradeInstructions = dockerUpgradeInstructions.replace(&quot;${UPGRADE_DB}&quot;, &quot;&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            dockerUpgradeInstructions = dockerUpgradeInstructions.replace(&quot;${TB_EDGE_VERSION}&quot;, edgeVersion + &quot;EDGE&quot;);</b>
+<b class="nc">&nbsp;            dockerUpgradeInstructions = dockerUpgradeInstructions.replace(&quot;${FROM_TB_EDGE_VERSION}&quot;, currentEdgeVersion + &quot;EDGE&quot;);</b>
+<b class="nc">&nbsp;            currentEdgeVersion = edgeVersion;</b>
+<b class="nc">&nbsp;            edgeUpgradeInfo = upgradeVersionHashMap.get(edgeUpgradeInfo.getNextEdgeVersion());</b>
+<b class="nc">&nbsp;            result.append(dockerUpgradeInstructions);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String startService = readFile(resolveFile(&quot;docker&quot;, &quot;start_service.md&quot;));</b>
+<b class="nc">&nbsp;        startService = startService.replace(&quot;${TB_EDGE_VERSION}&quot;, currentEdgeVersion + &quot;EDGE&quot;);</b>
+<b class="nc">&nbsp;        result.append(startService);</b>
+<b class="nc">&nbsp;        return new EdgeInstructions(result.toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdgeInstructions getLinuxUpgradeInstructions(String platformEdgeVersion, String currentEdgeVersion, String os) {
+<b class="nc">&nbsp;        EdgeUpgradeInfo edgeUpgradeInfo = upgradeVersionHashMap.get(currentEdgeVersion);</b>
+<b class="nc">&nbsp;        if (edgeUpgradeInfo == null || edgeUpgradeInfo.getNextEdgeVersion() == null || platformEdgeVersion.equals(currentEdgeVersion)) {</b>
+<b class="nc">&nbsp;            return new EdgeInstructions(&quot;Edge upgrade instruction for &quot; + currentEdgeVersion + &quot;EDGE is not available.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String upgrade_preparing = readFile(resolveFile(&quot;upgrade_preparing.md&quot;));</b>
+<b class="nc">&nbsp;        upgrade_preparing = upgrade_preparing.replace(&quot;${OS}&quot;, os.equals(&quot;centos&quot;) ? &quot;RHEL/CentOS 7/8&quot; : &quot;Ubuntu&quot;);</b>
+<b class="nc">&nbsp;        StringBuilder result = new StringBuilder(upgrade_preparing);</b>
+<b class="nc">&nbsp;        while (edgeUpgradeInfo.getNextEdgeVersion() != null &amp;&amp; !platformEdgeVersion.equals(currentEdgeVersion)) {</b>
+<b class="nc">&nbsp;            String edgeVersion = edgeUpgradeInfo.getNextEdgeVersion();</b>
+<b class="nc">&nbsp;            String linuxUpgradeInstructions = readFile(resolveFile(os, &quot;instructions.md&quot;));</b>
+<b class="nc">&nbsp;            if (edgeUpgradeInfo.isRequiresUpdateDb()) {</b>
+<b class="nc">&nbsp;                String upgradeDb = readFile(resolveFile(&quot;upgrade_db.md&quot;));</b>
+<b class="nc">&nbsp;                linuxUpgradeInstructions = linuxUpgradeInstructions.replace(&quot;${UPGRADE_DB}&quot;, upgradeDb);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                linuxUpgradeInstructions = linuxUpgradeInstructions.replace(&quot;${UPGRADE_DB}&quot;, &quot;&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            linuxUpgradeInstructions = linuxUpgradeInstructions.replace(&quot;${TB_EDGE_TAG}&quot;, getTagVersion(edgeVersion));</b>
+<b class="nc">&nbsp;            linuxUpgradeInstructions = linuxUpgradeInstructions.replace(&quot;${FROM_TB_EDGE_TAG}&quot;, getTagVersion(currentEdgeVersion));</b>
+<b class="nc">&nbsp;            linuxUpgradeInstructions = linuxUpgradeInstructions.replace(&quot;${TB_EDGE_VERSION}&quot;, edgeVersion);</b>
+<b class="nc">&nbsp;            linuxUpgradeInstructions = linuxUpgradeInstructions.replace(&quot;${FROM_TB_EDGE_VERSION}&quot;, currentEdgeVersion);</b>
+<b class="nc">&nbsp;            currentEdgeVersion = edgeVersion;</b>
+<b class="nc">&nbsp;            edgeUpgradeInfo = upgradeVersionHashMap.get(edgeUpgradeInfo.getNextEdgeVersion());</b>
+<b class="nc">&nbsp;            result.append(linuxUpgradeInstructions);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String startService = readFile(resolveFile(&quot;start_service.md&quot;));</b>
+<b class="nc">&nbsp;        result.append(startService);</b>
+<b class="nc">&nbsp;        return new EdgeInstructions(result.toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected String getBaseDirName() {
+<b class="nc">&nbsp;        return UPGRADE_DIR;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

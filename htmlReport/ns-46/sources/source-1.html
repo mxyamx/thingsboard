@@ -1,0 +1,1283 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbContext</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.actors.ruleChain</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbContext (org.thingsboard.server.actors.ruleChain)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbContext</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/149)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/78)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/343)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultTbContext$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/150)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/78)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/344)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.actors.ruleChain;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ArrayNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import io.netty.channel.EventLoopGroup;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.bouncycastle.util.Arrays;
+&nbsp;import org.thingsboard.common.util.DebugModeUtil;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.ListeningExecutor;
+&nbsp;import org.thingsboard.rule.engine.api.DeviceStateManager;
+&nbsp;import org.thingsboard.rule.engine.api.JobManager;
+&nbsp;import org.thingsboard.rule.engine.api.MailService;
+&nbsp;import org.thingsboard.rule.engine.api.MqttClientSettings;
+&nbsp;import org.thingsboard.rule.engine.api.NotificationCenter;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineAiChatModelService;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineCalculatedFieldQueueService;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineRpcService;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
+&nbsp;import org.thingsboard.rule.engine.api.ScriptEngine;
+&nbsp;import org.thingsboard.rule.engine.api.SmsService;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.notification.SlackService;
+&nbsp;import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
+&nbsp;import org.thingsboard.rule.engine.util.TenantIdLoader;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.actors.TbActorRef;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.HasRuleEngineProfile;
+&nbsp;import org.thingsboard.server.common.data.HasTenantId;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetProfile;
+&nbsp;import org.thingsboard.server.common.data.id.AssetId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNode;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNodeState;
+&nbsp;import org.thingsboard.server.common.data.script.ScriptLanguage;
+&nbsp;import org.thingsboard.server.common.msg.TbActorMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.dao.ai.AiModelService;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmCommentService;
+&nbsp;import org.thingsboard.server.dao.asset.AssetProfileService;
+&nbsp;import org.thingsboard.server.dao.asset.AssetService;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.dao.audit.AuditLogService;
+&nbsp;import org.thingsboard.server.dao.cassandra.CassandraCluster;
+&nbsp;import org.thingsboard.server.dao.cf.CalculatedFieldService;
+&nbsp;import org.thingsboard.server.dao.customer.CustomerService;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceCredentialsService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceProfileService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceService;
+&nbsp;import org.thingsboard.server.dao.domain.DomainService;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeEventService;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.entityview.EntityViewService;
+&nbsp;import org.thingsboard.server.dao.event.EventService;
+&nbsp;import org.thingsboard.server.dao.job.JobService;
+&nbsp;import org.thingsboard.server.dao.mobile.MobileAppBundleService;
+&nbsp;import org.thingsboard.server.dao.mobile.MobileAppService;
+&nbsp;import org.thingsboard.server.dao.nosql.CassandraStatementTask;
+&nbsp;import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRequestService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRuleService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationTargetService;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationTemplateService;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
+&nbsp;import org.thingsboard.server.dao.ota.OtaPackageService;
+&nbsp;import org.thingsboard.server.dao.pat.ApiKeyService;
+&nbsp;import org.thingsboard.server.dao.queue.QueueService;
+&nbsp;import org.thingsboard.server.dao.queue.QueueStatsService;
+&nbsp;import org.thingsboard.server.dao.relation.RelationService;
+&nbsp;import org.thingsboard.server.dao.resource.TbResourceDataCache;
+&nbsp;import org.thingsboard.server.dao.resource.ResourceService;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainService;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;import org.thingsboard.server.dao.timeseries.TimeseriesService;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetTypeService;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetsBundleService;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.TbQueueCallback;
+&nbsp;import org.thingsboard.server.queue.common.SimpleTbQueueCallback;
+&nbsp;import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
+&nbsp;import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
+&nbsp;import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_CREATED;
+&nbsp;
+&nbsp;/**
+&nbsp; * Created by ashvayka on 19.03.18.
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultTbContext implements TbContext {
+&nbsp;
+&nbsp;    private final ActorSystemContext mainCtx;
+&nbsp;    private final String ruleChainName;
+&nbsp;    private final RuleNodeCtx nodeCtx;
+&nbsp;
+<b class="nc">&nbsp;    public DefaultTbContext(ActorSystemContext mainCtx, String ruleChainName, RuleNodeCtx nodeCtx) {</b>
+<b class="nc">&nbsp;        this.mainCtx = mainCtx;</b>
+<b class="nc">&nbsp;        this.ruleChainName = ruleChainName;</b>
+<b class="nc">&nbsp;        this.nodeCtx = nodeCtx;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tellSuccess(TbMsg msg) {
+<b class="nc">&nbsp;        tellNext(msg, Collections.singleton(TbNodeConnectionType.SUCCESS));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tellNext(TbMsg msg, String relationType) {
+<b class="nc">&nbsp;        tellNext(msg, Collections.singleton(relationType));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tellNext(TbMsg msg, Set&lt;String&gt; relationTypes) {
+<b class="nc">&nbsp;        RuleNode ruleNode = nodeCtx.getSelf();</b>
+<b class="nc">&nbsp;        persistDebugOutput(msg, relationTypes);</b>
+<b class="nc">&nbsp;        msg.getCallback().onProcessingEnd(ruleNode.getId());</b>
+<b class="nc">&nbsp;        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(ruleNode.getRuleChainId(), ruleNode.getId(), relationTypes, msg, null));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tellSelf(TbMsg msg, long delayMs) {
+&nbsp;        //TODO: add persistence layer
+<b class="nc">&nbsp;        scheduleMsgWithDelay(new RuleNodeToSelfMsg(this, msg), delayMs, nodeCtx.getSelfActor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void input(TbMsg msg, RuleChainId ruleChainId) {
+<b class="nc">&nbsp;        if (!msg.isValid()) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        TbMsg tbMsg = msg.copy()</b>
+<b class="nc">&nbsp;                .ruleChainId(ruleChainId)</b>
+<b class="nc">&nbsp;                .resetRuleNodeId()</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        tbMsg.pushToStack(nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());</b>
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(msg);</b>
+<b class="nc">&nbsp;        doEnqueue(tpi, tbMsg, new SimpleTbQueueCallback(md -&gt; ack(msg), t -&gt; tellFailure(msg, t)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void output(TbMsg msg, String relationType) {
+<b class="nc">&nbsp;        TbMsgProcessingStackItem item = msg.popFormStack();</b>
+<b class="nc">&nbsp;        if (item == null) {</b>
+<b class="nc">&nbsp;            ack(msg);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            persistDebugOutput(msg, relationType);</b>
+<b class="nc">&nbsp;            nodeCtx.getChainActor().tell(new RuleChainOutputMsg(item.getRuleChainId(), item.getRuleNodeId(), relationType, msg));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueue(TbMsg tbMsg, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        enqueue(tbMsg, tbMsg.getQueueName(), onSuccess, onFailure);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueue(TbMsg tbMsg, String queueName, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);</b>
+<b class="nc">&nbsp;        enqueue(tpi, tbMsg, onFailure, onSuccess);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void enqueue(TopicPartitionInfo tpi, TbMsg tbMsg, Consumer&lt;Throwable&gt; onFailure, Runnable onSuccess) {
+<b class="nc">&nbsp;        if (!tbMsg.isValid()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Skip invalid message: {}&quot;, getTenantId(), tbMsg);</b>
+<b class="nc">&nbsp;            if (onFailure != null) {</b>
+<b class="nc">&nbsp;                onFailure.accept(new IllegalArgumentException(&quot;Source message is no longer valid!&quot;));</b>
+&nbsp;            }
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        doEnqueue(tpi, tbMsg, new SimpleTbQueueCallback(</b>
+&nbsp;                metadata -&gt; {
+<b class="nc">&nbsp;                    persistDebugOutput(tbMsg, TbNodeConnectionType.TO_ROOT_RULE_CHAIN);</b>
+<b class="nc">&nbsp;                    if (onSuccess != null) {</b>
+<b class="nc">&nbsp;                        onSuccess.run();</b>
+&nbsp;                    }
+&nbsp;                },
+&nbsp;                t -&gt; {
+<b class="nc">&nbsp;                    if (onFailure != null) {</b>
+<b class="nc">&nbsp;                        onFailure.accept(t);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.debug(&quot;[{}] Failed to put item into queue!&quot;, nodeCtx.getTenantId().getId(), t);</b>
+&nbsp;                    }
+&nbsp;                }));
+&nbsp;    }
+&nbsp;
+&nbsp;    private void doEnqueue(TopicPartitionInfo tpi, TbMsg tbMsg, TbQueueCallback callback) {
+<b class="nc">&nbsp;        TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setTbMsgProto(TbMsg.toProto(tbMsg))</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg, callback);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellFailure(TbMsg tbMsg, String failureMessage) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, tbMsg, Collections.singleton(TbNodeConnectionType.FAILURE), failureMessage, null, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellFailure(TbMsg tbMsg, Throwable th) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, tbMsg, Collections.singleton(TbNodeConnectionType.FAILURE), getFailureMessage(th), null, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellNext(TbMsg tbMsg, String relationType) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, tbMsg, Collections.singleton(relationType), null, null, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellNext(TbMsg tbMsg, Set&lt;String&gt; relationTypes) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, tbMsg, relationTypes, null, null, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellNext(TbMsg tbMsg, String relationType, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, tbMsg, Collections.singleton(relationType), null, onSuccess, onFailure);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellNext(TbMsg tbMsg, Set&lt;String&gt; relationTypes, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, tbMsg, relationTypes, null, onSuccess, onFailure);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellNext(TbMsg tbMsg, String queueName, String relationType, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, queueName, tbMsg, Collections.singleton(relationType), null, onSuccess, onFailure);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void enqueueForTellNext(TbMsg tbMsg, String queueName, Set&lt;String&gt; relationTypes, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);</b>
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, queueName, tbMsg, relationTypes, null, onSuccess, onFailure);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TopicPartitionInfo resolvePartition(TbMsg tbMsg, String queueName) {
+<b class="nc">&nbsp;        return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, queueName, getTenantId(), tbMsg.getOriginator());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TopicPartitionInfo resolvePartition(TbMsg tbMsg) {
+<b class="nc">&nbsp;        return resolvePartition(tbMsg, tbMsg.getQueueName());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void enqueueForTellNext(TopicPartitionInfo tpi, TbMsg source, Set&lt;String&gt; relationTypes, String failureMessage, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        enqueueForTellNext(tpi, source.getQueueName(), source, relationTypes, failureMessage, onSuccess, onFailure);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void enqueueForTellNext(TopicPartitionInfo tpi, String queueName, TbMsg source, Set&lt;String&gt; relationTypes, String failureMessage, Runnable onSuccess, Consumer&lt;Throwable&gt; onFailure) {
+<b class="nc">&nbsp;        if (!source.isValid()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Skip invalid message: {}&quot;, getTenantId(), source);</b>
+<b class="nc">&nbsp;            if (onFailure != null) {</b>
+<b class="nc">&nbsp;                onFailure.accept(new IllegalArgumentException(&quot;Source message is no longer valid!&quot;));</b>
+&nbsp;            }
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        RuleNode ruleNode = nodeCtx.getSelf();</b>
+<b class="nc">&nbsp;        RuleChainId ruleChainId = ruleNode.getRuleChainId();</b>
+<b class="nc">&nbsp;        RuleNodeId ruleNodeId = ruleNode.getId();</b>
+<b class="nc">&nbsp;        TbMsg tbMsg = TbMsg.newMsg(source, queueName, ruleChainId, ruleNodeId);</b>
+<b class="nc">&nbsp;        TransportProtos.ToRuleEngineMsg.Builder msg = TransportProtos.ToRuleEngineMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setTbMsgProto(TbMsg.toProto(tbMsg))</b>
+<b class="nc">&nbsp;                .addAllRelationTypes(relationTypes);</b>
+<b class="nc">&nbsp;        if (failureMessage != null) {</b>
+<b class="nc">&nbsp;            msg.setFailureMessage(failureMessage);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg.build(), new SimpleTbQueueCallback(</b>
+&nbsp;                metadata -&gt; {
+<b class="nc">&nbsp;                    persistDebugOutput(tbMsg, relationTypes, null, failureMessage);</b>
+<b class="nc">&nbsp;                    if (onSuccess != null) {</b>
+<b class="nc">&nbsp;                        onSuccess.run();</b>
+&nbsp;                    }
+&nbsp;                },
+&nbsp;                t -&gt; {
+<b class="nc">&nbsp;                    if (onFailure != null) {</b>
+<b class="nc">&nbsp;                        onFailure.accept(t);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.debug(&quot;[{}] Failed to put item into queue!&quot;, nodeCtx.getTenantId().getId(), t);</b>
+&nbsp;                    }
+&nbsp;                }));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void ack(TbMsg tbMsg) {
+<b class="nc">&nbsp;        RuleNode ruleNode = nodeCtx.getSelf();</b>
+<b class="nc">&nbsp;        persistDebugOutput(tbMsg, TbNodeConnectionType.ACK);</b>
+<b class="nc">&nbsp;        tbMsg.getCallback().onProcessingEnd(ruleNode.getId());</b>
+<b class="nc">&nbsp;        tbMsg.getCallback().onSuccess();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isLocalEntity(EntityId entityId) {
+<b class="nc">&nbsp;        return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getQueueName(), getTenantId(), entityId).isMyPartition();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void scheduleMsgWithDelay(TbActorMsg msg, long delayInMs, TbActorRef target) {
+<b class="nc">&nbsp;        mainCtx.scheduleMsgWithDelay(target, msg, delayInMs);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void tellFailure(TbMsg msg, Throwable th) {
+<b class="nc">&nbsp;        RuleNode ruleNode = nodeCtx.getSelf();</b>
+<b class="nc">&nbsp;        persistDebugOutput(msg, Set.of(TbNodeConnectionType.FAILURE), th, null);</b>
+<b class="nc">&nbsp;        String failureMessage = getFailureMessage(th);</b>
+<b class="nc">&nbsp;        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(ruleNode.getRuleChainId(),</b>
+<b class="nc">&nbsp;                ruleNode.getId(), Collections.singleton(TbNodeConnectionType.FAILURE),</b>
+&nbsp;                msg, failureMessage));
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateSelf(RuleNode self) {
+<b class="nc">&nbsp;        nodeCtx.setSelf(self);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg newMsg(String queueName, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
+<b class="nc">&nbsp;        return TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                .queueName(queueName)</b>
+<b class="nc">&nbsp;                .type(type)</b>
+<b class="nc">&nbsp;                .originator(originator)</b>
+<b class="nc">&nbsp;                .customerId(customerId)</b>
+<b class="nc">&nbsp;                .copyMetaData(metaData)</b>
+<b class="nc">&nbsp;                .data(data)</b>
+<b class="nc">&nbsp;                .ruleChainId(nodeCtx.getSelf().getRuleChainId())</b>
+<b class="nc">&nbsp;                .ruleNodeId(nodeCtx.getSelf().getId())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg transformMsg(TbMsg origMsg, String type, EntityId originator, TbMsgMetaData metaData, String data) {
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .type(type)</b>
+<b class="nc">&nbsp;                .originator(originator)</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .data(data)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg newMsg(String queueName, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data) {
+<b class="nc">&nbsp;        return newMsg(queueName, type, originator, null, metaData, data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg newMsg(String queueName, TbMsgType type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
+<b class="nc">&nbsp;        return TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                .queueName(queueName)</b>
+<b class="nc">&nbsp;                .type(type)</b>
+<b class="nc">&nbsp;                .originator(originator)</b>
+<b class="nc">&nbsp;                .customerId(customerId)</b>
+<b class="nc">&nbsp;                .copyMetaData(metaData)</b>
+<b class="nc">&nbsp;                .data(data)</b>
+<b class="nc">&nbsp;                .ruleChainId(nodeCtx.getSelf().getRuleChainId())</b>
+<b class="nc">&nbsp;                .ruleNodeId(nodeCtx.getSelf().getId())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg transformMsg(TbMsg origMsg, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data) {
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .type(type)</b>
+<b class="nc">&nbsp;                .originator(originator)</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .data(data)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg transformMsg(TbMsg origMsg, TbMsgMetaData metaData, String data) {
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .data(data)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg transformMsgOriginator(TbMsg origMsg, EntityId originator) {
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .originator(originator)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        return entityActionMsg(customer, customer.getId(), ruleNodeId, ENTITY_CREATED);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        DeviceProfile deviceProfile = null;</b>
+<b class="nc">&nbsp;        if (device.getDeviceProfileId() != null) {</b>
+<b class="nc">&nbsp;            deviceProfile = mainCtx.getDeviceProfileCache().find(device.getDeviceProfileId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return entityActionMsg(device, device.getId(), ruleNodeId, ENTITY_CREATED, deviceProfile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        AssetProfile assetProfile = null;</b>
+<b class="nc">&nbsp;        if (asset.getAssetProfileId() != null) {</b>
+<b class="nc">&nbsp;            assetProfile = mainCtx.getAssetProfileCache().find(asset.getAssetProfileId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return entityActionMsg(asset, asset.getId(), ruleNodeId, ENTITY_CREATED, assetProfile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action) {
+<b class="nc">&nbsp;        EntityId originator = alarm.getOriginator();</b>
+<b class="nc">&nbsp;        HasRuleEngineProfile profile = getRuleEngineProfile(originator);</b>
+<b class="nc">&nbsp;        return entityActionMsg(alarm, originator, ruleNodeId, action, profile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
+<b class="nc">&nbsp;        EntityId originator = alarm.getOriginator();</b>
+<b class="nc">&nbsp;        HasRuleEngineProfile profile = getRuleEngineProfile(originator);</b>
+<b class="nc">&nbsp;        return entityActionMsg(alarm, originator, ruleNodeId, actionMsgType, profile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private HasRuleEngineProfile getRuleEngineProfile(EntityId originator) {
+<b class="nc">&nbsp;        HasRuleEngineProfile profile = null;</b>
+<b class="nc">&nbsp;        if (EntityType.DEVICE.equals(originator.getEntityType())) {</b>
+<b class="nc">&nbsp;            DeviceId deviceId = new DeviceId(originator.getId());</b>
+<b class="nc">&nbsp;            profile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);</b>
+<b class="nc">&nbsp;        } else if (EntityType.ASSET.equals(originator.getEntityType())) {</b>
+<b class="nc">&nbsp;            AssetId assetId = new AssetId(originator.getId());</b>
+<b class="nc">&nbsp;            profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return profile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List&lt;AttributeKvEntry&gt; attributes) {
+<b class="nc">&nbsp;        ObjectNode entityNode = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;        if (attributes != null) {</b>
+<b class="nc">&nbsp;            attributes.forEach(attributeKvEntry -&gt; JacksonUtil.addKvEntry(entityNode, attributeKvEntry));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return attributesActionMsg(originator, ruleNodeId, scope, ATTRIBUTES_UPDATED, JacksonUtil.toString(entityNode));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List&lt;String&gt; keys) {
+<b class="nc">&nbsp;        ObjectNode entityNode = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;        ArrayNode attrsArrayNode = entityNode.putArray(&quot;attributes&quot;);</b>
+<b class="nc">&nbsp;        if (keys != null) {</b>
+<b class="nc">&nbsp;            keys.forEach(attrsArrayNode::add);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return attributesActionMsg(originator, ruleNodeId, scope, ATTRIBUTES_DELETED, JacksonUtil.toString(entityNode));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg attributesActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, TbMsgType actionMsgType, String msgData) {
+<b class="nc">&nbsp;        TbMsgMetaData tbMsgMetaData = getActionMetaData(ruleNodeId);</b>
+<b class="nc">&nbsp;        tbMsgMetaData.putValue(&quot;scope&quot;, scope);</b>
+<b class="nc">&nbsp;        HasRuleEngineProfile profile = getRuleEngineProfile(originator);</b>
+<b class="nc">&nbsp;        return entityActionMsg(originator, tbMsgMetaData, msgData, actionMsgType, profile);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public &lt;E, I extends EntityId&gt; TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
+<b class="nc">&nbsp;        return entityActionMsg(entity, id, ruleNodeId, actionMsgType, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Deprecated(since = &quot;3.6.0&quot;, forRemoval = true)
+&nbsp;    public &lt;E, I extends EntityId, K extends HasRuleEngineProfile&gt; TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, K profile) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return entityActionMsg(id, getActionMetaData(ruleNodeId), JacksonUtil.toString(JacksonUtil.valueToTree(entity)), action, profile);</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Failed to process &quot; + id.getEntityType().name().toLowerCase() + &quot; &quot; + action + &quot; msg: &quot; + e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Deprecated(since = &quot;3.6.0&quot;, forRemoval = true)
+&nbsp;    private &lt;I extends EntityId, K extends HasRuleEngineProfile&gt; TbMsg entityActionMsg(I id, TbMsgMetaData msgMetaData, String msgData, String action, K profile) {
+<b class="nc">&nbsp;        String defaultQueueName = null;</b>
+<b class="nc">&nbsp;        RuleChainId defaultRuleChainId = null;</b>
+<b class="nc">&nbsp;        if (profile != null) {</b>
+<b class="nc">&nbsp;            defaultQueueName = profile.getDefaultQueueName();</b>
+<b class="nc">&nbsp;            defaultRuleChainId = profile.getDefaultRuleChainId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                .queueName(defaultQueueName)</b>
+<b class="nc">&nbsp;                .type(action)</b>
+<b class="nc">&nbsp;                .originator(id)</b>
+<b class="nc">&nbsp;                .copyMetaData(msgMetaData)</b>
+<b class="nc">&nbsp;                .data(msgData)</b>
+<b class="nc">&nbsp;                .ruleChainId(defaultRuleChainId)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public &lt;E, I extends EntityId, K extends HasRuleEngineProfile&gt; TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, TbMsgType actionMsgType, K profile) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return entityActionMsg(id, getActionMetaData(ruleNodeId), JacksonUtil.toString(JacksonUtil.valueToTree(entity)), actionMsgType, profile);</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Failed to process &quot; + id.getEntityType().name().toLowerCase() + &quot; &quot; + actionMsgType.name() + &quot; msg: &quot; + e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;I extends EntityId, K extends HasRuleEngineProfile&gt; TbMsg entityActionMsg(I id, TbMsgMetaData msgMetaData, String msgData, TbMsgType actionMsgType, K profile) {
+<b class="nc">&nbsp;        String defaultQueueName = null;</b>
+<b class="nc">&nbsp;        RuleChainId defaultRuleChainId = null;</b>
+<b class="nc">&nbsp;        if (profile != null) {</b>
+<b class="nc">&nbsp;            defaultQueueName = profile.getDefaultQueueName();</b>
+<b class="nc">&nbsp;            defaultRuleChainId = profile.getDefaultRuleChainId();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                .queueName(defaultQueueName)</b>
+<b class="nc">&nbsp;                .type(actionMsgType)</b>
+<b class="nc">&nbsp;                .originator(id)</b>
+<b class="nc">&nbsp;                .copyMetaData(msgMetaData)</b>
+<b class="nc">&nbsp;                .data(msgData)</b>
+<b class="nc">&nbsp;                .ruleChainId(defaultRuleChainId)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleNodeId getSelfId() {
+<b class="nc">&nbsp;        return nodeCtx.getSelf().getId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleNode getSelf() {
+<b class="nc">&nbsp;        return nodeCtx.getSelf();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getRuleChainName() {
+<b class="nc">&nbsp;        return ruleChainName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getQueueName() {
+<b class="nc">&nbsp;        return getSelf().getQueueName();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantId getTenantId() {
+<b class="nc">&nbsp;        return nodeCtx.getTenantId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListeningExecutor getMailExecutor() {
+<b class="nc">&nbsp;        return mainCtx.getMailExecutor();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListeningExecutor getSmsExecutor() {
+<b class="nc">&nbsp;        return mainCtx.getSmsExecutor();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListeningExecutor getDbCallbackExecutor() {
+<b class="nc">&nbsp;        return mainCtx.getDbCallbackExecutor();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListeningExecutor getExternalCallExecutor() {
+<b class="nc">&nbsp;        return mainCtx.getExternalCallExecutorService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListeningExecutor getNotificationExecutor() {
+<b class="nc">&nbsp;        return mainCtx.getNotificationExecutor();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PubSubRuleNodeExecutorProvider getPubSubRuleNodeExecutorProvider() {
+<b class="nc">&nbsp;        return mainCtx.getPubSubRuleNodeExecutorProvider();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Deprecated
+&nbsp;    public ScriptEngine createJsScriptEngine(String script, String... argNames) {
+<b class="nc">&nbsp;        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script, argNames);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ScriptEngine createTbelScriptEngine(String script, String... argNames) {
+<b class="nc">&nbsp;        if (mainCtx.getTbelInvokeService() == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;TBEL execution is disabled!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new RuleNodeTbelScriptEngine(getTenantId(), mainCtx.getTbelInvokeService(), script, argNames);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames) {
+<b class="nc">&nbsp;        if (scriptLang == null) {</b>
+<b class="nc">&nbsp;            scriptLang = ScriptLanguage.JS;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (StringUtils.isBlank(script)) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(scriptLang.name() + &quot; script is blank!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        switch (scriptLang) {</b>
+&nbsp;            case JS:
+<b class="nc">&nbsp;                return createJsScriptEngine(script, argNames);</b>
+&nbsp;            case TBEL:
+<b class="nc">&nbsp;                if (Arrays.isNullOrEmpty(argNames)) {</b>
+<b class="nc">&nbsp;                    return createTbelScriptEngine(script, &quot;msg&quot;, &quot;metadata&quot;, &quot;msgType&quot;);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return createTbelScriptEngine(script, argNames);</b>
+&nbsp;                }
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Unsupported script language: &quot; + scriptLang.name());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getServiceId() {
+<b class="nc">&nbsp;        return mainCtx.getServiceInfoProvider().getServiceId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AttributesService getAttributesService() {
+<b class="nc">&nbsp;        return mainCtx.getAttributesService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CustomerService getCustomerService() {
+<b class="nc">&nbsp;        return mainCtx.getCustomerService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantService getTenantService() {
+<b class="nc">&nbsp;        return mainCtx.getTenantService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserService getUserService() {
+<b class="nc">&nbsp;        return mainCtx.getUserService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetService getAssetService() {
+<b class="nc">&nbsp;        return mainCtx.getAssetService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DeviceService getDeviceService() {
+<b class="nc">&nbsp;        return mainCtx.getDeviceService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DeviceProfileService getDeviceProfileService() {
+<b class="nc">&nbsp;        return mainCtx.getDeviceProfileService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AssetProfileService getAssetProfileService() {
+<b class="nc">&nbsp;        return mainCtx.getAssetProfileService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DeviceCredentialsService getDeviceCredentialsService() {
+<b class="nc">&nbsp;        return mainCtx.getDeviceCredentialsService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DeviceStateManager getDeviceStateManager() {
+<b class="nc">&nbsp;        return mainCtx.getDeviceStateManager();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getDeviceStateNodeRateLimitConfig() {
+<b class="nc">&nbsp;        return mainCtx.getDeviceStateNodeRateLimitConfig();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbClusterService getClusterService() {
+<b class="nc">&nbsp;        return mainCtx.getClusterService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DashboardService getDashboardService() {
+<b class="nc">&nbsp;        return mainCtx.getDashboardService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineAlarmService getAlarmService() {
+<b class="nc">&nbsp;        return mainCtx.getAlarmService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmCommentService getAlarmCommentService() {
+<b class="nc">&nbsp;        return mainCtx.getAlarmCommentService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleChainService getRuleChainService() {
+<b class="nc">&nbsp;        return mainCtx.getRuleChainService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TimeseriesService getTimeseriesService() {
+<b class="nc">&nbsp;        return mainCtx.getTsService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineTelemetryService getTelemetryService() {
+<b class="nc">&nbsp;        return mainCtx.getTsSubService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RelationService getRelationService() {
+<b class="nc">&nbsp;        return mainCtx.getRelationService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityViewService getEntityViewService() {
+<b class="nc">&nbsp;        return mainCtx.getEntityViewService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResourceService getResourceService() {
+<b class="nc">&nbsp;        return mainCtx.getResourceService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResourceDataCache getTbResourceDataCache() {
+<b class="nc">&nbsp;        return mainCtx.getResourceDataCache();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public OtaPackageService getOtaPackageService() {
+<b class="nc">&nbsp;        return mainCtx.getOtaPackageService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineDeviceProfileCache getDeviceProfileCache() {
+<b class="nc">&nbsp;        return mainCtx.getDeviceProfileCache();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineAssetProfileCache getAssetProfileCache() {
+<b class="nc">&nbsp;        return mainCtx.getAssetProfileCache();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EdgeService getEdgeService() {
+<b class="nc">&nbsp;        return mainCtx.getEdgeService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EdgeEventService getEdgeEventService() {
+<b class="nc">&nbsp;        return mainCtx.getEdgeEventService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public QueueService getQueueService() {
+<b class="nc">&nbsp;        return mainCtx.getQueueService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public QueueStatsService getQueueStatsService() {
+<b class="nc">&nbsp;        return mainCtx.getQueueStatsService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EventLoopGroup getSharedEventLoop() {
+<b class="nc">&nbsp;        return mainCtx.getSharedEventLoopGroupService().getSharedEventLoopGroup();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public MailService getMailService(boolean isSystem) {
+<b class="nc">&nbsp;        if (!isSystem || mainCtx.isAllowSystemMailService()) {</b>
+<b class="nc">&nbsp;            return mainCtx.getMailService();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Access to System Mail Service is forbidden!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SmsService getSmsService() {
+<b class="nc">&nbsp;        if (mainCtx.isAllowSystemSmsService()) {</b>
+<b class="nc">&nbsp;            return mainCtx.getSmsService();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Access to System SMS Service is forbidden!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SmsSenderFactory getSmsSenderFactory() {
+<b class="nc">&nbsp;        return mainCtx.getSmsSenderFactory();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationCenter getNotificationCenter() {
+<b class="nc">&nbsp;        return mainCtx.getNotificationCenter();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationTargetService getNotificationTargetService() {
+<b class="nc">&nbsp;        return mainCtx.getNotificationTargetService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationTemplateService getNotificationTemplateService() {
+<b class="nc">&nbsp;        return mainCtx.getNotificationTemplateService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationRequestService getNotificationRequestService() {
+<b class="nc">&nbsp;        return mainCtx.getNotificationRequestService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationRuleService getNotificationRuleService() {
+<b class="nc">&nbsp;        return mainCtx.getNotificationRuleService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public OAuth2ClientService getOAuth2ClientService() {
+<b class="nc">&nbsp;        return mainCtx.getOAuth2ClientService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DomainService getDomainService() {
+<b class="nc">&nbsp;        return mainCtx.getDomainService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public MobileAppService getMobileAppService() {
+<b class="nc">&nbsp;        return mainCtx.getMobileAppService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public MobileAppBundleService getMobileAppBundleService() {
+<b class="nc">&nbsp;        return mainCtx.getMobileAppBundleService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SlackService getSlackService() {
+<b class="nc">&nbsp;        return mainCtx.getSlackService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CalculatedFieldService getCalculatedFieldService() {
+<b class="nc">&nbsp;        return mainCtx.getCalculatedFieldService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService() {
+<b class="nc">&nbsp;        return mainCtx.getCalculatedFieldQueueService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public JobService getJobService() {
+<b class="nc">&nbsp;        return mainCtx.getJobService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public JobManager getJobManager() {
+<b class="nc">&nbsp;        return mainCtx.getJobManager();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ApiKeyService getApiKeyService() {
+<b class="nc">&nbsp;        return mainCtx.getApiKeyService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isExternalNodeForceAck() {
+<b class="nc">&nbsp;        return mainCtx.isExternalNodeForceAck();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineRpcService getRpcService() {
+<b class="nc">&nbsp;        return mainCtx.getTbRuleEngineDeviceRpcService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public CassandraCluster getCassandraCluster() {
+<b class="nc">&nbsp;        return mainCtx.getCassandraCluster();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResultSetFuture submitCassandraReadTask(CassandraStatementTask task) {
+<b class="nc">&nbsp;        return mainCtx.getCassandraBufferedRateReadExecutor().submit(task);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbResultSetFuture submitCassandraWriteTask(CassandraStatementTask task) {
+<b class="nc">&nbsp;        return mainCtx.getCassandraBufferedRateWriteExecutor().submit(task);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;RuleNodeState&gt; findRuleNodeStates(PageLink pageLink) {
+<b class="nc">&nbsp;        if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Fetch Rule Node States.&quot;, getTenantId(), getSelfId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return mainCtx.getRuleNodeStateService().findByRuleNodeId(getTenantId(), getSelfId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleNodeState findRuleNodeStateForEntity(EntityId entityId) {
+<b class="nc">&nbsp;        if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}][{}] Fetch Rule Node State for entity.&quot;, getTenantId(), getSelfId(), entityId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return mainCtx.getRuleNodeStateService().findByRuleNodeIdAndEntityId(getTenantId(), getSelfId(), entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleNodeState saveRuleNodeState(RuleNodeState state) {
+<b class="nc">&nbsp;        if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}][{}] Persist Rule Node State for entity: {}&quot;, getTenantId(), getSelfId(), state.getEntityId(), state.getStateData());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        state.setRuleNodeId(getSelfId());</b>
+<b class="nc">&nbsp;        return mainCtx.getRuleNodeStateService().save(getTenantId(), state);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void clearRuleNodeStates() {
+<b class="nc">&nbsp;        if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Going to clear rule node states&quot;, getTenantId(), getSelfId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        mainCtx.getRuleNodeStateService().removeByRuleNodeId(getTenantId(), getSelfId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void removeRuleNodeStateForEntity(EntityId entityId) {
+<b class="nc">&nbsp;        if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}][{}] Remove Rule Node State for entity.&quot;, getTenantId(), getSelfId(), entityId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        mainCtx.getRuleNodeStateService().removeByRuleNodeIdAndEntityId(getTenantId(), getSelfId(), entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void addTenantProfileListener(Consumer&lt;TenantProfile&gt; listener) {
+<b class="nc">&nbsp;        mainCtx.getTenantProfileCache().addListener(getTenantId(), getSelfId(), listener);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void addDeviceProfileListeners(Consumer&lt;DeviceProfile&gt; profileListener, BiConsumer&lt;DeviceId, DeviceProfile&gt; deviceListener) {
+<b class="nc">&nbsp;        mainCtx.getDeviceProfileCache().addListener(getTenantId(), getSelfId(), profileListener, deviceListener);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void addAssetProfileListeners(Consumer&lt;AssetProfile&gt; profileListener, BiConsumer&lt;AssetId, AssetProfile&gt; assetListener) {
+<b class="nc">&nbsp;        mainCtx.getAssetProfileCache().addListener(getTenantId(), getSelfId(), profileListener, assetListener);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void removeListeners() {
+<b class="nc">&nbsp;        mainCtx.getDeviceProfileCache().removeListener(getTenantId(), getSelfId());</b>
+<b class="nc">&nbsp;        mainCtx.getAssetProfileCache().removeListener(getTenantId(), getSelfId());</b>
+<b class="nc">&nbsp;        mainCtx.getTenantProfileCache().removeListener(getTenantId(), getSelfId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile getTenantProfile() {
+<b class="nc">&nbsp;        return mainCtx.getTenantProfileCache().get(getTenantId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public WidgetsBundleService getWidgetBundleService() {
+<b class="nc">&nbsp;        return mainCtx.getWidgetsBundleService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public WidgetTypeService getWidgetTypeService() {
+<b class="nc">&nbsp;        return mainCtx.getWidgetTypeService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineApiUsageStateService getRuleEngineApiUsageStateService() {
+<b class="nc">&nbsp;        return mainCtx.getApiUsageStateService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityService getEntityService() {
+<b class="nc">&nbsp;        return mainCtx.getEntityService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EventService getEventService() {
+<b class="nc">&nbsp;        return mainCtx.getEventService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AuditLogService getAuditLogService() {
+<b class="nc">&nbsp;        return mainCtx.getAuditLogService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RuleEngineAiChatModelService getAiChatModelService() {
+<b class="nc">&nbsp;        return mainCtx.getAiChatModelService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AiModelService getAiModelService() {
+<b class="nc">&nbsp;        return mainCtx.getAiModelService();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public MqttClientSettings getMqttClientSettings() {
+<b class="nc">&nbsp;        return mainCtx.getMqttClientSettings();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {
+<b class="nc">&nbsp;        TbMsgMetaData metaData = new TbMsgMetaData();</b>
+<b class="nc">&nbsp;        metaData.putValue(&quot;ruleNodeId&quot;, ruleNodeId.toString());</b>
+<b class="nc">&nbsp;        return metaData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void schedule(Runnable runnable, long delay, TimeUnit timeUnit) {
+<b class="nc">&nbsp;        mainCtx.getScheduler().schedule(runnable, delay, timeUnit);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void checkTenantEntity(EntityId entityId) throws TbNodeException {
+<b class="nc">&nbsp;        TenantId actualTenantId = TenantIdLoader.findTenantId(this, entityId);</b>
+<b class="nc">&nbsp;        if (!getTenantId().equals(actualTenantId)) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Entity with id: &#39;&quot; + entityId + &quot;&#39; specified in the configuration doesn&#39;t belong to the current tenant.&quot;, true);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends HasId&lt;I&gt; &amp; HasTenantId, I extends EntityId&gt; void checkTenantOrSystemEntity(E entity) throws TbNodeException {
+<b class="nc">&nbsp;        TenantId actualTenantId = entity.getTenantId();</b>
+<b class="nc">&nbsp;        if (!getTenantId().equals(actualTenantId) &amp;&amp; !actualTenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Entity with id: &#39;&quot; + entity.getId() + &quot;&#39; specified in the configuration doesn&#39;t belong to the current or system tenant.&quot;, true);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String getFailureMessage(Throwable th) {
+&nbsp;        String failureMessage;
+<b class="nc">&nbsp;        if (th != null) {</b>
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(th.getMessage())) {</b>
+<b class="nc">&nbsp;                failureMessage = th.getMessage();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                failureMessage = th.getClass().getSimpleName();</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            failureMessage = null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return failureMessage;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void persistDebugOutput(TbMsg msg, String relationType) {
+<b class="nc">&nbsp;        persistDebugOutput(msg, Set.of(relationType));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void persistDebugOutput(TbMsg msg, Set&lt;String&gt; relationTypes) {
+<b class="nc">&nbsp;        persistDebugOutput(msg, relationTypes, null, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void persistDebugOutput(TbMsg msg, Set&lt;String&gt; relationTypes, Throwable error, String failureMessage) {
+<b class="nc">&nbsp;        RuleNode ruleNode = nodeCtx.getSelf();</b>
+<b class="nc">&nbsp;        if (DebugModeUtil.isDebugAllAvailable(ruleNode)) {</b>
+<b class="nc">&nbsp;            relationTypes.forEach(relationType -&gt; mainCtx.persistDebugOutput(getTenantId(), ruleNode.getId(), msg, relationType, error, failureMessage));</b>
+<b class="nc">&nbsp;        } else if (DebugModeUtil.isDebugFailuresAvailable(ruleNode, relationTypes)) {</b>
+<b class="nc">&nbsp;            mainCtx.persistDebugOutput(getTenantId(), ruleNode.getId(), msg, TbNodeConnectionType.FAILURE, error, failureMessage);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,669 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LwM2mClientContextImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.server.client</a>
+</div>
+
+<h1>Coverage Summary for Class: LwM2mClientContextImpl (org.thingsboard.server.transport.lwm2m.server.client)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LwM2mClientContextImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/172)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/245)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.server.client;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.core.SecurityMode;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mPath;
+&nbsp;import org.eclipse.leshan.server.registration.Registration;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.device.data.PowerMode;
+&nbsp;import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.OtherConfiguration;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.transport.TransportDeviceProfileCache;
+&nbsp;import org.thingsboard.server.common.transport.TransportServiceCallback;
+&nbsp;import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.queue.util.TbLwM2mTransportComponent;
+&nbsp;import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
+&nbsp;import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mTransportContext;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.model.LwM2MModelConfigService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.ota.LwM2MOtaUpdateService;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.session.LwM2MSessionManager;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.store.TbLwM2MClientStore;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.store.TbMainSecurityStore;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
+&nbsp;import org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.Predicate;
+&nbsp;
+&nbsp;import static org.eclipse.leshan.core.SecurityMode.NO_SEC;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.convertObjectIdToVersionedId;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@TbLwM2mTransportComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class LwM2mClientContextImpl implements LwM2mClientContext {
+&nbsp;
+&nbsp;    private final LwM2mTransportContext context;
+&nbsp;    private final LwM2MTransportServerConfig config;
+&nbsp;    private final TbMainSecurityStore securityStore;
+&nbsp;    private final TbLwM2MClientStore clientStore;
+&nbsp;    private final LwM2MSessionManager sessionManager;
+&nbsp;    private final TransportDeviceProfileCache deviceProfileCache;
+&nbsp;    private final LwM2MModelConfigService modelConfigService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private LwM2mUplinkMsgHandler defaultLwM2MUplinkMsgHandler;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private LwM2MOtaUpdateService otaUpdateService;
+&nbsp;
+&nbsp;    private final Map&lt;String, LwM2mClient&gt; lwM2mClientsByEndpoint = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final Map&lt;String, LwM2mClient&gt; lwM2mClientsByRegistrationId = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final Map&lt;UUID, Lwm2mDeviceProfileTransportConfiguration&gt; profiles = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.BEFORE_TRANSPORT_SERVICE)
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        String nodeId = context.getNodeId();</b>
+<b class="nc">&nbsp;        Set&lt;LwM2mClient&gt; fetchedClients = clientStore.getAll();</b>
+<b class="nc">&nbsp;        log.debug(&quot;Fetched clients from store: {}&quot;, fetchedClients);</b>
+<b class="nc">&nbsp;        fetchedClients.forEach(client -&gt; {</b>
+<b class="nc">&nbsp;            lwM2mClientsByEndpoint.put(client.getEndpoint(), client);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                client.lock();</b>
+<b class="nc">&nbsp;                updateFetchedClient(nodeId, client);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                client.unlock();</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public LwM2mClient getClientByEndpoint(String endpoint) {
+<b class="nc">&nbsp;        return lwM2mClientsByEndpoint.computeIfAbsent(endpoint, ep -&gt; {</b>
+<b class="nc">&nbsp;            LwM2mClient client = clientStore.get(ep);</b>
+<b class="nc">&nbsp;            String nodeId = context.getNodeId();</b>
+<b class="nc">&nbsp;            if (client == null) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] initialized new client.&quot;, endpoint);</b>
+<b class="nc">&nbsp;                client = new LwM2mClient(nodeId, ep);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] fetched client from store: {}&quot;, endpoint, client);</b>
+<b class="nc">&nbsp;                updateFetchedClient(nodeId, client);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return client;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateFetchedClient(String nodeId, LwM2mClient client) {
+<b class="nc">&nbsp;        boolean updated = false;</b>
+<b class="nc">&nbsp;        if (client.getRegistration() != null) {</b>
+<b class="nc">&nbsp;            lwM2mClientsByRegistrationId.put(client.getRegistration().getId(), client);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (client.getSession() != null) {</b>
+<b class="nc">&nbsp;            client.refreshSessionId(nodeId);</b>
+<b class="nc">&nbsp;            sessionManager.register(client.getSession());</b>
+<b class="nc">&nbsp;            updated = true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (updated) {</b>
+<b class="nc">&nbsp;            clientStore.put(client);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;TransportProtos.SessionInfoProto&gt; register(LwM2mClient client, Registration registration) throws LwM2MClientStateException {
+&nbsp;        TransportProtos.SessionInfoProto oldSession;
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (LwM2MClientState.UNREGISTERED.equals(client.getState())) {</b>
+<b class="nc">&nbsp;                throw new LwM2MClientStateException(client.getState(), &quot;Client is in invalid state.&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            oldSession = client.getSession();</b>
+<b class="nc">&nbsp;            TbLwM2MSecurityInfo securityInfo = securityStore.getTbLwM2MSecurityInfoByEndpoint(client.getEndpoint());</b>
+<b class="nc">&nbsp;            if (securityInfo != null &amp;&amp; securityInfo.getSecurityMode() != null) {</b>
+<b class="nc">&nbsp;                if (SecurityMode.X509.equals(securityInfo.getSecurityMode())) {</b>
+<b class="nc">&nbsp;                    securityStore.registerX509(registration.getEndpoint(), registration.getId());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (securityInfo.getDeviceProfile() != null) {</b>
+<b class="nc">&nbsp;                    profileUpdate(securityInfo.getDeviceProfile());</b>
+<b class="nc">&nbsp;                    if (securityInfo.getSecurityInfo() != null) {</b>
+<b class="nc">&nbsp;                        client.init(securityInfo.getMsg(), UUID.randomUUID());</b>
+<b class="nc">&nbsp;                    } else if (NO_SEC.equals(securityInfo.getSecurityMode())) {</b>
+<b class="nc">&nbsp;                        client.init(securityInfo.getMsg(), UUID.randomUUID());</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        throw new RuntimeException(String.format(&quot;Registration failed: device %s not found.&quot;, client.getEndpoint()));</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    throw new RuntimeException(String.format(&quot;Registration failed: device %s not found.&quot;, client.getEndpoint()));</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new RuntimeException(String.format(&quot;Registration failed: FORBIDDEN, endpointId: %s&quot;, client.getEndpoint()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            client.setRegistration(registration);</b>
+<b class="nc">&nbsp;            this.lwM2mClientsByRegistrationId.put(registration.getId(), client);</b>
+<b class="nc">&nbsp;            client.setState(LwM2MClientState.REGISTERED);</b>
+<b class="nc">&nbsp;            onUplink(client);</b>
+<b class="nc">&nbsp;            if (!compareAndSetSleepFlag(client, false)) {</b>
+<b class="nc">&nbsp;                clientStore.put(client);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.ofNullable(oldSession);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean asleep(LwM2mClient client) {
+<b class="nc">&nbsp;        boolean changed = compareAndSetSleepFlag(client, true);</b>
+<b class="nc">&nbsp;        if (changed) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] client is sleeping&quot;, client.getEndpoint());</b>
+<b class="nc">&nbsp;            context.getTransportService().log(client.getSession(), &quot;Info : Client is sleeping!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return changed;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean awake(LwM2mClient client) {
+<b class="nc">&nbsp;        onUplink(client);</b>
+<b class="nc">&nbsp;        boolean changed = compareAndSetSleepFlag(client, false);</b>
+<b class="nc">&nbsp;        if (changed) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] client is awake&quot;, client.getEndpoint());</b>
+<b class="nc">&nbsp;            context.getTransportService().log(client.getSession(), &quot;Info : Client is awake!&quot;);</b>
+<b class="nc">&nbsp;            sendMsgsAfterSleeping(client);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return changed;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean compareAndSetSleepFlag(LwM2mClient client, boolean sleeping) {
+<b class="nc">&nbsp;        if (sleeping == client.isAsleep()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Client is already at sleeping: {}, ignoring event: {}&quot;, client.getEndpoint(), client.isAsleep(), sleeping);</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (sleeping == client.isAsleep()) {</b>
+<b class="nc">&nbsp;                log.trace(&quot;[{}] Client is already at sleeping: {}, ignoring event: {}&quot;, client.getEndpoint(), client.isAsleep(), sleeping);</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                PowerMode powerMode = getPowerMode(client);</b>
+<b class="nc">&nbsp;                if (PowerMode.PSM.equals(powerMode) || PowerMode.E_DRX.equals(powerMode)) {</b>
+<b class="nc">&nbsp;                    log.trace(&quot;[{}] Switch sleeping from: {} to: {}&quot;, client.getEndpoint(), client.isAsleep(), sleeping);</b>
+<b class="nc">&nbsp;                    client.setAsleep(sleeping);</b>
+<b class="nc">&nbsp;                    update(client);</b>
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return false;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateRegistration(LwM2mClient client, Registration registration) throws LwM2MClientStateException {
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (!LwM2MClientState.REGISTERED.equals(client.getState())) {</b>
+<b class="nc">&nbsp;                throw new LwM2MClientStateException(client.getState(), &quot;Client is in invalid state.&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            client.setRegistration(registration);</b>
+<b class="nc">&nbsp;            if (!awake(client)) {</b>
+<b class="nc">&nbsp;                clientStore.put(client);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void unregister(LwM2mClient client, Registration registration) throws LwM2MClientStateException {
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (!LwM2MClientState.REGISTERED.equals(client.getState())) {</b>
+<b class="nc">&nbsp;                throw new LwM2MClientStateException(client.getState(), &quot;Client is in invalid state.&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            lwM2mClientsByRegistrationId.remove(registration.getId());</b>
+<b class="nc">&nbsp;            Registration currentRegistration = client.getRegistration();</b>
+<b class="nc">&nbsp;            if (currentRegistration.getId().equals(registration.getId())) {</b>
+<b class="nc">&nbsp;                client.setState(LwM2MClientState.UNREGISTERED);</b>
+<b class="nc">&nbsp;                lwM2mClientsByEndpoint.remove(client.getEndpoint());</b>
+&nbsp;//                TODO: change tests to use new certificate.
+&nbsp;//                this.securityStore.remove(client.getEndpoint(), registration.getId());
+<b class="nc">&nbsp;                clientStore.remove(client.getEndpoint());</b>
+<b class="nc">&nbsp;                modelConfigService.removeUpdates(client.getEndpoint());</b>
+<b class="nc">&nbsp;                UUID profileId = client.getProfileId();</b>
+<b class="nc">&nbsp;                if (profileId != null) {</b>
+<b class="nc">&nbsp;                    Optional&lt;LwM2mClient&gt; otherClients = lwM2mClientsByRegistrationId.values().stream().filter(e -&gt; e.getProfileId().equals(profileId)).findFirst();</b>
+<b class="nc">&nbsp;                    if (otherClients.isEmpty()) {</b>
+<b class="nc">&nbsp;                        profiles.remove(profileId);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new LwM2MClientStateException(client.getState(), &quot;Client has different registration.&quot;);</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public LwM2mClient getClientBySessionInfo(TransportProtos.SessionInfoProto sessionInfo) {
+<b class="nc">&nbsp;        LwM2mClient lwM2mClient = null;</b>
+<b class="nc">&nbsp;        UUID sessionId = new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());</b>
+<b class="nc">&nbsp;        Predicate&lt;LwM2mClient&gt; isClientFilter =</b>
+<b class="nc">&nbsp;                c -&gt; c.getSession() != null &amp;&amp; sessionId.equals((new UUID(c.getSession().getSessionIdMSB(), c.getSession().getSessionIdLSB())));</b>
+<b class="nc">&nbsp;        if (this.lwM2mClientsByEndpoint.size() &gt; 0) {</b>
+<b class="nc">&nbsp;            lwM2mClient = this.lwM2mClientsByEndpoint.values().stream().filter(isClientFilter).findAny().orElse(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (lwM2mClient == null &amp;&amp; this.lwM2mClientsByRegistrationId.size() &gt; 0) {</b>
+<b class="nc">&nbsp;            lwM2mClient = this.lwM2mClientsByRegistrationId.values().stream().filter(isClientFilter).findAny().orElse(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (lwM2mClient == null) {</b>
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to lookup client by session id.&quot;, sessionId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return lwM2mClient;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getObjectIdByKeyNameFromProfile(LwM2mClient client, String keyName) {
+<b class="nc">&nbsp;        Lwm2mDeviceProfileTransportConfiguration profile = getProfile(client.getRegistration());</b>
+<b class="nc">&nbsp;        if (profile == null) throw new IllegalArgumentException(keyName + &quot; is not configured in the device profile! Device profile is null&quot;);</b>
+<b class="nc">&nbsp;        for (Map.Entry&lt;String, String&gt; entry : profile.getObserveAttr().getKeyName().entrySet()) {</b>
+<b class="nc">&nbsp;            String k = entry.getKey();</b>
+<b class="nc">&nbsp;            String v = entry.getValue();</b>
+<b class="nc">&nbsp;            if (v.equals(keyName) &amp;&amp; client.isValidObjectVersion(k).isEmpty()) {</b>
+<b class="nc">&nbsp;                return k;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        throw new IllegalArgumentException(keyName + &quot; is not configured in the device profile!&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Registration getRegistration(String registrationId) {
+<b class="nc">&nbsp;        return this.lwM2mClientsByRegistrationId.get(registrationId).getRegistration();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void registerClient(Registration registration, ValidateDeviceCredentialsResponse credentials) {
+<b class="nc">&nbsp;        LwM2mClient client = getClientByEndpoint(registration.getEndpoint());</b>
+<b class="nc">&nbsp;        client.init(credentials, UUID.randomUUID());</b>
+<b class="nc">&nbsp;        lwM2mClientsByRegistrationId.put(registration.getId(), client);</b>
+<b class="nc">&nbsp;        profileUpdate(credentials.getDeviceProfile());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void update(LwM2mClient client) {
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (client.getState().equals(LwM2MClientState.REGISTERED)) {</b>
+<b class="nc">&nbsp;                clientStore.put(client);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.error(&quot;[{}] Client is in invalid state: {}!&quot;, client.getEndpoint(), client.getState());</b>
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendMsgsAfterSleeping(LwM2mClient lwM2MClient) {
+<b class="nc">&nbsp;        if (LwM2MClientState.REGISTERED.equals(lwM2MClient.getState())) {</b>
+<b class="nc">&nbsp;            PowerMode powerMode = getPowerMode(lwM2MClient);</b>
+<b class="nc">&nbsp;            if (PowerMode.PSM.equals(powerMode) || PowerMode.E_DRX.equals(powerMode)) {</b>
+<b class="nc">&nbsp;                modelConfigService.sendUpdates(lwM2MClient);</b>
+<b class="nc">&nbsp;                defaultLwM2MUplinkMsgHandler.initAttributes(lwM2MClient, false);</b>
+&nbsp;                TransportProtos.TransportToDeviceActorMsg persistentRpcRequestMsg = TransportProtos.TransportToDeviceActorMsg
+<b class="nc">&nbsp;                        .newBuilder()</b>
+<b class="nc">&nbsp;                        .setSessionInfo(lwM2MClient.getSession())</b>
+<b class="nc">&nbsp;                        .setSendPendingRPC(TransportProtos.SendPendingRPCMsg.newBuilder().build())</b>
+<b class="nc">&nbsp;                        .build();</b>
+<b class="nc">&nbsp;                context.getTransportService().process(persistentRpcRequestMsg, TransportServiceCallback.EMPTY);</b>
+<b class="nc">&nbsp;                otaUpdateService.init(lwM2MClient);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private PowerMode getPowerMode(LwM2mClient lwM2MClient) {
+<b class="nc">&nbsp;        PowerMode powerMode = lwM2MClient.getPowerMode();</b>
+<b class="nc">&nbsp;        if (powerMode == null) {</b>
+<b class="nc">&nbsp;            Lwm2mDeviceProfileTransportConfiguration deviceProfile = getProfile(lwM2MClient.getRegistration());</b>
+<b class="nc">&nbsp;            if (deviceProfile == null) return null;</b>
+<b class="nc">&nbsp;            powerMode = deviceProfile.getClientLwM2mSettings().getPowerMode();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return powerMode;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;LwM2mClient&gt; getLwM2mClients() {
+<b class="nc">&nbsp;        return lwM2mClientsByEndpoint.values();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Lwm2mDeviceProfileTransportConfiguration getProfile(Registration registration) {
+<b class="nc">&nbsp;        UUID profileId = getClientByEndpoint(registration.getEndpoint()).getProfileId();</b>
+<b class="nc">&nbsp;        return profileId != null ? doGetAndCache(profileId) : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Lwm2mDeviceProfileTransportConfiguration doGetAndCache(UUID profileId) {
+&nbsp;        Lwm2mDeviceProfileTransportConfiguration result;
+<b class="nc">&nbsp;        if (profileId != null) {</b>
+<b class="nc">&nbsp;            result = profiles.get(profileId);</b>
+<b class="nc">&nbsp;            if (result == null) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;Fetching profile [{}]&quot;, profileId);</b>
+<b class="nc">&nbsp;                DeviceProfile deviceProfile = deviceProfileCache.get(new DeviceProfileId(profileId));</b>
+<b class="nc">&nbsp;                if (deviceProfile != null) {</b>
+<b class="nc">&nbsp;                    result = profileUpdate(deviceProfile);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.warn(&quot;Device profile was not found! Most probably device profile [{}] has been removed from the database.&quot;, profileId);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;Device profile not found! The device profile ID is null. Return Lwm2mDeviceProfileTransportConfiguration with null.&quot;);</b>
+<b class="nc">&nbsp;            result = null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Lwm2mDeviceProfileTransportConfiguration profileUpdate(DeviceProfile deviceProfile) {
+<b class="nc">&nbsp;        Lwm2mDeviceProfileTransportConfiguration clientProfile = LwM2MTransportUtil.toLwM2MClientProfile(deviceProfile);</b>
+<b class="nc">&nbsp;        profiles.put(deviceProfile.getUuidId(), clientProfile);</b>
+<b class="nc">&nbsp;        return clientProfile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;String&gt; getSupportedIdVerInClient(LwM2mClient client) {
+<b class="nc">&nbsp;        Set&lt;String&gt; clientObjects = ConcurrentHashMap.newKeySet();</b>
+<b class="nc">&nbsp;        Arrays.stream(client.getRegistration().getObjectLinks()).forEach(link -&gt; {</b>
+<b class="nc">&nbsp;            LwM2mPath pathIds = new LwM2mPath(link.getUriReference());</b>
+<b class="nc">&nbsp;            if (!pathIds.isRoot()) {</b>
+<b class="nc">&nbsp;                clientObjects.add(convertObjectIdToVersionedId(link.getUriReference(), client));</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        return (clientObjects.size() &gt; 0) ? clientObjects : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public LwM2mClient getClientByDeviceId(UUID deviceId) {
+<b class="nc">&nbsp;        return lwM2mClientsByRegistrationId.values().stream().filter(e -&gt; deviceId.equals(e.getDeviceId())).findFirst().orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isDownlinkAllowed(LwM2mClient client) {
+<b class="nc">&nbsp;        PowerMode powerMode = client.getPowerMode();</b>
+<b class="nc">&nbsp;        OtherConfiguration profileSettings = null;</b>
+<b class="nc">&nbsp;        if (powerMode == null &amp;&amp; client.getProfileId() != null) {</b>
+<b class="nc">&nbsp;            var clientProfile = getProfile(client.getRegistration());</b>
+<b class="nc">&nbsp;            if (clientProfile == null) return true;</b>
+<b class="nc">&nbsp;            profileSettings = clientProfile.getClientLwM2mSettings();</b>
+<b class="nc">&nbsp;            powerMode = profileSettings.getPowerMode();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (powerMode == null || PowerMode.DRX.equals(powerMode) || otaUpdateService.isOtaDownloading(client)) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        client.lock();</b>
+<b class="nc">&nbsp;        long timeSinceLastUplink = System.currentTimeMillis() - client.getLastUplinkTime();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (PowerMode.PSM.equals(powerMode)) {</b>
+<b class="nc">&nbsp;                Long psmActivityTimer = client.getPsmActivityTimer();</b>
+<b class="nc">&nbsp;                if (psmActivityTimer == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                    psmActivityTimer = profileSettings.getPsmActivityTimer();</b>
+&nbsp;
+&nbsp;                }
+<b class="nc">&nbsp;                if (psmActivityTimer == null || psmActivityTimer == 0L) {</b>
+<b class="nc">&nbsp;                    psmActivityTimer = config.getPsmActivityTimer();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return timeSinceLastUplink &lt;= psmActivityTimer;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                Long pagingTransmissionWindow = client.getPagingTransmissionWindow();</b>
+<b class="nc">&nbsp;                if (pagingTransmissionWindow == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                    pagingTransmissionWindow = profileSettings.getPagingTransmissionWindow();</b>
+&nbsp;
+&nbsp;                }
+<b class="nc">&nbsp;                if (pagingTransmissionWindow == null || pagingTransmissionWindow == 0L) {</b>
+<b class="nc">&nbsp;                    pagingTransmissionWindow = config.getPagingTransmissionWindow();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                boolean allowed = timeSinceLastUplink &lt;= pagingTransmissionWindow;</b>
+<b class="nc">&nbsp;                if (!allowed) {</b>
+<b class="nc">&nbsp;                    return client.checkFirstDownlink();</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return true;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onUplink(LwM2mClient client) {
+<b class="nc">&nbsp;        PowerMode powerMode = client.getPowerMode();</b>
+<b class="nc">&nbsp;        OtherConfiguration profileSettings = null;</b>
+<b class="nc">&nbsp;        if (powerMode == null &amp;&amp; client.getProfileId() != null) {</b>
+<b class="nc">&nbsp;            var clientProfile = getProfile(client.getRegistration());</b>
+<b class="nc">&nbsp;            if (clientProfile != null) {</b>
+<b class="nc">&nbsp;                profileSettings = clientProfile.getClientLwM2mSettings();</b>
+<b class="nc">&nbsp;                powerMode = profileSettings.getPowerMode();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (powerMode == null || PowerMode.DRX.equals(powerMode)) {</b>
+<b class="nc">&nbsp;            client.updateLastUplinkTime();</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        client.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            long uplinkTime = client.updateLastUplinkTime();</b>
+&nbsp;            long timeout;
+<b class="nc">&nbsp;            if (PowerMode.PSM.equals(powerMode)) {</b>
+<b class="nc">&nbsp;                Long psmActivityTimer = client.getPsmActivityTimer();</b>
+<b class="nc">&nbsp;                if (psmActivityTimer == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                    psmActivityTimer = profileSettings.getPsmActivityTimer();</b>
+&nbsp;
+&nbsp;                }
+<b class="nc">&nbsp;                if (psmActivityTimer == null || psmActivityTimer == 0L) {</b>
+<b class="nc">&nbsp;                    psmActivityTimer = config.getPsmActivityTimer();</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                timeout = psmActivityTimer;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                Long pagingTransmissionWindow = client.getPagingTransmissionWindow();</b>
+<b class="nc">&nbsp;                if (pagingTransmissionWindow == null &amp;&amp; profileSettings != null) {</b>
+<b class="nc">&nbsp;                    pagingTransmissionWindow = profileSettings.getPagingTransmissionWindow();</b>
+&nbsp;
+&nbsp;                }
+<b class="nc">&nbsp;                if (pagingTransmissionWindow == null || pagingTransmissionWindow == 0L) {</b>
+<b class="nc">&nbsp;                    pagingTransmissionWindow = config.getPagingTransmissionWindow();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                timeout = pagingTransmissionWindow;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            Future&lt;Void&gt; sleepTask = client.getSleepTask();</b>
+<b class="nc">&nbsp;            if (sleepTask != null) {</b>
+<b class="nc">&nbsp;                sleepTask.cancel(false);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            Future&lt;Void&gt; task = context.getScheduler().schedule(() -&gt; {</b>
+<b class="nc">&nbsp;                if (uplinkTime == client.getLastUplinkTime() &amp;&amp; !otaUpdateService.isOtaDownloading(client)) {</b>
+<b class="nc">&nbsp;                    asleep(client);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }, timeout, TimeUnit.MILLISECONDS);
+<b class="nc">&nbsp;            client.setSleepTask(task);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            client.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Long getRequestTimeout(LwM2mClient client) {
+<b class="nc">&nbsp;        Long timeout = null;</b>
+<b class="nc">&nbsp;        if (PowerMode.E_DRX.equals(client.getPowerMode()) &amp;&amp; client.getEdrxCycle() != null) {</b>
+<b class="nc">&nbsp;            timeout = client.getEdrxCycle();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            var clientProfile = getProfile(client.getRegistration());</b>
+<b class="nc">&nbsp;            if (clientProfile != null) {</b>
+<b class="nc">&nbsp;                OtherConfiguration clientLwM2mSettings = clientProfile.getClientLwM2mSettings();</b>
+<b class="nc">&nbsp;                if (PowerMode.E_DRX.equals(clientLwM2mSettings.getPowerMode())) {</b>
+<b class="nc">&nbsp;                    timeout = clientLwM2mSettings.getEdrxCycle();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (timeout == null || timeout == 0L) {</b>
+<b class="nc">&nbsp;            timeout = this.config.getTimeout();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return timeout;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

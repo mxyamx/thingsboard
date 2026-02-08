@@ -1,0 +1,352 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LwM2MBootstrapSecurityStore</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.bootstrap.store</a>
+</div>
+
+<h1>Coverage Summary for Class: LwM2MBootstrapSecurityStore (org.thingsboard.server.transport.lwm2m.bootstrap.store)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LwM2MBootstrapSecurityStore</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/81)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.bootstrap.store;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.core.peer.OscoreIdentity;
+&nbsp;import org.eclipse.leshan.server.bootstrap.BootstrapConfig;
+&nbsp;import org.eclipse.leshan.server.bootstrap.EditableBootstrapConfigStore;
+&nbsp;import org.eclipse.leshan.server.bootstrap.InvalidConfigurationException;
+&nbsp;import org.eclipse.leshan.server.security.BootstrapSecurityStore;
+&nbsp;import org.eclipse.leshan.server.security.SecurityInfo;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode;
+&nbsp;import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.util.TbLwM2mBootstrapTransportComponent;
+&nbsp;import org.thingsboard.server.transport.lwm2m.bootstrap.secure.LwM2MBootstrapConfig;
+&nbsp;import org.thingsboard.server.transport.lwm2m.secure.LwM2mCredentialsSecurityInfoValidator;
+&nbsp;import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mSessionMsgListener;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mTransportContext;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mTransportServerHelper;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.client.LwM2MAuthException;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mTypeServer.BOOTSTRAP;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.LOG_LWM2M_ERROR;
+&nbsp;import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.LOG_LWM2M_TELEMETRY;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service(&quot;LwM2MBootstrapSecurityStore&quot;)
+&nbsp;@TbLwM2mBootstrapTransportComponent
+&nbsp;public class LwM2MBootstrapSecurityStore implements BootstrapSecurityStore {
+&nbsp;
+&nbsp;    private final EditableBootstrapConfigStore bootstrapConfigStore;
+&nbsp;
+&nbsp;    private final LwM2mCredentialsSecurityInfoValidator lwM2MCredentialsSecurityInfoValidator;
+&nbsp;
+&nbsp;    private final LwM2mTransportContext context;
+&nbsp;    private final LwM2mTransportServerHelper helper;
+<b class="nc">&nbsp;    private final Map&lt;String /* endpoint */, TransportProtos.SessionInfoProto&gt; bsSessions = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    public LwM2MBootstrapSecurityStore(EditableBootstrapConfigStore bootstrapConfigStore, LwM2mCredentialsSecurityInfoValidator lwM2MCredentialsSecurityInfoValidator, LwM2mTransportContext context, LwM2mTransportServerHelper helper) {</b>
+<b class="nc">&nbsp;        this.bootstrapConfigStore = bootstrapConfigStore;</b>
+<b class="nc">&nbsp;        this.lwM2MCredentialsSecurityInfoValidator = lwM2MCredentialsSecurityInfoValidator;</b>
+<b class="nc">&nbsp;        this.context = context;</b>
+<b class="nc">&nbsp;        this.helper = helper;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Iterator&lt;SecurityInfo&gt; getAllByEndpoint(String endpoint) {
+<b class="nc">&nbsp;            TbLwM2MSecurityInfo store = lwM2MCredentialsSecurityInfoValidator.getEndpointSecurityInfoByCredentialsId(endpoint, BOOTSTRAP);</b>
+<b class="nc">&nbsp;            SecurityInfo securityInfo = this.addValueToStore(store, endpoint);</b>
+<b class="nc">&nbsp;            return securityInfo == null ? null : Collections.singletonList(store.getSecurityInfo()).iterator();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SecurityInfo getByIdentity(String identity) {
+&nbsp;        try {
+<b class="nc">&nbsp;            TbLwM2MSecurityInfo store = lwM2MCredentialsSecurityInfoValidator.getEndpointSecurityInfoByCredentialsId(identity, BOOTSTRAP);</b>
+<b class="nc">&nbsp;            if (store.getBootstrapCredentialConfig() != null &amp;&amp; store.getSecurityMode() != null) {</b>
+&nbsp;                /* add value to store  from BootstrapJson */
+<b class="nc">&nbsp;                this.setBootstrapConfigSecurityInfo(store);</b>
+<b class="nc">&nbsp;                BootstrapConfig bsConfig = store.getBootstrapConfig();</b>
+<b class="nc">&nbsp;                if (bsConfig.security != null) {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        bootstrapConfigStore.add(store.getEndpoint(), bsConfig);</b>
+&nbsp;                    } catch (InvalidConfigurationException e) {
+<b class="nc">&nbsp;                        log.trace(&quot;Invalid Bootstrap Configuration&quot;, e);</b>
+<b class="nc">&nbsp;                        return null;</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return store.getSecurityInfo();</b>
+&nbsp;        } catch (LwM2MAuthException e) {
+<b class="nc">&nbsp;            log.trace(&quot;Bootstrap Registration failed: No pre-shared key found for [identity: {}]&quot;, identity);</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public SecurityInfo getByOscoreIdentity(OscoreIdentity oscoreIdentity) {
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbLwM2MSecurityInfo getX509ByEndpoint(String endPoint) {
+<b class="nc">&nbsp;            TbLwM2MSecurityInfo store = lwM2MCredentialsSecurityInfoValidator.getEndpointSecurityInfoByCredentialsId(endPoint, BOOTSTRAP);</b>
+<b class="nc">&nbsp;            this.addValueToStore(store, store.getEndpoint());</b>
+<b class="nc">&nbsp;            return store;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private void setBootstrapConfigSecurityInfo(TbLwM2MSecurityInfo store) {
+&nbsp;        /* BootstrapConfig */
+<b class="nc">&nbsp;        LwM2MBootstrapConfig lwM2MBootstrapConfig = this.getParametersBootstrap(store);</b>
+<b class="nc">&nbsp;        if (lwM2MBootstrapConfig != null) {</b>
+<b class="nc">&nbsp;            BootstrapConfig bootstrapConfig = lwM2MBootstrapConfig.getLwM2MBootstrapConfig();</b>
+<b class="nc">&nbsp;            store.setBootstrapConfig(bootstrapConfig);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private LwM2MBootstrapConfig getParametersBootstrap(TbLwM2MSecurityInfo store) {
+<b class="nc">&nbsp;        LwM2MBootstrapConfig lwM2MBootstrapConfig = store.getBootstrapCredentialConfig();</b>
+<b class="nc">&nbsp;        if (lwM2MBootstrapConfig != null) {</b>
+<b class="nc">&nbsp;            UUID sessionUUiD = UUID.randomUUID();</b>
+<b class="nc">&nbsp;            TransportProtos.SessionInfoProto sessionInfo = helper.getValidateSessionInfo(store.getMsg(), sessionUUiD.getMostSignificantBits(), sessionUUiD.getLeastSignificantBits());</b>
+<b class="nc">&nbsp;            bsSessions.put(store.getEndpoint(), sessionInfo);</b>
+<b class="nc">&nbsp;            context.getTransportService().registerAsyncSession(sessionInfo, new LwM2mSessionMsgListener(null, null, null, sessionInfo, context.getTransportService()));</b>
+<b class="nc">&nbsp;            if (this.getValidatedSecurityMode(lwM2MBootstrapConfig)) {</b>
+<b class="nc">&nbsp;                return lwM2MBootstrapConfig;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.error(&quot; [{}] Different values SecurityMode between of client and profile.&quot;, store.getEndpoint());</b>
+<b class="nc">&nbsp;                log.error(&quot;{} getParametersBootstrap: [{}] Different values SecurityMode between of client and profile.&quot;, LOG_LWM2M_ERROR, store.getEndpoint());</b>
+<b class="nc">&nbsp;                String logMsg = String.format(&quot;%s: Different values SecurityMode between of client and profile.&quot;, LOG_LWM2M_ERROR);</b>
+<b class="nc">&nbsp;                helper.sendParametersOnThingsboardTelemetry(helper.getKvStringtoThingsboard(LOG_LWM2M_TELEMETRY, logMsg), sessionInfo, null);</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        log.error(&quot;Unable to decode Json or Certificate for [{}]&quot;, store.getEndpoint());</b>
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Bootstrap security have to sync between (bootstrapServer in credential and  bootstrapServer in profile)
+&nbsp;     * and (lwm2mServer  in credential and lwm2mServer  in profile
+&nbsp;     *
+&nbsp;     * @return false if not sync between SecurityMode of Bootstrap credential and profile
+&nbsp;     */
+&nbsp;    private boolean getValidatedSecurityMode(LwM2MBootstrapConfig lwM2MBootstrapConfig) {
+<b class="nc">&nbsp;        LwM2MSecurityMode bootstrapServerSecurityMode = lwM2MBootstrapConfig.getBootstrapServer().getSecurityMode();</b>
+<b class="nc">&nbsp;        LwM2MSecurityMode lwm2mServerSecurityMode = lwM2MBootstrapConfig.getLwm2mServer().getSecurityMode();</b>
+<b class="nc">&nbsp;        AtomicBoolean validBs = new AtomicBoolean(true);</b>
+<b class="nc">&nbsp;        AtomicBoolean validLw = new AtomicBoolean(true);</b>
+<b class="nc">&nbsp;        lwM2MBootstrapConfig.getServerConfiguration().forEach(serverCredential -&gt; {</b>
+<b class="nc">&nbsp;            if (((AbstractLwM2MBootstrapServerCredential) serverCredential).isBootstrapServerIs()) {</b>
+<b class="nc">&nbsp;                if (!bootstrapServerSecurityMode.equals(serverCredential.getSecurityMode())) {</b>
+<b class="nc">&nbsp;                    validBs.set(false);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                if (!lwm2mServerSecurityMode.equals(serverCredential.getSecurityMode())) {</b>
+<b class="nc">&nbsp;                    validLw.set(false);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        return validBs.get() &amp;&amp; validLw.get();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TransportProtos.SessionInfoProto getSessionByEndpoint(String endpoint) {
+<b class="nc">&nbsp;        return bsSessions.get(endpoint);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TransportProtos.SessionInfoProto removeSessionByEndpoint(String endpoint) {
+<b class="nc">&nbsp;        return bsSessions.remove(endpoint);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public BootstrapConfig getBootstrapConfigByEndpoint(String endpoint) {
+<b class="nc">&nbsp;        return bootstrapConfigStore.getAll().get(endpoint);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public SecurityInfo addValueToStore(TbLwM2MSecurityInfo store, String endpoint) {
+&nbsp;        /* add value to store  from BootstrapJson */
+<b class="nc">&nbsp;        SecurityInfo securityInfo = null;</b>
+<b class="nc">&nbsp;        if (store != null &amp;&amp; store.getBootstrapCredentialConfig() != null &amp;&amp; store.getSecurityMode() != null) {</b>
+<b class="nc">&nbsp;            securityInfo = store.getSecurityInfo();</b>
+<b class="nc">&nbsp;            this.setBootstrapConfigSecurityInfo(store);</b>
+<b class="nc">&nbsp;            BootstrapConfig bsConfigNew = store.getBootstrapConfig();</b>
+<b class="nc">&nbsp;            if (bsConfigNew != null) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    boolean bootstrapServerUpdateEnable = ((Lwm2mDeviceProfileTransportConfiguration) store.getDeviceProfile().getProfileData().getTransportConfiguration()).isBootstrapServerUpdateEnable();</b>
+<b class="nc">&nbsp;                    if (!bootstrapServerUpdateEnable) {</b>
+<b class="nc">&nbsp;                        Optional&lt;Map.Entry&lt;Integer, BootstrapConfig.ServerSecurity&gt;&gt; securities = bsConfigNew.security.entrySet().stream().filter(sec -&gt; sec.getValue().bootstrapServer).findAny();</b>
+<b class="nc">&nbsp;                        if (securities.isPresent()) {</b>
+<b class="nc">&nbsp;                            bsConfigNew.security.entrySet().remove(securities.get());</b>
+<b class="nc">&nbsp;                            int serverSortId = securities.get().getValue().serverId;</b>
+<b class="nc">&nbsp;                            Optional&lt;Map.Entry&lt;Integer, BootstrapConfig.ServerConfig&gt;&gt; serverConfigs = bsConfigNew.servers.entrySet().stream().filter(serv -&gt; (serv.getValue()).shortId == serverSortId).findAny();</b>
+<b class="nc">&nbsp;                            if (serverConfigs.isPresent()) {</b>
+<b class="nc">&nbsp;                                bsConfigNew.servers.entrySet().remove(serverConfigs.get());</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    for (String config : bootstrapConfigStore.getAll().keySet()) {</b>
+<b class="nc">&nbsp;                        if (config.equals(endpoint)) {</b>
+<b class="nc">&nbsp;                            bootstrapConfigStore.remove(config);</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    bootstrapConfigStore.add(endpoint, bsConfigNew);</b>
+&nbsp;                } catch (InvalidConfigurationException e) {
+<b class="nc">&nbsp;                    if (e.getMessage().contains(&quot;Psk identity&quot;) &amp;&amp; e.getMessage().contains(&quot;already used for this bootstrap server&quot;)) {</b>
+<b class="nc">&nbsp;                        log.trace(&quot;Invalid Bootstrap Configuration&quot;, e);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.error(&quot;Invalid Bootstrap Configuration&quot;, e);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return securityInfo;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

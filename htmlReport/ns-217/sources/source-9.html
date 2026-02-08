@@ -1,0 +1,530 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SparkplugNodeSessionHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.mqtt.session</a>
+</div>
+
+<h1>Coverage Summary for Class: SparkplugNodeSessionHandler (org.thingsboard.server.transport.mqtt.session)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SparkplugNodeSessionHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/149)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.mqtt.session;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import com.google.gson.JsonSyntaxException;
+&nbsp;import io.netty.handler.codec.mqtt.MqttMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttPublishMessage;
+&nbsp;import io.netty.handler.codec.mqtt.MqttReasonCodes;
+&nbsp;import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.dao.DuplicateKeyException;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.adaptor.AdaptorException;
+&nbsp;import org.thingsboard.server.common.adaptor.ProtoConverter;
+&nbsp;import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
+&nbsp;import org.thingsboard.server.gen.transport.TransportApiProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.mqtt.SparkplugBProto;
+&nbsp;import org.thingsboard.server.transport.mqtt.MqttTransportHandler;
+&nbsp;import org.thingsboard.server.transport.mqtt.util.sparkplug.MetricDataType;
+&nbsp;import org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMessageType;
+&nbsp;import org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugTopic;
+&nbsp;import org.thingsboard.server.transport.mqtt.util.sparkplug.SpecVersion;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+&nbsp;import java.util.concurrent.atomic.AtomicInteger;
+&nbsp;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugConnectionState.ONLINE;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMessageType.DBIRTH;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMessageType.NBIRTH;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMessageType.parseMessageType;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMetricUtil.SPARKPLUG_BD_SEQUENCE_NUMBER_KEY;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMetricUtil.SPARKPLUG_SEQUENCE_NUMBER_KEY;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMetricUtil.createMetric;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMetricUtil.fromSparkplugBMetricToKeyValueProto;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMetricUtil.validatedValueByTypeMetric;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugTopicService.TOPIC_SPLIT_REGEXP;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugTopicService.TOPIC_STATE_REGEXP;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@SpecVersion(spec = &quot;sparkplug&quot;, version = &quot;3.0.0&quot;)
+&nbsp;public class SparkplugNodeSessionHandler extends AbstractGatewaySessionHandler&lt;SparkplugDeviceSessionContext&gt; {
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private final SparkplugTopic sparkplugTopicNode;
+&nbsp;    @Getter
+&nbsp;    private final Map&lt;String, SparkplugBProto.Payload.Metric&gt; nodeBirthMetrics;
+&nbsp;    @Getter
+&nbsp;    private final Map&lt;Long, String&gt; nodeAlias;
+&nbsp;    private final MqttTransportHandler parent;
+&nbsp;
+&nbsp;    public SparkplugNodeSessionHandler(MqttTransportHandler parent, DeviceSessionCtx deviceSessionCtx, UUID sessionId,
+&nbsp;                                       boolean overwriteDevicesActivity, SparkplugTopic sparkplugTopicNode) {
+<b class="nc">&nbsp;        super(deviceSessionCtx, sessionId, overwriteDevicesActivity);</b>
+<b class="nc">&nbsp;        this.parent = parent;</b>
+<b class="nc">&nbsp;        this.sparkplugTopicNode = sparkplugTopicNode;</b>
+<b class="nc">&nbsp;        this.nodeBirthMetrics = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.nodeAlias = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setNodeBirthMetrics(java.util.List&lt;org.thingsboard.server.gen.transport.mqtt.SparkplugBProto.Payload.Metric&gt; metrics) throws AdaptorException {
+<b class="nc">&nbsp;        for (var metric : metrics) {</b>
+<b class="nc">&nbsp;            if (metric.hasName()) {</b>
+<b class="nc">&nbsp;                this.nodeBirthMetrics.put(metric.getName(), metric);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new AdaptorException(&quot;The metric name of edgeNode: &#39;&quot; + this.sparkplugTopicNode.getEdgeNodeId() + &quot;&#39; must not be empty or null! Metric: [&quot; + metric + &quot;]&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (metric.hasAlias() &amp;&amp; this.nodeAlias.putIfAbsent(metric.getAlias(), metric.getName()) != null) {</b>
+<b class="nc">&nbsp;                throw new AdaptorException(&quot;The alias &#39;&quot; + metric.getAlias() + &quot;&#39; already exists in edgeNode: &#39;&quot; + this.sparkplugTopicNode.getEdgeNodeId() + &quot;&#39;&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public boolean onValidateNDEATH(SparkplugBProto.Payload sparkplugBProto) throws ThingsboardException {
+<b class="nc">&nbsp;        return sparkplugBProto.getMetricsCount() == 1 &amp;&amp; SPARKPLUG_BD_SEQUENCE_NUMBER_KEY.equals(sparkplugBProto.getMetrics(0).getName())</b>
+<b class="nc">&nbsp;                &amp;&amp; this.nodeBirthMetrics.get(SPARKPLUG_BD_SEQUENCE_NUMBER_KEY) != null</b>
+<b class="nc">&nbsp;                &amp;&amp; sparkplugBProto.getMetrics(0).getLongValue() == this.nodeBirthMetrics.get(SPARKPLUG_BD_SEQUENCE_NUMBER_KEY).getLongValue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onAttributesTelemetryProto(int msgId, SparkplugBProto.Payload sparkplugBProto, SparkplugTopic topic) throws AdaptorException, ThingsboardException {
+<b class="nc">&nbsp;        String deviceName = topic.getNodeDeviceName();</b>
+<b class="nc">&nbsp;        checkDeviceName(deviceName);</b>
+&nbsp;
+&nbsp;        ListenableFuture&lt;MqttDeviceAwareSessionContext&gt; contextListenableFuture;
+<b class="nc">&nbsp;        if (topic.isNode()) {</b>
+<b class="nc">&nbsp;            if (topic.isType(NBIRTH)) {</b>
+<b class="nc">&nbsp;                sendSparkplugStateOnTelemetry(this.deviceSessionCtx.getSessionInfo(), deviceName, ONLINE,</b>
+<b class="nc">&nbsp;                        sparkplugBProto.getTimestamp());</b>
+<b class="nc">&nbsp;                setNodeBirthMetrics(sparkplugBProto.getMetricsList());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            contextListenableFuture = Futures.immediateFuture(this.deviceSessionCtx);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ListenableFuture&lt;SparkplugDeviceSessionContext&gt; deviceCtx = onDeviceConnectProto(topic);</b>
+<b class="nc">&nbsp;            contextListenableFuture = Futures.transform(deviceCtx, ctx -&gt; {</b>
+<b class="nc">&nbsp;                if (topic.isType(DBIRTH)) {</b>
+<b class="nc">&nbsp;                    sendSparkplugStateOnTelemetry(ctx.getSessionInfo(), deviceName, ONLINE,</b>
+<b class="nc">&nbsp;                            sparkplugBProto.getTimestamp());</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        ctx.setDeviceBirthMetrics(sparkplugBProto.getMetricsList());</b>
+&nbsp;                    } catch (IllegalArgumentException | DuplicateKeyException e) {
+<b class="nc">&nbsp;                            throw new RuntimeException(e);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                return ctx;</b>
+<b class="nc">&nbsp;            }, MoreExecutors.directExecutor());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Set&lt;String&gt; attributesMetricNames = ((MqttDeviceProfileTransportConfiguration) deviceSessionCtx</b>
+<b class="nc">&nbsp;                .getDeviceProfile().getProfileData().getTransportConfiguration()).getSparkplugAttributesMetricNames();</b>
+<b class="nc">&nbsp;        if (attributesMetricNames != null) {</b>
+<b class="nc">&nbsp;            List&lt;TransportApiProtos.AttributesMsg&gt; attributesMsgList = convertToPostAttributes(sparkplugBProto, attributesMetricNames, deviceName);</b>
+<b class="nc">&nbsp;            onDeviceAttributesProto(contextListenableFuture, msgId, attributesMsgList, deviceName);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;TransportProtos.PostTelemetryMsg&gt; postTelemetryMsgList = convertToPostTelemetry(sparkplugBProto, attributesMetricNames, topic.getType().name());</b>
+<b class="nc">&nbsp;        onDeviceTelemetryProto(contextListenableFuture, msgId, postTelemetryMsgList, deviceName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onDeviceTelemetryProto(ListenableFuture&lt;MqttDeviceAwareSessionContext&gt; contextListenableFuture,
+&nbsp;                                       int msgId, List&lt;TransportProtos.PostTelemetryMsg&gt; postTelemetryMsgList, String deviceName) {
+<b class="nc">&nbsp;        if (CollectionUtils.isEmpty(postTelemetryMsgList)) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Device telemetry list is empty for: [{}]&quot;, sessionId, gateway.getDeviceId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        AtomicInteger remaining = new AtomicInteger(postTelemetryMsgList.size());</b>
+<b class="nc">&nbsp;        AtomicBoolean ackSent = new AtomicBoolean(false);</b>
+&nbsp;
+<b class="nc">&nbsp;        process(contextListenableFuture, deviceCtx -&gt; {</b>
+<b class="nc">&nbsp;                    for (TransportProtos.PostTelemetryMsg telemetryMsg : postTelemetryMsgList) {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            processPostTelemetryMsg(deviceCtx, telemetryMsg, deviceName, msgId, remaining, ackSent);</b>
+&nbsp;                        } catch (Throwable e) {
+<b class="nc">&nbsp;                            log.warn(&quot;[{}][{}] Failed to convert telemetry: {}&quot;, gateway.getDeviceId(), deviceName, telemetryMsg, e);</b>
+<b class="nc">&nbsp;                            ackOrClose(msgId, ackSent);</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                },
+<b class="nc">&nbsp;                t -&gt; processFailure(msgId, deviceName, &quot;Failed to process device telemetry command&quot;, ackSent, t));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onDeviceAttributesProto(ListenableFuture&lt;MqttDeviceAwareSessionContext&gt; contextListenableFuture, int msgId,
+&nbsp;                                         List&lt;TransportApiProtos.AttributesMsg&gt; attributesMsgList, String deviceName) throws AdaptorException {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (CollectionUtils.isEmpty(attributesMsgList)) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Device attribute list is empty for: [{}]&quot;, sessionId, gateway.getDeviceId());</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            AtomicInteger remaining = new AtomicInteger(attributesMsgList.size());</b>
+<b class="nc">&nbsp;            AtomicBoolean ackSent = new AtomicBoolean(false);</b>
+&nbsp;
+<b class="nc">&nbsp;            process(contextListenableFuture, deviceCtx -&gt; {</b>
+<b class="nc">&nbsp;                        for (TransportApiProtos.AttributesMsg attributesMsg : attributesMsgList) {</b>
+<b class="nc">&nbsp;                            TransportProtos.PostAttributeMsg kvListProto = attributesMsg.getMsg();</b>
+&nbsp;                            try {
+<b class="nc">&nbsp;                                TransportProtos.PostAttributeMsg postAttributeMsg = ProtoConverter.validatePostAttributeMsg(kvListProto);</b>
+<b class="nc">&nbsp;                                processPostAttributesMsg(deviceCtx, postAttributeMsg, deviceName, msgId, remaining, ackSent);</b>
+&nbsp;                            } catch (Throwable e) {
+<b class="nc">&nbsp;                                log.warn(&quot;[{}][{}] Failed to process device attributes command: {}&quot;, gateway.getDeviceId(), deviceName, kvListProto, e);</b>
+<b class="nc">&nbsp;                                ackOrClose(msgId, ackSent);</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    },
+<b class="nc">&nbsp;                    t -&gt; processFailure(msgId, deviceName, &quot;Failed to process device attributes command&quot;, ackSent, t));</b>
+&nbsp;        } catch (RuntimeException e) {
+<b class="nc">&nbsp;            throw new AdaptorException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Subscribe: spBv1.0/STATE/my_primary_hos -&gt; Implemented as status via checkSparkplugNodeSession
+&nbsp;     * Subscribe: CMD/DATA -&gt; Implemented  after connection: SUBSCRIBE_TO_ATTRIBUTE_UPDATES_ASYNC_MSG/SUBSCRIBE_TO_RPC_ASYNC_MSG
+&nbsp;     * @param subscription
+&nbsp;     * @throws ThingsboardException
+&nbsp;     */
+&nbsp;    public void handleSparkplugSubscribeMsg(MqttTopicSubscription subscription) throws ThingsboardException {
+<b class="nc">&nbsp;        String topic = subscription.topicFilter();</b>
+<b class="nc">&nbsp;        if (topic != null &amp;&amp; topic.startsWith(TOPIC_STATE_REGEXP)) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Subscribing on it’s own spBv1.0/STATE/[the Sparkplug Host Application] - Implemented as status via checkSparkplugNodeSession&quot;);</b>
+<b class="nc">&nbsp;        } else if (this.validateTopicDataSubscribe(topic)) {</b>
+&nbsp;            // TODO if need subscription DATA
+<b class="nc">&nbsp;            log.trace(&quot;Subscribing on it’s own [&quot; + topic + &quot;] - Implemented as SUBSCRIBE_TO_ATTRIBUTE_UPDATES_ASYNC_MSG/SUBSCRIBE_TO_RPC_ASYNC_MSG via checkSparkplugNode/DeviceSession&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;Failed to subscribe to the topic: [&quot; + topic + &quot;].&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onDeviceDisconnect(MqttPublishMessage mqttMsg, String deviceName) throws AdaptorException {
+&nbsp;        try {
+<b class="nc">&nbsp;            processOnDisconnect(mqttMsg, deviceName);</b>
+&nbsp;        } catch (RuntimeException e) {
+<b class="nc">&nbsp;            throw new AdaptorException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;SparkplugDeviceSessionContext&gt; onDeviceConnectProto(SparkplugTopic topic) throws
+&nbsp;            ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            String deviceType = this.gateway.getDeviceType() + &quot; device&quot;;</b>
+<b class="nc">&nbsp;            return onDeviceConnect(topic.getNodeDeviceName(), deviceType);</b>
+&nbsp;        } catch (RuntimeException e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed Sparkplug Device connect proto!&quot;, e);</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(e, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sparkplug 3.0.0 -&gt; 6.4.6. Metric
+&nbsp;     * https://sparkplug.eclipse.org/specification/version/3.0/documents/sparkplug-specification-3.0.0.pdf#%5B%7B%22num%22%3A339%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C0%2C455.52%2Cnull%5D
+&nbsp;     * [tck-id-payloads-name-requirement] The name MUST be included with every metric unless aliases are being used. ◦ All UTF-8 characters are allowed in the metric name. However, special characters including but not limited to the following are discouraged: . , \ @ # $ % ^ &amp; * ( ) [ ] { } | ! ` ~ : ; &#39; &quot; &lt; &gt; ?. This is because many Sparkplug Host Applications may have issues handling them.
+&nbsp;     * • alias (are optional and not required):
+&nbsp;     * - This is an unsigned 64-bit integer representing an optional alias for a Sparkplug B payload.
+&nbsp;     * - If aliases are used, the following rules apply:
+&nbsp;     * --  [tck-id-payloads-alias-uniqueness] If supplied in an NBIRTH or BIRTH it MUST be a unique number across this Edge Node’s entire set of metrics.
+&nbsp;     * --  no two metrics for the same Edge Node can have the same alias.
+&nbsp;     * --  [tck-id-payloads-alias-birth-requirement] NBIRTH and DBIRTH messages MUST include both a metric name and alias.
+&nbsp;     * --  [tck-id-payloads-alias-data-cmd-requirement] NDATA, DDATA, NCMD, and DCMD messages MUST only include an alias and the metric name MUST be excluded.
+&nbsp;     * @param sparkplugBProto
+&nbsp;     * @param attributesMetricNames
+&nbsp;     * @param topicTypeName
+&nbsp;     * @return
+&nbsp;     * @throws AdaptorException
+&nbsp;     */
+&nbsp;    private List&lt;TransportProtos.PostTelemetryMsg&gt; convertToPostTelemetry(SparkplugBProto.Payload
+&nbsp;                                                                                  sparkplugBProto, Set&lt;String&gt; attributesMetricNames, String topicTypeName) throws AdaptorException {
+&nbsp;        try {
+<b class="nc">&nbsp;            List&lt;TransportProtos.PostTelemetryMsg&gt; msgs = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (SparkplugBProto.Payload.Metric protoMetric : sparkplugBProto.getMetricsList()) {</b>
+<b class="nc">&nbsp;                String metricName = protoMetric.hasName() ? protoMetric.getName() :  protoMetric.hasAlias() ? this.nodeAlias.get(protoMetric.getAlias()) : null;</b>
+<b class="nc">&nbsp;                if (metricName == null) {</b>
+<b class="nc">&nbsp;                    throw new ThingsboardException(&quot;Metric without metricName and alias.&quot;, ThingsboardErrorCode.INVALID_ARGUMENTS);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    if (attributesMetricNames == null || !matches(attributesMetricNames, metricName)) {</b>
+<b class="nc">&nbsp;                        long ts = protoMetric.getTimestamp();</b>
+<b class="nc">&nbsp;                        String key = SPARKPLUG_BD_SEQUENCE_NUMBER_KEY.equals(protoMetric.getName()) ?</b>
+<b class="nc">&nbsp;                                topicTypeName + &quot; &quot; + protoMetric.getName() : protoMetric.getName();</b>
+<b class="nc">&nbsp;                        Optional&lt;TransportProtos.KeyValueProto&gt; keyValueProtoOpt = fromSparkplugBMetricToKeyValueProto(key, protoMetric);</b>
+<b class="nc">&nbsp;                        keyValueProtoOpt.ifPresent(kvProto -&gt; msgs.add(postTelemetryMsgCreated(kvProto, ts)));</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (DBIRTH.name().equals(topicTypeName)) {</b>
+<b class="nc">&nbsp;                TransportProtos.KeyValueProto.Builder keyValueProtoBuilder = TransportProtos.KeyValueProto.newBuilder();</b>
+<b class="nc">&nbsp;                keyValueProtoBuilder.setKey(topicTypeName + &quot; &quot; + SPARKPLUG_SEQUENCE_NUMBER_KEY);</b>
+<b class="nc">&nbsp;                keyValueProtoBuilder.setType(TransportProtos.KeyValueType.LONG_V);</b>
+<b class="nc">&nbsp;                keyValueProtoBuilder.setLongV(sparkplugBProto.getSeq());</b>
+<b class="nc">&nbsp;                msgs.add(postTelemetryMsgCreated(keyValueProtoBuilder.build(), sparkplugBProto.getTimestamp()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return msgs;</b>
+&nbsp;        } catch (IllegalStateException | JsonSyntaxException | ThingsboardException e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to decode post telemetry request&quot;, e);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;TransportApiProtos.AttributesMsg&gt; convertToPostAttributes(SparkplugBProto.Payload sparkplugBProto,
+&nbsp;                                                                           Set&lt;String&gt; attributesMetricNames,
+&nbsp;                                                                           String deviceName) throws AdaptorException {
+&nbsp;        try {
+<b class="nc">&nbsp;            List&lt;TransportApiProtos.AttributesMsg&gt; msgs = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (SparkplugBProto.Payload.Metric protoMetric : sparkplugBProto.getMetricsList()) {</b>
+<b class="nc">&nbsp;                String metricName = protoMetric.hasName() ? protoMetric.getName() :  protoMetric.hasAlias() ? this.nodeAlias.get(protoMetric.getAlias()) : null;</b>
+<b class="nc">&nbsp;                if (metricName == null) {</b>
+<b class="nc">&nbsp;                    throw new ThingsboardException(&quot;Metric without metricName and alias.&quot;, ThingsboardErrorCode.INVALID_ARGUMENTS);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    if (matches(attributesMetricNames, metricName)) {</b>
+<b class="nc">&nbsp;                        TransportApiProtos.AttributesMsg.Builder deviceAttributesMsgBuilder = TransportApiProtos.AttributesMsg.newBuilder();</b>
+<b class="nc">&nbsp;                        Optional&lt;TransportProtos.PostAttributeMsg&gt; msgOpt = getPostAttributeMsg(protoMetric);</b>
+<b class="nc">&nbsp;                        if (msgOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                            deviceAttributesMsgBuilder.setDeviceName(deviceName);</b>
+<b class="nc">&nbsp;                            deviceAttributesMsgBuilder.setMsg(msgOpt.get());</b>
+<b class="nc">&nbsp;                            msgs.add(deviceAttributesMsgBuilder.build());</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return msgs;</b>
+&nbsp;        } catch (IllegalStateException | JsonSyntaxException | ThingsboardException e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to decode post telemetry request&quot;, e);</b>
+<b class="nc">&nbsp;            throw new AdaptorException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean matches(Set&lt;String&gt; attributesMetricNames, String metricName) {
+<b class="nc">&nbsp;        for (String attributeMetricFilter : attributesMetricNames) {</b>
+<b class="nc">&nbsp;            if (metricName.equals(attributeMetricFilter) ||</b>
+<b class="nc">&nbsp;                    (attributeMetricFilter.endsWith(&quot;*&quot;) &amp;&amp; metricName.startsWith(</b>
+<b class="nc">&nbsp;                            attributeMetricFilter.substring(0, attributeMetricFilter.length() - 1)))) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;TransportProtos.PostAttributeMsg&gt; getPostAttributeMsg(SparkplugBProto.Payload.Metric
+&nbsp;                                                                                   protoMetric) throws ThingsboardException {
+<b class="nc">&nbsp;        Optional&lt;TransportProtos.KeyValueProto&gt; keyValueProtoOpt = fromSparkplugBMetricToKeyValueProto(protoMetric.getName(), protoMetric);</b>
+<b class="nc">&nbsp;        if (keyValueProtoOpt.isPresent()) {</b>
+<b class="nc">&nbsp;            TransportProtos.PostAttributeMsg.Builder builder = TransportProtos.PostAttributeMsg.newBuilder();</b>
+<b class="nc">&nbsp;            builder.addKv(keyValueProtoOpt.get());</b>
+<b class="nc">&nbsp;            builder.setShared(true);</b>
+<b class="nc">&nbsp;            return Optional.of(builder.build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Optional&lt;MqttPublishMessage&gt; createSparkplugMqttPublishMsg(TransportProtos.TsKvProto tsKvProto,
+&nbsp;                                                                      String sparkplugTopic,
+&nbsp;                                                                      SparkplugBProto.Payload.Metric metricBirth) {
+&nbsp;        try {
+<b class="nc">&nbsp;            long ts = tsKvProto.getTs();</b>
+<b class="nc">&nbsp;            MetricDataType metricDataType = MetricDataType.fromInteger(metricBirth.getDatatype());</b>
+<b class="nc">&nbsp;            Optional value = validatedValueByTypeMetric(tsKvProto.getKv(), metricDataType);</b>
+<b class="nc">&nbsp;            if (value.isPresent()) {</b>
+<b class="nc">&nbsp;                SparkplugBProto.Payload.Builder cmdPayload = SparkplugBProto.Payload.newBuilder()</b>
+<b class="nc">&nbsp;                        .setTimestamp(ts);</b>
+<b class="nc">&nbsp;                String metricName = tsKvProto.getKv().getKey();</b>
+<b class="nc">&nbsp;                Long alias = metricBirth.hasAlias() ? metricBirth.getAlias() : -1;</b>
+<b class="nc">&nbsp;                cmdPayload.addMetrics(createMetric(value.get(), ts, alias == -1 ? metricName : null, metricDataType, alias));</b>
+<b class="nc">&nbsp;                byte[] payloadInBytes = cmdPayload.build().toByteArray();</b>
+<b class="nc">&nbsp;                return Optional.of(getPayloadAdaptor().createMqttPublishMsg(deviceSessionCtx, sparkplugTopic, payloadInBytes));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.trace(&quot;DeviceId: [{}] tenantId: [{}] sessionId:[{}] Failed to convert device attributes [{}] response to MQTT sparkplug  msg&quot;,</b>
+<b class="nc">&nbsp;                        deviceSessionCtx.getDeviceInfo().getDeviceId(), deviceSessionCtx.getDeviceInfo().getTenantId(), sessionId, tsKvProto.getKv());</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.trace(&quot;DeviceId: [{}] tenantId: [{}] sessionId:[{}] Failed to convert device attributes response to MQTT sparkplug  msg&quot;,</b>
+<b class="nc">&nbsp;                    deviceSessionCtx.getDeviceInfo().getDeviceId(), deviceSessionCtx.getDeviceInfo().getTenantId(), sessionId, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Optional.empty();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected SparkplugDeviceSessionContext newDeviceSessionCtx(GetOrCreateDeviceFromGatewayResponse msg) {
+<b class="nc">&nbsp;        return new SparkplugDeviceSessionContext(this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void sendToDeviceRpcRequest(MqttMessage payload, TransportProtos.ToDeviceRpcRequestMsg
+&nbsp;            rpcRequest, TransportProtos.SessionInfoProto sessionInfo) {
+<b class="nc">&nbsp;        parent.sendToDeviceRpcRequest(payload, rpcRequest, sessionInfo);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void sendErrorRpcResponse(TransportProtos.SessionInfoProto sessionInfo,
+&nbsp;                                        int requestId, ThingsboardErrorCode result, String errorMsg) {
+<b class="nc">&nbsp;        parent.sendErrorRpcResponse(sessionInfo, requestId, result, errorMsg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Subscribe: spBv1.0/G1/DDATA/E1
+&nbsp;     * Subscribe: spBv1.0/G1/DDATA/E1/#
+&nbsp;     * Subscribe: spBv1.0/G1/DDATA/E1/+
+&nbsp;     * Subscribe: spBv1.0/G1/DDATA/E1/D1
+&nbsp;     * Subscribe: spBv1.0/G1/DDATA/E1/D1/#
+&nbsp;     * Subscribe: spBv1.0/G1/DDATA/E1/D1/+
+&nbsp;     * Parses a Sparkplug MQTT message topic string and returns a {@link SparkplugTopic} instance.
+&nbsp;     * @param topic a topic  UTF-8
+&nbsp;     * @return a {@link SparkplugTopic} instance
+&nbsp;     * @throws ThingsboardException if an error occurs while parsing
+&nbsp;     */
+&nbsp;    public boolean validateTopicDataSubscribe(String topic) throws ThingsboardException {
+<b class="nc">&nbsp;        String[] splitTopic = topic.split(TOPIC_SPLIT_REGEXP);</b>
+<b class="nc">&nbsp;        if (splitTopic.length &gt;= 4 &amp;&amp; splitTopic.length &lt;= 5 &amp;&amp;</b>
+<b class="nc">&nbsp;                splitTopic[0].equals(this.sparkplugTopicNode.getNamespace()) &amp;&amp;</b>
+<b class="nc">&nbsp;                splitTopic[1].equals(this.sparkplugTopicNode.getGroupId()) &amp;&amp;</b>
+<b class="nc">&nbsp;                splitTopic[3].equals(this.sparkplugTopicNode.getEdgeNodeId())) {</b>
+<b class="nc">&nbsp;            SparkplugMessageType messageType = parseMessageType(splitTopic[2]);</b>
+<b class="nc">&nbsp;            return messageType.isData();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

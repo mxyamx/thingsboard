@@ -1,0 +1,642 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseAlarmService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.alarm</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseAlarmService (org.thingsboard.server.dao.alarm)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseAlarmService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/96)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/198)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.alarm;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.transaction.event.TransactionalEventListener;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmModificationRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQuery;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQueryV2;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmStatus;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.EntityAlarm;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ApiUsageLimitsExceededException;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.page.SortOrder;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmCountQuery;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.OriginatorAlarmFilter;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+&nbsp;import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.service.ConstraintValidator;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateEntityDataPageLink;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;AlarmDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class BaseAlarmService extends AbstractCachedEntityService&lt;TenantId, PageData&lt;EntitySubtype&gt;, AlarmTypesCacheEvictEvent&gt; implements AlarmService {
+&nbsp;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+<b class="nc">&nbsp;    private static final PageLink DEFAULT_ALARM_TYPES_PAGE_LINK = new PageLink(25, 0, null, new SortOrder(&quot;type&quot;));</b>
+&nbsp;
+&nbsp;    private final TenantService tenantService;
+&nbsp;    private final AlarmDao alarmDao;
+&nbsp;    private final EntityService entityService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @TransactionalEventListener
+&nbsp;    public void handleEvictEvent(AlarmTypesCacheEvictEvent event) {
+<b class="nc">&nbsp;        TenantId tenantId = event.getTenantId();</b>
+<b class="nc">&nbsp;        cache.evict(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult updateAlarm(AlarmUpdateRequest request) {
+<b class="nc">&nbsp;        validateAlarmRequest(request);</b>
+<b class="nc">&nbsp;        AlarmApiCallResult result = withPropagated(alarmDao.updateAlarm(request));</b>
+<b class="nc">&nbsp;        if (result.getAlarm() != null) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getAlarm().getTenantId()).entity(result)</b>
+<b class="nc">&nbsp;                    .entityId(result.getAlarm().getId()).build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult createAlarm(AlarmCreateOrUpdateActiveRequest request) {
+<b class="nc">&nbsp;        return createAlarm(request, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult createAlarm(AlarmCreateOrUpdateActiveRequest request, boolean alarmCreationEnabled) {
+<b class="nc">&nbsp;        validateAlarmRequest(request);</b>
+<b class="nc">&nbsp;        CustomerId customerId = entityService.fetchEntityCustomerId(request.getTenantId(), request.getOriginator()).orElse(null);</b>
+<b class="nc">&nbsp;        if (customerId == null &amp;&amp; request.getCustomerId() != null) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign alarm to customer. Originator is not assigned to customer!&quot;);</b>
+<b class="nc">&nbsp;        } else if (customerId != null &amp;&amp; request.getCustomerId() != null &amp;&amp; !customerId.equals(request.getCustomerId())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Can&#39;t assign alarm to customer. Originator belongs to different customer!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        request.setCustomerId(customerId);</b>
+<b class="nc">&nbsp;        AlarmApiCallResult result = alarmDao.createOrUpdateActiveAlarm(request, alarmCreationEnabled);</b>
+<b class="nc">&nbsp;        if (!result.isSuccessful() &amp;&amp; !alarmCreationEnabled) {</b>
+<b class="nc">&nbsp;            throw new ApiUsageLimitsExceededException(&quot;Alarms creation is disabled&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (result.getAlarm() != null) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getAlarm().getTenantId())</b>
+<b class="nc">&nbsp;                    .entityId(result.getAlarm().getId()).entity(result).created(true).build());</b>
+<b class="nc">&nbsp;            publishEvictEvent(new AlarmTypesCacheEvictEvent(request.getTenantId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return withPropagated(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult acknowledgeAlarm(TenantId tenantId, AlarmId alarmId, long ackTs) {
+<b class="nc">&nbsp;        var result = withPropagated(alarmDao.acknowledgeAlarm(tenantId, alarmId, ackTs));</b>
+<b class="nc">&nbsp;        if (result.getAlarm() != null) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(ActionEntityEvent.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .entityId(result.getAlarm().getId())</b>
+<b class="nc">&nbsp;                    .entity(result.getAlarm())</b>
+<b class="nc">&nbsp;                    .actionType(ActionType.ALARM_ACK)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult clearAlarm(TenantId tenantId, AlarmId alarmId, long clearTs, JsonNode details, boolean pushEvent) {
+<b class="nc">&nbsp;        var result = withPropagated(alarmDao.clearAlarm(tenantId, alarmId, clearTs, details));</b>
+<b class="nc">&nbsp;        if (pushEvent &amp;&amp; result.getAlarm() != null) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(ActionEntityEvent.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .entityId(result.getAlarm().getId())</b>
+<b class="nc">&nbsp;                    .entity(result.getAlarm())</b>
+<b class="nc">&nbsp;                    .actionType(ActionType.ALARM_CLEAR)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findLatestActiveByOriginatorAndType(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        return alarmDao.findLatestActiveByOriginatorAndType(tenantId, originator, type);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Alarm&gt; findLatestActiveByOriginatorAndTypeAsync(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        return alarmDao.findLatestActiveByOriginatorAndTypeAsync(tenantId, originator, type);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmData&gt; findAlarmDataByQueryForEntities(TenantId tenantId,
+&nbsp;                                                               AlarmDataQuery query, Collection&lt;EntityId&gt; orderedEntityIds) {
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateEntityDataPageLink(query.getPageLink());</b>
+<b class="nc">&nbsp;        return alarmDao.findAlarmDataByQueryForEntities(tenantId, query, orderedEntityIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public AlarmApiCallResult delAlarm(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        return delAlarm(tenantId, alarmId, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public AlarmApiCallResult delAlarm(TenantId tenantId, AlarmId alarmId, boolean checkAndDeleteAlarmType) {
+<b class="nc">&nbsp;        AlarmInfo alarm = alarmDao.findAlarmInfoById(tenantId, alarmId.getId());</b>
+<b class="nc">&nbsp;        return deleteAlarm(tenantId, alarm, checkAndDeleteAlarmType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmApiCallResult deleteAlarm(TenantId tenantId, AlarmInfo alarm, boolean deleteAlarmTypes) {
+<b class="nc">&nbsp;        if (alarm == null) {</b>
+<b class="nc">&nbsp;            return AlarmApiCallResult.builder().successful(false).build();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Executing deleteAlarm [{}]&quot;, tenantId, alarm.getOriginator(), alarm.getId());</b>
+<b class="nc">&nbsp;            var propagationIds = getPropagationEntityIdsList(alarm);</b>
+<b class="nc">&nbsp;            alarmDao.removeById(tenantId, alarm.getUuidId());</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(DeleteEntityEvent.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .entityId(alarm.getId())</b>
+<b class="nc">&nbsp;                    .entity(alarm)</b>
+<b class="nc">&nbsp;                    .build());</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(ActionEntityEvent.builder()</b>
+<b class="nc">&nbsp;                    .tenantId(tenantId)</b>
+<b class="nc">&nbsp;                    .entityId(alarm.getId())</b>
+<b class="nc">&nbsp;                    .entity(alarm)</b>
+<b class="nc">&nbsp;                    .actionType(ActionType.ALARM_DELETE)</b>
+<b class="nc">&nbsp;                    .build());</b>
+<b class="nc">&nbsp;            if (deleteAlarmTypes) {</b>
+<b class="nc">&nbsp;                delAlarmTypes(tenantId, Collections.singleton(alarm.getType()));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return AlarmApiCallResult.builder().alarm(alarm).deleted(true).successful(true).propagatedEntitiesList(propagationIds).build();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void delAlarmTypes(TenantId tenantId, Set&lt;String&gt; types) {
+<b class="nc">&nbsp;        if (!types.isEmpty() &amp;&amp; alarmDao.removeAlarmTypesIfNoAlarmsPresent(tenantId.getId(), types)) {</b>
+<b class="nc">&nbsp;            publishEvictEvent(new AlarmTypesCacheEvictEvent(tenantId));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityId&gt; createEntityAlarmRecords(Alarm alarm) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        Set&lt;EntityId&gt; propagatedEntitiesSet = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        propagatedEntitiesSet.add(alarm.getOriginator());</b>
+<b class="nc">&nbsp;        if (alarm.isPropagate()) {</b>
+<b class="nc">&nbsp;            propagatedEntitiesSet.addAll(getRelatedEntities(alarm));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarm.isPropagateToOwner()) {</b>
+<b class="nc">&nbsp;            propagatedEntitiesSet.add(alarm.getCustomerId() != null ? alarm.getCustomerId() : alarm.getTenantId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarm.isPropagateToTenant()) {</b>
+<b class="nc">&nbsp;            propagatedEntitiesSet.add(alarm.getTenantId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (EntityId entityId : propagatedEntitiesSet) {</b>
+<b class="nc">&nbsp;            createEntityAlarmRecord(alarm.getTenantId(), entityId, alarm);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new ArrayList&lt;&gt;(propagatedEntitiesSet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;EntityId&gt; getRelatedEntities(Alarm alarm) throws InterruptedException, ExecutionException {
+<b class="nc">&nbsp;        EntityRelationsQuery query = new EntityRelationsQuery();</b>
+<b class="nc">&nbsp;        RelationsSearchParameters parameters = new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, false);</b>
+<b class="nc">&nbsp;        query.setParameters(parameters);</b>
+<b class="nc">&nbsp;        List&lt;String&gt; propagateRelationTypes = alarm.getPropagateRelationTypes();</b>
+<b class="nc">&nbsp;        Stream&lt;EntityRelation&gt; relations = relationService.findByQuery(alarm.getTenantId(), query).get().stream();</b>
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(propagateRelationTypes)) {</b>
+<b class="nc">&nbsp;            relations = relations.filter(entityRelation -&gt; propagateRelationTypes.contains(entityRelation.getType()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return relations.map(EntityRelation::getFrom).collect(Collectors.toCollection(LinkedHashSet::new));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult assignAlarm(TenantId tenantId, AlarmId alarmId, UserId assigneeId, long assignTime) {
+<b class="nc">&nbsp;        var result = withPropagated(alarmDao.assignAlarm(tenantId, alarmId, assigneeId, assignTime));</b>
+<b class="nc">&nbsp;        if (result.getAlarm() != null) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(result.getAlarm().getId())</b>
+<b class="nc">&nbsp;                    .actionType(ActionType.ALARM_ASSIGNED).build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult unassignAlarm(TenantId tenantId, AlarmId alarmId, long unassignTime) {
+<b class="nc">&nbsp;        var result = withPropagated(alarmDao.unassignAlarm(tenantId, alarmId, unassignTime));</b>
+<b class="nc">&nbsp;        if (result.getAlarm() != null) {</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(result.getAlarm().getId())</b>
+<b class="nc">&nbsp;                    .actionType(ActionType.ALARM_UNASSIGNED).build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findAlarmById(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAlarmById [{}]&quot;, alarmId);</b>
+<b class="nc">&nbsp;        validateId(alarmId, id -&gt; &quot;Incorrect alarmId &quot; + id);</b>
+<b class="nc">&nbsp;        return alarmDao.findAlarmById(tenantId, alarmId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Alarm&gt; findAlarmByIdAsync(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAlarmByIdAsync [{}]&quot;, alarmId);</b>
+<b class="nc">&nbsp;        validateId(alarmId, id -&gt; &quot;Incorrect alarmId &quot; + id);</b>
+<b class="nc">&nbsp;        return alarmDao.findAlarmByIdAsync(tenantId, alarmId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo findAlarmInfoById(TenantId tenantId, AlarmId alarmId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAlarmInfoByIdAsync [{}]&quot;, alarmId);</b>
+<b class="nc">&nbsp;        validateId(alarmId, id -&gt; &quot;Incorrect alarmId &quot; + id);</b>
+<b class="nc">&nbsp;        return alarmDao.findAlarmInfoById(tenantId, alarmId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findAlarms(TenantId tenantId, AlarmQuery query) {
+<b class="nc">&nbsp;        return alarmDao.findAlarms(tenantId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query) {
+<b class="nc">&nbsp;        return alarmDao.findCustomerAlarms(tenantId, customerId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findAlarmsV2(TenantId tenantId, AlarmQueryV2 query) {
+<b class="nc">&nbsp;        return alarmDao.findAlarmsV2(tenantId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findCustomerAlarmsV2(TenantId tenantId, CustomerId customerId, AlarmQueryV2 query) {
+<b class="nc">&nbsp;        return alarmDao.findCustomerAlarmsV2(tenantId, customerId, query);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, long createdTimeOffset, AlarmId idOffset, int limit) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Executing findAlarmIdsByAssigneeId [{}][{}]&quot;, tenantId, userId, idOffset);</b>
+<b class="nc">&nbsp;        validateId(userId, id -&gt; &quot;Incorrect userId &quot; + id);</b>
+<b class="nc">&nbsp;        return alarmDao.findAlarmIdsByAssigneeId(tenantId, userId, createdTimeOffset, idOffset, limit).getData();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByOriginatorId(TenantId tenantId, EntityId originatorId, long createdTimeOffset, AlarmId idOffset, int limit) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Executing findAlarmIdsByOriginatorIdAndIdOffset [{}][{}]&quot;, tenantId, originatorId, idOffset);</b>
+<b class="nc">&nbsp;        return alarmDao.findAlarmIdsByOriginatorId(tenantId, originatorId, createdTimeOffset, idOffset, limit).getData();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus,
+&nbsp;                                                  AlarmStatus alarmStatus, String assigneeId) {
+&nbsp;        AlarmStatusFilter asf;
+<b class="nc">&nbsp;        if (alarmSearchStatus != null) {</b>
+<b class="nc">&nbsp;            asf = AlarmStatusFilter.from(alarmSearchStatus);</b>
+<b class="nc">&nbsp;        } else if (alarmStatus != null) {</b>
+<b class="nc">&nbsp;            asf = AlarmStatusFilter.from(alarmStatus);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            asf = AlarmStatusFilter.empty();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;AlarmSeverity&gt; alarmSeverities = alarmDao.findAlarmSeverities(tenantId, entityId, asf, assigneeId);</b>
+<b class="nc">&nbsp;        return alarmSeverities.stream().min(AlarmSeverity::compareTo).orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteEntityAlarms [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        return alarmDao.deleteEntityAlarmRecords(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntityAlarmRecordsByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteEntityAlarmRecordsByTenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        alarmDao.deleteEntityAlarmRecordsByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, AlarmCountQuery query) {
+<b class="nc">&nbsp;        return countAlarmsByQuery(tenantId, customerId, query, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, AlarmCountQuery query, Collection&lt;EntityId&gt; orderedEntityIds) {
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return alarmDao.countAlarmsByQuery(tenantId, customerId, query, orderedEntityIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntitySubtype&gt; findAlarmTypesByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAlarmTypesByTenantId, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        if (DEFAULT_ALARM_TYPES_PAGE_LINK.equals(pageLink)) {</b>
+<b class="nc">&nbsp;            return cache.getAndPutInTransaction(tenantId, () -&gt;</b>
+<b class="nc">&nbsp;                    alarmDao.findTenantAlarmTypes(tenantId.getId(), pageLink), false);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return alarmDao.findTenantAlarmTypes(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;UUID&gt; findActiveOriginatorAlarms(TenantId tenantId, OriginatorAlarmFilter originatorAlarmFilter, int limit) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findActiveOriginatorAlarms, tenantId [{}], originatorAlarmFilter [{}]&quot;, tenantId, originatorAlarmFilter);</b>
+<b class="nc">&nbsp;        return alarmDao.findActiveOriginatorAlarms(tenantId, originatorAlarmFilter, limit);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Alarm merge(Alarm existing, Alarm alarm) {
+<b class="nc">&nbsp;        if (alarm.getStartTs() &gt; existing.getEndTs()) {</b>
+<b class="nc">&nbsp;            existing.setEndTs(alarm.getStartTs());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarm.getEndTs() &gt; existing.getEndTs()) {</b>
+<b class="nc">&nbsp;            existing.setEndTs(alarm.getEndTs());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarm.getClearTs() &gt; existing.getClearTs()) {</b>
+<b class="nc">&nbsp;            existing.setClearTs(alarm.getClearTs());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarm.getAckTs() &gt; existing.getAckTs()) {</b>
+<b class="nc">&nbsp;            existing.setAckTs(alarm.getAckTs());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (alarm.getAssignTs() &gt; existing.getAssignTs()) {</b>
+<b class="nc">&nbsp;            existing.setAssignTs(alarm.getAssignTs());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        existing.setAcknowledged(alarm.isAcknowledged());</b>
+<b class="nc">&nbsp;        existing.setCleared(alarm.isCleared());</b>
+<b class="nc">&nbsp;        existing.setSeverity(alarm.getSeverity());</b>
+<b class="nc">&nbsp;        existing.setDetails(alarm.getDetails());</b>
+<b class="nc">&nbsp;        existing.setCustomerId(alarm.getCustomerId());</b>
+<b class="nc">&nbsp;        existing.setAssigneeId(alarm.getAssigneeId());</b>
+<b class="nc">&nbsp;        existing.setPropagate(existing.isPropagate() || alarm.isPropagate());</b>
+<b class="nc">&nbsp;        existing.setPropagateToOwner(existing.isPropagateToOwner() || alarm.isPropagateToOwner());</b>
+<b class="nc">&nbsp;        existing.setPropagateToTenant(existing.isPropagateToTenant() || alarm.isPropagateToTenant());</b>
+<b class="nc">&nbsp;        List&lt;String&gt; existingPropagateRelationTypes = existing.getPropagateRelationTypes();</b>
+<b class="nc">&nbsp;        List&lt;String&gt; newRelationTypes = alarm.getPropagateRelationTypes();</b>
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(newRelationTypes)) {</b>
+<b class="nc">&nbsp;            if (!CollectionUtils.isEmpty(existingPropagateRelationTypes)) {</b>
+<b class="nc">&nbsp;                existing.setPropagateRelationTypes(Stream.concat(existingPropagateRelationTypes.stream(), newRelationTypes.stream())</b>
+<b class="nc">&nbsp;                        .distinct()</b>
+<b class="nc">&nbsp;                        .collect(Collectors.toList()));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                existing.setPropagateRelationTypes(newRelationTypes);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return existing;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityId&gt; getPropagationEntityIdsList(Alarm alarm) {
+<b class="nc">&nbsp;        return new ArrayList&lt;&gt;(getPropagationEntityIds(alarm));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;EntityId&gt; getPropagationEntityIds(Alarm alarm) {
+<b class="nc">&nbsp;        if (alarm.isPropagate() || alarm.isPropagateToOwner() || alarm.isPropagateToTenant()) {</b>
+<b class="nc">&nbsp;            List&lt;EntityAlarm&gt; entityAlarms = alarmDao.findEntityAlarmRecords(alarm.getTenantId(), alarm.getId());</b>
+<b class="nc">&nbsp;            return entityAlarms.stream().map(EntityAlarm::getEntityId).collect(Collectors.toSet());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Collections.singleton(alarm.getOriginator());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createEntityAlarmRecord(TenantId tenantId, EntityId entityId, Alarm alarm) {
+<b class="nc">&nbsp;        EntityAlarm entityAlarm = new EntityAlarm(tenantId, entityId, alarm.getCreatedTime(), alarm.getType(), alarm.getCustomerId(), null, alarm.getId());</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            alarmDao.createEntityAlarmRecord(entityAlarm);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Failed to create entity alarm record: {}&quot;, tenantId, entityAlarm, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findAlarmById(tenantId, new AlarmId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(findAlarmByIdAsync(tenantId, new AlarmId(entityId.getId())))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.ALARM;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    //TODO: refactor to use efficient caching.
+&nbsp;    private AlarmApiCallResult withPropagated(AlarmApiCallResult result) {
+<b class="nc">&nbsp;        if (result.isSuccessful() &amp;&amp; result.getAlarm() != null) {</b>
+&nbsp;            List&lt;EntityId&gt; propagationEntities;
+<b class="nc">&nbsp;            if (result.isPropagationChanged()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    propagationEntities = createEntityAlarmRecords(result.getAlarm());</b>
+&nbsp;                } catch (ExecutionException | InterruptedException e) {
+<b class="nc">&nbsp;                    throw new RuntimeException(e);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                propagationEntities = getPropagationEntityIdsList(result.getAlarm());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return new AlarmApiCallResult(result, propagationEntities);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateAlarmRequest(AlarmModificationRequest request) {
+<b class="nc">&nbsp;        ConstraintValidator.validateFields(request);</b>
+<b class="nc">&nbsp;        if (request.getEndTs() &gt; 0 &amp;&amp; request.getStartTs() &gt; request.getEndTs()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Alarm start ts can&#39;t be greater then alarm end ts!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!tenantService.tenantExists(request.getTenantId())) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Alarm is referencing to non-existent tenant!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (request.getStartTs() == 0L) {</b>
+<b class="nc">&nbsp;            request.setStartTs(System.currentTimeMillis());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (request.getEndTs() == 0L) {</b>
+<b class="nc">&nbsp;            request.setEndTs(request.getStartTs());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

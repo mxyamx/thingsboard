@@ -1,0 +1,242 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlarmCommentController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: AlarmCommentController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AlarmCommentController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmComment;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmCommentId;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.alarm.TbAlarmCommentService;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ALARM_COMMENT_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ALARM_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;public class AlarmCommentController extends BaseController {
+&nbsp;
+&nbsp;    public static final String ALARM_ID = &quot;alarmId&quot;;
+&nbsp;    public static final String ALARM_COMMENT_ID = &quot;commentId&quot;;
+&nbsp;
+&nbsp;    private final TbAlarmCommentService tbAlarmCommentService;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create or update Alarm Comment &quot;,
+&nbsp;            notes = &quot;Creates or Updates the Alarm Comment. &quot; +
+&nbsp;                    &quot;When creating comment, platform generates Alarm Comment Id as &quot; + UUID_WIKI_LINK +
+&nbsp;                    &quot;The newly created Alarm Comment id will be present in the response. Specify existing Alarm Comment id to update the alarm. &quot; +
+&nbsp;                    &quot;Referencing non-existing Alarm Comment Id will cause &#39;Not Found&#39; error. &quot; +
+&nbsp;                    &quot;\n\n To create new Alarm comment entity it is enough to specify &#39;comment&#39; json element with &#39;text&#39; node, for example: {\&quot;comment\&quot;: { \&quot;text\&quot;: \&quot;my comment\&quot;}}. &quot; +
+&nbsp;                    &quot;\n\n If comment type is not specified the default value &#39;OTHER&#39; will be saved. If &#39;alarmId&#39; or &#39;userId&#39; specified in body it will be ignored.&quot; +
+&nbsp;                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/alarm/{alarmId}/comment&quot;)
+&nbsp;    public AlarmComment saveAlarmComment(@Parameter(description = ALARM_ID_PARAM_DESCRIPTION)
+&nbsp;                                         @PathVariable(ALARM_ID) String strAlarmId, @io.swagger.v3.oas.annotations.parameters.RequestBody(description = &quot;A JSON value representing the comment.&quot;) @RequestBody AlarmComment alarmComment) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(ALARM_ID, strAlarmId);</b>
+<b class="nc">&nbsp;        AlarmId alarmId = new AlarmId(toUUID(strAlarmId));</b>
+<b class="nc">&nbsp;        Alarm alarm = checkAlarmInfoId(alarmId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        alarmComment.setAlarmId(alarmId);</b>
+<b class="nc">&nbsp;        return tbAlarmCommentService.saveAlarmComment(alarm, alarmComment, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete Alarm comment (deleteAlarmComment)&quot;,
+&nbsp;            notes = &quot;Deletes the Alarm comment. Referencing non-existing Alarm comment Id will cause an error.&quot; + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/alarm/{alarmId}/comment/{commentId}&quot;)
+&nbsp;    public void deleteAlarmComment(@Parameter(description = ALARM_ID_PARAM_DESCRIPTION) @PathVariable(ALARM_ID) String strAlarmId, @Parameter(description = ALARM_COMMENT_ID_PARAM_DESCRIPTION) @PathVariable(ALARM_COMMENT_ID) String strCommentId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(ALARM_ID, strAlarmId);</b>
+<b class="nc">&nbsp;        AlarmId alarmId = new AlarmId(toUUID(strAlarmId));</b>
+<b class="nc">&nbsp;        Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);</b>
+&nbsp;
+<b class="nc">&nbsp;        AlarmCommentId alarmCommentId = new AlarmCommentId(toUUID(strCommentId));</b>
+<b class="nc">&nbsp;        AlarmComment alarmComment = checkAlarmCommentId(alarmCommentId, alarmId);</b>
+<b class="nc">&nbsp;        tbAlarmCommentService.deleteAlarmComment(alarm, alarmComment, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Alarm comments (getAlarmComments)&quot;,
+&nbsp;            notes = &quot;Returns a page of alarm comments for specified alarm. &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/alarm/{alarmId}/comment&quot;)
+&nbsp;    public PageData&lt;AlarmCommentInfo&gt; getAlarmComments(
+&nbsp;            @Parameter(description = ALARM_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(ALARM_ID) String strAlarmId,
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;id&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder
+&nbsp;    ) throws Exception {
+<b class="nc">&nbsp;        checkParameter(ALARM_ID, strAlarmId);</b>
+<b class="nc">&nbsp;        AlarmId alarmId = new AlarmId(toUUID(strAlarmId));</b>
+<b class="nc">&nbsp;        Alarm alarm = checkAlarmId(alarmId, Operation.READ);</b>
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, null, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        return checkNotNull(alarmCommentService.findAlarmComments(alarm.getTenantId(), alarmId, pageLink));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

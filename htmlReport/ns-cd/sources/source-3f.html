@@ -1,0 +1,386 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WidgetsBundleController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: WidgetsBundleController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WidgetsBundleController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.ResponseStatus;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.WidgetTypeId;
+&nbsp;import org.thingsboard.server.common.data.id.WidgetsBundleId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.security.Authority;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetsBundle;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetsBundleFilter;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.resource.ImageService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.widgets.bundle.TbWidgetsBundleService;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.INLINE_IMAGES_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.WIDGET_BUNDLE_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.WIDGET_BUNDLE_TEXT_SEARCH_DESCRIPTION;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class WidgetsBundleController extends BaseController {
+&nbsp;
+&nbsp;    private final TbWidgetsBundleService tbWidgetsBundleService;
+&nbsp;    private final ImageService imageService;
+&nbsp;
+&nbsp;    private static final String WIDGET_BUNDLE_DESCRIPTION = &quot;Widget Bundle represents a group(bundle) of widgets. Widgets are grouped into bundle by type or use case. &quot;;
+&nbsp;    private static final String FULL_SEARCH_PARAM_DESCRIPTION = &quot;Optional boolean parameter indicating extended search of widget bundles by description and by name / description of related widget types&quot;;
+&nbsp;    private static final String SCADA_FIRST_PARAM_DESCRIPTION = &quot;Optional boolean parameter indicating whether to fetch widgets bundles with SCADA symbols first. Works only when fullSearch parameter is enabled&quot;;
+&nbsp;    private static final String TENANT_BUNDLES_ONLY_DESCRIPTION = &quot;Optional boolean parameter to include only tenant-level bundles without system&quot;;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Bundle (getWidgetsBundleById)&quot;,
+&nbsp;            notes = &quot;Get the Widget Bundle based on the provided Widget Bundle Id. &quot; + WIDGET_BUNDLE_DESCRIPTION + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetsBundle/{widgetsBundleId}&quot;)
+&nbsp;    public WidgetsBundle getWidgetsBundleById(
+&nbsp;            @Parameter(description = WIDGET_BUNDLE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;widgetsBundleId&quot;) String strWidgetsBundleId,
+&nbsp;            @Parameter(description = INLINE_IMAGES_DESCRIPTION)
+&nbsp;            @RequestParam(value = INLINE_IMAGES, required = false) boolean inlineImages) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;widgetsBundleId&quot;, strWidgetsBundleId);</b>
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        var result = checkWidgetsBundleId(widgetsBundleId, Operation.READ);</b>
+<b class="nc">&nbsp;        if (inlineImages) {</b>
+<b class="nc">&nbsp;            result = imageService.inlineImage(result);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Or Update Widget Bundle (saveWidgetsBundle)&quot;,
+&nbsp;            notes = &quot;Create or update the Widget Bundle. &quot; + WIDGET_BUNDLE_DESCRIPTION + &quot; &quot; +
+&nbsp;                    &quot;When creating the bundle, platform generates Widget Bundle Id as &quot; + UUID_WIKI_LINK +
+&nbsp;                    &quot;The newly created Widget Bundle Id will be present in the response. &quot; +
+&nbsp;                    &quot;Specify existing Widget Bundle id to update the Widget Bundle. &quot; +
+&nbsp;                    &quot;Referencing non-existing Widget Bundle Id will cause &#39;Not Found&#39; error.&quot; +
+&nbsp;                    &quot;\n\nWidget Bundle alias is unique in the scope of tenant. &quot; +
+&nbsp;                    &quot;Special Tenant Id &#39;13814000-1dd2-11b2-8080-808080808080&#39; is automatically used if the create bundle request is sent by user with &#39;SYS_ADMIN&#39; authority.&quot; +
+&nbsp;                    &quot;Remove &#39;id&#39;, &#39;tenantId&#39; from the request body example (below) to create new Widgets Bundle entity.&quot; +
+&nbsp;                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/widgetsBundle&quot;)
+&nbsp;    public WidgetsBundle saveWidgetsBundle(
+&nbsp;            @Parameter(description = &quot;A JSON value representing the Widget Bundle.&quot;, required = true)
+&nbsp;            @RequestBody WidgetsBundle widgetsBundle) throws Exception {
+<b class="nc">&nbsp;        var currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        if (Authority.SYS_ADMIN.equals(currentUser.getAuthority())) {</b>
+<b class="nc">&nbsp;            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            widgetsBundle.setTenantId(currentUser.getTenantId());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        checkEntity(widgetsBundle.getId(), widgetsBundle, Resource.WIDGETS_BUNDLE);</b>
+&nbsp;
+<b class="nc">&nbsp;        return tbWidgetsBundleService.save(widgetsBundle, currentUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Update widgets bundle widgets types list (updateWidgetsBundleWidgetTypes)&quot;,
+&nbsp;            notes = &quot;Updates widgets bundle widgets list.&quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/widgetsBundle/{widgetsBundleId}/widgetTypes&quot;)
+&nbsp;    @ResponseStatus(value = HttpStatus.OK)
+&nbsp;    public void updateWidgetsBundleWidgetTypes(
+&nbsp;            @Parameter(description = WIDGET_BUNDLE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;widgetsBundleId&quot;) String strWidgetsBundleId,
+&nbsp;            @Parameter(description = &quot;Ordered list of widget type Ids to be included by widgets bundle&quot;)
+&nbsp;            @RequestBody List&lt;String&gt; strWidgetTypeIds) throws Exception {
+<b class="nc">&nbsp;        checkParameter(&quot;widgetsBundleId&quot;, strWidgetsBundleId);</b>
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        checkNotNull(strWidgetTypeIds);</b>
+<b class="nc">&nbsp;        Set&lt;WidgetTypeId&gt; widgetTypeIds = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        var currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = currentUser.getTenantId();</b>
+<b class="nc">&nbsp;        for (String strWidgetTypeId : strWidgetTypeIds) {</b>
+<b class="nc">&nbsp;            WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));</b>
+<b class="nc">&nbsp;            if (!widgetTypeIds.contains(widgetTypeId) &amp;&amp;</b>
+<b class="nc">&nbsp;                    widgetTypeService.widgetTypeExistsByTenantIdAndWidgetTypeId(tenantId, widgetTypeId)) {</b>
+<b class="nc">&nbsp;                widgetTypeIds.add(widgetTypeId);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        tbWidgetsBundleService.updateWidgetsBundleWidgetTypes(widgetsBundleId, new ArrayList&lt;&gt;(widgetTypeIds), currentUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Update widgets bundle widgets list from widget type FQNs list (updateWidgetsBundleWidgetFqns)&quot;,
+&nbsp;            notes = &quot;Updates widgets bundle widgets list from widget type FQNs list.&quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @PostMapping(value = &quot;/widgetsBundle/{widgetsBundleId}/widgetTypeFqns&quot;)
+&nbsp;    @ResponseStatus(value = HttpStatus.OK)
+&nbsp;    public void updateWidgetsBundleWidgetFqns(
+&nbsp;            @Parameter(description = WIDGET_BUNDLE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;widgetsBundleId&quot;) String strWidgetsBundleId,
+&nbsp;            @Parameter(description = &quot;Ordered list of widget type FQNs to be included by widgets bundle&quot;)
+&nbsp;            @RequestBody List&lt;String&gt; widgetTypeFqns) throws Exception {
+<b class="nc">&nbsp;        checkParameter(&quot;widgetsBundleId&quot;, strWidgetsBundleId);</b>
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        checkNotNull(widgetTypeFqns);</b>
+<b class="nc">&nbsp;        var currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        tbWidgetsBundleService.updateWidgetsBundleWidgetFqns(widgetsBundleId, widgetTypeFqns, currentUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete widgets bundle (deleteWidgetsBundle)&quot;,
+&nbsp;            notes = &quot;Deletes the widget bundle. Referencing non-existing Widget Bundle Id will cause an error.&quot; + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/widgetsBundle/{widgetsBundleId}&quot;)
+&nbsp;    @ResponseStatus(value = HttpStatus.OK)
+&nbsp;    public void deleteWidgetsBundle(
+&nbsp;            @Parameter(description = WIDGET_BUNDLE_ID_PARAM_DESCRIPTION, required = true)
+&nbsp;            @PathVariable(&quot;widgetsBundleId&quot;) String strWidgetsBundleId) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;widgetsBundleId&quot;, strWidgetsBundleId);</b>
+<b class="nc">&nbsp;        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));</b>
+<b class="nc">&nbsp;        WidgetsBundle widgetsBundle = checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);</b>
+<b class="nc">&nbsp;        tbWidgetsBundleService.delete(widgetsBundle, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widget Bundles (getWidgetsBundles)&quot;,
+&nbsp;            notes = &quot;Returns a page of Widget Bundle objects available for current user. &quot; + WIDGET_BUNDLE_DESCRIPTION + &quot; &quot; +
+&nbsp;                    PAGE_DATA_PARAMETERS + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetsBundles&quot;, params = {&quot;pageSize&quot;, &quot;page&quot;})
+&nbsp;    public PageData&lt;WidgetsBundle&gt; getWidgetsBundles(
+&nbsp;            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int pageSize,
+&nbsp;            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+&nbsp;            @RequestParam int page,
+&nbsp;            @Parameter(description = WIDGET_BUNDLE_TEXT_SEARCH_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) String textSearch,
+&nbsp;            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {&quot;createdTime&quot;, &quot;title&quot;, &quot;tenantId&quot;}))
+&nbsp;            @RequestParam(required = false) String sortProperty,
+&nbsp;            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {&quot;ASC&quot;, &quot;DESC&quot;}))
+&nbsp;            @RequestParam(required = false) String sortOrder,
+&nbsp;            @Parameter(description = TENANT_BUNDLES_ONLY_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean tenantOnly,
+&nbsp;            @Parameter(description = FULL_SEARCH_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean fullSearch,
+&nbsp;            @Parameter(description = SCADA_FIRST_PARAM_DESCRIPTION)
+&nbsp;            @RequestParam(required = false) Boolean scadaFirst) throws ThingsboardException {
+<b class="nc">&nbsp;        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        WidgetsBundleFilter widgetsBundleFilter = WidgetsBundleFilter.builder()</b>
+<b class="nc">&nbsp;                .tenantId(getTenantId())</b>
+<b class="nc">&nbsp;                .fullSearch(fullSearch != null &amp;&amp; fullSearch)</b>
+<b class="nc">&nbsp;                .scadaFirst(scadaFirst != null &amp;&amp; scadaFirst)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {</b>
+<b class="nc">&nbsp;            return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByPageLink(widgetsBundleFilter, pageLink));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (tenantOnly != null &amp;&amp; tenantOnly) {</b>
+<b class="nc">&nbsp;                return checkNotNull(widgetsBundleService.findTenantWidgetsBundlesByTenantIdAndPageLink(widgetsBundleFilter, pageLink));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantIdAndPageLink(widgetsBundleFilter, pageLink));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get all Widget Bundles (getWidgetsBundles)&quot;,
+&nbsp;            notes = &quot;Returns an array of Widget Bundle objects that are available for current user.&quot; + WIDGET_BUNDLE_DESCRIPTION + &quot; &quot; + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetsBundles&quot;)
+&nbsp;    public List&lt;WidgetsBundle&gt; getWidgetsBundles() throws ThingsboardException {
+<b class="nc">&nbsp;        if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {</b>
+<b class="nc">&nbsp;            return checkNotNull(widgetsBundleService.findSystemWidgetsBundles(getTenantId()));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            TenantId tenantId = getCurrentUser().getTenantId();</b>
+<b class="nc">&nbsp;            return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(tenantId));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Widgets Bundles By Ids (getWidgetsBundlesByIds)&quot;,
+&nbsp;            notes = &quot;Requested widgets bundles must be system level or owned by tenant of the user which is performing the request. &quot; +
+&nbsp;                    NEW_LINE)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/widgetsBundles&quot;, params = {&quot;widgetsBundleIds&quot;})
+&nbsp;    public List&lt;WidgetsBundle&gt; getWidgetsBundlesByIds(
+&nbsp;            @Parameter(description = &quot;A list of widgets bundle ids, separated by comma &#39;,&#39;&quot;, array = @ArraySchema(schema = @Schema(type = &quot;string&quot;)), required = true)
+&nbsp;            @RequestParam(&quot;widgetsBundleIds&quot;) Set&lt;UUID&gt; widgetsBundleUUIDs) throws ThingsboardException {
+<b class="nc">&nbsp;        List&lt;WidgetsBundleId&gt; widgetsBundleIds = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (UUID widgetsBundleUUID : widgetsBundleUUIDs) {</b>
+<b class="nc">&nbsp;            widgetsBundleIds.add(new WidgetsBundleId(widgetsBundleUUID));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return widgetsBundleService.findSystemOrTenantWidgetsBundlesByIds(getTenantId(), widgetsBundleIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

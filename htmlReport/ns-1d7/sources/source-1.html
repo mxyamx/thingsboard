@@ -1,0 +1,315 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultExportableEntitiesService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.sync.ie.exporting</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultExportableEntitiesService (org.thingsboard.server.service.sync.ie.exporting)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultExportableEntitiesService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/55)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.sync.ie.exporting;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.ExportableEntity;
+&nbsp;import org.thingsboard.server.common.data.HasTenantId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.dao.Dao;
+&nbsp;import org.thingsboard.server.dao.ExportableEntityDao;
+&nbsp;import org.thingsboard.server.dao.entity.EntityDaoService;
+&nbsp;import org.thingsboard.server.dao.entity.EntityServiceRegistry;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.permission.AccessControlService;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultExportableEntitiesService implements ExportableEntitiesService {
+&nbsp;
+&nbsp;    private final Map&lt;EntityType, Dao&lt;?&gt;&gt; daos = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private final EntityServiceRegistry entityServiceRegistry;
+&nbsp;    private final AccessControlService accessControlService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends ExportableEntity&lt;I&gt;, I extends EntityId&gt; E findEntityByTenantIdAndExternalId(TenantId tenantId, I externalId) {
+<b class="nc">&nbsp;        EntityType entityType = externalId.getEntityType();</b>
+<b class="nc">&nbsp;        Dao&lt;E&gt; dao = getDao(entityType);</b>
+&nbsp;
+<b class="nc">&nbsp;        E entity = null;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (dao instanceof ExportableEntityDao) {</b>
+<b class="nc">&nbsp;            ExportableEntityDao&lt;I, E&gt; exportableEntityDao = (ExportableEntityDao&lt;I, E&gt;) dao;</b>
+<b class="nc">&nbsp;            entity = exportableEntityDao.findByTenantIdAndExternalId(tenantId.getId(), externalId.getId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (entity == null || !belongsToTenant(entity, tenantId)) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return entity;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends HasId&lt;I&gt;, I extends EntityId&gt; E findEntityByTenantIdAndId(TenantId tenantId, I id) {
+<b class="nc">&nbsp;        E entity = findEntityById(id);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (entity == null || !belongsToTenant(entity, tenantId)) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return entity;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends HasId&lt;I&gt;, I extends EntityId&gt; E findEntityById(I id) {
+<b class="nc">&nbsp;        EntityType entityType = id.getEntityType();</b>
+<b class="nc">&nbsp;        Dao&lt;E&gt; dao = getDao(entityType);</b>
+<b class="nc">&nbsp;        if (dao == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Unsupported entity type &quot; + entityType);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return dao.findById(TenantId.SYS_TENANT_ID, id.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends ExportableEntity&lt;I&gt;, I extends EntityId&gt; E findEntityByTenantIdAndName(TenantId tenantId, EntityType entityType, String name) {
+<b class="nc">&nbsp;        Dao&lt;E&gt; dao = getDao(entityType);</b>
+&nbsp;
+<b class="nc">&nbsp;        E entity = null;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (dao instanceof ExportableEntityDao) {</b>
+<b class="nc">&nbsp;            ExportableEntityDao&lt;I, E&gt; exportableEntityDao = (ExportableEntityDao&lt;I, E&gt;) dao;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                entity = exportableEntityDao.findByTenantIdAndName(tenantId.getId(), name);</b>
+&nbsp;            } catch (UnsupportedOperationException ignored) {
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (entity == null || !belongsToTenant(entity, tenantId)) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return entity;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends ExportableEntity&lt;I&gt;, I extends EntityId&gt; E findDefaultEntityByTenantId(TenantId tenantId, EntityType entityType) {
+<b class="nc">&nbsp;        ExportableEntityDao&lt;I, E&gt; dao = getExportableEntityDao(entityType);</b>
+<b class="nc">&nbsp;        if (dao == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return dao.findDefaultEntityByTenantId(tenantId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;E extends ExportableEntity&lt;I&gt;, I extends EntityId&gt; PageData&lt;E&gt; findEntitiesByTenantId(TenantId tenantId, EntityType entityType, PageLink pageLink) {
+<b class="nc">&nbsp;        ExportableEntityDao&lt;I, E&gt; dao = getExportableEntityDao(entityType);</b>
+<b class="nc">&nbsp;        if (dao == null) {</b>
+<b class="nc">&nbsp;            return PageData.emptyPageData();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return dao.findByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;I extends EntityId&gt; PageData&lt;I&gt; findEntitiesIdsByTenantId(TenantId tenantId, EntityType entityType, PageLink pageLink) {
+<b class="nc">&nbsp;        ExportableEntityDao&lt;I, ?&gt; dao = getExportableEntityDao(entityType);</b>
+<b class="nc">&nbsp;        if (dao == null) {</b>
+<b class="nc">&nbsp;            return PageData.emptyPageData();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return dao.findIdsByTenantId(tenantId.getId(), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;I extends EntityId&gt; I getExternalIdByInternal(I internalId) {
+<b class="nc">&nbsp;        ExportableEntityDao&lt;I, ?&gt; dao = getExportableEntityDao(internalId.getEntityType());</b>
+<b class="nc">&nbsp;        if (dao == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return dao.getExternalIdByInternal(internalId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean belongsToTenant(HasId&lt;? extends EntityId&gt; entity, TenantId tenantId) {
+<b class="nc">&nbsp;        return tenantId.equals(((HasTenantId) entity).getTenantId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public &lt;I extends EntityId&gt; void removeById(TenantId tenantId, I id) {
+<b class="nc">&nbsp;        EntityType entityType = id.getEntityType();</b>
+<b class="nc">&nbsp;        EntityDaoService entityService = entityServiceRegistry.getServiceByEntityType(entityType);</b>
+<b class="nc">&nbsp;        entityService.deleteEntity(tenantId, id, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;I extends EntityId, E extends ExportableEntity&lt;I&gt;&gt; ExportableEntityDao&lt;I, E&gt; getExportableEntityDao(EntityType entityType) {
+<b class="nc">&nbsp;        Dao&lt;E&gt; dao = getDao(entityType);</b>
+<b class="nc">&nbsp;        if (dao instanceof ExportableEntityDao) {</b>
+<b class="nc">&nbsp;            return (ExportableEntityDao&lt;I, E&gt;) dao;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    private &lt;E&gt; Dao&lt;E&gt; getDao(EntityType entityType) {
+<b class="nc">&nbsp;        return (Dao&lt;E&gt;) daos.get(entityType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private void setDaos(Collection&lt;Dao&lt;?&gt;&gt; daos) {
+<b class="nc">&nbsp;        daos.forEach(dao -&gt; {</b>
+<b class="nc">&nbsp;            if (dao.getEntityType() != null) {</b>
+<b class="nc">&nbsp;                this.daos.put(dao.getEntityType(), dao);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

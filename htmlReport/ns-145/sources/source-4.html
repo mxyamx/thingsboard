@@ -1,0 +1,956 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HashPartitionService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.discovery</a>
+</div>
+
+<h1>Coverage Summary for Class: HashPartitionService (org.thingsboard.server.queue.discovery)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HashPartitionService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/65)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/167)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/348)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">HashPartitionService$QueueConfig</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/66)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/167)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/350)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.discovery;
+&nbsp;
+&nbsp;import com.google.common.hash.HashFunction;
+&nbsp;import com.google.common.hash.Hashing;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.jetbrains.annotations.NotNull;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.exception.TenantNotFoundException;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantProfileId;
+&nbsp;import org.thingsboard.server.common.data.job.JobType;
+&nbsp;import org.thingsboard.server.common.data.util.CollectionsUtil;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
+&nbsp;import org.thingsboard.server.queue.discovery.event.ClusterTopologyChangeEvent;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.queue.util.PropertyUtils;
+&nbsp;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.EnumMap;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.DataConstants.CF_QUEUE_NAME;
+&nbsp;import static org.thingsboard.server.common.data.DataConstants.CF_STATES_QUEUE_NAME;
+&nbsp;import static org.thingsboard.server.common.data.DataConstants.EDGE_QUEUE_NAME;
+&nbsp;import static org.thingsboard.server.common.data.DataConstants.MAIN_QUEUE_NAME;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class HashPartitionService implements PartitionService {
+&nbsp;
+&nbsp;    @Value(&quot;${queue.core.topic:tb_core}&quot;)
+&nbsp;    private String coreTopic;
+&nbsp;    @Value(&quot;${queue.core.partitions:10}&quot;)
+&nbsp;    private Integer corePartitions;
+&nbsp;    @Value(&quot;${queue.calculated_fields.event_topic:tb_cf_event}&quot;)
+&nbsp;    private String cfEventTopic;
+&nbsp;    @Value(&quot;${queue.calculated_fields.state_topic:tb_cf_state}&quot;)
+&nbsp;    private String cfStateTopic;
+&nbsp;    @Value(&quot;${queue.vc.topic:tb_version_control}&quot;)
+&nbsp;    private String vcTopic;
+&nbsp;    @Value(&quot;${queue.vc.partitions:10}&quot;)
+&nbsp;    private Integer vcPartitions;
+&nbsp;    @Value(&quot;${queue.edge.topic:tb_edge}&quot;)
+&nbsp;    private String edgeTopic;
+&nbsp;    @Value(&quot;${queue.edge.partitions:10}&quot;)
+&nbsp;    private Integer edgePartitions;
+&nbsp;    @Value(&quot;${queue.edqs.partitions:12}&quot;)
+&nbsp;    private Integer edqsPartitions;
+&nbsp;    @Value(&quot;${queue.tasks.partitions:12}&quot;)
+&nbsp;    private Integer defaultTasksPartitions;
+&nbsp;    @Value(&quot;${queue.tasks.partitions_per_type:}&quot;)
+&nbsp;    private String tasksPartitionsPerType;
+&nbsp;    @Value(&quot;${queue.partitions.hash_function_name:murmur3_128}&quot;)
+&nbsp;    private String hashFunctionName;
+&nbsp;
+&nbsp;    private final ApplicationEventPublisher applicationEventPublisher;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final Optional&lt;TenantRoutingInfoService&gt; tenantRoutingInfoService;
+&nbsp;    private final Optional&lt;QueueRoutingInfoService&gt; queueRoutingInfoService;
+&nbsp;    private final TopicService topicService;
+&nbsp;
+&nbsp;    protected volatile ConcurrentMap&lt;QueueKey, List&lt;Integer&gt;&gt; myPartitions = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;QueueKey, String&gt; partitionTopicsMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;QueueKey, Integer&gt; partitionSizesMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;    private final ConcurrentMap&lt;QueueKey, QueueConfig&gt; queueConfigs = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private final ConcurrentMap&lt;TenantId, TenantRoutingInfo&gt; tenantRoutingInfoMap = new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    private List&lt;ServiceInfo&gt; currentOtherServices;
+&nbsp;    private final Map&lt;String, List&lt;ServiceInfo&gt;&gt; tbTransportServicesByType = new HashMap&lt;&gt;();
+&nbsp;    private volatile Map&lt;TenantProfileId, List&lt;ServiceInfo&gt;&gt; responsibleServices = Collections.emptyMap();
+&nbsp;
+&nbsp;    private HashFunction hashFunction;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        this.hashFunction = forName(hashFunctionName);</b>
+&nbsp;
+<b class="nc">&nbsp;        QueueKey coreKey = new QueueKey(ServiceType.TB_CORE);</b>
+<b class="nc">&nbsp;        partitionSizesMap.put(coreKey, corePartitions);</b>
+<b class="nc">&nbsp;        partitionTopicsMap.put(coreKey, coreTopic);</b>
+&nbsp;
+<b class="nc">&nbsp;        QueueKey vcKey = new QueueKey(ServiceType.TB_VC_EXECUTOR);</b>
+<b class="nc">&nbsp;        partitionSizesMap.put(vcKey, vcPartitions);</b>
+<b class="nc">&nbsp;        partitionTopicsMap.put(vcKey, vcTopic);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!isTransport(serviceInfoProvider.getServiceType())) {</b>
+<b class="nc">&nbsp;            doInitRuleEnginePartitions();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        QueueKey edgeKey = coreKey.withQueueName(EDGE_QUEUE_NAME);</b>
+<b class="nc">&nbsp;        partitionSizesMap.put(edgeKey, edgePartitions);</b>
+<b class="nc">&nbsp;        partitionTopicsMap.put(edgeKey, edgeTopic);</b>
+&nbsp;
+<b class="nc">&nbsp;        QueueKey edqsKey = new QueueKey(ServiceType.EDQS);</b>
+<b class="nc">&nbsp;        partitionSizesMap.put(edqsKey, edqsPartitions);</b>
+<b class="nc">&nbsp;        partitionTopicsMap.put(edqsKey, &quot;edqs&quot;); // placeholder, not used</b>
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;JobType, Integer&gt; tasksPartitions = new EnumMap&lt;&gt;(JobType.class);</b>
+<b class="nc">&nbsp;        PropertyUtils.getProps(tasksPartitionsPerType).forEach((type, partitions) -&gt; {</b>
+<b class="nc">&nbsp;            tasksPartitions.put(JobType.valueOf(type), Integer.parseInt(partitions));</b>
+&nbsp;        });
+<b class="nc">&nbsp;        for (JobType type : JobType.values()) {</b>
+<b class="nc">&nbsp;            tasksPartitions.putIfAbsent(type, defaultTasksPartitions);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        tasksPartitions.forEach((type, partitions) -&gt; {</b>
+<b class="nc">&nbsp;            QueueKey queueKey = new QueueKey(ServiceType.TASK_PROCESSOR, type.name());</b>
+<b class="nc">&nbsp;            partitionSizesMap.put(queueKey, partitions);</b>
+<b class="nc">&nbsp;            partitionTopicsMap.put(queueKey, type.getTasksTopic());</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.QUEUE_INFO_INITIALIZATION)
+&nbsp;    public void partitionsInit() {
+<b class="nc">&nbsp;        if (isTransport(serviceInfoProvider.getServiceType())) {</b>
+<b class="nc">&nbsp;            doInitRuleEnginePartitions();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;Integer&gt; getMyPartitions(QueueKey queueKey) {
+<b class="nc">&nbsp;        return myPartitions.get(queueKey);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getTopic(QueueKey queueKey) {
+<b class="nc">&nbsp;        return topicService.buildTopicName(partitionTopicsMap.get(queueKey));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void doInitRuleEnginePartitions() {
+<b class="nc">&nbsp;        List&lt;QueueRoutingInfo&gt; queueRoutingInfoList = getQueueRoutingInfos();</b>
+<b class="nc">&nbsp;        queueRoutingInfoList.forEach(queue -&gt; {</b>
+<b class="nc">&nbsp;            QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queue);</b>
+<b class="nc">&nbsp;            updateQueue(queueKey, queue.getQueueTopic(), queue.getPartitions());</b>
+<b class="nc">&nbsp;            queueConfigs.put(queueKey, new QueueConfig(queue));</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;QueueRoutingInfo&gt; getQueueRoutingInfos() {
+<b class="nc">&nbsp;        if (queueRoutingInfoService.isEmpty()) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        List&lt;QueueRoutingInfo&gt; queueRoutingInfoList;
+<b class="nc">&nbsp;        String serviceType = serviceInfoProvider.getServiceType();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (isTransport(serviceType)) {</b>
+&nbsp;            //If transport started earlier than tb-core
+<b class="nc">&nbsp;            int getQueuesRetries = 10;</b>
+&nbsp;            while (true) {
+<b class="nc">&nbsp;                if (getQueuesRetries &gt; 0) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;Try to get queue routing info.&quot;);</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        queueRoutingInfoList = queueRoutingInfoService.get().getAllQueuesRoutingInfo();</b>
+&nbsp;                        break;
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        log.info(&quot;Failed to get queues routing info: {}!&quot;, e.getMessage());</b>
+<b class="nc">&nbsp;                        getQueuesRetries--;</b>
+&nbsp;                    }
+&nbsp;                    try {
+<b class="nc">&nbsp;                        Thread.sleep(10000);</b>
+&nbsp;                    } catch (InterruptedException e) {
+<b class="nc">&nbsp;                        log.info(&quot;Failed to await queues routing info!&quot;, e);</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    throw new RuntimeException(&quot;Failed to await queues routing info!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            queueRoutingInfoList = queueRoutingInfoService.get().getAllQueuesRoutingInfo();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return queueRoutingInfoList;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isTransport(String serviceType) {
+<b class="nc">&nbsp;        return &quot;tb-transport&quot;.equals(serviceType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateQueues(List&lt;TransportProtos.QueueUpdateMsg&gt; queueUpdateMsgs) {
+<b class="nc">&nbsp;        for (TransportProtos.QueueUpdateMsg queueUpdateMsg : queueUpdateMsgs) {</b>
+<b class="nc">&nbsp;            QueueRoutingInfo queueRoutingInfo = new QueueRoutingInfo(queueUpdateMsg);</b>
+<b class="nc">&nbsp;            TenantId tenantId = queueRoutingInfo.getTenantId();</b>
+<b class="nc">&nbsp;            QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queueRoutingInfo.getQueueName(), tenantId);</b>
+<b class="nc">&nbsp;            updateQueue(queueKey, queueRoutingInfo.getQueueTopic(), queueRoutingInfo.getPartitions());</b>
+<b class="nc">&nbsp;            queueConfigs.put(queueKey, new QueueConfig(queueRoutingInfo));</b>
+<b class="nc">&nbsp;            if (!tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;                tenantRoutingInfoMap.remove(tenantId);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void removeQueues(List&lt;TransportProtos.QueueDeleteMsg&gt; queueDeleteMsgs) {
+<b class="nc">&nbsp;        List&lt;QueueKey&gt; queueKeys = queueDeleteMsgs.stream()</b>
+<b class="nc">&nbsp;                .flatMap(queueDeleteMsg -&gt; {</b>
+<b class="nc">&nbsp;                    TenantId tenantId = TenantId.fromUUID(new UUID(queueDeleteMsg.getTenantIdMSB(), queueDeleteMsg.getTenantIdLSB()));</b>
+<b class="nc">&nbsp;                    QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queueDeleteMsg.getQueueName(), tenantId);</b>
+<b class="nc">&nbsp;                    if (queueKey.getQueueName().equals(MAIN_QUEUE_NAME)) {</b>
+<b class="nc">&nbsp;                        return Stream.of(queueKey, queueKey.withQueueName(CF_QUEUE_NAME),</b>
+<b class="nc">&nbsp;                                queueKey.withQueueName(CF_STATES_QUEUE_NAME));</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        return Stream.of(queueKey);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }).toList();</b>
+<b class="nc">&nbsp;        queueKeys.forEach(queueKey -&gt; {</b>
+<b class="nc">&nbsp;            removeQueue(queueKey);</b>
+<b class="nc">&nbsp;            evictTenantInfo(queueKey.getTenantId());</b>
+&nbsp;        });
+<b class="nc">&nbsp;        if (serviceInfoProvider.isService(ServiceType.TB_RULE_ENGINE)) {</b>
+<b class="nc">&nbsp;            publishPartitionChangeEvent(ServiceType.TB_RULE_ENGINE, queueKeys.stream()</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toMap(k -&gt; k, k -&gt; Collections.emptySet())), Collections.emptyMap());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void removeTenant(TenantId tenantId) {
+<b class="nc">&nbsp;        List&lt;QueueKey&gt; queueKeys = partitionSizesMap.keySet().stream()</b>
+<b class="nc">&nbsp;                .filter(queueKey -&gt; tenantId.equals(queueKey.getTenantId()))</b>
+<b class="nc">&nbsp;                .flatMap(queueKey -&gt; {</b>
+<b class="nc">&nbsp;                    if (queueKey.getQueueName().equals(MAIN_QUEUE_NAME)) {</b>
+<b class="nc">&nbsp;                        return Stream.of(queueKey, queueKey.withQueueName(CF_QUEUE_NAME),</b>
+<b class="nc">&nbsp;                                queueKey.withQueueName(CF_STATES_QUEUE_NAME));</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        return Stream.of(queueKey);</b>
+&nbsp;                    }
+&nbsp;                })
+<b class="nc">&nbsp;                .toList();</b>
+<b class="nc">&nbsp;        queueKeys.forEach(this::removeQueue);</b>
+<b class="nc">&nbsp;        evictTenantInfo(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateQueue(QueueKey queueKey, String topic, int partitions) {
+<b class="nc">&nbsp;        partitionTopicsMap.put(queueKey, topic);</b>
+<b class="nc">&nbsp;        partitionSizesMap.put(queueKey, partitions);</b>
+<b class="nc">&nbsp;        if (DataConstants.MAIN_QUEUE_NAME.equals(queueKey.getQueueName())) {</b>
+<b class="nc">&nbsp;            QueueKey cfQueueKey = queueKey.withQueueName(DataConstants.CF_QUEUE_NAME);</b>
+<b class="nc">&nbsp;            partitionTopicsMap.put(cfQueueKey, cfEventTopic);</b>
+<b class="nc">&nbsp;            partitionSizesMap.put(cfQueueKey, partitions);</b>
+<b class="nc">&nbsp;            QueueKey cfStatesQueueKey = queueKey.withQueueName(DataConstants.CF_STATES_QUEUE_NAME);</b>
+<b class="nc">&nbsp;            partitionTopicsMap.put(cfStatesQueueKey, cfStateTopic);</b>
+<b class="nc">&nbsp;            partitionSizesMap.put(cfStatesQueueKey, partitions);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeQueue(QueueKey queueKey) {
+<b class="nc">&nbsp;        myPartitions.remove(queueKey);</b>
+<b class="nc">&nbsp;        partitionTopicsMap.remove(queueKey);</b>
+<b class="nc">&nbsp;        partitionSizesMap.remove(queueKey);</b>
+<b class="nc">&nbsp;        queueConfigs.remove(queueKey);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isManagedByCurrentService(TenantId tenantId) {
+<b class="nc">&nbsp;        if (serviceInfoProvider.isService(ServiceType.TB_CORE) || !serviceInfoProvider.isService(ServiceType.TB_RULE_ENGINE)) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        boolean isManaged;
+<b class="nc">&nbsp;        Set&lt;UUID&gt; assignedTenantProfiles = serviceInfoProvider.getAssignedTenantProfiles();</b>
+<b class="nc">&nbsp;        boolean isRegular = assignedTenantProfiles.isEmpty();</b>
+<b class="nc">&nbsp;        if (tenantId.isSysTenantId()) {</b>
+&nbsp;            // All system queues are always processed on regular rule engines.
+<b class="nc">&nbsp;            return isRegular;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        TenantRoutingInfo routingInfo = getRoutingInfo(tenantId);</b>
+<b class="nc">&nbsp;        if (isRegular) {</b>
+<b class="nc">&nbsp;            if (routingInfo.isIsolated()) {</b>
+<b class="nc">&nbsp;                isManaged = hasDedicatedService(routingInfo.getProfileId());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                isManaged = true;</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (routingInfo.isIsolated()) {</b>
+<b class="nc">&nbsp;                isManaged = assignedTenantProfiles.contains(routingInfo.getProfileId().getId());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                isManaged = false;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Tenant {} managed by this service&quot;, tenantId, isManaged ? &quot;is&quot; : &quot;is not&quot;);</b>
+<b class="nc">&nbsp;        return isManaged;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean hasDedicatedService(TenantProfileId profileId) {
+<b class="nc">&nbsp;        return CollectionsUtil.isEmpty(responsibleServices.get(profileId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TopicPartitionInfo resolve(ServiceType serviceType, String queueName, TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        QueueKey queueKey = getQueueKey(serviceType, queueName, tenantId);</b>
+<b class="nc">&nbsp;        return resolve(queueKey, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TopicPartitionInfo resolve(ServiceType serviceType, String queueName, TenantId tenantId, EntityId entityId, Integer partition) {
+<b class="nc">&nbsp;        QueueKey queueKey = getQueueKey(serviceType, queueName, tenantId);</b>
+<b class="nc">&nbsp;        if (partition != null) {</b>
+<b class="nc">&nbsp;            return buildTopicPartitionInfo(queueKey, partition);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return resolve(queueKey, entityId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TopicPartitionInfo resolve(ServiceType serviceType, TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return resolve(serviceType, null, tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TopicPartitionInfo&gt; resolveAll(ServiceType serviceType, String queueName, TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        QueueKey queueKey = getQueueKey(serviceType, queueName, tenantId);</b>
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = resolve(queueKey, entityId);</b>
+<b class="nc">&nbsp;        if (serviceType != ServiceType.TB_RULE_ENGINE || tpi.getPartition().isEmpty()) {</b>
+<b class="nc">&nbsp;            return List.of(tpi);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        QueueConfig queueConfig = queueConfigs.get(queueKey);</b>
+<b class="nc">&nbsp;        if (queueConfig != null &amp;&amp; queueConfig.isDuplicateMsgToAllPartitions()) {</b>
+<b class="nc">&nbsp;            int partition = tpi.getPartition().get();</b>
+<b class="nc">&nbsp;            Integer partitionsCount = partitionSizesMap.get(queueKey);</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;TopicPartitionInfo&gt; partitions = new ArrayList&lt;&gt;(partitionsCount);</b>
+<b class="nc">&nbsp;            partitions.add(tpi);</b>
+<b class="nc">&nbsp;            for (int i = 0; i &lt; partitionsCount; i++) {</b>
+<b class="nc">&nbsp;                if (i != partition) {</b>
+<b class="nc">&nbsp;                    partitions.add(buildTopicPartitionInfo(queueKey, i, false));</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return partitions;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Collections.singletonList(tpi);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private TopicPartitionInfo resolve(QueueKey queueKey, EntityId entityId) {
+<b class="nc">&nbsp;        Integer partitionSize = partitionSizesMap.get(queueKey);</b>
+<b class="nc">&nbsp;        if (partitionSize == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalStateException(&quot;Partitions info for queue &quot; + queueKey + &quot; is missing&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        int hash = hash(entityId.getId());</b>
+<b class="nc">&nbsp;        int partition = Math.abs(hash % partitionSize);</b>
+&nbsp;
+<b class="nc">&nbsp;        return buildTopicPartitionInfo(queueKey, partition);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private QueueKey getQueueKey(ServiceType serviceType, String queueName, TenantId tenantId) {
+<b class="nc">&nbsp;        TenantId isolatedOrSystemTenantId = getIsolatedOrSystemTenantId(serviceType, tenantId);</b>
+<b class="nc">&nbsp;        if (queueName == null || queueName.isEmpty()) {</b>
+<b class="nc">&nbsp;            queueName = MAIN_QUEUE_NAME;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        QueueKey queueKey = new QueueKey(serviceType, queueName, isolatedOrSystemTenantId);</b>
+<b class="nc">&nbsp;        if (!partitionSizesMap.containsKey(queueKey)) {</b>
+<b class="nc">&nbsp;            if (isolatedOrSystemTenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;                queueKey = new QueueKey(serviceType, TenantId.SYS_TENANT_ID);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                queueKey = new QueueKey(serviceType, queueName, TenantId.SYS_TENANT_ID);</b>
+<b class="nc">&nbsp;                if (!MAIN_QUEUE_NAME.equals(queueName) &amp;&amp; !partitionSizesMap.containsKey(queueKey)) {</b>
+<b class="nc">&nbsp;                    queueKey = new QueueKey(serviceType, TenantId.SYS_TENANT_ID);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                log.warn(&quot;Using queue {} instead of isolated {} for tenant {}&quot;, queueKey, queueName, isolatedOrSystemTenantId);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return queueKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isMyPartition(ServiceType serviceType, TenantId tenantId, EntityId entityId) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return resolve(serviceType, tenantId, entityId).isMyPartition();</b>
+&nbsp;        } catch (TenantNotFoundException e) {
+<b class="nc">&nbsp;            log.warn(&quot;Tenant with id {} not found&quot;, tenantId, new RuntimeException(&quot;stacktrace&quot;));</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isSystemPartitionMine(ServiceType serviceType) {
+<b class="nc">&nbsp;        return isMyPartition(serviceType, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public synchronized void recalculatePartitions(ServiceInfo currentService, List&lt;ServiceInfo&gt; otherServices) {
+<b class="nc">&nbsp;        log.info(&quot;Recalculating partitions&quot;);</b>
+<b class="nc">&nbsp;        tbTransportServicesByType.clear();</b>
+<b class="nc">&nbsp;        logServiceInfo(currentService);</b>
+<b class="nc">&nbsp;        otherServices.forEach(this::logServiceInfo);</b>
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;QueueKey, List&lt;ServiceInfo&gt;&gt; queueServicesMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        Map&lt;TenantProfileId, List&lt;ServiceInfo&gt;&gt; responsibleServices = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        addNode(currentService, queueServicesMap, responsibleServices);</b>
+<b class="nc">&nbsp;        for (ServiceInfo other : otherServices) {</b>
+<b class="nc">&nbsp;            addNode(other, queueServicesMap, responsibleServices);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        queueServicesMap.values().forEach(list -&gt; list.sort(Comparator.comparing(ServiceInfo::getServiceId)));</b>
+<b class="nc">&nbsp;        responsibleServices.values().forEach(list -&gt; list.sort(Comparator.comparing(ServiceInfo::getServiceId)));</b>
+&nbsp;
+<b class="nc">&nbsp;        final ConcurrentMap&lt;QueueKey, List&lt;Integer&gt;&gt; newPartitions = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        partitionSizesMap.forEach((queueKey, size) -&gt; {</b>
+<b class="nc">&nbsp;            for (int i = 0; i &lt; size; i++) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    List&lt;ServiceInfo&gt; services = resolveByPartitionIdx(queueServicesMap.get(queueKey), queueKey, i, responsibleServices);</b>
+<b class="nc">&nbsp;                    log.trace(&quot;Server responsible for {}[{}] - {}&quot;, queueKey, i, services);</b>
+<b class="nc">&nbsp;                    if (services.contains(currentService)) {</b>
+<b class="nc">&nbsp;                        newPartitions.computeIfAbsent(queueKey, key -&gt; new ArrayList&lt;&gt;()).add(i);</b>
+&nbsp;                    }
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.warn(&quot;Failed to resolve server responsible for {}[{}]&quot;, queueKey, i, e);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        this.responsibleServices = responsibleServices;</b>
+&nbsp;
+<b class="nc">&nbsp;        final ConcurrentMap&lt;QueueKey, List&lt;Integer&gt;&gt; oldPartitions = myPartitions;</b>
+<b class="nc">&nbsp;        myPartitions = newPartitions;</b>
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;QueueKey, Set&lt;TopicPartitionInfo&gt;&gt; changedPartitionsMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        Map&lt;QueueKey, Set&lt;TopicPartitionInfo&gt;&gt; oldPartitionsMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;QueueKey&gt; removed = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        oldPartitions.forEach((queueKey, partitions) -&gt; {</b>
+<b class="nc">&nbsp;            if (!newPartitions.containsKey(queueKey)) {</b>
+<b class="nc">&nbsp;                removed.add(queueKey);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        if (serviceInfoProvider.isService(ServiceType.TB_RULE_ENGINE)) {</b>
+<b class="nc">&nbsp;            partitionSizesMap.keySet().stream()</b>
+<b class="nc">&nbsp;                    .filter(queueKey -&gt; queueKey.getType() == ServiceType.TB_RULE_ENGINE &amp;&amp;</b>
+<b class="nc">&nbsp;                                        !queueKey.getTenantId().isSysTenantId() &amp;&amp;</b>
+<b class="nc">&nbsp;                                        !newPartitions.containsKey(queueKey))</b>
+<b class="nc">&nbsp;                    .forEach(removed::add);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        removed.forEach(queueKey -&gt; {</b>
+<b class="nc">&nbsp;            changedPartitionsMap.put(queueKey, Collections.emptySet());</b>
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        myPartitions.forEach((queueKey, partitions) -&gt; {</b>
+<b class="nc">&nbsp;            if (!partitions.equals(oldPartitions.get(queueKey))) {</b>
+<b class="nc">&nbsp;                changedPartitionsMap.put(queueKey, toTpiList(queueKey, partitions));</b>
+<b class="nc">&nbsp;                oldPartitionsMap.put(queueKey, toTpiList(queueKey, oldPartitions.get(queueKey)));</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        if (!changedPartitionsMap.isEmpty()) {</b>
+<b class="nc">&nbsp;            changedPartitionsMap.entrySet().stream()</b>
+<b class="nc">&nbsp;                    .collect(Collectors.groupingBy(entry -&gt; entry.getKey().getType(), Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))</b>
+<b class="nc">&nbsp;                    .forEach((serviceType, partitionsMap) -&gt; {</b>
+<b class="nc">&nbsp;                        publishPartitionChangeEvent(serviceType, partitionsMap, oldPartitionsMap);</b>
+&nbsp;                    });
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (currentOtherServices == null) {</b>
+<b class="nc">&nbsp;            currentOtherServices = new ArrayList&lt;&gt;(otherServices);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            Set&lt;QueueKey&gt; changes = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;            Map&lt;QueueKey, List&lt;ServiceInfo&gt;&gt; currentMap = getServiceKeyListMap(currentOtherServices);</b>
+<b class="nc">&nbsp;            Map&lt;QueueKey, List&lt;ServiceInfo&gt;&gt; newMap = getServiceKeyListMap(otherServices);</b>
+<b class="nc">&nbsp;            currentOtherServices = otherServices;</b>
+<b class="nc">&nbsp;            currentMap.forEach((key, list) -&gt; {</b>
+<b class="nc">&nbsp;                if (!list.equals(newMap.get(key))) {</b>
+<b class="nc">&nbsp;                    changes.add(key);</b>
+&nbsp;                }
+&nbsp;            });
+<b class="nc">&nbsp;            currentMap.keySet().forEach(newMap::remove);</b>
+<b class="nc">&nbsp;            changes.addAll(newMap.keySet());</b>
+<b class="nc">&nbsp;            if (!changes.isEmpty()) {</b>
+<b class="nc">&nbsp;                applicationEventPublisher.publishEvent(new ClusterTopologyChangeEvent(this, changes));</b>
+<b class="nc">&nbsp;                responsibleServices.forEach((profileId, serviceInfos) -&gt; {</b>
+<b class="nc">&nbsp;                    if (profileId != null) {</b>
+<b class="nc">&nbsp;                        log.info(&quot;Servers responsible for tenant profile {}: {}&quot;, profileId, toServiceIds(serviceInfos));</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.info(&quot;Servers responsible for system queues: {}&quot;, toServiceIds(serviceInfos));</b>
+&nbsp;                    }
+&nbsp;                });
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        applicationEventPublisher.publishEvent(new ServiceListChangedEvent(otherServices, currentService));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void publishPartitionChangeEvent(ServiceType serviceType,
+&nbsp;                                             Map&lt;QueueKey, Set&lt;TopicPartitionInfo&gt;&gt; newPartitions,
+&nbsp;                                             Map&lt;QueueKey, Set&lt;TopicPartitionInfo&gt;&gt; oldPartitions) {
+<b class="nc">&nbsp;        log.info(&quot;Partitions changed: {}&quot;, System.lineSeparator() + newPartitions.entrySet().stream()</b>
+<b class="nc">&nbsp;                .map(entry -&gt; &quot;[&quot; + entry.getKey() + &quot;] - [&quot; + entry.getValue().stream()</b>
+<b class="nc">&nbsp;                        .map(tpi -&gt; tpi.getPartition().orElse(-1).toString()).sorted()</b>
+<b class="nc">&nbsp;                        .collect(Collectors.joining(&quot;, &quot;)) + &quot;]&quot;)</b>
+<b class="nc">&nbsp;                .collect(Collectors.joining(System.lineSeparator())));</b>
+<b class="nc">&nbsp;        PartitionChangeEvent event = new PartitionChangeEvent(this, serviceType, newPartitions, oldPartitions);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            applicationEventPublisher.publishEvent(event);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to publish partition change event {}&quot;, event, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;TopicPartitionInfo&gt; toTpiList(QueueKey queueKey, List&lt;Integer&gt; partitions) {
+<b class="nc">&nbsp;        if (partitions == null) {</b>
+<b class="nc">&nbsp;            return Collections.emptySet();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return partitions.stream()</b>
+<b class="nc">&nbsp;                .map(partition -&gt; buildTopicPartitionInfo(queueKey, partition))</b>
+<b class="nc">&nbsp;                .collect(Collectors.toSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;String&gt; getAllServiceIds(ServiceType serviceType) {
+<b class="nc">&nbsp;        return getAllServices(serviceType).stream().map(ServiceInfo::getServiceId).collect(Collectors.toSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;ServiceInfo&gt; getAllServices(ServiceType serviceType) {
+<b class="nc">&nbsp;        Set&lt;ServiceInfo&gt; result = getOtherServices(serviceType);</b>
+<b class="nc">&nbsp;        ServiceInfo current = serviceInfoProvider.getServiceInfo();</b>
+<b class="nc">&nbsp;        if (current.getServiceTypesList().contains(serviceType.name())) {</b>
+<b class="nc">&nbsp;            result.add(current);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;ServiceInfo&gt; getOtherServices(ServiceType serviceType) {
+<b class="nc">&nbsp;        Set&lt;ServiceInfo&gt; result = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        if (currentOtherServices != null) {</b>
+<b class="nc">&nbsp;            for (ServiceInfo serviceInfo : currentOtherServices) {</b>
+<b class="nc">&nbsp;                if (serviceInfo.getServiceTypesList().contains(serviceType.name())) {</b>
+<b class="nc">&nbsp;                    result.add(serviceInfo);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int resolvePartitionIndex(UUID entityId, int partitions) {
+<b class="nc">&nbsp;        return resolvePartitionIndex(hash(entityId), partitions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int resolvePartitionIndex(String key, int partitions) {
+<b class="nc">&nbsp;        return resolvePartitionIndex(hash(key), partitions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private int resolvePartitionIndex(int hash, int partitions) {
+<b class="nc">&nbsp;        return Math.abs(hash % partitions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void evictTenantInfo(TenantId tenantId) {
+<b class="nc">&nbsp;        tenantRoutingInfoMap.remove(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int countTransportsByType(String type) {
+<b class="nc">&nbsp;        var list = tbTransportServicesByType.get(type);</b>
+<b class="nc">&nbsp;        return list == null ? 0 : list.size();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;QueueKey, List&lt;ServiceInfo&gt;&gt; getServiceKeyListMap(List&lt;ServiceInfo&gt; services) {
+<b class="nc">&nbsp;        final Map&lt;QueueKey, List&lt;ServiceInfo&gt;&gt; currentMap = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        services.forEach(serviceInfo -&gt; {</b>
+<b class="nc">&nbsp;            for (String serviceTypeStr : serviceInfo.getServiceTypesList()) {</b>
+<b class="nc">&nbsp;                ServiceType serviceType = ServiceType.of(serviceTypeStr);</b>
+<b class="nc">&nbsp;                if (ServiceType.TB_RULE_ENGINE.equals(serviceType)) {</b>
+<b class="nc">&nbsp;                    partitionTopicsMap.keySet().forEach(queueKey -&gt;</b>
+<b class="nc">&nbsp;                            currentMap.computeIfAbsent(queueKey, key -&gt; new ArrayList&lt;&gt;()).add(serviceInfo));</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    QueueKey queueKey = new QueueKey(serviceType);</b>
+<b class="nc">&nbsp;                    currentMap.computeIfAbsent(queueKey, key -&gt; new ArrayList&lt;&gt;()).add(serviceInfo);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        return currentMap;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TopicPartitionInfo buildTopicPartitionInfo(QueueKey queueKey, int partition) {
+<b class="nc">&nbsp;        List&lt;Integer&gt; partitions = myPartitions.get(queueKey);</b>
+<b class="nc">&nbsp;        return buildTopicPartitionInfo(queueKey, partition, partitions != null &amp;&amp; partitions.contains(partition));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TopicPartitionInfo buildTopicPartitionInfo(QueueKey queueKey, int partition, boolean myPartition) {
+<b class="nc">&nbsp;        return TopicPartitionInfo.builder()</b>
+<b class="nc">&nbsp;                .topic(topicService.buildTopicName(partitionTopicsMap.get(queueKey)))</b>
+<b class="nc">&nbsp;                .partition(partition)</b>
+<b class="nc">&nbsp;                .tenantId(queueKey.getTenantId())</b>
+<b class="nc">&nbsp;                .myPartition(myPartition)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isIsolated(ServiceType serviceType, TenantId tenantId) {
+<b class="nc">&nbsp;        if (TenantId.SYS_TENANT_ID.equals(tenantId)) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        TenantRoutingInfo routingInfo = getRoutingInfo(tenantId);</b>
+<b class="nc">&nbsp;        if (routingInfo == null) {</b>
+<b class="nc">&nbsp;            throw new TenantNotFoundException(tenantId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (serviceType == ServiceType.TB_RULE_ENGINE) {</b>
+<b class="nc">&nbsp;            return routingInfo.isIsolated();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TenantRoutingInfo getRoutingInfo(TenantId tenantId) {
+<b class="nc">&nbsp;        if (tenantRoutingInfoService.isPresent()) {</b>
+<b class="nc">&nbsp;            return tenantRoutingInfoMap.computeIfAbsent(tenantId, __ -&gt; tenantRoutingInfoService.get().getRoutingInfo(tenantId));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return new TenantRoutingInfo(tenantId, null, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected TenantId getIsolatedOrSystemTenantId(ServiceType serviceType, TenantId tenantId) {
+<b class="nc">&nbsp;        return isIsolated(serviceType, tenantId) ? tenantId : TenantId.SYS_TENANT_ID;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void logServiceInfo(TransportProtos.ServiceInfo server) {
+<b class="nc">&nbsp;        log.info(&quot;[{}] Found common server: {}&quot;, server.getServiceId(), server.getServiceTypesList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addNode(ServiceInfo instance, Map&lt;QueueKey, List&lt;ServiceInfo&gt;&gt; queueServiceList, Map&lt;TenantProfileId, List&lt;ServiceInfo&gt;&gt; responsibleServices) {
+<b class="nc">&nbsp;        for (String serviceTypeStr : instance.getServiceTypesList()) {</b>
+<b class="nc">&nbsp;            ServiceType serviceType = ServiceType.of(serviceTypeStr);</b>
+<b class="nc">&nbsp;            if (ServiceType.TB_RULE_ENGINE.equals(serviceType)) {</b>
+<b class="nc">&nbsp;                partitionTopicsMap.keySet().forEach(key -&gt; {</b>
+<b class="nc">&nbsp;                    if (key.getType().equals(ServiceType.TB_RULE_ENGINE)) {</b>
+<b class="nc">&nbsp;                        queueServiceList.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+&nbsp;                    }
+&nbsp;                });
+&nbsp;
+<b class="nc">&nbsp;                if (instance.getAssignedTenantProfilesCount() &gt; 0) {</b>
+<b class="nc">&nbsp;                    for (String profileIdStr : instance.getAssignedTenantProfilesList()) {</b>
+&nbsp;                        TenantProfileId profileId;
+&nbsp;                        try {
+<b class="nc">&nbsp;                            profileId = new TenantProfileId(UUID.fromString(profileIdStr));</b>
+&nbsp;                        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                            log.warn(&quot;Failed to parse &#39;{}&#39; as tenant profile id&quot;, profileIdStr);</b>
+&nbsp;                            continue;
+&nbsp;                        }
+<b class="nc">&nbsp;                        responsibleServices.computeIfAbsent(profileId, k -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;            } else if (ServiceType.TB_CORE.equals(serviceType)) {</b>
+<b class="nc">&nbsp;                queueServiceList.computeIfAbsent(new QueueKey(serviceType), key -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+<b class="nc">&nbsp;                queueServiceList.computeIfAbsent(new QueueKey(serviceType).withQueueName(EDGE_QUEUE_NAME), key -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+<b class="nc">&nbsp;            } else if (ServiceType.TB_VC_EXECUTOR.equals(serviceType)) {</b>
+<b class="nc">&nbsp;                queueServiceList.computeIfAbsent(new QueueKey(serviceType), key -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+<b class="nc">&nbsp;            } else if (ServiceType.EDQS.equals(serviceType)) {</b>
+<b class="nc">&nbsp;                queueServiceList.computeIfAbsent(new QueueKey(serviceType), key -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        for (String transportType : instance.getTransportsList()) {</b>
+<b class="nc">&nbsp;            tbTransportServicesByType.computeIfAbsent(transportType, t -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (String taskType : instance.getTaskTypesList()) {</b>
+<b class="nc">&nbsp;            QueueKey queueKey = new QueueKey(ServiceType.TASK_PROCESSOR, taskType);</b>
+<b class="nc">&nbsp;            queueServiceList.computeIfAbsent(queueKey, key -&gt; new ArrayList&lt;&gt;()).add(instance);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @NotNull
+&nbsp;    protected List&lt;ServiceInfo&gt; resolveByPartitionIdx(List&lt;ServiceInfo&gt; servers, QueueKey queueKey, int partition,
+&nbsp;                                                      Map&lt;TenantProfileId, List&lt;ServiceInfo&gt;&gt; responsibleServices) {
+<b class="nc">&nbsp;        if (servers == null || servers.isEmpty()) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TenantId tenantId = queueKey.getTenantId();</b>
+<b class="nc">&nbsp;        if (queueKey.getType() == ServiceType.TB_RULE_ENGINE) {</b>
+<b class="nc">&nbsp;            if (!responsibleServices.isEmpty()) { // if there are any dedicated servers</b>
+&nbsp;                TenantProfileId profileId;
+<b class="nc">&nbsp;                if (tenantId != null &amp;&amp; !tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;                    TenantRoutingInfo routingInfo = tenantRoutingInfoService.get().getRoutingInfo(tenantId);</b>
+<b class="nc">&nbsp;                    profileId = routingInfo.getProfileId();</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    profileId = null;</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                List&lt;ServiceInfo&gt; responsible = responsibleServices.get(profileId);</b>
+<b class="nc">&nbsp;                if (responsible == null) {</b>
+&nbsp;                    // if there are no dedicated servers for this tenant profile, or for system queues,
+&nbsp;                    // using the servers that are not responsible for any profile
+<b class="nc">&nbsp;                    responsible = servers.stream()</b>
+<b class="nc">&nbsp;                            .filter(serviceInfo -&gt; serviceInfo.getAssignedTenantProfilesCount() == 0)</b>
+<b class="nc">&nbsp;                            .sorted(Comparator.comparing(ServiceInfo::getServiceId))</b>
+<b class="nc">&nbsp;                            .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;                    if (profileId != null) {</b>
+<b class="nc">&nbsp;                        log.debug(&quot;Using servers {} for profile {}&quot;, toServiceIds(responsible), profileId);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    responsibleServices.put(profileId, responsible);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (responsible.isEmpty()) {</b>
+<b class="nc">&nbsp;                    return Collections.emptyList();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                servers = responsible;</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            int hash = hash(tenantId.getId());</b>
+<b class="nc">&nbsp;            ServiceInfo server = servers.get(Math.abs((hash + partition) % servers.size()));</b>
+<b class="nc">&nbsp;            return server != null ? List.of(server) : Collections.emptyList();</b>
+<b class="nc">&nbsp;        } else if (queueKey.getType() == ServiceType.EDQS) {</b>
+<b class="nc">&nbsp;            List&lt;List&lt;ServiceInfo&gt;&gt; sets = servers.stream().collect(Collectors.groupingBy(ServiceInfo::getLabel))</b>
+<b class="nc">&nbsp;                    .entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).toList();</b>
+<b class="nc">&nbsp;            return sets.get(partition % sets.size());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            ServiceInfo server = servers.get(partition % servers.size());</b>
+<b class="nc">&nbsp;            return server != null ? List.of(server) : Collections.emptyList();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private int hash(UUID key) {
+<b class="nc">&nbsp;        return hashFunction.newHasher()</b>
+<b class="nc">&nbsp;                .putLong(key.getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .putLong(key.getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .hash().asInt();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private int hash(String key) {
+<b class="nc">&nbsp;        return hashFunction.newHasher()</b>
+<b class="nc">&nbsp;                .putString(key, StandardCharsets.UTF_8)</b>
+<b class="nc">&nbsp;                .hash().asInt();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static HashFunction forName(String name) {
+<b class="nc">&nbsp;        return switch (name) {</b>
+<b class="nc">&nbsp;            case &quot;murmur3_32&quot; -&gt; Hashing.murmur3_32();</b>
+<b class="nc">&nbsp;            case &quot;murmur3_128&quot; -&gt; Hashing.murmur3_128();</b>
+<b class="nc">&nbsp;            case &quot;sha256&quot; -&gt; Hashing.sha256();</b>
+<b class="nc">&nbsp;            default -&gt; throw new IllegalArgumentException(&quot;Can&#39;t find hash function with name &quot; + name);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;String&gt; toServiceIds(Collection&lt;ServiceInfo&gt; serviceInfos) {
+<b class="nc">&nbsp;        return serviceInfos.stream().map(ServiceInfo::getServiceId).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Data
+&nbsp;    public static class QueueConfig {
+&nbsp;        private boolean duplicateMsgToAllPartitions;
+&nbsp;
+<b class="nc">&nbsp;        public QueueConfig(QueueRoutingInfo queueRoutingInfo) {</b>
+<b class="nc">&nbsp;            this.duplicateMsgToAllPartitions = queueRoutingInfo.isDuplicateMsgToAllPartitions();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

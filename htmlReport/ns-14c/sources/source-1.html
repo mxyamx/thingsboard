@@ -1,0 +1,257 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultNotificationDeduplicationService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.notification</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultNotificationDeduplicationService (org.thingsboard.server.queue.notification)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultNotificationDeduplicationService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.notification;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.cache.Cache;
+&nbsp;import org.springframework.cache.CacheManager;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.util.ConcurrentReferenceHashMap;
+&nbsp;import org.thingsboard.server.common.data.CacheConstants;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+&nbsp;import org.thingsboard.server.queue.util.PropertyUtils;
+&nbsp;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;
+&nbsp;import static org.springframework.util.ConcurrentReferenceHashMap.ReferenceType.SOFT;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultNotificationDeduplicationService implements NotificationDeduplicationService {
+&nbsp;
+&nbsp;    private ConcurrentMap&lt;NotificationRuleTriggerType, Long&gt; deduplicationDurations;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private CacheManager cacheManager;
+&nbsp;    private final ConcurrentMap&lt;String, Long&gt; localCache = new ConcurrentReferenceHashMap&lt;&gt;(16, SOFT);
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean alreadyProcessed(NotificationRuleTrigger trigger) {
+<b class="nc">&nbsp;        String deduplicationKey = trigger.getDeduplicationKey();</b>
+<b class="nc">&nbsp;        return alreadyProcessed(trigger, deduplicationKey, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean alreadyProcessed(NotificationRuleTrigger trigger, NotificationRule rule) {
+<b class="nc">&nbsp;        String deduplicationKey = getDeduplicationKey(trigger, rule);</b>
+<b class="nc">&nbsp;        return alreadyProcessed(trigger, deduplicationKey, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean alreadyProcessed(NotificationRuleTrigger trigger, String deduplicationKey, boolean onlyLocalCache) {
+<b class="nc">&nbsp;        Long lastProcessedTs = localCache.get(deduplicationKey);</b>
+<b class="nc">&nbsp;        if (lastProcessedTs == null &amp;&amp; !onlyLocalCache) {</b>
+<b class="nc">&nbsp;            Cache externalCache = getExternalCache();</b>
+<b class="nc">&nbsp;            if (externalCache != null) {</b>
+<b class="nc">&nbsp;                lastProcessedTs = externalCache.get(deduplicationKey, Long.class);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;Sent notifications cache is not set up&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean alreadyProcessed = false;</b>
+<b class="nc">&nbsp;        long deduplicationDuration = getDeduplicationDuration(trigger);</b>
+<b class="nc">&nbsp;        if (lastProcessedTs != null) {</b>
+<b class="nc">&nbsp;            long passed = System.currentTimeMillis() - lastProcessedTs;</b>
+<b class="nc">&nbsp;            log.trace(&quot;Deduplicating trigger {} by key &#39;{}&#39;. Deduplication duration: {} ms, passed: {} ms&quot;,</b>
+<b class="nc">&nbsp;                    trigger.getType(), deduplicationKey, deduplicationDuration, passed);</b>
+<b class="nc">&nbsp;            if (deduplicationDuration == 0 || passed &lt;= deduplicationDuration) {</b>
+<b class="nc">&nbsp;                alreadyProcessed = true;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!alreadyProcessed) {</b>
+<b class="nc">&nbsp;            lastProcessedTs = System.currentTimeMillis();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        localCache.put(deduplicationKey, lastProcessedTs);</b>
+<b class="nc">&nbsp;        if (!onlyLocalCache) {</b>
+<b class="nc">&nbsp;            if (!alreadyProcessed || deduplicationDuration == 0) {</b>
+&nbsp;                // if lastProcessedTs is changed or if deduplicating infinitely (so that cache value not removed by ttl)
+<b class="nc">&nbsp;                Cache externalCache = getExternalCache();</b>
+<b class="nc">&nbsp;                if (externalCache != null) {</b>
+<b class="nc">&nbsp;                    externalCache.put(deduplicationKey, lastProcessedTs);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return alreadyProcessed;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String getDeduplicationKey(NotificationRuleTrigger trigger, NotificationRule rule) {
+<b class="nc">&nbsp;        return String.join(&quot;_&quot;, trigger.getDeduplicationKey(), rule.getDeduplicationKey());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private long getDeduplicationDuration(NotificationRuleTrigger trigger) {
+<b class="nc">&nbsp;        return deduplicationDurations.computeIfAbsent(trigger.getType(), triggerType -&gt; {</b>
+<b class="nc">&nbsp;            return trigger.getDefaultDeduplicationDuration();</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private Cache getExternalCache() {
+<b class="nc">&nbsp;        return Optional.ofNullable(cacheManager)</b>
+<b class="nc">&nbsp;                .map(cacheManager -&gt; cacheManager.getCache(CacheConstants.SENT_NOTIFICATIONS_CACHE))</b>
+<b class="nc">&nbsp;                .orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setDeduplicationDurations(@Value(&quot;${notification_system.rules.deduplication_durations:}&quot;)
+&nbsp;                                          String deduplicationDurationsStr) {
+<b class="nc">&nbsp;        this.deduplicationDurations = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        PropertyUtils.getProps(deduplicationDurationsStr).forEach((triggerType, duration) -&gt; {</b>
+<b class="nc">&nbsp;            this.deduplicationDurations.put(NotificationRuleTriggerType.valueOf(triggerType), Long.parseLong(duration));</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

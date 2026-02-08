@@ -1,0 +1,439 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AnnotationComponentDiscoveryService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.component</a>
+</div>
+
+<h1>Coverage Summary for Class: AnnotationComponentDiscoveryService (org.thingsboard.server.service.component)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AnnotationComponentDiscoveryService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/135)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.component;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.beans.factory.config.BeanDefinition;
+&nbsp;import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+&nbsp;import org.springframework.core.env.Environment;
+&nbsp;import org.springframework.core.env.Profiles;
+&nbsp;import org.springframework.core.type.filter.AnnotationTypeFilter;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.NodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.NodeDefinition;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode;
+&nbsp;import org.thingsboard.rule.engine.filter.TbOriginatorTypeSwitchNode;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.dao.component.ComponentDescriptorService;
+&nbsp;
+&nbsp;import java.lang.annotation.Annotation;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class AnnotationComponentDiscoveryService implements ComponentDiscoveryService {</b>
+&nbsp;
+&nbsp;    public static final int MAX_OPTIMISITC_RETRIES = 3;
+&nbsp;
+&nbsp;    @Value(&quot;${plugins.scan_packages}&quot;)
+&nbsp;    private String[] scanPackages;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private Environment environment;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ComponentDescriptorService componentDescriptorService;
+&nbsp;
+<b class="nc">&nbsp;    private final Map&lt;String, RuleNodeClassInfo&gt; ruleNodeClasses = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    private final Map&lt;String, ComponentDescriptor&gt; components = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    private final Map&lt;ComponentType, List&lt;ComponentDescriptor&gt;&gt; coreComponentsMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;    private final Map&lt;ComponentType, List&lt;ComponentDescriptor&gt;&gt; edgeComponentsMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    private boolean isInstall() {
+<b class="nc">&nbsp;        return environment.acceptsProfiles(Profiles.of(&quot;install&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        for (var def : discoverBeansByAnnotationType(RuleNode.class)) {</b>
+<b class="nc">&nbsp;            String clazzName = def.getBeanClassName();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                var clazz = Class.forName(clazzName);</b>
+<b class="nc">&nbsp;                RuleNode annotation = clazz.getAnnotation(RuleNode.class);</b>
+<b class="nc">&nbsp;                ruleNodeClasses.put(clazzName, new RuleNodeClassInfo(clazz, annotation));</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to create instance of rule node type: {} due to: &quot;, clazzName, e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (!isInstall()) {</b>
+<b class="nc">&nbsp;            discoverComponents();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;BeanDefinition&gt; discoverBeansByAnnotationType(Class&lt;? extends Annotation&gt; annotationType) {
+<b class="nc">&nbsp;        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);</b>
+<b class="nc">&nbsp;        scanner.addIncludeFilter(new AnnotationTypeFilter(annotationType));</b>
+<b class="nc">&nbsp;        Set&lt;BeanDefinition&gt; defs = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (String scanPackage : scanPackages) {</b>
+<b class="nc">&nbsp;            defs.addAll(scanner.findCandidateComponents(scanPackage));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return defs;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;RuleNodeClassInfo&gt; getRuleNodeInfo(String clazz) {
+<b class="nc">&nbsp;        return Optional.ofNullable(ruleNodeClasses.get(clazz));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;RuleNodeClassInfo&gt; getVersionedNodes() {
+<b class="nc">&nbsp;        return ruleNodeClasses.values().stream().filter(RuleNodeClassInfo::isVersioned).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void registerRuleNodeComponents() {
+<b class="nc">&nbsp;        for (RuleNodeClassInfo def : ruleNodeClasses.values()) {</b>
+<b class="nc">&nbsp;            int retryCount = 0;</b>
+<b class="nc">&nbsp;            Exception cause = null;</b>
+<b class="nc">&nbsp;            while (retryCount &lt; MAX_OPTIMISITC_RETRIES) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    ComponentType type = def.getAnnotation().type();</b>
+<b class="nc">&nbsp;                    ComponentDescriptor component = scanAndPersistComponent(def, type);</b>
+<b class="nc">&nbsp;                    components.put(component.getClazz(), component);</b>
+<b class="nc">&nbsp;                    putComponentIntoMaps(type, def.getAnnotation(), component);</b>
+&nbsp;                    break;
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.trace(&quot;Can&#39;t initialize component {}, due to {}&quot;, def.getClassName(), e.getMessage(), e);</b>
+<b class="nc">&nbsp;                    cause = e;</b>
+<b class="nc">&nbsp;                    retryCount++;</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        Thread.sleep(1000);</b>
+&nbsp;                    } catch (InterruptedException e1) {
+<b class="nc">&nbsp;                        throw new RuntimeException(e1);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (cause != null &amp;&amp; retryCount == MAX_OPTIMISITC_RETRIES) {</b>
+<b class="nc">&nbsp;                log.error(&quot;Can&#39;t initialize component {}, due to {}&quot;, def.getClassName(), cause.getMessage(), cause);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(cause);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void putComponentIntoMaps(ComponentType type, RuleNode ruleNodeAnnotation, ComponentDescriptor component) {
+&nbsp;        boolean ruleChainTypesMethodAvailable;
+&nbsp;        try {
+<b class="nc">&nbsp;            ruleNodeAnnotation.getClass().getMethod(&quot;ruleChainTypes&quot;);</b>
+<b class="nc">&nbsp;            ruleChainTypesMethodAvailable = true;</b>
+&nbsp;        } catch (NoSuchMethodException exception) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] does not have ruleChainTypes. Probably extension class compiled before 3.3 release. &quot; +</b>
+<b class="nc">&nbsp;                    &quot;Please update your extensions and compile using latest 3.3 release dependency&quot;, ruleNodeAnnotation.name());</b>
+<b class="nc">&nbsp;            ruleChainTypesMethodAvailable = false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (ruleChainTypesMethodAvailable) {</b>
+<b class="nc">&nbsp;            if (ruleChainTypeContainsArray(RuleChainType.CORE, ruleNodeAnnotation.ruleChainTypes())) {</b>
+<b class="nc">&nbsp;                coreComponentsMap.computeIfAbsent(type, k -&gt; new ArrayList&lt;&gt;()).add(component);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (ruleChainTypeContainsArray(RuleChainType.EDGE, ruleNodeAnnotation.ruleChainTypes())) {</b>
+<b class="nc">&nbsp;                edgeComponentsMap.computeIfAbsent(type, k -&gt; new ArrayList&lt;&gt;()).add(component);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            coreComponentsMap.computeIfAbsent(type, k -&gt; new ArrayList&lt;&gt;()).add(component);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean ruleChainTypeContainsArray(RuleChainType ruleChainType, RuleChainType[] array) {
+<b class="nc">&nbsp;        for (RuleChainType tmp : array) {</b>
+<b class="nc">&nbsp;            if (ruleChainType.equals(tmp)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ComponentDescriptor scanAndPersistComponent(RuleNodeClassInfo def, ComponentType type) {
+<b class="nc">&nbsp;        ComponentDescriptor scannedComponent = new ComponentDescriptor();</b>
+<b class="nc">&nbsp;        String clazzName = def.getClassName();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            scannedComponent.setType(type);</b>
+<b class="nc">&nbsp;            Class&lt;?&gt; clazz = def.getClazz();</b>
+<b class="nc">&nbsp;            RuleNode ruleNodeAnnotation = clazz.getAnnotation(RuleNode.class);</b>
+<b class="nc">&nbsp;            scannedComponent.setConfigurationVersion(def.getCurrentVersion());</b>
+<b class="nc">&nbsp;            scannedComponent.setName(ruleNodeAnnotation.name());</b>
+<b class="nc">&nbsp;            scannedComponent.setScope(ruleNodeAnnotation.scope());</b>
+<b class="nc">&nbsp;            scannedComponent.setClusteringMode(ruleNodeAnnotation.clusteringMode());</b>
+<b class="nc">&nbsp;            scannedComponent.setHasQueueName(ruleNodeAnnotation.hasQueueName());</b>
+<b class="nc">&nbsp;            NodeDefinition nodeDefinition = prepareNodeDefinition(clazz, ruleNodeAnnotation);</b>
+<b class="nc">&nbsp;            ObjectNode configurationDescriptor = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;            JsonNode node = JacksonUtil.valueToTree(nodeDefinition);</b>
+<b class="nc">&nbsp;            configurationDescriptor.set(&quot;nodeDefinition&quot;, node);</b>
+<b class="nc">&nbsp;            scannedComponent.setConfigurationDescriptor(configurationDescriptor);</b>
+<b class="nc">&nbsp;            scannedComponent.setClazz(clazzName);</b>
+<b class="nc">&nbsp;            log.debug(&quot;Processing scanned component: {}&quot;, scannedComponent);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Can&#39;t initialize component {}, due to {}&quot;, clazzName, e.getMessage(), e);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ComponentDescriptor persistedComponent = componentDescriptorService.findByClazz(TenantId.SYS_TENANT_ID, clazzName);</b>
+<b class="nc">&nbsp;        if (persistedComponent == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Persisting new component: {}&quot;, scannedComponent);</b>
+<b class="nc">&nbsp;            scannedComponent = componentDescriptorService.saveComponent(TenantId.SYS_TENANT_ID, scannedComponent);</b>
+<b class="nc">&nbsp;        } else if (scannedComponent.equals(persistedComponent)) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Component is already persisted: {}&quot;, persistedComponent);</b>
+<b class="nc">&nbsp;            scannedComponent = persistedComponent;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.debug(&quot;Component {} will be updated to {}&quot;, persistedComponent, scannedComponent);</b>
+<b class="nc">&nbsp;            componentDescriptorService.deleteByClazz(TenantId.SYS_TENANT_ID, persistedComponent.getClazz());</b>
+<b class="nc">&nbsp;            scannedComponent.setId(persistedComponent.getId());</b>
+<b class="nc">&nbsp;            scannedComponent = componentDescriptorService.saveComponent(TenantId.SYS_TENANT_ID, scannedComponent);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return scannedComponent;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private NodeDefinition prepareNodeDefinition(Class&lt;?&gt; clazz, RuleNode nodeAnnotation) throws Exception {
+<b class="nc">&nbsp;        NodeDefinition nodeDefinition = new NodeDefinition();</b>
+<b class="nc">&nbsp;        nodeDefinition.setDetails(nodeAnnotation.nodeDetails());</b>
+<b class="nc">&nbsp;        nodeDefinition.setDescription(nodeAnnotation.nodeDescription());</b>
+<b class="nc">&nbsp;        nodeDefinition.setInEnabled(nodeAnnotation.inEnabled());</b>
+<b class="nc">&nbsp;        nodeDefinition.setOutEnabled(nodeAnnotation.outEnabled());</b>
+<b class="nc">&nbsp;        nodeDefinition.setRelationTypes(getRelationTypesWithFailureRelation(clazz, nodeAnnotation));</b>
+<b class="nc">&nbsp;        nodeDefinition.setCustomRelations(nodeAnnotation.customRelations());</b>
+<b class="nc">&nbsp;        nodeDefinition.setRuleChainNode(nodeAnnotation.ruleChainNode());</b>
+<b class="nc">&nbsp;        Class&lt;? extends NodeConfiguration&gt; configClazz = nodeAnnotation.configClazz();</b>
+<b class="nc">&nbsp;        NodeConfiguration config = configClazz.getDeclaredConstructor().newInstance();</b>
+<b class="nc">&nbsp;        NodeConfiguration defaultConfiguration = config.defaultConfiguration();</b>
+<b class="nc">&nbsp;        nodeDefinition.setDefaultConfiguration(JacksonUtil.valueToTree(defaultConfiguration));</b>
+<b class="nc">&nbsp;        nodeDefinition.setUiResources(nodeAnnotation.uiResources());</b>
+<b class="nc">&nbsp;        nodeDefinition.setConfigDirective(nodeAnnotation.configDirective());</b>
+<b class="nc">&nbsp;        nodeDefinition.setIcon(nodeAnnotation.icon());</b>
+<b class="nc">&nbsp;        nodeDefinition.setIconUrl(nodeAnnotation.iconUrl());</b>
+<b class="nc">&nbsp;        nodeDefinition.setDocUrl(nodeAnnotation.docUrl());</b>
+<b class="nc">&nbsp;        return nodeDefinition;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String[] getRelationTypesWithFailureRelation(Class&lt;?&gt; clazz, RuleNode nodeAnnotation) {
+<b class="nc">&nbsp;        List&lt;String&gt; relationTypes = new ArrayList&lt;&gt;(Arrays.asList(nodeAnnotation.relationTypes()));</b>
+<b class="nc">&nbsp;        if (TbOriginatorTypeSwitchNode.class.equals(clazz)) {</b>
+<b class="nc">&nbsp;            relationTypes.addAll(EntityType.NORMAL_NAMES);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (TbMsgTypeSwitchNode.class.equals(clazz)) {</b>
+<b class="nc">&nbsp;            relationTypes.addAll(TbMsgType.NODE_CONNECTIONS);</b>
+<b class="nc">&nbsp;            relationTypes.add(TbNodeConnectionType.OTHER);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!relationTypes.contains(TbNodeConnectionType.FAILURE)) {</b>
+<b class="nc">&nbsp;            relationTypes.add(TbNodeConnectionType.FAILURE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return relationTypes.toArray(new String[relationTypes.size()]);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void discoverComponents() {
+<b class="nc">&nbsp;        registerRuleNodeComponents();</b>
+<b class="nc">&nbsp;        log.debug(&quot;Found following definitions: {}&quot;, components.values());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;ComponentDescriptor&gt; getComponents(ComponentType type, RuleChainType ruleChainType) {
+<b class="nc">&nbsp;        if (RuleChainType.CORE.equals(ruleChainType)) {</b>
+<b class="nc">&nbsp;            if (coreComponentsMap.containsKey(type)) {</b>
+<b class="nc">&nbsp;                return Collections.unmodifiableList(coreComponentsMap.get(type));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return Collections.emptyList();</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (RuleChainType.EDGE.equals(ruleChainType)) {</b>
+<b class="nc">&nbsp;            if (edgeComponentsMap.containsKey(type)) {</b>
+<b class="nc">&nbsp;                return Collections.unmodifiableList(edgeComponentsMap.get(type));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return Collections.emptyList();</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.error(&quot;Unsupported rule chain type {}&quot;, ruleChainType);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Unsupported rule chain type &quot; + ruleChainType);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;ComponentDescriptor&gt; getComponents(Set&lt;ComponentType&gt; types, RuleChainType ruleChainType) {
+<b class="nc">&nbsp;        if (RuleChainType.CORE.equals(ruleChainType)) {</b>
+<b class="nc">&nbsp;            return getComponents(types, coreComponentsMap);</b>
+<b class="nc">&nbsp;        } else if (RuleChainType.EDGE.equals(ruleChainType)) {</b>
+<b class="nc">&nbsp;            return getComponents(types, edgeComponentsMap);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.error(&quot;Unsupported rule chain type {}&quot;, ruleChainType);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Unsupported rule chain type &quot; + ruleChainType);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;ComponentDescriptor&gt; getComponent(String clazz) {
+<b class="nc">&nbsp;        return Optional.ofNullable(components.get(clazz));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;ComponentDescriptor&gt; getComponents(Set&lt;ComponentType&gt; types, Map&lt;ComponentType, List&lt;ComponentDescriptor&gt;&gt; componentsMap) {
+<b class="nc">&nbsp;        List&lt;ComponentDescriptor&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        types.stream().filter(componentsMap::containsKey).forEach(type -&gt; {</b>
+<b class="nc">&nbsp;            result.addAll(componentsMap.get(type));</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return Collections.unmodifiableList(result);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlarmDataAdapter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.query</a>
+</div>
+
+<h1>Coverage Summary for Class: AlarmDataAdapter (org.thingsboard.server.dao.sql.query)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AlarmDataAdapter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/65)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.query;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmAssignee;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataPageLink;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class AlarmDataAdapter {</b>
+&nbsp;
+&nbsp;    public static PageData&lt;AlarmData&gt; createAlarmData(EntityDataPageLink pageLink,
+&nbsp;                                                      List&lt;Map&lt;String, Object&gt;&gt; rows,
+&nbsp;                                                      int totalElements, Collection&lt;EntityId&gt; orderedEntityIds) {
+<b class="nc">&nbsp;        Map&lt;UUID, EntityId&gt; entityIdMap = orderedEntityIds.stream().collect(Collectors.toMap(EntityId::getId, Function.identity()));</b>
+<b class="nc">&nbsp;        int totalPages = pageLink.getPageSize() &gt; 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;</b>
+<b class="nc">&nbsp;        int startIndex = pageLink.getPageSize() * pageLink.getPage();</b>
+<b class="nc">&nbsp;        boolean hasNext = pageLink.getPageSize() &gt; 0 &amp;&amp; totalElements &gt; startIndex + rows.size();</b>
+<b class="nc">&nbsp;        List&lt;AlarmData&gt; entitiesData = convertListToAlarmData(rows, entityIdMap);</b>
+<b class="nc">&nbsp;        return new PageData&lt;&gt;(entitiesData, totalPages, totalElements, hasNext);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;AlarmData&gt; convertListToAlarmData(List&lt;Map&lt;String, Object&gt;&gt; result, Map&lt;UUID, EntityId&gt; entityIdMap) {
+<b class="nc">&nbsp;        return result.stream().map(tmp -&gt; toEntityData(tmp, entityIdMap)).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static AlarmData toEntityData(Map&lt;String, Object&gt; row, Map&lt;UUID, EntityId&gt; entityIdMap) {
+<b class="nc">&nbsp;        Alarm alarm = new Alarm();</b>
+<b class="nc">&nbsp;        alarm.setId(new AlarmId((UUID) row.get(ModelConstants.ID_PROPERTY)));</b>
+<b class="nc">&nbsp;        alarm.setCreatedTime((long) row.get(ModelConstants.CREATED_TIME_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setAckTs((long) row.get(ModelConstants.ALARM_ACK_TS_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setClearTs((long) row.get(ModelConstants.ALARM_CLEAR_TS_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setAssignTs((long) row.get(ModelConstants.ALARM_ASSIGN_TS_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setStartTs((long) row.get(ModelConstants.ALARM_START_TS_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setEndTs((long) row.get(ModelConstants.ALARM_END_TS_PROPERTY));</b>
+<b class="nc">&nbsp;        Object additionalInfo = row.get(ModelConstants.ADDITIONAL_INFO_PROPERTY);</b>
+<b class="nc">&nbsp;        if (additionalInfo != null) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                alarm.setDetails(JacksonUtil.toJsonNode(additionalInfo.toString()));</b>
+&nbsp;            } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to parse json: {}&quot;, row.get(ModelConstants.ADDITIONAL_INFO_PROPERTY), e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        EntityType originatorType = EntityType.values()[(int) row.get(ModelConstants.ALARM_ORIGINATOR_TYPE_PROPERTY)];</b>
+<b class="nc">&nbsp;        UUID originatorId = (UUID) row.get(ModelConstants.ALARM_ORIGINATOR_ID_PROPERTY);</b>
+<b class="nc">&nbsp;        alarm.setOriginator(EntityIdFactory.getByTypeAndUuid(originatorType, originatorId));</b>
+<b class="nc">&nbsp;        Object assigneeIdObj = row.get(ModelConstants.ASSIGNEE_ID_PROPERTY);</b>
+<b class="nc">&nbsp;        String assigneeFirstName = null;</b>
+<b class="nc">&nbsp;        String assigneeLastName = null;</b>
+<b class="nc">&nbsp;        String assigneeEmail = null;</b>
+<b class="nc">&nbsp;        if (assigneeIdObj != null) {</b>
+<b class="nc">&nbsp;            alarm.setAssigneeId(new UserId((UUID) row.get(ModelConstants.ALARM_ASSIGNEE_ID_PROPERTY)));</b>
+<b class="nc">&nbsp;            assigneeFirstName = (String) row.get(ModelConstants.ALARM_ASSIGNEE_FIRST_NAME_PROPERTY);</b>
+<b class="nc">&nbsp;            assigneeLastName = (String) row.get(ModelConstants.ALARM_ASSIGNEE_LAST_NAME_PROPERTY);</b>
+<b class="nc">&nbsp;            assigneeEmail = (String) row.get(ModelConstants.ALARM_ASSIGNEE_EMAIL_PROPERTY);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        alarm.setPropagate((boolean) row.get(ModelConstants.ALARM_PROPAGATE_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setPropagateToOwner((boolean) row.get(ModelConstants.ALARM_PROPAGATE_TO_OWNER_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setPropagateToTenant((boolean) row.get(ModelConstants.ALARM_PROPAGATE_TO_TENANT_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setType(row.get(ModelConstants.ALARM_TYPE_PROPERTY).toString());</b>
+<b class="nc">&nbsp;        alarm.setSeverity(AlarmSeverity.valueOf(row.get(ModelConstants.ALARM_SEVERITY_PROPERTY).toString()));</b>
+<b class="nc">&nbsp;        alarm.setAcknowledged((boolean) row.get(ModelConstants.ALARM_ACKNOWLEDGED_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setCleared((boolean) row.get(ModelConstants.ALARM_CLEARED_PROPERTY));</b>
+<b class="nc">&nbsp;        alarm.setTenantId(TenantId.fromUUID((UUID) row.get(ModelConstants.TENANT_ID_PROPERTY)));</b>
+<b class="nc">&nbsp;        Object customerIdObj = row.get(ModelConstants.CUSTOMER_ID_PROPERTY);</b>
+<b class="nc">&nbsp;        CustomerId customerId = customerIdObj != null ? new CustomerId((UUID) customerIdObj) : null;</b>
+<b class="nc">&nbsp;        alarm.setCustomerId(customerId);</b>
+<b class="nc">&nbsp;        if (row.get(ModelConstants.ALARM_PROPAGATE_RELATION_TYPES) != null) {</b>
+<b class="nc">&nbsp;            String propagateRelationTypes = row.get(ModelConstants.ALARM_PROPAGATE_RELATION_TYPES).toString();</b>
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(propagateRelationTypes)) {</b>
+<b class="nc">&nbsp;                alarm.setPropagateRelationTypes(Arrays.asList(propagateRelationTypes.split(&quot;,&quot;)));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                alarm.setPropagateRelationTypes(Collections.emptyList());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            alarm.setPropagateRelationTypes(Collections.emptyList());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        UUID entityUuid = (UUID) row.get(ModelConstants.ENTITY_ID_COLUMN);</b>
+<b class="nc">&nbsp;        EntityId entityId = entityIdMap.get(entityUuid);</b>
+<b class="nc">&nbsp;        Object originatorNameObj = row.get(ModelConstants.ALARM_ORIGINATOR_NAME_PROPERTY);</b>
+<b class="nc">&nbsp;        String originatorName = originatorNameObj != null ? originatorNameObj.toString() : null;</b>
+<b class="nc">&nbsp;        Object originatorLabelObj = row.get(ModelConstants.ALARM_ORIGINATOR_LABEL_PROPERTY);</b>
+<b class="nc">&nbsp;        String originatorLabel = originatorLabelObj != null ? originatorLabelObj.toString() : null;</b>
+<b class="nc">&nbsp;        Object originatorDisplayNameObj = row.get(ModelConstants.ALARM_ORIGINATOR_DISPLAY_NAME_PROPERTY);</b>
+<b class="nc">&nbsp;        String originatorDisplayName = originatorDisplayNameObj != null ? originatorDisplayNameObj.toString() : null;</b>
+&nbsp;
+<b class="nc">&nbsp;        AlarmData alarmData = new AlarmData(alarm, entityId);</b>
+<b class="nc">&nbsp;        alarmData.setOriginatorName(originatorName);</b>
+<b class="nc">&nbsp;        alarmData.setOriginatorLabel(originatorLabel);</b>
+<b class="nc">&nbsp;        alarmData.setOriginatorDisplayName(originatorDisplayName);</b>
+<b class="nc">&nbsp;        if (alarm.getAssigneeId() != null) {</b>
+<b class="nc">&nbsp;            alarmData.setAssignee(new AlarmAssignee(alarm.getAssigneeId(), assigneeFirstName, assigneeLastName, assigneeEmail));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return alarmData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

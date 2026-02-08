@@ -1,0 +1,322 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbMailSender</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.mail</a>
+</div>
+
+<h1>Coverage Summary for Class: TbMailSender (org.thingsboard.server.service.mail)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbMailSender</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/75)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.mail;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
+&nbsp;import com.google.api.client.auth.oauth2.RefreshTokenRequest;
+&nbsp;import com.google.api.client.auth.oauth2.TokenResponse;
+&nbsp;import com.google.api.client.http.GenericUrl;
+&nbsp;import com.google.api.client.http.javanet.NetHttpTransport;
+&nbsp;import com.google.api.client.json.gson.GsonFactory;
+&nbsp;import jakarta.mail.MessagingException;
+&nbsp;import jakarta.mail.internet.MimeMessage;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.lang.Nullable;
+&nbsp;import org.springframework.mail.MailException;
+&nbsp;import org.springframework.mail.javamail.JavaMailSenderImpl;
+&nbsp;import org.thingsboard.server.common.data.AdminSettings;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.mail.MailOauth2Provider;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;
+&nbsp;import java.time.Duration;
+&nbsp;import java.time.Instant;
+&nbsp;import java.util.Properties;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+&nbsp;import static org.thingsboard.server.service.mail.RefreshTokenExpCheckService.AZURE_DEFAULT_REFRESH_TOKEN_LIFETIME_IN_DAYS;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbMailSender extends JavaMailSenderImpl {
+&nbsp;
+&nbsp;    private static final String MAIL_PROP = &quot;mail.&quot;;
+&nbsp;    private final TbMailContextComponent ctx;
+&nbsp;    private final Lock lock;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private final Boolean oauth2Enabled;
+&nbsp;    private volatile String accessToken;
+&nbsp;    @Getter
+&nbsp;    private volatile long tokenExpires;
+&nbsp;
+&nbsp;    public TbMailSender(TbMailContextComponent ctx, JsonNode jsonConfig) {
+<b class="nc">&nbsp;        super();</b>
+<b class="nc">&nbsp;        this.lock = new ReentrantLock();</b>
+<b class="nc">&nbsp;        this.tokenExpires = 0L;</b>
+<b class="nc">&nbsp;        this.ctx = ctx;</b>
+<b class="nc">&nbsp;        this.oauth2Enabled = jsonConfig.has(&quot;enableOauth2&quot;) &amp;&amp; jsonConfig.get(&quot;enableOauth2&quot;).asBoolean();</b>
+&nbsp;
+<b class="nc">&nbsp;        setHost(jsonConfig.get(&quot;smtpHost&quot;).asText());</b>
+<b class="nc">&nbsp;        setPort(parsePort(jsonConfig.get(&quot;smtpPort&quot;).asText()));</b>
+<b class="nc">&nbsp;        setUsername(jsonConfig.get(&quot;username&quot;).asText());</b>
+<b class="nc">&nbsp;        if (jsonConfig.has(&quot;password&quot;)) {</b>
+<b class="nc">&nbsp;            setPassword(jsonConfig.get(&quot;password&quot;).asText());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        setJavaMailProperties(createJavaMailProperties(jsonConfig));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void doSend(MimeMessage[] mimeMessages, @Nullable Object[] originalMessages) throws MailException {
+<b class="nc">&nbsp;        updateOauth2PasswordIfExpired();</b>
+<b class="nc">&nbsp;        doSendSuper(mimeMessages, originalMessages);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void doSendSuper(MimeMessage[] mimeMessages, Object[] originalMessages) {
+<b class="nc">&nbsp;        super.doSend(mimeMessages, originalMessages);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void testConnection() throws MessagingException {
+<b class="nc">&nbsp;        updateOauth2PasswordIfExpired();</b>
+<b class="nc">&nbsp;        testConnectionSuper();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void testConnectionSuper() throws MessagingException {
+<b class="nc">&nbsp;        super.testConnection();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateOauth2PasswordIfExpired() {
+<b class="nc">&nbsp;        if (getOauth2Enabled() &amp;&amp; (System.currentTimeMillis() &gt; getTokenExpires())) {</b>
+<b class="nc">&nbsp;            refreshAccessToken();</b>
+<b class="nc">&nbsp;            setPassword(accessToken);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Properties createJavaMailProperties(JsonNode jsonConfig) {
+<b class="nc">&nbsp;        Properties javaMailProperties = new Properties();</b>
+<b class="nc">&nbsp;        String protocol = jsonConfig.get(&quot;smtpProtocol&quot;).asText();</b>
+<b class="nc">&nbsp;        javaMailProperties.put(&quot;mail.transport.protocol&quot;, protocol);</b>
+<b class="nc">&nbsp;        javaMailProperties.put(MAIL_PROP + protocol + &quot;.host&quot;, jsonConfig.get(&quot;smtpHost&quot;).asText());</b>
+<b class="nc">&nbsp;        javaMailProperties.put(MAIL_PROP + protocol + &quot;.port&quot;, jsonConfig.get(&quot;smtpPort&quot;).asText());</b>
+<b class="nc">&nbsp;        javaMailProperties.put(MAIL_PROP + protocol + &quot;.timeout&quot;, jsonConfig.get(&quot;timeout&quot;).asText());</b>
+<b class="nc">&nbsp;        javaMailProperties.put(MAIL_PROP + protocol + &quot;.auth&quot;, String.valueOf(StringUtils.isNotEmpty(jsonConfig.get(&quot;username&quot;).asText())));</b>
+<b class="nc">&nbsp;        boolean enableTls = false;</b>
+<b class="nc">&nbsp;        if (jsonConfig.has(&quot;enableTls&quot;)) {</b>
+<b class="nc">&nbsp;            if (jsonConfig.get(&quot;enableTls&quot;).isBoolean() &amp;&amp; jsonConfig.get(&quot;enableTls&quot;).booleanValue()) {</b>
+<b class="nc">&nbsp;                enableTls = true;</b>
+<b class="nc">&nbsp;            } else if (jsonConfig.get(&quot;enableTls&quot;).isTextual()) {</b>
+<b class="nc">&nbsp;                enableTls = &quot;true&quot;.equalsIgnoreCase(jsonConfig.get(&quot;enableTls&quot;).asText());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        javaMailProperties.put(MAIL_PROP + protocol + &quot;.starttls.enable&quot;, enableTls);</b>
+<b class="nc">&nbsp;        if (enableTls &amp;&amp; jsonConfig.has(&quot;tlsVersion&quot;) &amp;&amp; !jsonConfig.get(&quot;tlsVersion&quot;).isNull()) {</b>
+<b class="nc">&nbsp;            String tlsVersion = jsonConfig.get(&quot;tlsVersion&quot;).asText();</b>
+<b class="nc">&nbsp;            if (StringUtils.isNoneEmpty(tlsVersion)) {</b>
+<b class="nc">&nbsp;                javaMailProperties.put(MAIL_PROP + protocol + &quot;.ssl.protocols&quot;, tlsVersion);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean enableProxy = jsonConfig.has(&quot;enableProxy&quot;) &amp;&amp; jsonConfig.get(&quot;enableProxy&quot;).asBoolean();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (enableProxy) {</b>
+<b class="nc">&nbsp;            javaMailProperties.put(MAIL_PROP + protocol + &quot;.proxy.host&quot;, jsonConfig.get(&quot;proxyHost&quot;).asText());</b>
+<b class="nc">&nbsp;            javaMailProperties.put(MAIL_PROP + protocol + &quot;.proxy.port&quot;, jsonConfig.get(&quot;proxyPort&quot;).asText());</b>
+<b class="nc">&nbsp;            String proxyUser = jsonConfig.get(&quot;proxyUser&quot;).asText();</b>
+<b class="nc">&nbsp;            if (StringUtils.isNoneEmpty(proxyUser)) {</b>
+<b class="nc">&nbsp;                javaMailProperties.put(MAIL_PROP + protocol + &quot;.proxy.user&quot;, proxyUser);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String proxyPassword = jsonConfig.get(&quot;proxyPassword&quot;).asText();</b>
+<b class="nc">&nbsp;            if (StringUtils.isNoneEmpty(proxyPassword)) {</b>
+<b class="nc">&nbsp;                javaMailProperties.put(MAIL_PROP + protocol + &quot;.proxy.password&quot;, proxyPassword);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (oauth2Enabled) {</b>
+<b class="nc">&nbsp;            javaMailProperties.put(MAIL_PROP + protocol + &quot;.auth.mechanisms&quot;, &quot;XOAUTH2&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return javaMailProperties;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void refreshAccessToken() {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (System.currentTimeMillis() &gt; getTokenExpires()) {</b>
+<b class="nc">&nbsp;                AdminSettings settings = ctx.getAdminSettingsService().findAdminSettingsByKey(TenantId.SYS_TENANT_ID, &quot;mail&quot;);</b>
+<b class="nc">&nbsp;                JsonNode jsonValue = settings.getJsonValue();</b>
+&nbsp;
+<b class="nc">&nbsp;                String clientId = jsonValue.get(&quot;clientId&quot;).asText();</b>
+<b class="nc">&nbsp;                String clientSecret = jsonValue.get(&quot;clientSecret&quot;).asText();</b>
+<b class="nc">&nbsp;                String refreshToken = jsonValue.get(&quot;refreshToken&quot;).asText();</b>
+<b class="nc">&nbsp;                String tokenUri = jsonValue.get(&quot;tokenUri&quot;).asText();</b>
+<b class="nc">&nbsp;                String providerId = jsonValue.get(&quot;providerId&quot;).asText();</b>
+&nbsp;
+<b class="nc">&nbsp;                TokenResponse tokenResponse = new RefreshTokenRequest(new NetHttpTransport(), new GsonFactory(),</b>
+&nbsp;                        new GenericUrl(tokenUri), refreshToken)
+<b class="nc">&nbsp;                        .setClientAuthentication(new ClientParametersAuthentication(clientId, clientSecret))</b>
+<b class="nc">&nbsp;                        .execute();</b>
+<b class="nc">&nbsp;                if (MailOauth2Provider.OFFICE_365.name().equals(providerId)) {</b>
+<b class="nc">&nbsp;                    ((ObjectNode) jsonValue).put(&quot;refreshToken&quot;, tokenResponse.getRefreshToken());</b>
+<b class="nc">&nbsp;                    ((ObjectNode) jsonValue).put(&quot;refreshTokenExpires&quot;, Instant.now().plus(Duration.ofDays(AZURE_DEFAULT_REFRESH_TOKEN_LIFETIME_IN_DAYS)).toEpochMilli());</b>
+<b class="nc">&nbsp;                    ctx.getAdminSettingsService().saveAdminSettings(TenantId.SYS_TENANT_ID, settings);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                accessToken = tokenResponse.getAccessToken();</b>
+<b class="nc">&nbsp;                tokenExpires = System.currentTimeMillis() + (tokenResponse.getExpiresInSeconds().intValue() * 1000);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Unable to retrieve access token: {}&quot;, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Error while retrieving access token: &quot; + e.getMessage());</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            lock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private int parsePort(String strPort) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return Integer.parseInt(strPort);</b>
+&nbsp;        } catch (NumberFormatException e) {
+<b class="nc">&nbsp;            throw new IncorrectParameterException(String.format(&quot;Invalid smtp port value: %s&quot;, strPort));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SystemInfoController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: SystemInfoController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SystemInfoController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/68)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import io.swagger.v3.oas.annotations.Hidden;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.info.BuildProperties;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMethod;
+&nbsp;import org.springframework.web.bind.annotation.ResponseBody;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.common.util.DebugModeUtil;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.DashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.SystemParams;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.mobile.qrCodeSettings.QRCodeConfig;
+&nbsp;import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.settings.UserSettings;
+&nbsp;import org.thingsboard.server.common.data.settings.UserSettingsType;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+&nbsp;import org.thingsboard.server.dao.mobile.QrCodeSettingService;
+&nbsp;import org.thingsboard.server.dao.trendz.TrendzSettingsService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.model.UserPrincipal;
+&nbsp;import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
+&nbsp;import org.thingsboard.server.utils.DebugModeRateLimitsConfig;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Hidden
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class SystemInfoController extends BaseController {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${security.user_token_access_enabled}&quot;)
+&nbsp;    private boolean userTokenAccessEnabled;
+&nbsp;
+&nbsp;    @Value(&quot;${tbel.enabled:true}&quot;)
+&nbsp;    private boolean tbelEnabled;
+&nbsp;
+&nbsp;    @Value(&quot;${state.persistToTelemetry:false}&quot;)
+&nbsp;    private boolean persistToTelemetry;
+&nbsp;
+&nbsp;    @Value(&quot;${ui.dashboard.max_datapoints_limit}&quot;)
+&nbsp;    private long maxDatapointsLimit;
+&nbsp;
+&nbsp;    @Value(&quot;${debug.settings.default_duration:15}&quot;)
+&nbsp;    private int defaultDebugDurationMinutes;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    private BuildProperties buildProperties;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntitiesVersionControlService versionControlService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private QrCodeSettingService qrCodeSettingService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DebugModeRateLimitsConfig debugModeRateLimitsConfig;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TrendzSettingsService trendzSettingsService;
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        JsonNode info = buildInfoObject();</b>
+<b class="nc">&nbsp;        log.info(&quot;System build info: {}&quot;, info);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/system/info&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public JsonNode getSystemVersionInfo() {
+<b class="nc">&nbsp;        return buildInfoObject();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @RequestMapping(value = &quot;/system/params&quot;, method = RequestMethod.GET)
+&nbsp;    @ResponseBody
+&nbsp;    public SystemParams getSystemParams() throws ThingsboardException {
+<b class="nc">&nbsp;        SystemParams systemParams = new SystemParams();</b>
+<b class="nc">&nbsp;        SecurityUser currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        TenantId tenantId = currentUser.getTenantId();</b>
+<b class="nc">&nbsp;        CustomerId customerId = currentUser.getCustomerId();</b>
+<b class="nc">&nbsp;        if (currentUser.isSystemAdmin() || currentUser.isTenantAdmin()) {</b>
+<b class="nc">&nbsp;            systemParams.setUserTokenAccessEnabled(userTokenAccessEnabled);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            systemParams.setUserTokenAccessEnabled(false);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        boolean forceFullscreen = isForceFullscreen(currentUser);</b>
+<b class="nc">&nbsp;        if (forceFullscreen &amp;&amp; (currentUser.isTenantAdmin() || currentUser.isCustomerUser())) {</b>
+<b class="nc">&nbsp;            PageLink pageLink = new PageLink(100);</b>
+&nbsp;            List&lt;DashboardInfo&gt; dashboards;
+<b class="nc">&nbsp;            if (currentUser.isTenantAdmin()) {</b>
+<b class="nc">&nbsp;                dashboards = dashboardService.findDashboardsByTenantId(tenantId, pageLink).getData();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                dashboards = dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink).getData();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            systemParams.setAllowedDashboardIds(dashboards.stream().map(d -&gt; d.getId().getId().toString()).collect(Collectors.toList()));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            systemParams.setAllowedDashboardIds(Collections.emptyList());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        systemParams.setEdgesSupportEnabled(edgesEnabled);</b>
+<b class="nc">&nbsp;        if (currentUser.isTenantAdmin()) {</b>
+<b class="nc">&nbsp;            systemParams.setHasRepository(versionControlService.getVersionControlSettings(tenantId) != null);</b>
+<b class="nc">&nbsp;            systemParams.setTbelEnabled(tbelEnabled);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            systemParams.setHasRepository(false);</b>
+<b class="nc">&nbsp;            systemParams.setTbelEnabled(false);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (currentUser.isTenantAdmin() || currentUser.isCustomerUser()) {</b>
+<b class="nc">&nbsp;            systemParams.setPersistDeviceStateToTelemetry(persistToTelemetry);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            systemParams.setPersistDeviceStateToTelemetry(false);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        UserSettings userSettings = userSettingsService.findUserSettings(currentUser.getTenantId(), currentUser.getId(), UserSettingsType.GENERAL);</b>
+<b class="nc">&nbsp;        ObjectNode userSettingsNode = userSettings == null ? JacksonUtil.newObjectNode() : (ObjectNode) userSettings.getSettings();</b>
+<b class="nc">&nbsp;        if (!userSettingsNode.has(&quot;openedMenuSections&quot;)) {</b>
+<b class="nc">&nbsp;            userSettingsNode.set(&quot;openedMenuSections&quot;, JacksonUtil.newArrayNode());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        systemParams.setUserSettings(userSettingsNode);</b>
+<b class="nc">&nbsp;        systemParams.setMaxDatapointsLimit(maxDatapointsLimit);</b>
+<b class="nc">&nbsp;        if (!currentUser.isSystemAdmin()) {</b>
+<b class="nc">&nbsp;            DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();</b>
+<b class="nc">&nbsp;            systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());</b>
+<b class="nc">&nbsp;            systemParams.setMaxDebugModeDurationMinutes(DebugModeUtil.getMaxDebugAllDuration(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(), defaultDebugDurationMinutes));</b>
+<b class="nc">&nbsp;            if (debugModeRateLimitsConfig.isRuleChainDebugPerTenantLimitsEnabled()) {</b>
+<b class="nc">&nbsp;                systemParams.setRuleChainDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getRuleChainDebugPerTenantLimitsConfiguration());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (debugModeRateLimitsConfig.isCalculatedFieldDebugPerTenantLimitsEnabled()) {</b>
+<b class="nc">&nbsp;                systemParams.setCalculatedFieldDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getCalculatedFieldDebugPerTenantLimitsConfiguration());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            systemParams.setMaxArgumentsPerCF(tenantProfileConfiguration.getMaxArgumentsPerCF());</b>
+<b class="nc">&nbsp;            systemParams.setMaxDataPointsPerRollingArg(tenantProfileConfiguration.getMaxDataPointsPerRollingArg());</b>
+<b class="nc">&nbsp;            systemParams.setMinAllowedScheduledUpdateIntervalInSecForCF(tenantProfileConfiguration.getMinAllowedScheduledUpdateIntervalInSecForCF());</b>
+<b class="nc">&nbsp;            systemParams.setMaxRelationLevelPerCfArgument(tenantProfileConfiguration.getMaxRelationLevelPerCfArgument());</b>
+<b class="nc">&nbsp;            systemParams.setMaxRelatedEntitiesToReturnPerCfArgument(tenantProfileConfiguration.getMaxRelatedEntitiesToReturnPerCfArgument());</b>
+<b class="nc">&nbsp;            systemParams.setMinAllowedDeduplicationIntervalInSecForCF(tenantProfileConfiguration.getMinAllowedDeduplicationIntervalInSecForCF());</b>
+<b class="nc">&nbsp;            systemParams.setMinAllowedAggregationIntervalInSecForCF(tenantProfileConfiguration.getMinAllowedAggregationIntervalInSecForCF());</b>
+<b class="nc">&nbsp;            systemParams.setIntermediateAggregationIntervalInSecForCF(tenantProfileConfiguration.getIntermediateAggregationIntervalInSecForCF());</b>
+<b class="nc">&nbsp;            systemParams.setTrendzSettings(trendzSettingsService.findTrendzSettings(currentUser.getTenantId()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        systemParams.setMobileQrEnabled(Optional.ofNullable(qrCodeSettingService.findQrCodeSettings(TenantId.SYS_TENANT_ID))</b>
+<b class="nc">&nbsp;                .map(QrCodeSettings::getQrCodeConfig).map(QRCodeConfig::isShowOnHomePage)</b>
+<b class="nc">&nbsp;                .orElse(false));</b>
+<b class="nc">&nbsp;        return systemParams;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isForceFullscreen(SecurityUser currentUser) {
+<b class="nc">&nbsp;        return UserPrincipal.Type.PUBLIC_ID.equals(currentUser.getUserPrincipal().getType()) ||</b>
+<b class="nc">&nbsp;                (currentUser.getAdditionalInfo() != null &amp;&amp;</b>
+<b class="nc">&nbsp;                        currentUser.getAdditionalInfo().has(&quot;defaultDashboardFullscreen&quot;) &amp;&amp;</b>
+<b class="nc">&nbsp;                        currentUser.getAdditionalInfo().get(&quot;defaultDashboardFullscreen&quot;).booleanValue());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private JsonNode buildInfoObject() {
+<b class="nc">&nbsp;        ObjectNode infoObject = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;        if (buildProperties != null) {</b>
+<b class="nc">&nbsp;            infoObject.put(&quot;version&quot;, buildProperties.getVersion());</b>
+<b class="nc">&nbsp;            infoObject.put(&quot;artifact&quot;, buildProperties.getArtifact());</b>
+<b class="nc">&nbsp;            infoObject.put(&quot;name&quot;, buildProperties.getName());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            infoObject.put(&quot;version&quot;, &quot;unknown&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        infoObject.put(&quot;type&quot;, &quot;CE&quot;);</b>
+<b class="nc">&nbsp;        return infoObject;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

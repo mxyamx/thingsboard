@@ -1,0 +1,812 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultEntitiesVersionControlService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.sync.vc</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultEntitiesVersionControlService (org.thingsboard.server.service.sync.vc)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultEntitiesVersionControlService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/267)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultEntitiesVersionControlService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/269)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.sync.vc;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.support.TransactionTemplate;
+&nbsp;import org.thingsboard.common.util.DonAsynchron;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.TbStopWatch;
+&nbsp;import org.thingsboard.server.cache.TbTransactionalCache;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.ExportableEntity;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageDataIterable;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.BranchInfo;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.EntityDataDiff;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.EntityDataInfo;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.EntityLoadError;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.EntityVersion;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.create.AutoVersionCreateConfig;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.create.ComplexVersionCreateRequest;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.create.EntityTypeVersionCreateConfig;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.create.SingleEntityVersionCreateRequest;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.create.SyncStrategy;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.load.EntityTypeVersionLoadRequest;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.load.SingleEntityVersionLoadRequest;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadConfig;
+&nbsp;import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
+&nbsp;import org.thingsboard.server.common.data.util.ThrowingRunnable;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
+&nbsp;import org.thingsboard.server.service.executors.VersionControlExecutor;
+&nbsp;import org.thingsboard.server.service.sync.ie.EntitiesExportImportService;
+&nbsp;import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
+&nbsp;import org.thingsboard.server.service.sync.ie.importing.impl.MissingEntityException;
+&nbsp;import org.thingsboard.server.service.sync.vc.autocommit.TbAutoCommitSettingsService;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.ComplexEntitiesExportCtx;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.EntityTypeExportCtx;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.ReimportTask;
+&nbsp;import org.thingsboard.server.service.sync.vc.data.SimpleEntitiesExportCtx;
+&nbsp;import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsService;
+&nbsp;
+&nbsp;import java.time.Instant;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.function.Function;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.Futures.transform;
+&nbsp;import static org.thingsboard.server.common.data.sync.vc.VcUtils.checkBranchName;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultEntitiesVersionControlService implements EntitiesVersionControlService {
+&nbsp;
+&nbsp;    private final TbRepositorySettingsService repositorySettingsService;
+&nbsp;    private final TbAutoCommitSettingsService autoCommitSettingsService;
+&nbsp;    private final GitVersionControlQueueService gitServiceQueue;
+&nbsp;    private final EntitiesExportImportService exportImportService;
+&nbsp;    private final ExportableEntitiesService exportableEntitiesService;
+&nbsp;    private final TbLogEntityActionService logEntityActionService;
+&nbsp;    private final TransactionTemplate transactionTemplate;
+&nbsp;    private final TbTransactionalCache&lt;UUID, VersionControlTaskCacheEntry&gt; taskCache;
+&nbsp;    private final VersionControlExecutor executor;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;UUID&gt; saveEntitiesVersion(User user, VersionCreateRequest request) {
+<b class="nc">&nbsp;        checkBranchName(request.getBranch());</b>
+<b class="nc">&nbsp;        var pendingCommit = gitServiceQueue.prepareCommit(user, request);</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(pendingCommit, commit -&gt; {</b>
+<b class="nc">&nbsp;            cachePut(commit.getTxId(), new VersionCreationResult());</b>
+&nbsp;            try {
+&nbsp;                EntitiesExportCtx&lt;?&gt; theCtx;
+<b class="nc">&nbsp;                switch (request.getType()) {</b>
+&nbsp;                    case SINGLE_ENTITY: {
+<b class="nc">&nbsp;                        var ctx = new SimpleEntitiesExportCtx(user, commit, (SingleEntityVersionCreateRequest) request);</b>
+<b class="nc">&nbsp;                        handleSingleEntityRequest(ctx);</b>
+<b class="nc">&nbsp;                        theCtx = ctx;</b>
+&nbsp;                        break;
+&nbsp;                    }
+&nbsp;                    case COMPLEX: {
+<b class="nc">&nbsp;                        var ctx = new ComplexEntitiesExportCtx(user, commit, (ComplexVersionCreateRequest) request);</b>
+<b class="nc">&nbsp;                        handleComplexRequest(ctx);</b>
+<b class="nc">&nbsp;                        theCtx = ctx;</b>
+&nbsp;                        break;
+&nbsp;                    }
+&nbsp;                    default:
+<b class="nc">&nbsp;                        throw new RuntimeException(&quot;Unsupported request type: &quot; + request.getType());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                var resultFuture = Futures.transformAsync(Futures.allAsList(theCtx.getFutures()), f -&gt; gitServiceQueue.push(commit), executor);</b>
+<b class="nc">&nbsp;                DonAsynchron.withCallback(resultFuture, result -&gt; cachePut(commit.getTxId(), result), e -&gt; processCommitError(user, request, commit, e), executor);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                processCommitError(user, request, commit, e);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }, t -&gt; log.debug(&quot;[{}] Failed to prepare the commit: {}&quot;, user.getId(), request, t));</b>
+&nbsp;
+<b class="nc">&nbsp;        return transform(pendingCommit, CommitGitRequest::getTxId, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public VersionCreationResult getVersionCreateStatus(User user, UUID requestId) throws ThingsboardException {
+<b class="nc">&nbsp;        return getStatus(user, requestId, VersionControlTaskCacheEntry::getExportResult);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public VersionLoadResult getVersionLoadStatus(User user, UUID requestId) throws ThingsboardException {
+<b class="nc">&nbsp;        return getStatus(user, requestId, VersionControlTaskCacheEntry::getImportResult);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; T getStatus(User user, UUID requestId, Function&lt;VersionControlTaskCacheEntry, T&gt; getter) throws ThingsboardException {
+<b class="nc">&nbsp;        var cacheEntry = taskCache.get(requestId);</b>
+<b class="nc">&nbsp;        if (cacheEntry == null || cacheEntry.get() == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] No cache record: {}&quot;, requestId, cacheEntry);</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Task execution timed-out&quot;, ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            var entry = cacheEntry.get();</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Cache get: {}&quot;, requestId, entry);</b>
+<b class="nc">&nbsp;            var result = getter.apply(entry);</b>
+<b class="nc">&nbsp;            if (result == null) {</b>
+<b class="nc">&nbsp;                throw new ThingsboardException(&quot;Invalid task&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return result;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleSingleEntityRequest(SimpleEntitiesExportCtx ctx) throws Exception {
+<b class="nc">&nbsp;        ctx.add(saveEntityData(ctx, ctx.getRequest().getEntityId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleComplexRequest(ComplexEntitiesExportCtx parentCtx) {
+<b class="nc">&nbsp;        ComplexVersionCreateRequest request = parentCtx.getRequest();</b>
+<b class="nc">&nbsp;        request.getEntityTypes().forEach((entityType, config) -&gt; {</b>
+<b class="nc">&nbsp;            EntityTypeExportCtx ctx = new EntityTypeExportCtx(parentCtx, config, request.getSyncStrategy(), entityType);</b>
+<b class="nc">&nbsp;            if (ctx.isOverwrite()) {</b>
+<b class="nc">&nbsp;                ctx.add(gitServiceQueue.deleteAll(ctx.getCommit(), entityType));</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (config.isAllEntities()) {</b>
+<b class="nc">&nbsp;                DaoUtil.processInBatches(pageLink -&gt; exportableEntitiesService.findEntitiesIdsByTenantId(ctx.getTenantId(), entityType, pageLink),</b>
+&nbsp;                        100, entityId -&gt; {
+&nbsp;                            try {
+<b class="nc">&nbsp;                                ctx.add(saveEntityData(ctx, entityId));</b>
+&nbsp;                            } catch (Exception e) {
+<b class="nc">&nbsp;                                throw new RuntimeException(e);</b>
+&nbsp;                            }
+&nbsp;                        });
+&nbsp;            } else {
+<b class="nc">&nbsp;                for (UUID entityId : config.getEntityIds()) {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        ctx.add(saveEntityData(ctx, EntityIdFactory.getByTypeAndUuid(entityType, entityId)));</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        throw new RuntimeException(e);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Void&gt; saveEntityData(EntitiesExportCtx&lt;?&gt; ctx, EntityId entityId) throws Exception {
+<b class="nc">&nbsp;        EntityExportData&lt;ExportableEntity&lt;EntityId&gt;&gt; entityData = exportImportService.exportEntity(ctx, entityId);</b>
+<b class="nc">&nbsp;        return gitServiceQueue.addToCommit(ctx.getCommit(), entityData);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;PageData&lt;EntityVersion&gt;&gt; listEntityVersions(TenantId tenantId, String branch, EntityId externalId, PageLink pageLink) throws Exception {
+<b class="nc">&nbsp;        return gitServiceQueue.listVersions(tenantId, branch, externalId, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;PageData&lt;EntityVersion&gt;&gt; listEntityTypeVersions(TenantId tenantId, String branch, EntityType entityType, PageLink pageLink) throws Exception {
+<b class="nc">&nbsp;        return gitServiceQueue.listVersions(tenantId, branch, entityType, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;PageData&lt;EntityVersion&gt;&gt; listVersions(TenantId tenantId, String branch, PageLink pageLink) throws Exception {
+<b class="nc">&nbsp;        return gitServiceQueue.listVersions(tenantId, branch, pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;VersionedEntityInfo&gt;&gt; listEntitiesAtVersion(TenantId tenantId, String versionId, EntityType entityType) throws Exception {
+<b class="nc">&nbsp;        return gitServiceQueue.listEntitiesAtVersion(tenantId, versionId, entityType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;VersionedEntityInfo&gt;&gt; listAllEntitiesAtVersion(TenantId tenantId, String versionId) throws Exception {
+<b class="nc">&nbsp;        return gitServiceQueue.listEntitiesAtVersion(tenantId, versionId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings({&quot;rawtypes&quot;})
+&nbsp;    @Override
+&nbsp;    public UUID loadEntitiesVersion(User user, VersionLoadRequest request) throws Exception {
+<b class="nc">&nbsp;        EntitiesImportCtx ctx = new EntitiesImportCtx(UUID.randomUUID(), user, request.getVersionId());</b>
+<b class="nc">&nbsp;        cachePut(ctx.getRequestId(), VersionLoadResult.empty());</b>
+<b class="nc">&nbsp;        switch (request.getType()) {</b>
+&nbsp;            case SINGLE_ENTITY: {
+<b class="nc">&nbsp;                SingleEntityVersionLoadRequest versionLoadRequest = (SingleEntityVersionLoadRequest) request;</b>
+<b class="nc">&nbsp;                ctx.setRollbackOnError(true);</b>
+<b class="nc">&nbsp;                VersionLoadConfig config = versionLoadRequest.getConfig();</b>
+<b class="nc">&nbsp;                ListenableFuture&lt;EntityExportData&gt; future = gitServiceQueue.getEntity(user.getTenantId(), request.getVersionId(), versionLoadRequest.getExternalEntityId());</b>
+<b class="nc">&nbsp;                DonAsynchron.withCallback(future,</b>
+<b class="nc">&nbsp;                        entityData -&gt; load(ctx, request, c -&gt; loadSingleEntity(c, config, entityData)),</b>
+<b class="nc">&nbsp;                        e -&gt; processLoadError(ctx, e), executor);</b>
+&nbsp;                break;
+&nbsp;            }
+&nbsp;            case ENTITY_TYPE: {
+<b class="nc">&nbsp;                EntityTypeVersionLoadRequest versionLoadRequest = (EntityTypeVersionLoadRequest) request;</b>
+<b class="nc">&nbsp;                ctx.setRollbackOnError(versionLoadRequest.isRollbackOnError());</b>
+<b class="nc">&nbsp;                executor.submit(() -&gt; load(ctx, request, c -&gt; loadMultipleEntities(c, versionLoadRequest)));</b>
+&nbsp;                break;
+&nbsp;            }
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Unsupported version load request&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return ctx.getRequestId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;R&gt; VersionLoadResult load(EntitiesImportCtx ctx, VersionLoadRequest request, Function&lt;EntitiesImportCtx, VersionLoadResult&gt; loadFunction) {
+&nbsp;        try {
+&nbsp;            VersionLoadResult result;
+<b class="nc">&nbsp;            if (ctx.isRollbackOnError()) {</b>
+<b class="nc">&nbsp;                result = transactionTemplate.execute(status -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        return loadFunction.apply(ctx);</b>
+&nbsp;                    } catch (RuntimeException e) {
+&nbsp;                        throw e;
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        throw new RuntimeException(e); // to prevent UndeclaredThrowableException</b>
+&nbsp;                    }
+&nbsp;                });
+<b class="nc">&nbsp;                for (ThrowingRunnable eventCallback : ctx.getEventCallbacks()) {</b>
+<b class="nc">&nbsp;                    eventCallback.run();</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                result = loadFunction.apply(ctx);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            result.setDone(true);</b>
+<b class="nc">&nbsp;            return cachePut(ctx.getRequestId(), result);</b>
+&nbsp;        } catch (LoadEntityException e) {
+<b class="nc">&nbsp;            return cachePut(ctx.getRequestId(), onError(e.getExternalId(), e.getCause()));</b>
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            log.info(&quot;[{}] Failed to process request [{}] due to: &quot;, ctx.getTenantId(), request, e);</b>
+<b class="nc">&nbsp;            return cachePut(ctx.getRequestId(), VersionLoadResult.error(EntityLoadError.runtimeError(e)));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private VersionLoadResult loadSingleEntity(EntitiesImportCtx ctx, VersionLoadConfig config, EntityExportData entityData) {
+&nbsp;        try {
+<b class="nc">&nbsp;            ctx.setSettings(EntityImportSettings.builder()</b>
+<b class="nc">&nbsp;                    .updateRelations(config.isLoadRelations())</b>
+<b class="nc">&nbsp;                    .saveAttributes(config.isLoadAttributes())</b>
+<b class="nc">&nbsp;                    .saveCredentials(config.isLoadCredentials())</b>
+<b class="nc">&nbsp;                    .saveCalculatedFields(config.isLoadCalculatedFields())</b>
+<b class="nc">&nbsp;                    .findExistingByName(false)</b>
+<b class="nc">&nbsp;                    .build());</b>
+<b class="nc">&nbsp;            ctx.setFinalImportAttempt(true);</b>
+<b class="nc">&nbsp;            EntityImportResult&lt;?&gt; importResult = exportImportService.importEntity(ctx, entityData);</b>
+&nbsp;
+<b class="nc">&nbsp;            exportImportService.saveReferencesAndRelations(ctx);</b>
+&nbsp;
+<b class="nc">&nbsp;            return VersionLoadResult.success(EntityTypeLoadResult.builder()</b>
+<b class="nc">&nbsp;                    .entityType(importResult.getEntityType())</b>
+<b class="nc">&nbsp;                    .created(importResult.getOldEntity() == null ? 1 : 0)</b>
+<b class="nc">&nbsp;                    .updated(importResult.getOldEntity() != null ? 1 : 0)</b>
+<b class="nc">&nbsp;                    .deleted(0)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new LoadEntityException(entityData.getExternalId(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    private VersionLoadResult loadMultipleEntities(EntitiesImportCtx ctx, EntityTypeVersionLoadRequest request) {
+<b class="nc">&nbsp;        var sw = TbStopWatch.create(&quot;before&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;EntityType&gt; entityTypes = request.getEntityTypes().keySet().stream()</b>
+<b class="nc">&nbsp;                .sorted(exportImportService.getEntityTypeComparatorForImport()).toList();</b>
+<b class="nc">&nbsp;        for (EntityType entityType : entityTypes) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Loading {} entities&quot;, ctx.getTenantId(), entityType);</b>
+<b class="nc">&nbsp;            sw.startNew(&quot;Entities &quot; + entityType.name());</b>
+<b class="nc">&nbsp;            ctx.setSettings(getEntityImportSettings(request, entityType));</b>
+<b class="nc">&nbsp;            importEntities(ctx, entityType);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        sw.startNew(&quot;Reimport&quot;);</b>
+<b class="nc">&nbsp;        reimport(ctx);</b>
+<b class="nc">&nbsp;        persistToCache(ctx);</b>
+&nbsp;
+<b class="nc">&nbsp;        sw.startNew(&quot;Remove Others&quot;);</b>
+<b class="nc">&nbsp;        request.getEntityTypes().keySet().stream()</b>
+<b class="nc">&nbsp;                .filter(entityType -&gt; request.getEntityTypes().get(entityType).isRemoveOtherEntities())</b>
+<b class="nc">&nbsp;                .sorted(exportImportService.getEntityTypeComparatorForImport().reversed())</b>
+<b class="nc">&nbsp;                .forEach(entityType -&gt; removeOtherEntities(ctx, entityType));</b>
+&nbsp;
+<b class="nc">&nbsp;        sw.startNew(&quot;References and Relations&quot;);</b>
+<b class="nc">&nbsp;        exportImportService.saveReferencesAndRelations(ctx);</b>
+&nbsp;
+<b class="nc">&nbsp;        sw.stop();</b>
+<b class="nc">&nbsp;        for (var task : sw.getTaskInfo()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Executed: {} in {}ms&quot;, ctx.getTenantId(), task.getTaskName(), task.getTimeMillis());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Total time: {}ms&quot;, ctx.getTenantId(), sw.getTotalTimeMillis());</b>
+<b class="nc">&nbsp;        return VersionLoadResult.success(new ArrayList&lt;&gt;(ctx.getResults().values()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityImportSettings getEntityImportSettings(EntityTypeVersionLoadRequest request, EntityType entityType) {
+<b class="nc">&nbsp;        var config = request.getEntityTypes().get(entityType);</b>
+<b class="nc">&nbsp;        return EntityImportSettings.builder()</b>
+<b class="nc">&nbsp;                .updateRelations(config.isLoadRelations())</b>
+<b class="nc">&nbsp;                .saveAttributes(config.isLoadAttributes())</b>
+<b class="nc">&nbsp;                .saveCredentials(config.isLoadCredentials())</b>
+<b class="nc">&nbsp;                .saveCalculatedFields(config.isLoadCalculatedFields())</b>
+<b class="nc">&nbsp;                .findExistingByName(config.isFindExistingEntityByName())</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    @SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
+&nbsp;    private void importEntities(EntitiesImportCtx ctx, EntityType entityType) {
+<b class="nc">&nbsp;        int limit = 100;</b>
+<b class="nc">&nbsp;        int offset = 0;</b>
+&nbsp;        List&lt;EntityExportData&gt; entityDataList;
+&nbsp;        do {
+&nbsp;            try {
+<b class="nc">&nbsp;                entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), entityType, offset, limit).get();</b>
+&nbsp;            } catch (ExecutionException e) {
+<b class="nc">&nbsp;                throw e.getCause();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Loading {} entities pack ({})&quot;, ctx.getTenantId(), entityType, entityDataList.size());</b>
+<b class="nc">&nbsp;            for (EntityExportData entityData : entityDataList) {</b>
+<b class="nc">&nbsp;                EntityExportData reimportBackup = JacksonUtil.clone(entityData);</b>
+&nbsp;                EntityImportResult&lt;?&gt; importResult;
+&nbsp;                try {
+<b class="nc">&nbsp;                    importResult = exportImportService.importEntity(ctx, entityData);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    throw new LoadEntityException(entityData.getExternalId(), e);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                registerResult(ctx, entityType, importResult);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (!importResult.isUpdatedAllExternalIds()) {</b>
+<b class="nc">&nbsp;                    ctx.getToReimport().put(entityData.getEntity().getExternalId(), new ReimportTask(reimportBackup, ctx.getSettings()));</b>
+&nbsp;                    continue;
+&nbsp;                }
+<b class="nc">&nbsp;                ctx.getImportedEntities().computeIfAbsent(entityType, t -&gt; new HashSet&lt;&gt;())</b>
+<b class="nc">&nbsp;                        .add(importResult.getSavedEntity().getId());</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            persistToCache(ctx);</b>
+<b class="nc">&nbsp;            log.debug(&quot;Imported {} pack ({}) for tenant {}&quot;, entityType, entityDataList.size(), ctx.getTenantId());</b>
+<b class="nc">&nbsp;            offset += limit;</b>
+<b class="nc">&nbsp;        } while (entityDataList.size() == limit);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
+&nbsp;    private void reimport(EntitiesImportCtx ctx) {
+<b class="nc">&nbsp;        ctx.setFinalImportAttempt(true);</b>
+<b class="nc">&nbsp;        ctx.getToReimport().forEach((externalId, task) -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                EntityExportData entityData = task.getData();</b>
+<b class="nc">&nbsp;                var settings = task.getSettings();</b>
+<b class="nc">&nbsp;                ctx.setSettings(settings);</b>
+<b class="nc">&nbsp;                EntityImportResult&lt;?&gt; importResult = exportImportService.importEntity(ctx, entityData);</b>
+&nbsp;
+<b class="nc">&nbsp;                ctx.getImportedEntities().computeIfAbsent(externalId.getEntityType(), t -&gt; new HashSet&lt;&gt;())</b>
+<b class="nc">&nbsp;                        .add(importResult.getSavedEntity().getId());</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeOtherEntities(EntitiesImportCtx ctx, EntityType entityType) {
+<b class="nc">&nbsp;        var entities = new PageDataIterable&lt;&gt;(link -&gt; exportableEntitiesService.findEntitiesIdsByTenantId(ctx.getTenantId(), entityType, link), 100);</b>
+<b class="nc">&nbsp;        Set&lt;EntityId&gt; toRemove = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (EntityId entityId : entities) {</b>
+<b class="nc">&nbsp;            if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entityId)) {</b>
+<b class="nc">&nbsp;                toRemove.add(entityId);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        for (EntityId entityId : toRemove) {</b>
+<b class="nc">&nbsp;            ExportableEntity&lt;EntityId&gt; entity = exportableEntitiesService.findEntityById(entityId);</b>
+<b class="nc">&nbsp;            exportableEntitiesService.removeById(ctx.getTenantId(), entityId);</b>
+&nbsp;
+<b class="nc">&nbsp;            ThrowingRunnable callback = () -&gt; {</b>
+<b class="nc">&nbsp;                logEntityActionService.logEntityAction(ctx.getTenantId(), entity.getId(), entity, null,</b>
+<b class="nc">&nbsp;                        ActionType.DELETED, ctx.getUser());</b>
+&nbsp;            };
+<b class="nc">&nbsp;            if (ctx.isRollbackOnError()) {</b>
+<b class="nc">&nbsp;                ctx.addEventCallback(callback);</b>
+&nbsp;            } else {
+&nbsp;                try {
+<b class="nc">&nbsp;                    callback.run();</b>
+&nbsp;                } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                    throw new RuntimeException(e);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            ctx.registerDeleted(entityType);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        persistToCache(ctx);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private VersionLoadResult onError(EntityId externalId, Throwable e) {
+<b class="nc">&nbsp;        return analyze(e, externalId).orElse(VersionLoadResult.error(EntityLoadError.runtimeError(e, externalId)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;VersionLoadResult&gt; analyze(Throwable e, EntityId externalId) {
+<b class="nc">&nbsp;        if (e == null) {</b>
+<b class="nc">&nbsp;            return Optional.empty();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (e instanceof DeviceCredentialsValidationException) {</b>
+<b class="nc">&nbsp;                return Optional.of(VersionLoadResult.error(EntityLoadError.credentialsError(externalId)));</b>
+<b class="nc">&nbsp;            } else if (e instanceof MissingEntityException) {</b>
+<b class="nc">&nbsp;                return Optional.of(VersionLoadResult.error(EntityLoadError.referenceEntityError(externalId, ((MissingEntityException) e).getEntityId())));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return analyze(e.getCause(), externalId);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;EntityDataDiff&gt; compareEntityDataToVersion(User user, EntityId entityId, String versionId) {
+<b class="nc">&nbsp;        HasId&lt;EntityId&gt; entity = exportableEntitiesService.findEntityByTenantIdAndId(user.getTenantId(), entityId);</b>
+<b class="nc">&nbsp;        if (!(entity instanceof ExportableEntity)) throw new IllegalArgumentException(&quot;Unsupported entity type&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        EntityId externalId = ((ExportableEntity&lt;EntityId&gt;) entity).getExternalId();</b>
+<b class="nc">&nbsp;        if (externalId == null) externalId = entityId;</b>
+&nbsp;
+<b class="nc">&nbsp;        return transform(gitServiceQueue.getEntity(user.getTenantId(), versionId, externalId),</b>
+&nbsp;                otherVersion -&gt; {
+<b class="nc">&nbsp;                    SimpleEntitiesExportCtx ctx = new SimpleEntitiesExportCtx(user, null, null, EntityExportSettings.builder()</b>
+<b class="nc">&nbsp;                            .exportRelations(otherVersion.hasRelations())</b>
+<b class="nc">&nbsp;                            .exportAttributes(otherVersion.hasAttributes())</b>
+<b class="nc">&nbsp;                            .exportCredentials(otherVersion.hasCredentials())</b>
+<b class="nc">&nbsp;                            .exportCalculatedFields(otherVersion.hasCalculatedFields())</b>
+<b class="nc">&nbsp;                            .build());</b>
+&nbsp;                    EntityExportData&lt;?&gt; currentVersion;
+&nbsp;                    try {
+<b class="nc">&nbsp;                        currentVersion = exportImportService.exportEntity(ctx, entityId);</b>
+&nbsp;                    } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                        throw new RuntimeException(e);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return new EntityDataDiff(currentVersion.sort(), otherVersion.sort());</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;EntityDataInfo&gt; getEntityDataInfo(User user, EntityId entityId, String versionId) {
+<b class="nc">&nbsp;        return Futures.transform(gitServiceQueue.getEntity(user.getTenantId(), versionId, entityId),</b>
+<b class="nc">&nbsp;                entity -&gt; new EntityDataInfo(entity.hasRelations(), entity.hasAttributes(), entity.hasCredentials(), entity.hasCalculatedFields()), MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;BranchInfo&gt;&gt; listBranches(TenantId tenantId) {
+<b class="nc">&nbsp;        return gitServiceQueue.listBranches(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public RepositorySettings getVersionControlSettings(TenantId tenantId) {
+<b class="nc">&nbsp;        return repositorySettingsService.get(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;RepositorySettings&gt; saveVersionControlSettings(TenantId tenantId, RepositorySettings versionControlSettings) {
+<b class="nc">&nbsp;        checkBranchName(versionControlSettings.getDefaultBranch());</b>
+<b class="nc">&nbsp;        var restoredSettings = this.repositorySettingsService.restore(tenantId, versionControlSettings);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            var future = gitServiceQueue.initRepository(tenantId, restoredSettings);</b>
+<b class="nc">&nbsp;            return Futures.transform(future, f -&gt; repositorySettingsService.save(tenantId, restoredSettings), MoreExecutors.directExecutor());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.debug(&quot;{} Failed to init repository: {}&quot;, tenantId, versionControlSettings, e);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Failed to init repository!&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Void&gt; deleteVersionControlSettings(TenantId tenantId) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Deleting version control settings&quot;, tenantId);</b>
+<b class="nc">&nbsp;        repositorySettingsService.delete(tenantId);</b>
+<b class="nc">&nbsp;        return gitServiceQueue.clearRepository(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Void&gt; checkVersionControlAccess(TenantId tenantId, RepositorySettings settings) throws ThingsboardException {
+<b class="nc">&nbsp;        checkBranchName(settings.getDefaultBranch());</b>
+<b class="nc">&nbsp;        settings = this.repositorySettingsService.restore(tenantId, settings);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return gitServiceQueue.testRepository(tenantId, settings);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new ThingsboardException(String.format(&quot;Unable to access repository: %s&quot;, getCauseMessage(e)),</b>
+&nbsp;                    ThingsboardErrorCode.GENERAL);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;UUID&gt; autoCommit(User user, EntityId entityId) {
+<b class="nc">&nbsp;        var repositorySettings = repositorySettingsService.get(user.getTenantId());</b>
+<b class="nc">&nbsp;        if (repositorySettings == null || repositorySettings.isReadOnly()) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var autoCommitSettings = autoCommitSettingsService.get(user.getTenantId());</b>
+<b class="nc">&nbsp;        if (autoCommitSettings == null) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var entityType = entityId.getEntityType();</b>
+<b class="nc">&nbsp;        AutoVersionCreateConfig autoCommitConfig = autoCommitSettings.get(entityType);</b>
+<b class="nc">&nbsp;        if (autoCommitConfig == null) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        SingleEntityVersionCreateRequest vcr = new SingleEntityVersionCreateRequest();</b>
+<b class="nc">&nbsp;        var autoCommitBranchName = autoCommitConfig.getBranch();</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(autoCommitBranchName)) {</b>
+<b class="nc">&nbsp;            autoCommitBranchName = StringUtils.isNotEmpty(repositorySettings.getDefaultBranch()) ? repositorySettings.getDefaultBranch() : &quot;auto-commits&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        vcr.setBranch(autoCommitBranchName);</b>
+<b class="nc">&nbsp;        vcr.setVersionName(&quot;auto-commit at &quot; + Instant.ofEpochSecond(System.currentTimeMillis() / 1000));</b>
+<b class="nc">&nbsp;        vcr.setEntityId(entityId);</b>
+<b class="nc">&nbsp;        vcr.setConfig(autoCommitConfig);</b>
+<b class="nc">&nbsp;        return saveEntitiesVersion(user, vcr);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;UUID&gt; autoCommit(User user, EntityType entityType, List&lt;UUID&gt; entityIds) {
+<b class="nc">&nbsp;        var repositorySettings = repositorySettingsService.get(user.getTenantId());</b>
+<b class="nc">&nbsp;        if (repositorySettings == null || repositorySettings.isReadOnly()) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var autoCommitSettings = autoCommitSettingsService.get(user.getTenantId());</b>
+<b class="nc">&nbsp;        if (autoCommitSettings == null) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        AutoVersionCreateConfig autoCommitConfig = autoCommitSettings.get(entityType);</b>
+<b class="nc">&nbsp;        if (autoCommitConfig == null) {</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(null);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var autoCommitBranchName = autoCommitConfig.getBranch();</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(autoCommitBranchName)) {</b>
+<b class="nc">&nbsp;            autoCommitBranchName = StringUtils.isNotEmpty(repositorySettings.getDefaultBranch()) ? repositorySettings.getDefaultBranch() : &quot;auto-commits&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ComplexVersionCreateRequest vcr = new ComplexVersionCreateRequest();</b>
+<b class="nc">&nbsp;        vcr.setBranch(autoCommitBranchName);</b>
+<b class="nc">&nbsp;        vcr.setVersionName(&quot;auto-commit at &quot; + Instant.ofEpochSecond(System.currentTimeMillis() / 1000));</b>
+<b class="nc">&nbsp;        vcr.setSyncStrategy(SyncStrategy.MERGE);</b>
+&nbsp;
+<b class="nc">&nbsp;        EntityTypeVersionCreateConfig vcrConfig = new EntityTypeVersionCreateConfig();</b>
+<b class="nc">&nbsp;        vcrConfig.setEntityIds(entityIds);</b>
+<b class="nc">&nbsp;        vcr.setEntityTypes(Collections.singletonMap(entityType, vcrConfig));</b>
+<b class="nc">&nbsp;        return saveEntitiesVersion(user, vcr);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getCauseMessage(Exception e) {
+&nbsp;        String message;
+<b class="nc">&nbsp;        if (e.getCause() != null &amp;&amp; StringUtils.isNotEmpty(e.getCause().getMessage())) {</b>
+<b class="nc">&nbsp;            message = e.getCause().getMessage();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            message = e.getMessage();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return message;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void registerResult(EntitiesImportCtx ctx, EntityType entityType, EntityImportResult&lt;?&gt; importResult) {
+<b class="nc">&nbsp;        if (importResult.isCreated()) {</b>
+<b class="nc">&nbsp;            ctx.registerResult(entityType, true);</b>
+<b class="nc">&nbsp;        } else if (importResult.isUpdated() || importResult.isUpdatedRelatedEntities()) {</b>
+<b class="nc">&nbsp;            ctx.registerResult(entityType, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processCommitError(User user, VersionCreateRequest request, CommitGitRequest commit, Throwable e) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Failed to prepare the commit: {}&quot;, user.getId(), request, e);</b>
+<b class="nc">&nbsp;        cachePut(commit.getTxId(), new VersionCreationResult(e.getMessage()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processLoadError(EntitiesImportCtx ctx, Throwable e) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Failed to load the commit: {}&quot;, ctx.getRequestId(), ctx.getVersionId(), e);</b>
+<b class="nc">&nbsp;        cachePut(ctx.getRequestId(), VersionLoadResult.error(EntityLoadError.runtimeError(e)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cachePut(UUID requestId, VersionCreationResult result) {
+<b class="nc">&nbsp;        taskCache.put(requestId, VersionControlTaskCacheEntry.newForExport(result));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private VersionLoadResult cachePut(UUID requestId, VersionLoadResult result) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Cache put: {}&quot;, requestId, result);</b>
+<b class="nc">&nbsp;        taskCache.put(requestId, VersionControlTaskCacheEntry.newForImport(result));</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void persistToCache(EntitiesImportCtx ctx) {
+<b class="nc">&nbsp;        cachePut(ctx.getRequestId(), VersionLoadResult.success(new ArrayList&lt;&gt;(ctx.getResults().values())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

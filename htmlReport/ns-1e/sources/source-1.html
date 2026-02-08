@@ -1,0 +1,251 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbNodeUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.api.util</a>
+</div>
+
+<h1>Coverage Summary for Class: TbNodeUtils (org.thingsboard.rule.engine.api.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbNodeUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.api.util;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.util.CollectionsUtil;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.regex.Matcher;
+&nbsp;import java.util.regex.Pattern;
+&nbsp;
+&nbsp;public final class TbNodeUtils {
+&nbsp;
+<b class="nc">&nbsp;    private TbNodeUtils() {</b>
+<b class="nc">&nbsp;        throw new IllegalStateException(&quot;Utility class&quot;);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private static final Pattern DATA_PATTERN = Pattern.compile(&quot;(\\$\\[)(.*?)(])&quot;);</b>
+&nbsp;
+&nbsp;    private static final String ALL_DATA_TEMPLATE = &quot;$[*]&quot;;
+&nbsp;    private static final String ALL_METADATA_TEMPLATE = &quot;${*}&quot;;
+&nbsp;
+&nbsp;    public static &lt;T&gt; T convert(TbNodeConfiguration configuration, Class&lt;T&gt; clazz) throws TbNodeException {
+&nbsp;        try {
+<b class="nc">&nbsp;            return JacksonUtil.treeToValue(configuration.getData(), clazz);</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            throw new TbNodeException(e, true);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static List&lt;String&gt; processPatterns(List&lt;String&gt; patterns, TbMsg tbMsg) {
+<b class="nc">&nbsp;        if (CollectionsUtil.isEmpty(patterns)) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return patterns.stream().map(p -&gt; processPattern(p, tbMsg)).toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String processPattern(String pattern, TbMsg tbMsg) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String result = processPattern(pattern, tbMsg.getMetaData());</b>
+<b class="nc">&nbsp;            JsonNode json = JacksonUtil.toJsonNode(tbMsg.getData());</b>
+&nbsp;
+<b class="nc">&nbsp;            result = result.replace(ALL_DATA_TEMPLATE, JacksonUtil.toString(json));</b>
+&nbsp;
+<b class="nc">&nbsp;            if (json.isObject()) {</b>
+<b class="nc">&nbsp;                Matcher matcher = DATA_PATTERN.matcher(result);</b>
+<b class="nc">&nbsp;                while (matcher.find()) {</b>
+<b class="nc">&nbsp;                    String group = matcher.group(2);</b>
+<b class="nc">&nbsp;                    String[] keys = group.split(&quot;\\.&quot;);</b>
+<b class="nc">&nbsp;                    JsonNode jsonNode = json;</b>
+<b class="nc">&nbsp;                    for (String key : keys) {</b>
+<b class="nc">&nbsp;                        if (StringUtils.isNotEmpty(key) &amp;&amp; jsonNode != null) {</b>
+<b class="nc">&nbsp;                            jsonNode = jsonNode.get(key);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            jsonNode = null;</b>
+&nbsp;                            break;
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    if (jsonNode != null &amp;&amp; jsonNode.isValueNode()) {</b>
+<b class="nc">&nbsp;                        result = result.replace(formatDataVarTemplate(group), jsonNode.asText());</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Failed to process pattern!&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String processPattern(String pattern, TbMsgMetaData metaData) {
+<b class="nc">&nbsp;        String replacement = metaData.isEmpty() ? &quot;{}&quot; : JacksonUtil.toString(metaData.getData());</b>
+<b class="nc">&nbsp;        pattern = pattern.replace(ALL_METADATA_TEMPLATE, replacement);</b>
+<b class="nc">&nbsp;        return processTemplate(pattern, metaData.values());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String processTemplate(String template, Map&lt;String, String&gt; data) {
+<b class="nc">&nbsp;        String result = template;</b>
+<b class="nc">&nbsp;        for (Map.Entry&lt;String, String&gt; kv : data.entrySet()) {</b>
+<b class="nc">&nbsp;            result = processVar(result, kv.getKey(), kv.getValue());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String processVar(String pattern, String key, String val) {
+<b class="nc">&nbsp;        return pattern.replace(formatMetadataVarTemplate(key), val);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static String formatDataVarTemplate(String key) {
+<b class="nc">&nbsp;        return &quot;$[&quot; + key + &quot;]&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static String formatMetadataVarTemplate(String key) {
+<b class="nc">&nbsp;        return &quot;${&quot; + key + &quot;}&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

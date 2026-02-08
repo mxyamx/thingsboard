@@ -1,0 +1,328 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MicrosoftTeamsNotificationChannel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.notification.channels</a>
+</div>
+
+<h1>Coverage Summary for Class: MicrosoftTeamsNotificationChannel (org.thingsboard.server.service.notification.channels)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MicrosoftTeamsNotificationChannel</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.notification.channels;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.base.Strings;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.Setter;
+&nbsp;import org.apache.commons.codec.binary.Base64;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.boot.web.client.RestTemplateBuilder;
+&nbsp;import org.springframework.http.HttpEntity;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.web.client.RestTemplate;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+&nbsp;import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.MicrosoftTeamsNotificationTargetConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.template.MicrosoftTeamsDeliveryMethodNotificationTemplate;
+&nbsp;import org.thingsboard.server.common.data.notification.template.MicrosoftTeamsDeliveryMethodNotificationTemplate.Button.LinkType;
+&nbsp;import org.thingsboard.server.service.notification.NotificationProcessingContext;
+&nbsp;import org.thingsboard.server.service.security.system.SystemSecurityService;
+&nbsp;
+&nbsp;import java.net.URI;
+&nbsp;import java.net.URISyntaxException;
+&nbsp;import java.time.Duration;
+&nbsp;import java.time.temporal.ChronoUnit;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;@Component
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class MicrosoftTeamsNotificationChannel implements NotificationChannel&lt;MicrosoftTeamsNotificationTargetConfig, MicrosoftTeamsDeliveryMethodNotificationTemplate&gt; {
+&nbsp;
+&nbsp;    private final SystemSecurityService systemSecurityService;
+&nbsp;
+&nbsp;    @Setter
+&nbsp;    private RestTemplate restTemplate = new RestTemplateBuilder()
+&nbsp;            .setConnectTimeout(Duration.of(15, ChronoUnit.SECONDS))
+&nbsp;            .setReadTimeout(Duration.of(15, ChronoUnit.SECONDS))
+&nbsp;            .build();
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendNotification(MicrosoftTeamsNotificationTargetConfig targetConfig, MicrosoftTeamsDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) throws Exception {
+<b class="nc">&nbsp;        if (targetConfig.getUseOldApi() == null || Boolean.TRUE.equals(targetConfig.getUseOldApi())) {</b>
+<b class="nc">&nbsp;            sendTeamsMessageCard(targetConfig, processedTemplate, ctx);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sendTeamsAdaptiveCard(targetConfig, processedTemplate, ctx);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendTeamsAdaptiveCard(MicrosoftTeamsNotificationTargetConfig targetConfig, MicrosoftTeamsDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) throws URISyntaxException, JsonProcessingException {
+<b class="nc">&nbsp;        TeamsAdaptiveCard teamsAdaptiveCard = new TeamsAdaptiveCard();</b>
+<b class="nc">&nbsp;        TeamsAdaptiveCard.Attachment attachment = new TeamsAdaptiveCard.Attachment();</b>
+<b class="nc">&nbsp;        teamsAdaptiveCard.setAttachments(List.of(attachment));</b>
+<b class="nc">&nbsp;        TeamsAdaptiveCard.AdaptiveCard adaptiveCard = new TeamsAdaptiveCard.AdaptiveCard();</b>
+<b class="nc">&nbsp;        attachment.setContent(adaptiveCard);</b>
+<b class="nc">&nbsp;        TeamsAdaptiveCard.BackgroundImage backgroundImage = new TeamsAdaptiveCard.BackgroundImage(processedTemplate.getThemeColor());</b>
+<b class="nc">&nbsp;        adaptiveCard.setBackgroundImage(backgroundImage);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(processedTemplate.getSubject())) {</b>
+<b class="nc">&nbsp;            TeamsAdaptiveCard.TextBlock textBlock = new TeamsAdaptiveCard.TextBlock();</b>
+<b class="nc">&nbsp;            textBlock.setText(processedTemplate.getBody());</b>
+<b class="nc">&nbsp;            textBlock.setWeight(&quot;Normal&quot;);</b>
+<b class="nc">&nbsp;            textBlock.setSize(&quot;Medium&quot;);</b>
+<b class="nc">&nbsp;            textBlock.setColor(processedTemplate.getThemeColor());</b>
+<b class="nc">&nbsp;            adaptiveCard.getTextBlocks().add(textBlock);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            TeamsAdaptiveCard.TextBlock subjectTextBlock = new TeamsAdaptiveCard.TextBlock();</b>
+<b class="nc">&nbsp;            subjectTextBlock.setText(processedTemplate.getSubject());</b>
+<b class="nc">&nbsp;            subjectTextBlock.setWeight(&quot;Bolder&quot;);</b>
+<b class="nc">&nbsp;            subjectTextBlock.setSize(&quot;Large&quot;);</b>
+<b class="nc">&nbsp;            subjectTextBlock.setColor(processedTemplate.getThemeColor());</b>
+&nbsp;
+<b class="nc">&nbsp;            adaptiveCard.getTextBlocks().add(subjectTextBlock);</b>
+&nbsp;
+<b class="nc">&nbsp;            TeamsAdaptiveCard.TextBlock bodyTextBlock = new TeamsAdaptiveCard.TextBlock();</b>
+<b class="nc">&nbsp;            bodyTextBlock.setText(processedTemplate.getBody());</b>
+<b class="nc">&nbsp;            bodyTextBlock.setWeight(&quot;Lighter&quot;);</b>
+<b class="nc">&nbsp;            bodyTextBlock.setSize(&quot;Medium&quot;);</b>
+<b class="nc">&nbsp;            bodyTextBlock.setColor(processedTemplate.getThemeColor());</b>
+&nbsp;
+<b class="nc">&nbsp;            adaptiveCard.getTextBlocks().add(bodyTextBlock);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String uri = getButtonUri(processedTemplate, ctx);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (StringUtils.isNotBlank(uri) &amp;&amp; processedTemplate.getButton().getText() != null) {</b>
+<b class="nc">&nbsp;            TeamsAdaptiveCard.ActionOpenUrl actionOpenUrl = new TeamsAdaptiveCard.ActionOpenUrl();</b>
+<b class="nc">&nbsp;            actionOpenUrl.setTitle(processedTemplate.getButton().getText());</b>
+<b class="nc">&nbsp;            actionOpenUrl.setUrl(uri);</b>
+<b class="nc">&nbsp;            adaptiveCard.getActions().add(actionOpenUrl);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        HttpHeaders headers = new HttpHeaders();</b>
+<b class="nc">&nbsp;        headers.setContentType(MediaType.APPLICATION_JSON);</b>
+<b class="nc">&nbsp;        HttpEntity&lt;String&gt; request = new HttpEntity&lt;&gt;(JacksonUtil.toString(teamsAdaptiveCard), headers);</b>
+<b class="nc">&nbsp;        restTemplate.postForEntity(new URI(targetConfig.getWebhookUrl()), request, String.class);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendTeamsMessageCard(MicrosoftTeamsNotificationTargetConfig targetConfig, MicrosoftTeamsDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) throws JsonProcessingException, URISyntaxException {
+<b class="nc">&nbsp;        TeamsMessageCard teamsMessageCard = new TeamsMessageCard();</b>
+<b class="nc">&nbsp;        teamsMessageCard.setThemeColor(Strings.emptyToNull(processedTemplate.getThemeColor()));</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(processedTemplate.getSubject())) {</b>
+<b class="nc">&nbsp;            teamsMessageCard.setText(processedTemplate.getBody());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            teamsMessageCard.setSummary(processedTemplate.getSubject());</b>
+<b class="nc">&nbsp;            TeamsMessageCard.Section section = new TeamsMessageCard.Section();</b>
+<b class="nc">&nbsp;            section.setActivityTitle(processedTemplate.getSubject());</b>
+<b class="nc">&nbsp;            section.setActivitySubtitle(processedTemplate.getBody());</b>
+<b class="nc">&nbsp;            teamsMessageCard.setSections(List.of(section));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        var button = processedTemplate.getButton();</b>
+<b class="nc">&nbsp;        String uri = getButtonUri(processedTemplate, ctx);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (StringUtils.isNotBlank(uri) &amp;&amp; button.getText() != null) {</b>
+<b class="nc">&nbsp;            TeamsMessageCard.ActionCard actionCard = new TeamsMessageCard.ActionCard();</b>
+<b class="nc">&nbsp;            actionCard.setType(&quot;OpenUri&quot;);</b>
+<b class="nc">&nbsp;            actionCard.setName(button.getText());</b>
+<b class="nc">&nbsp;            var target = new TeamsMessageCard.ActionCard.Target(&quot;default&quot;, uri);</b>
+<b class="nc">&nbsp;            actionCard.setTargets(List.of(target));</b>
+<b class="nc">&nbsp;            teamsMessageCard.setPotentialAction(List.of(actionCard));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        HttpHeaders headers = new HttpHeaders();</b>
+<b class="nc">&nbsp;        headers.setContentType(MediaType.APPLICATION_JSON);</b>
+<b class="nc">&nbsp;        HttpEntity&lt;String&gt; request = new HttpEntity&lt;&gt;(JacksonUtil.toString(teamsMessageCard), headers);</b>
+<b class="nc">&nbsp;        restTemplate.postForEntity(new URI(targetConfig.getWebhookUrl()), request, String.class);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getButtonUri(MicrosoftTeamsDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) throws JsonProcessingException {
+<b class="nc">&nbsp;        var button = processedTemplate.getButton();</b>
+<b class="nc">&nbsp;        if (button != null &amp;&amp; button.isEnabled()) {</b>
+&nbsp;            String uri;
+<b class="nc">&nbsp;            if (button.getLinkType() == LinkType.DASHBOARD) {</b>
+<b class="nc">&nbsp;                String state = null;</b>
+<b class="nc">&nbsp;                if (button.isSetEntityIdInState() || StringUtils.isNotEmpty(button.getDashboardState())) {</b>
+<b class="nc">&nbsp;                    ObjectNode stateObject = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;                    if (button.isSetEntityIdInState()) {</b>
+<b class="nc">&nbsp;                        stateObject.putObject(&quot;params&quot;)</b>
+<b class="nc">&nbsp;                                .set(&quot;entityId&quot;, Optional.ofNullable(ctx.getRequest().getInfo())</b>
+<b class="nc">&nbsp;                                        .map(NotificationInfo::getStateEntityId)</b>
+<b class="nc">&nbsp;                                        .map(JacksonUtil::valueToTree)</b>
+<b class="nc">&nbsp;                                        .orElse(null));</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        stateObject.putObject(&quot;params&quot;);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (StringUtils.isNotEmpty(button.getDashboardState())) {</b>
+<b class="nc">&nbsp;                        stateObject.put(&quot;id&quot;, button.getDashboardState());</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    state = Base64.encodeBase64String(JacksonUtil.OBJECT_MAPPER.writeValueAsBytes(List.of(stateObject)));</b>
+&nbsp;                }
+<b class="nc">&nbsp;                String baseUrl = systemSecurityService.getBaseUrl(ctx.getTenantId(), null, null);</b>
+<b class="nc">&nbsp;                if (StringUtils.isEmpty(baseUrl)) {</b>
+<b class="nc">&nbsp;                    throw new IllegalStateException(&quot;Failed to determine base url to construct dashboard link&quot;);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                uri = baseUrl + &quot;/dashboards/&quot; + button.getDashboardId();</b>
+<b class="nc">&nbsp;                if (state != null) {</b>
+<b class="nc">&nbsp;                    uri += &quot;?state=&quot; + state;</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                uri = button.getLink();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return uri;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void check(TenantId tenantId) throws Exception {
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public NotificationDeliveryMethod getDeliveryMethod() {
+<b class="nc">&nbsp;        return NotificationDeliveryMethod.MICROSOFT_TEAMS;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MqttPendingSubscription</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.mqtt</a>
+</div>
+
+<h1>Coverage Summary for Class: MqttPendingSubscription (org.thingsboard.mqtt)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MqttPendingSubscription</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">MqttPendingSubscription$Builder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">MqttPendingSubscription$MqttPendingHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.mqtt;
+&nbsp;
+&nbsp;import io.netty.channel.EventLoop;
+&nbsp;import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+&nbsp;import io.netty.util.concurrent.Promise;
+&nbsp;import lombok.AccessLevel;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;import static java.util.Objects.requireNonNullElseGet;
+&nbsp;
+&nbsp;@Getter(AccessLevel.PACKAGE)
+&nbsp;final class MqttPendingSubscription {
+&nbsp;
+&nbsp;    private final Promise&lt;Void&gt; future;
+&nbsp;    private final String topic;
+&nbsp;    private final Set&lt;MqttPendingHandler&gt; handlers;
+&nbsp;    private final MqttSubscribeMessage subscribeMessage;
+&nbsp;
+&nbsp;    @Getter(AccessLevel.NONE)
+&nbsp;    private final RetransmissionHandler&lt;MqttSubscribeMessage&gt; retransmissionHandler;
+&nbsp;
+<b class="nc">&nbsp;    @Setter(AccessLevel.PACKAGE)</b>
+&nbsp;    private boolean sent = false;
+&nbsp;
+&nbsp;    private MqttPendingSubscription(
+&nbsp;            Promise&lt;Void&gt; future,
+&nbsp;            String topic,
+&nbsp;            Set&lt;MqttPendingHandler&gt; handlers,
+&nbsp;            MqttSubscribeMessage subscribeMessage,
+&nbsp;            String ownerId,
+&nbsp;            MqttClientConfig.RetransmissionConfig retransmissionConfig,
+&nbsp;            PendingOperation operation
+<b class="nc">&nbsp;    ) {</b>
+<b class="nc">&nbsp;        this.future = future;</b>
+<b class="nc">&nbsp;        this.topic = topic;</b>
+<b class="nc">&nbsp;        this.handlers = requireNonNullElseGet(handlers, HashSet::new);</b>
+<b class="nc">&nbsp;        this.subscribeMessage = subscribeMessage;</b>
+&nbsp;
+<b class="nc">&nbsp;        retransmissionHandler = new RetransmissionHandler&lt;&gt;(retransmissionConfig, operation, ownerId);</b>
+<b class="nc">&nbsp;        retransmissionHandler.setOriginalMessage(subscribeMessage);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    record MqttPendingHandler(MqttHandler handler, boolean once) {}</b>
+&nbsp;
+&nbsp;    void addHandler(MqttHandler handler, boolean once) {
+<b class="nc">&nbsp;        handlers.add(new MqttPendingHandler(handler, once));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void startRetransmitTimer(EventLoop eventLoop, Consumer&lt;Object&gt; sendPacket) {
+<b class="nc">&nbsp;        if (sent) { // If the packet is sent, we can start the retransmission timer</b>
+<b class="nc">&nbsp;            retransmissionHandler.setHandler((fixedHeader, originalMessage) -&gt;</b>
+<b class="nc">&nbsp;                    sendPacket.accept(new MqttSubscribeMessage(fixedHeader, originalMessage.variableHeader(), originalMessage.payload())));</b>
+<b class="nc">&nbsp;            retransmissionHandler.start(eventLoop);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    void onSubackReceived() {
+<b class="nc">&nbsp;        retransmissionHandler.stop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void onChannelClosed() {
+<b class="nc">&nbsp;        retransmissionHandler.stop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static Builder builder() {
+<b class="nc">&nbsp;        return new Builder();</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    static class Builder {</b>
+&nbsp;
+&nbsp;        private Promise&lt;Void&gt; future;
+&nbsp;        private String topic;
+&nbsp;        private Set&lt;MqttPendingHandler&gt; handlers;
+&nbsp;        private MqttSubscribeMessage subscribeMessage;
+&nbsp;        private String ownerId;
+&nbsp;        private PendingOperation pendingOperation;
+&nbsp;        private MqttClientConfig.RetransmissionConfig retransmissionConfig;
+&nbsp;
+&nbsp;        Builder future(Promise&lt;Void&gt; future) {
+<b class="nc">&nbsp;            this.future = future;</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        Builder topic(String topic) {
+<b class="nc">&nbsp;            this.topic = topic;</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        Builder handlers(Set&lt;MqttPendingHandler&gt; handlers) {
+<b class="nc">&nbsp;            this.handlers = handlers;</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        Builder subscribeMessage(MqttSubscribeMessage subscribeMessage) {
+<b class="nc">&nbsp;            this.subscribeMessage = subscribeMessage;</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        Builder ownerId(String ownerId) {
+<b class="nc">&nbsp;            this.ownerId = ownerId;</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        Builder retransmissionConfig(MqttClientConfig.RetransmissionConfig retransmissionConfig) {
+<b class="nc">&nbsp;            this.retransmissionConfig = retransmissionConfig;</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        Builder pendingOperation(PendingOperation pendingOperation) {
+<b class="nc">&nbsp;            this.pendingOperation = pendingOperation;</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        MqttPendingSubscription build() {
+<b class="nc">&nbsp;            return new MqttPendingSubscription(future, topic, handlers, subscribeMessage, ownerId, retransmissionConfig, pendingOperation);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbMsgDeduplicationNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.deduplication</a>
+</div>
+
+<h1>Coverage Summary for Class: TbMsgDeduplicationNode (org.thingsboard.rule.engine.deduplication)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbMsgDeduplicationNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/53)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/104)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.deduplication;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ArrayNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.TRANSFORMATION,
+&nbsp;        name = &quot;deduplication&quot;,
+&nbsp;        configClazz = TbMsgDeduplicationNodeConfiguration.class,
+&nbsp;        version = 1,
+&nbsp;        hasQueueName = true,
+&nbsp;        nodeDescription = &quot;Deduplicate messages within the same originator entity for a configurable period &quot; +
+&nbsp;                &quot;based on a specified deduplication strategy.&quot;,
+&nbsp;        nodeDetails = &quot;Deduplication strategies: &lt;ul&gt;&lt;li&gt;&lt;strong&gt;FIRST&lt;/strong&gt; - return first message that arrived during deduplication period.&lt;/li&gt;&quot; +
+&nbsp;                &quot;&lt;li&gt;&lt;strong&gt;LAST&lt;/strong&gt; - return last message that arrived during deduplication period.&lt;/li&gt;&quot; +
+&nbsp;                &quot;&lt;li&gt;&lt;strong&gt;ALL&lt;/strong&gt; - return all messages as a single JSON array message. &quot; +
+&nbsp;                &quot;Where each element represents object with &lt;strong&gt;&lt;i&gt;msg&lt;/i&gt;&lt;/strong&gt; and &lt;strong&gt;&lt;i&gt;metadata&lt;/i&gt;&lt;/strong&gt; inner properties.&lt;/li&gt;&lt;/ul&gt;&quot;,
+&nbsp;        icon = &quot;content_copy&quot;,
+&nbsp;        configDirective = &quot;tbTransformationNodeDeduplicationConfig&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/transformation/deduplication/&quot;
+&nbsp;)
+&nbsp;public class TbMsgDeduplicationNode implements TbNode {
+&nbsp;
+&nbsp;    public static final long TB_MSG_DEDUPLICATION_RETRY_DELAY = 10L;
+&nbsp;
+&nbsp;    private TbMsgDeduplicationNodeConfiguration config;
+&nbsp;
+&nbsp;    private final Map&lt;EntityId, DeduplicationData&gt; deduplicationMap;
+&nbsp;    private long deduplicationInterval;
+&nbsp;    private String queueName;
+&nbsp;
+<b class="nc">&nbsp;    public TbMsgDeduplicationNode() {</b>
+<b class="nc">&nbsp;        this.deduplicationMap = new HashMap&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, TbMsgDeduplicationNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        this.deduplicationInterval = TimeUnit.SECONDS.toMillis(config.getInterval());</b>
+<b class="nc">&nbsp;        this.queueName = ctx.getQueueName();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+<b class="nc">&nbsp;        if (msg.isTypeOf(TbMsgType.DEDUPLICATION_TIMEOUT_SELF_MSG)) {</b>
+<b class="nc">&nbsp;            processDeduplication(ctx, msg.getOriginator());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            processOnRegularMsg(ctx, msg);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        deduplicationMap.clear();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        switch (fromVersion) {</b>
+&nbsp;            case 0:
+<b class="nc">&nbsp;                if (oldConfiguration.has(QUEUE_NAME)) {</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+<b class="nc">&nbsp;                    ((ObjectNode) oldConfiguration).remove(QUEUE_NAME);</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            default:
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processOnRegularMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        EntityId id = msg.getOriginator();</b>
+<b class="nc">&nbsp;        DeduplicationData deduplicationMsgs = deduplicationMap.computeIfAbsent(id, k -&gt; new DeduplicationData());</b>
+<b class="nc">&nbsp;        if (deduplicationMsgs.size() &lt; config.getMaxPendingMsgs()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Adding msg: [{}][{}] to the pending msgs map ...&quot;, ctx.getSelfId(), id, msg.getId(), msg.getMetaDataTs());</b>
+<b class="nc">&nbsp;            deduplicationMsgs.add(msg);</b>
+<b class="nc">&nbsp;            ctx.ack(msg);</b>
+<b class="nc">&nbsp;            scheduleTickMsg(ctx, id, deduplicationMsgs);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Max limit of pending messages reached for deduplication id: [{}]&quot;, ctx.getSelfId(), id);</b>
+<b class="nc">&nbsp;            ctx.tellFailure(msg, new RuntimeException(&quot;[&quot; + ctx.getSelfId() + &quot;] Max limit of pending messages reached for deduplication id: [&quot; + id + &quot;]&quot;));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processDeduplication(TbContext ctx, EntityId deduplicationId) {
+<b class="nc">&nbsp;        DeduplicationData data = deduplicationMap.get(deduplicationId);</b>
+<b class="nc">&nbsp;        if (data == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        data.setTickScheduled(false);</b>
+<b class="nc">&nbsp;        if (data.isEmpty()) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        long deduplicationTimeoutMs = System.currentTimeMillis();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            List&lt;TbMsg&gt; deduplicationResults = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            List&lt;TbMsg&gt; msgList = data.getMsgList();</b>
+<b class="nc">&nbsp;            Optional&lt;TbPair&lt;Long, Long&gt;&gt; packBoundsOpt = findValidPack(msgList, deduplicationTimeoutMs);</b>
+<b class="nc">&nbsp;            while (packBoundsOpt.isPresent()) {</b>
+<b class="nc">&nbsp;                TbPair&lt;Long, Long&gt; packBounds = packBoundsOpt.get();</b>
+<b class="nc">&nbsp;                if (DeduplicationStrategy.ALL.equals(config.getStrategy())) {</b>
+<b class="nc">&nbsp;                    List&lt;TbMsg&gt; pack = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;                    for (Iterator&lt;TbMsg&gt; iterator = msgList.iterator(); iterator.hasNext(); ) {</b>
+<b class="nc">&nbsp;                        TbMsg msg = iterator.next();</b>
+<b class="nc">&nbsp;                        long msgTs = msg.getMetaDataTs();</b>
+<b class="nc">&nbsp;                        if (msgTs &gt;= packBounds.getFirst() &amp;&amp; msgTs &lt; packBounds.getSecond()) {</b>
+<b class="nc">&nbsp;                            pack.add(msg);</b>
+<b class="nc">&nbsp;                            iterator.remove();</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    deduplicationResults.add(TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                            .queueName(queueName)</b>
+<b class="nc">&nbsp;                            .type(config.getOutMsgType())</b>
+<b class="nc">&nbsp;                            .originator(deduplicationId)</b>
+<b class="nc">&nbsp;                            .copyMetaData(getMetadata())</b>
+<b class="nc">&nbsp;                            .data(getMergedData(pack))</b>
+<b class="nc">&nbsp;                            .build());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    TbMsg resultMsg = null;</b>
+<b class="nc">&nbsp;                    boolean searchMin = DeduplicationStrategy.FIRST.equals(config.getStrategy());</b>
+<b class="nc">&nbsp;                    for (Iterator&lt;TbMsg&gt; iterator = msgList.iterator(); iterator.hasNext(); ) {</b>
+<b class="nc">&nbsp;                        TbMsg msg = iterator.next();</b>
+<b class="nc">&nbsp;                        long msgTs = msg.getMetaDataTs();</b>
+<b class="nc">&nbsp;                        if (msgTs &gt;= packBounds.getFirst() &amp;&amp; msgTs &lt; packBounds.getSecond()) {</b>
+<b class="nc">&nbsp;                            iterator.remove();</b>
+<b class="nc">&nbsp;                            if (resultMsg == null</b>
+<b class="nc">&nbsp;                                    || (searchMin &amp;&amp; msg.getMetaDataTs() &lt; resultMsg.getMetaDataTs())</b>
+<b class="nc">&nbsp;                                    || (!searchMin &amp;&amp; msg.getMetaDataTs() &gt; resultMsg.getMetaDataTs())) {</b>
+<b class="nc">&nbsp;                                resultMsg = msg;</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (resultMsg != null) {</b>
+<b class="nc">&nbsp;                        String queueName1 = queueName != null ? queueName : resultMsg.getQueueName();</b>
+<b class="nc">&nbsp;                        deduplicationResults.add(TbMsg.newMsg()</b>
+<b class="nc">&nbsp;                                .queueName(queueName1)</b>
+<b class="nc">&nbsp;                                .type(resultMsg.getType())</b>
+<b class="nc">&nbsp;                                .originator(resultMsg.getOriginator())</b>
+<b class="nc">&nbsp;                                .customerId(resultMsg.getCustomerId())</b>
+<b class="nc">&nbsp;                                .copyMetaData(resultMsg.getMetaData())</b>
+<b class="nc">&nbsp;                                .data(resultMsg.getData())</b>
+<b class="nc">&nbsp;                                .build());</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                packBoundsOpt = findValidPack(msgList, deduplicationTimeoutMs);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            deduplicationResults.forEach(outMsg -&gt; enqueueForTellNextWithRetry(ctx, outMsg, 0));</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (!data.isEmpty()) {</b>
+<b class="nc">&nbsp;                scheduleTickMsg(ctx, deduplicationId, data);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void scheduleTickMsg(TbContext ctx, EntityId deduplicationId, DeduplicationData data) {
+<b class="nc">&nbsp;        if (!data.isTickScheduled()) {</b>
+<b class="nc">&nbsp;            scheduleTickMsg(ctx, deduplicationId);</b>
+<b class="nc">&nbsp;            data.setTickScheduled(true);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Optional&lt;TbPair&lt;Long, Long&gt;&gt; findValidPack(List&lt;TbMsg&gt; msgs, long deduplicationTimeoutMs) {
+<b class="nc">&nbsp;        Optional&lt;TbMsg&gt; min = msgs.stream().min(Comparator.comparing(TbMsg::getMetaDataTs));</b>
+<b class="nc">&nbsp;        return min.map(minTsMsg -&gt; {</b>
+<b class="nc">&nbsp;            long packStartTs = minTsMsg.getMetaDataTs();</b>
+<b class="nc">&nbsp;            long packEndTs = packStartTs + deduplicationInterval;</b>
+<b class="nc">&nbsp;            if (packEndTs &lt;= deduplicationTimeoutMs) {</b>
+<b class="nc">&nbsp;                return new TbPair&lt;&gt;(packStartTs, packEndTs);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void enqueueForTellNextWithRetry(TbContext ctx, TbMsg msg, int retryAttempt) {
+<b class="nc">&nbsp;        if (retryAttempt &lt;= config.getMaxRetries()) {</b>
+<b class="nc">&nbsp;            ctx.enqueueForTellNext(msg, TbNodeConnectionType.SUCCESS,</b>
+<b class="nc">&nbsp;                    () -&gt; log.trace(&quot;[{}][{}][{}] Successfully enqueue deduplication result message!&quot;, ctx.getSelfId(), msg.getOriginator(), retryAttempt),</b>
+&nbsp;                    throwable -&gt; {
+<b class="nc">&nbsp;                        log.trace(&quot;[{}][{}][{}] Failed to enqueue deduplication output message due to: &quot;, ctx.getSelfId(), msg.getOriginator(), retryAttempt, throwable);</b>
+<b class="nc">&nbsp;                        if (retryAttempt &lt; config.getMaxRetries()) {</b>
+<b class="nc">&nbsp;                            ctx.schedule(() -&gt; enqueueForTellNextWithRetry(ctx, msg, retryAttempt + 1), TB_MSG_DEDUPLICATION_RETRY_DELAY, TimeUnit.SECONDS);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}] Max retries [{}] exhausted. Dropping deduplication result message [{}]&quot;,</b>
+<b class="nc">&nbsp;                                    ctx.getSelfId(), msg.getOriginator(), config.getMaxRetries(), msg.getId());</b>
+&nbsp;                        }
+&nbsp;                    });
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void scheduleTickMsg(TbContext ctx, EntityId deduplicationId) {
+<b class="nc">&nbsp;        ctx.tellSelf(ctx.newMsg(null, TbMsgType.DEDUPLICATION_TIMEOUT_SELF_MSG, deduplicationId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING), deduplicationInterval + 1);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getMergedData(List&lt;TbMsg&gt; msgs) {
+<b class="nc">&nbsp;        ArrayNode mergedData = JacksonUtil.newArrayNode();</b>
+<b class="nc">&nbsp;        msgs.forEach(msg -&gt; {</b>
+<b class="nc">&nbsp;            ObjectNode msgNode = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;            msgNode.set(&quot;msg&quot;, JacksonUtil.toJsonNode(msg.getData()));</b>
+<b class="nc">&nbsp;            msgNode.set(&quot;metadata&quot;, JacksonUtil.valueToTree(msg.getMetaData().getData()));</b>
+<b class="nc">&nbsp;            mergedData.add(msgNode);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return JacksonUtil.toString(mergedData);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsgMetaData getMetadata() {
+<b class="nc">&nbsp;        TbMsgMetaData metaData = new TbMsgMetaData();</b>
+<b class="nc">&nbsp;        metaData.putValue(&quot;ts&quot;, String.valueOf(System.currentTimeMillis()));</b>
+<b class="nc">&nbsp;        return metaData;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

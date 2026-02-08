@@ -1,0 +1,350 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseQueueService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.queue</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseQueueService (org.thingsboard.server.dao.queue)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseQueueService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/39)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseQueueService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.queue;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.hibernate.exception.ConstraintViolationException;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.QueueId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.queue.Queue;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractEntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.service.PaginatedRemover;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;QueueDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class BaseQueueService extends AbstractEntityService implements QueueService {
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private QueueDao queueDao;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    private TbTenantProfileCache tenantProfileCache;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;Queue&gt; queueValidator;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Queue saveQueue(Queue queue) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing createOrUpdateQueue [{}]&quot;, queue);</b>
+<b class="nc">&nbsp;        queueValidator.validate(queue, Queue::getTenantId);</b>
+<b class="nc">&nbsp;        Queue savedQueue = queueDao.save(queue.getTenantId(), queue);</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedQueue.getTenantId())</b>
+<b class="nc">&nbsp;                .entityId(savedQueue.getId()).entity(savedQueue).created(queue.getId() == null).build());</b>
+<b class="nc">&nbsp;        return savedQueue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteQueue(TenantId tenantId, QueueId queueId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteQueue, queueId: [{}]&quot;, queueId);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            queueDao.removeById(tenantId, queueId.getId());</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(queueId).build());</b>
+&nbsp;        } catch (Exception t) {
+<b class="nc">&nbsp;            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);</b>
+<b class="nc">&nbsp;            if (e != null &amp;&amp; e.getConstraintName() != null &amp;&amp; e.getConstraintName().equalsIgnoreCase(&quot;fk_default_queue_device_profile&quot;)) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;The queue referenced by the device profiles cannot be deleted!&quot;);</b>
+&nbsp;            } else {
+&nbsp;                throw t;
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        deleteQueue(tenantId, (QueueId) id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;Queue&gt; findQueuesByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findQueues, tenantId: [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        return queueDao.findAllByTenantId(getSystemOrIsolatedTenantId(tenantId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Queue&gt; findQueuesByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findQueues pageLink [{}]&quot;, pageLink);</b>
+<b class="nc">&nbsp;        Validator.validatePageLink(pageLink);</b>
+<b class="nc">&nbsp;        return queueDao.findQueuesByTenantId(getSystemOrIsolatedTenantId(tenantId), pageLink);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;Queue&gt; findAllQueues() {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findAllQueues&quot;);</b>
+<b class="nc">&nbsp;        return queueDao.findAllQueues();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Queue findQueueById(TenantId tenantId, QueueId queueId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findQueueById, queueId: [{}]&quot;, queueId);</b>
+<b class="nc">&nbsp;        return queueDao.findById(tenantId, queueId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Queue findQueueByTenantIdAndName(TenantId tenantId, String queueName) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findQueueByTenantIdAndName, tenantId: [{}] queueName: [{}]&quot;, tenantId, queueName);</b>
+<b class="nc">&nbsp;        return queueDao.findQueueByTenantIdAndName(getSystemOrIsolatedTenantId(tenantId), queueName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Queue findQueueByTenantIdAndNameInternal(TenantId tenantId, String queueName) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findQueueByTenantIdAndNameInternal, tenantId: [{}] queueName: [{}]&quot;, tenantId, queueName);</b>
+<b class="nc">&nbsp;        return queueDao.findQueueByTenantIdAndName(tenantId, queueName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteQueuesByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        validateId(tenantId, __ -&gt; &quot;Incorrect tenant id for delete queues request.&quot;);</b>
+<b class="nc">&nbsp;        tenantQueuesRemover.removeEntities(tenantId, tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteQueuesByTenantId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findQueueById(tenantId, new QueueId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(queueDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.QUEUE;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private final PaginatedRemover&lt;TenantId, Queue&gt; tenantQueuesRemover = new PaginatedRemover&lt;&gt;() {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected PageData&lt;Queue&gt; findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+<b class="nc">&nbsp;            return queueDao.findQueuesByTenantId(id, pageLink);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void removeEntity(TenantId tenantId, Queue entity) {
+<b class="nc">&nbsp;            deleteQueue(tenantId, entity.getId());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    };
+&nbsp;
+&nbsp;    private TenantId getSystemOrIsolatedTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        if (!tenantId.equals(TenantId.SYS_TENANT_ID)) {</b>
+<b class="nc">&nbsp;            TenantProfile tenantProfile = tenantProfileCache.get(tenantId);</b>
+<b class="nc">&nbsp;            if (tenantProfile.isIsolatedTbRuleEngine()) {</b>
+<b class="nc">&nbsp;                return tenantId;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return TenantId.SYS_TENANT_ID;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

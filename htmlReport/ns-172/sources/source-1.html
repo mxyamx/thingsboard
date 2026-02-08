@@ -1,0 +1,293 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EdgeEntityProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge.rpc.processor.edge</a>
+</div>
+
+<h1>Coverage Summary for Class: EdgeEntityProcessor (org.thingsboard.server.service.edge.rpc.processor.edge)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EdgeEntityProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">EdgeEntityProcessor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge.rpc.processor.edge;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.EdgeUtils;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEvent;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEventType;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
+&nbsp;import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;public class EdgeEntityProcessor extends BaseEdgeProcessor {</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Void&gt; processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+&nbsp;        try {
+<b class="nc">&nbsp;            EdgeId originatorEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());</b>
+<b class="nc">&nbsp;            EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());</b>
+<b class="nc">&nbsp;            EdgeId edgeId = new EdgeId(new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));</b>
+<b class="nc">&nbsp;            if (edgeId.equals(originatorEdgeId)) {</b>
+<b class="nc">&nbsp;                return Futures.immediateFuture(null);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            switch (actionType) {</b>
+&nbsp;                case ASSIGNED_TO_CUSTOMER: {
+<b class="nc">&nbsp;                    CustomerId customerId = JacksonUtil.fromString(edgeNotificationMsg.getBody(), CustomerId.class);</b>
+<b class="nc">&nbsp;                    Edge edge = edgeCtx.getEdgeService().findEdgeById(tenantId, edgeId);</b>
+<b class="nc">&nbsp;                    if (customerId != null &amp;&amp; (edge == null || customerId.isNullUid())) {</b>
+<b class="nc">&nbsp;                        return Futures.immediateFuture(null);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    List&lt;ListenableFuture&lt;Void&gt;&gt; futures = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;                    futures.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, customerId, null));</b>
+<b class="nc">&nbsp;                    futures.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.EDGE, EdgeEventActionType.ASSIGNED_TO_CUSTOMER, edgeId, null));</b>
+<b class="nc">&nbsp;                    PageLink pageLink = new PageLink(1000);</b>
+&nbsp;                    PageData&lt;User&gt; pageData;
+&nbsp;                    do {
+<b class="nc">&nbsp;                        pageData = edgeCtx.getUserService().findCustomerUsers(tenantId, customerId, pageLink);</b>
+<b class="nc">&nbsp;                        if (pageData != null &amp;&amp; pageData.getData() != null &amp;&amp; !pageData.getData().isEmpty()) {</b>
+<b class="nc">&nbsp;                            log.trace(&quot;[{}][{}][{}] user(s) are going to be added to edge.&quot;, tenantId, edge.getId(), pageData.getData().size());</b>
+<b class="nc">&nbsp;                            for (User user : pageData.getData()) {</b>
+<b class="nc">&nbsp;                                futures.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, EdgeEventActionType.ADDED, user.getId(), null));</b>
+&nbsp;                            }
+<b class="nc">&nbsp;                            if (pageData.hasNext()) {</b>
+<b class="nc">&nbsp;                                pageLink = pageLink.nextPageLink();</b>
+&nbsp;                            }
+&nbsp;                        }
+<b class="nc">&nbsp;                    } while (pageData != null &amp;&amp; pageData.hasNext());</b>
+<b class="nc">&nbsp;                    return Futures.transform(Futures.allAsList(futures), voids -&gt; null, dbCallbackExecutorService);</b>
+&nbsp;                }
+&nbsp;                case UNASSIGNED_FROM_CUSTOMER: {
+<b class="nc">&nbsp;                    CustomerId customerIdToDelete = JacksonUtil.fromString(edgeNotificationMsg.getBody(), CustomerId.class);</b>
+<b class="nc">&nbsp;                    Edge edge = edgeCtx.getEdgeService().findEdgeById(tenantId, edgeId);</b>
+<b class="nc">&nbsp;                    if (customerIdToDelete != null &amp;&amp; (edge == null || customerIdToDelete.isNullUid())) {</b>
+<b class="nc">&nbsp;                        return Futures.immediateFuture(null);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return Futures.transformAsync(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.EDGE, EdgeEventActionType.UNASSIGNED_FROM_CUSTOMER, edgeId, null),</b>
+<b class="nc">&nbsp;                            voids -&gt; saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER, EdgeEventActionType.DELETED, customerIdToDelete, null),</b>
+&nbsp;                            dbCallbackExecutorService);
+&nbsp;                }
+&nbsp;                default:
+<b class="nc">&nbsp;                    return Futures.immediateFuture(null);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Exception during processing edge event&quot;, tenantId, e);</b>
+<b class="nc">&nbsp;            return Futures.immediateFailedFuture(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+<b class="nc">&nbsp;        EdgeId edgeId = new EdgeId(edgeEvent.getEntityId());</b>
+<b class="nc">&nbsp;        switch (edgeEvent.getAction()) {</b>
+&nbsp;            case ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -&gt; {
+<b class="nc">&nbsp;                Edge edge = edgeCtx.getEdgeService().findEdgeById(edgeEvent.getTenantId(), edgeId);</b>
+<b class="nc">&nbsp;                if (edge != null) {</b>
+<b class="nc">&nbsp;                    return DownlinkMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())</b>
+<b class="nc">&nbsp;                            .setEdgeConfiguration(EdgeMsgConstructorUtils.constructEdgeConfiguration(edge))</b>
+<b class="nc">&nbsp;                            .build();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EdgeEventType getEdgeEventType() {
+<b class="nc">&nbsp;        return EdgeEventType.EDGE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

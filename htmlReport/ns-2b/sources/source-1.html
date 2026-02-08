@@ -1,0 +1,289 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractGeofencingNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.geo</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractGeofencingNode (org.thingsboard.rule.engine.geo)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractGeofencingNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/72)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.geo;
+&nbsp;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import com.google.gson.JsonParser;
+&nbsp;import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
+&nbsp;import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.geo.Coordinates;
+&nbsp;import org.thingsboard.common.util.geo.GeoUtil;
+&nbsp;import org.thingsboard.common.util.geo.Perimeter;
+&nbsp;import org.thingsboard.common.util.geo.PerimeterType;
+&nbsp;import org.thingsboard.common.util.geo.RangeUnit;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;
+<b class="nc">&nbsp;public abstract class AbstractGeofencingNode&lt;T extends TbGpsGeofencingFilterNodeConfiguration&gt; implements TbNode {</b>
+&nbsp;
+&nbsp;    protected T config;
+&nbsp;    protected JtsSpatialContext jtsCtx;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, getConfigClazz());</b>
+<b class="nc">&nbsp;        JtsSpatialContextFactory factory = new JtsSpatialContextFactory();</b>
+<b class="nc">&nbsp;        factory.normWrapLongitude = true;</b>
+<b class="nc">&nbsp;        jtsCtx = factory.newSpatialContext();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    abstract protected Class&lt;T&gt; getConfigClazz();
+&nbsp;
+&nbsp;    protected boolean checkMatches(TbMsg msg) throws TbNodeException {
+<b class="nc">&nbsp;        JsonElement msgDataElement = JsonParser.parseString(msg.getData());</b>
+<b class="nc">&nbsp;        if (!msgDataElement.isJsonObject()) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Incoming Message is not a valid JSON object!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        JsonObject msgDataObj = msgDataElement.getAsJsonObject();</b>
+<b class="nc">&nbsp;        double latitude = getValueFromMessageByName(msg, msgDataObj, config.getLatitudeKeyName());</b>
+<b class="nc">&nbsp;        double longitude = getValueFromMessageByName(msg, msgDataObj, config.getLongitudeKeyName());</b>
+<b class="nc">&nbsp;        List&lt;Perimeter&gt; perimeters = getPerimeters(msg);</b>
+<b class="nc">&nbsp;        boolean matches = false;</b>
+<b class="nc">&nbsp;        for (Perimeter perimeter : perimeters) {</b>
+<b class="nc">&nbsp;            if (checkMatches(perimeter, latitude, longitude)) {</b>
+<b class="nc">&nbsp;                matches = true;</b>
+&nbsp;                break;
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return matches;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected boolean checkMatches(Perimeter perimeter, double latitude, double longitude) throws TbNodeException {
+<b class="nc">&nbsp;        if (perimeter.getPerimeterType() == PerimeterType.CIRCLE) {</b>
+<b class="nc">&nbsp;            Coordinates entityCoordinates = new Coordinates(latitude, longitude);</b>
+<b class="nc">&nbsp;            Coordinates perimeterCoordinates = new Coordinates(perimeter.getCenterLatitude(), perimeter.getCenterLongitude());</b>
+<b class="nc">&nbsp;            return perimeter.getRange() &gt; GeoUtil.distance(entityCoordinates, perimeterCoordinates, perimeter.getRangeUnit());</b>
+<b class="nc">&nbsp;        } else if (perimeter.getPerimeterType() == PerimeterType.POLYGON) {</b>
+<b class="nc">&nbsp;            return GeoUtil.contains(perimeter.getPolygonsDefinition(), new Coordinates(latitude, longitude));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;Unsupported perimeter type: &quot; + perimeter.getPerimeterType() + &quot;!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected List&lt;Perimeter&gt; getPerimeters(TbMsg msg) throws TbNodeException {
+<b class="nc">&nbsp;        if (config.isFetchPerimeterInfoFromMessageMetadata()) {</b>
+<b class="nc">&nbsp;            if (StringUtils.isEmpty(config.getPerimeterKeyName())) {</b>
+&nbsp;                // Old configuration before &quot;perimeterKeyName&quot; was introduced
+<b class="nc">&nbsp;                String perimeterValue = msg.getMetaData().getValue(&quot;perimeter&quot;);</b>
+<b class="nc">&nbsp;                if (!StringUtils.isEmpty(perimeterValue)) {</b>
+<b class="nc">&nbsp;                    Perimeter perimeter = new Perimeter();</b>
+<b class="nc">&nbsp;                    perimeter.setPerimeterType(PerimeterType.POLYGON);</b>
+<b class="nc">&nbsp;                    perimeter.setPolygonsDefinition(perimeterValue);</b>
+<b class="nc">&nbsp;                    return Collections.singletonList(perimeter);</b>
+<b class="nc">&nbsp;                } else if (!StringUtils.isEmpty(msg.getMetaData().getValue(&quot;centerLatitude&quot;))) {</b>
+<b class="nc">&nbsp;                    Perimeter perimeter = new Perimeter();</b>
+<b class="nc">&nbsp;                    perimeter.setPerimeterType(PerimeterType.CIRCLE);</b>
+<b class="nc">&nbsp;                    perimeter.setCenterLatitude(Double.parseDouble(msg.getMetaData().getValue(&quot;centerLatitude&quot;)));</b>
+<b class="nc">&nbsp;                    perimeter.setCenterLongitude(Double.parseDouble(msg.getMetaData().getValue(&quot;centerLongitude&quot;)));</b>
+<b class="nc">&nbsp;                    perimeter.setRange(Double.parseDouble(msg.getMetaData().getValue(&quot;range&quot;)));</b>
+<b class="nc">&nbsp;                    perimeter.setRangeUnit(RangeUnit.valueOf(msg.getMetaData().getValue(&quot;rangeUnit&quot;)));</b>
+<b class="nc">&nbsp;                    return Collections.singletonList(perimeter);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    throw new TbNodeException(&quot;Missing perimeter definition!&quot;);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                String perimeterValue = msg.getMetaData().getValue(config.getPerimeterKeyName());</b>
+<b class="nc">&nbsp;                if (!StringUtils.isEmpty(perimeterValue)) {</b>
+<b class="nc">&nbsp;                    if (config.getPerimeterType().equals(PerimeterType.POLYGON)) {</b>
+<b class="nc">&nbsp;                        Perimeter perimeter = new Perimeter();</b>
+<b class="nc">&nbsp;                        perimeter.setPerimeterType(PerimeterType.POLYGON);</b>
+<b class="nc">&nbsp;                        perimeter.setPolygonsDefinition(perimeterValue);</b>
+<b class="nc">&nbsp;                        return Collections.singletonList(perimeter);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        var circleDef = JacksonUtil.toJsonNode(perimeterValue);</b>
+<b class="nc">&nbsp;                        Perimeter perimeter = new Perimeter();</b>
+<b class="nc">&nbsp;                        perimeter.setPerimeterType(PerimeterType.CIRCLE);</b>
+<b class="nc">&nbsp;                        perimeter.setCenterLatitude(circleDef.get(&quot;latitude&quot;).asDouble());</b>
+<b class="nc">&nbsp;                        perimeter.setCenterLongitude(circleDef.get(&quot;longitude&quot;).asDouble());</b>
+<b class="nc">&nbsp;                        perimeter.setRange(circleDef.get(&quot;radius&quot;).asDouble());</b>
+<b class="nc">&nbsp;                        perimeter.setRangeUnit(circleDef.has(&quot;radiusUnit&quot;) ? RangeUnit.valueOf(circleDef.get(&quot;radiusUnit&quot;).asText()) : RangeUnit.METER);</b>
+<b class="nc">&nbsp;                        return Collections.singletonList(perimeter);</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    throw new TbNodeException(&quot;Missing perimeter definition!&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            Perimeter perimeter = new Perimeter();</b>
+<b class="nc">&nbsp;            perimeter.setPerimeterType(config.getPerimeterType());</b>
+<b class="nc">&nbsp;            perimeter.setCenterLatitude(config.getCenterLatitude());</b>
+<b class="nc">&nbsp;            perimeter.setCenterLongitude(config.getCenterLongitude());</b>
+<b class="nc">&nbsp;            perimeter.setRange(config.getRange());</b>
+<b class="nc">&nbsp;            perimeter.setRangeUnit(config.getRangeUnit());</b>
+<b class="nc">&nbsp;            perimeter.setPolygonsDefinition(config.getPolygonsDefinition());</b>
+<b class="nc">&nbsp;            return Collections.singletonList(perimeter);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Double getValueFromMessageByName(TbMsg msg, JsonObject msgDataObj, String keyName) throws TbNodeException {
+&nbsp;        double value;
+<b class="nc">&nbsp;        if (msgDataObj.has(keyName) &amp;&amp; msgDataObj.get(keyName).isJsonPrimitive()) {</b>
+<b class="nc">&nbsp;            value = msgDataObj.get(keyName).getAsDouble();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            String valueStr = msg.getMetaData().getValue(keyName);</b>
+<b class="nc">&nbsp;            if (!StringUtils.isEmpty(valueStr)) {</b>
+<b class="nc">&nbsp;                value = Double.parseDouble(valueStr);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                throw new TbNodeException(&quot;Incoming Message has no &quot; + keyName + &quot; in data or metadata!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return value;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

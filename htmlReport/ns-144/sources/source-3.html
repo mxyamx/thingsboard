@@ -1,0 +1,292 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > QueueStateService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.common.state</a>
+</div>
+
+<h1>Coverage Summary for Class: QueueStateService (org.thingsboard.server.queue.common.state)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QueueStateService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">QueueStateService$RestoreCallback</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.common.state;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.queue.TbQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.QueueKey;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.locks.ReadWriteLock;
+&nbsp;import java.util.concurrent.locks.ReentrantReadWriteLock;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.msg.queue.TopicPartitionInfo.withTopic;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public abstract class QueueStateService&lt;E extends TbQueueMsg, S extends TbQueueMsg&gt; {
+&nbsp;
+&nbsp;    protected final PartitionedQueueConsumerManager&lt;E&gt; eventConsumer;
+&nbsp;    protected final List&lt;PartitionedQueueConsumerManager&lt;?&gt;&gt; otherConsumers;
+&nbsp;
+<b class="nc">&nbsp;    @Getter</b>
+&nbsp;    protected final Map&lt;QueueKey, Set&lt;TopicPartitionInfo&gt;&gt; partitions = new HashMap&lt;&gt;();
+&nbsp;
+<b class="nc">&nbsp;    protected final ReadWriteLock partitionsLock = new ReentrantReadWriteLock();</b>
+&nbsp;
+<b class="nc">&nbsp;    protected QueueStateService(PartitionedQueueConsumerManager&lt;E&gt; eventConsumer, List&lt;PartitionedQueueConsumerManager&lt;?&gt;&gt; otherConsumers) {</b>
+<b class="nc">&nbsp;        this.eventConsumer = eventConsumer;</b>
+<b class="nc">&nbsp;        this.otherConsumers = otherConsumers;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void update(QueueKey queueKey, Set&lt;TopicPartitionInfo&gt; newPartitions, RestoreCallback callback) {
+<b class="nc">&nbsp;        newPartitions = withTopic(newPartitions, eventConsumer.getTopic());</b>
+<b class="nc">&nbsp;        var writeLock = partitionsLock.writeLock();</b>
+<b class="nc">&nbsp;        writeLock.lock();</b>
+<b class="nc">&nbsp;        Set&lt;TopicPartitionInfo&gt; oldPartitions = this.partitions.getOrDefault(queueKey, Collections.emptySet());</b>
+&nbsp;        Set&lt;TopicPartitionInfo&gt; addedPartitions;
+&nbsp;        Set&lt;TopicPartitionInfo&gt; removedPartitions;
+&nbsp;        try {
+<b class="nc">&nbsp;            addedPartitions = new HashSet&lt;&gt;(newPartitions);</b>
+<b class="nc">&nbsp;            addedPartitions.removeAll(oldPartitions);</b>
+<b class="nc">&nbsp;            removedPartitions = new HashSet&lt;&gt;(oldPartitions);</b>
+<b class="nc">&nbsp;            removedPartitions.removeAll(newPartitions);</b>
+<b class="nc">&nbsp;            this.partitions.put(queueKey, newPartitions);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            writeLock.unlock();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!removedPartitions.isEmpty()) {</b>
+<b class="nc">&nbsp;            removePartitions(queueKey, removedPartitions);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!addedPartitions.isEmpty()) {</b>
+<b class="nc">&nbsp;            addPartitions(queueKey, addedPartitions, callback);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (callback != null) {</b>
+<b class="nc">&nbsp;                callback.onAllPartitionsRestored();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract void addPartitions(QueueKey queueKey, Set&lt;TopicPartitionInfo&gt; partitions, RestoreCallback callback) ;
+&nbsp;
+&nbsp;    protected void removePartitions(QueueKey queueKey, Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        eventConsumer.removePartitions(partitions);</b>
+<b class="nc">&nbsp;        for (PartitionedQueueConsumerManager&lt;?&gt; consumer : otherConsumers) {</b>
+<b class="nc">&nbsp;            consumer.removePartitions(withTopic(partitions, consumer.getTopic()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void delete(Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        if (partitions.isEmpty()) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        var writeLock = partitionsLock.writeLock();</b>
+<b class="nc">&nbsp;        writeLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            this.partitions.values().forEach(tpis -&gt; tpis.removeAll(partitions));</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            writeLock.unlock();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        deletePartitions(partitions);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void deletePartitions(Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        eventConsumer.delete(withTopic(partitions, eventConsumer.getTopic()));</b>
+<b class="nc">&nbsp;        for (PartitionedQueueConsumerManager&lt;?&gt; consumer : otherConsumers) {</b>
+<b class="nc">&nbsp;            consumer.removePartitions(withTopic(partitions, consumer.getTopic()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void stop() {
+<b class="nc">&nbsp;        eventConsumer.stop();</b>
+<b class="nc">&nbsp;        eventConsumer.awaitStop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public interface RestoreCallback {
+&nbsp;
+&nbsp;        void onAllPartitionsRestored();
+&nbsp;
+<b class="nc">&nbsp;        default void onPartitionRestored(TopicPartitionInfo partition) {}</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

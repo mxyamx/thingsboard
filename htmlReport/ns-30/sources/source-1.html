@@ -1,0 +1,348 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbMqttNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.mqtt</a>
+</div>
+
+<h1>Coverage Summary for Class: TbMqttNode (org.thingsboard.rule.engine.mqtt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbMqttNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/75)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.mqtt;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import io.netty.buffer.Unpooled;
+&nbsp;import io.netty.handler.codec.mqtt.MqttQoS;
+&nbsp;import io.netty.handler.codec.mqtt.MqttVersion;
+&nbsp;import io.netty.handler.ssl.SslContext;
+&nbsp;import io.netty.util.concurrent.Promise;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.mqtt.MqttClient;
+&nbsp;import org.thingsboard.mqtt.MqttClientConfig;
+&nbsp;import org.thingsboard.mqtt.MqttConnectResult;
+&nbsp;import org.thingsboard.rule.engine.api.MqttClientSettings;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.credentials.BasicCredentials;
+&nbsp;import org.thingsboard.rule.engine.credentials.ClientCredentials;
+&nbsp;import org.thingsboard.rule.engine.credentials.CredentialsType;
+&nbsp;import org.thingsboard.rule.engine.external.TbAbstractExternalNode;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentClusteringMode;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;
+&nbsp;import javax.net.ssl.SSLException;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.TimeoutException;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.EXTERNAL,
+&nbsp;        name = &quot;mqtt&quot;,
+&nbsp;        configClazz = TbMqttNodeConfiguration.class,
+&nbsp;        version = 2,
+&nbsp;        clusteringMode = ComponentClusteringMode.USER_PREFERENCE,
+&nbsp;        nodeDescription = &quot;Publish messages to the MQTT broker&quot;,
+&nbsp;        nodeDetails = &quot;Will publish message payload to the MQTT broker with QoS &lt;b&gt;AT_LEAST_ONCE&lt;/b&gt;.&quot;,
+&nbsp;        configDirective = &quot;tbExternalNodeMqttConfig&quot;,
+&nbsp;        icon = &quot;call_split&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/external/mqtt/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbMqttNode extends TbAbstractExternalNode {</b>
+&nbsp;
+&nbsp;    private static final int MQTT_3_MAX_CLIENT_ID_LENGTH = 23;
+&nbsp;    private static final int MQTT_5_MAX_CLIENT_ID_LENGTH = 256;
+&nbsp;
+&nbsp;    protected TbMqttNodeConfiguration mqttNodeConfiguration;
+&nbsp;    protected MqttClient mqttClient;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        super.init(ctx);</b>
+<b class="nc">&nbsp;        this.mqttNodeConfiguration = TbNodeUtils.convert(configuration, TbMqttNodeConfiguration.class);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            this.mqttClient = initClient(ctx);</b>
+&nbsp;        } catch (TbNodeException e) {
+&nbsp;            throw e;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new TbNodeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        String topic = TbNodeUtils.processPattern(mqttNodeConfiguration.getTopicPattern(), msg);</b>
+<b class="nc">&nbsp;        var tbMsg = ackIfNeeded(ctx, msg);</b>
+<b class="nc">&nbsp;        this.mqttClient.publish(topic, Unpooled.wrappedBuffer(getData(tbMsg, mqttNodeConfiguration.isParseToPlainText()).getBytes(StandardCharsets.UTF_8)),</b>
+<b class="nc">&nbsp;                        MqttQoS.AT_LEAST_ONCE, mqttNodeConfiguration.isRetainedMessage())</b>
+<b class="nc">&nbsp;                .addListener(future -&gt; {</b>
+<b class="nc">&nbsp;                            if (future.isSuccess()) {</b>
+<b class="nc">&nbsp;                                tellSuccess(ctx, tbMsg);</b>
+&nbsp;                            } else {
+<b class="nc">&nbsp;                                tellFailure(ctx, processException(tbMsg, future.cause()), future.cause());</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                );
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg processException(TbMsg origMsg, Throwable e) {
+<b class="nc">&nbsp;        TbMsgMetaData metaData = origMsg.getMetaData().copy();</b>
+<b class="nc">&nbsp;        metaData.putValue(&quot;error&quot;, e.getClass() + &quot;: &quot; + e.getMessage());</b>
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        if (mqttClient != null) {</b>
+<b class="nc">&nbsp;            mqttClient.disconnect();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    String getOwnerId(TbContext ctx) {
+<b class="nc">&nbsp;        return &quot;Tenant[&quot; + ctx.getTenantId().getId() + &quot;]RuleNode[&quot; + ctx.getSelf().getId().getId() + &quot;]&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected MqttClient initClient(TbContext ctx) throws Exception {
+<b class="nc">&nbsp;        MqttClientConfig config = new MqttClientConfig(getSslContext());</b>
+<b class="nc">&nbsp;        config.setOwnerId(getOwnerId(ctx));</b>
+<b class="nc">&nbsp;        if (!StringUtils.isEmpty(mqttNodeConfiguration.getClientId())) {</b>
+<b class="nc">&nbsp;            config.setClientId(getClientId(ctx));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        config.setCleanSession(mqttNodeConfiguration.isCleanSession());</b>
+<b class="nc">&nbsp;        config.setProtocolVersion(mqttNodeConfiguration.getProtocolVersion());</b>
+&nbsp;
+<b class="nc">&nbsp;        MqttClientSettings mqttClientSettings = ctx.getMqttClientSettings();</b>
+<b class="nc">&nbsp;        config.setRetransmissionConfig(new MqttClientConfig.RetransmissionConfig(</b>
+<b class="nc">&nbsp;                mqttClientSettings.getRetransmissionMaxAttempts(),</b>
+<b class="nc">&nbsp;                mqttClientSettings.getRetransmissionInitialDelayMillis(),</b>
+<b class="nc">&nbsp;                mqttClientSettings.getRetransmissionJitterFactor()</b>
+&nbsp;        ));
+&nbsp;
+<b class="nc">&nbsp;        prepareMqttClientConfig(config);</b>
+<b class="nc">&nbsp;        MqttClient client = getMqttClient(ctx, config);</b>
+<b class="nc">&nbsp;        client.setEventLoop(ctx.getSharedEventLoop());</b>
+<b class="nc">&nbsp;        Promise&lt;MqttConnectResult&gt; connectFuture = client.connect(mqttNodeConfiguration.getHost(), mqttNodeConfiguration.getPort());</b>
+&nbsp;        MqttConnectResult result;
+&nbsp;        try {
+<b class="nc">&nbsp;            result = connectFuture.get(mqttNodeConfiguration.getConnectTimeoutSec(), TimeUnit.SECONDS);</b>
+&nbsp;        } catch (TimeoutException ex) {
+<b class="nc">&nbsp;            connectFuture.cancel(true);</b>
+<b class="nc">&nbsp;            client.disconnect();</b>
+<b class="nc">&nbsp;            String hostPort = mqttNodeConfiguration.getHost() + &quot;:&quot; + mqttNodeConfiguration.getPort();</b>
+<b class="nc">&nbsp;            throw new RuntimeException(String.format(&quot;Failed to connect to MQTT broker at %s.&quot;, hostPort));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!result.isSuccess()) {</b>
+<b class="nc">&nbsp;            connectFuture.cancel(true);</b>
+<b class="nc">&nbsp;            client.disconnect();</b>
+<b class="nc">&nbsp;            String hostPort = mqttNodeConfiguration.getHost() + &quot;:&quot; + mqttNodeConfiguration.getPort();</b>
+<b class="nc">&nbsp;            throw new RuntimeException(String.format(&quot;Failed to connect to MQTT broker at %s. Result code is: %s&quot;, hostPort, result.getReturnCode()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return client;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getClientId(TbContext ctx) throws TbNodeException {
+<b class="nc">&nbsp;        String clientId = mqttNodeConfiguration.isAppendClientIdSuffix() ?</b>
+<b class="nc">&nbsp;                mqttNodeConfiguration.getClientId() + &quot;_&quot; + ctx.getServiceId() :</b>
+<b class="nc">&nbsp;                mqttNodeConfiguration.getClientId();</b>
+<b class="nc">&nbsp;        int maxLength = mqttNodeConfiguration.getProtocolVersion() == MqttVersion.MQTT_3_1 ? MQTT_3_MAX_CLIENT_ID_LENGTH : MQTT_5_MAX_CLIENT_ID_LENGTH;</b>
+<b class="nc">&nbsp;        if (clientId.length() &gt; maxLength) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;The length of Client ID cannot be longer than &quot; + maxLength + &quot;, but current length is &quot; + clientId.length() + &quot;.&quot;, true);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return clientId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    MqttClient getMqttClient(TbContext ctx, MqttClientConfig config) {
+<b class="nc">&nbsp;        return MqttClient.create(config, null, ctx.getExternalCallExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void prepareMqttClientConfig(MqttClientConfig config) {
+<b class="nc">&nbsp;        ClientCredentials credentials = mqttNodeConfiguration.getCredentials();</b>
+<b class="nc">&nbsp;        if (credentials.getType() == CredentialsType.BASIC) {</b>
+<b class="nc">&nbsp;            BasicCredentials basicCredentials = (BasicCredentials) credentials;</b>
+<b class="nc">&nbsp;            config.setUsername(basicCredentials.getUsername());</b>
+<b class="nc">&nbsp;            config.setPassword(basicCredentials.getPassword());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private SslContext getSslContext() throws SSLException {
+<b class="nc">&nbsp;        return mqttNodeConfiguration.isSsl() ? mqttNodeConfiguration.getCredentials().initSslContext() : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getData(TbMsg tbMsg, boolean parseToPlainText) {
+<b class="nc">&nbsp;        if (parseToPlainText) {</b>
+<b class="nc">&nbsp;            return JacksonUtil.toPlainText(tbMsg.getData());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return tbMsg.getData();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        switch (fromVersion) {</b>
+&nbsp;            case 0:
+<b class="nc">&nbsp;                String parseToPlainText = &quot;parseToPlainText&quot;;</b>
+<b class="nc">&nbsp;                if (!oldConfiguration.has(parseToPlainText)) {</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+<b class="nc">&nbsp;                    ((ObjectNode) oldConfiguration).put(parseToPlainText, false);</b>
+&nbsp;                }
+&nbsp;            case 1:
+<b class="nc">&nbsp;                String protocolVersion = &quot;protocolVersion&quot;;</b>
+<b class="nc">&nbsp;                if (!oldConfiguration.has(protocolVersion)) {</b>
+<b class="nc">&nbsp;                    hasChanges = true;</b>
+<b class="nc">&nbsp;                    ((ObjectNode) oldConfiguration).put(protocolVersion, MqttVersion.MQTT_3_1.name());</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            default:
+&nbsp;                break;
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

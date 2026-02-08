@@ -1,0 +1,403 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbDDFFileParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.common.data.util</a>
+</div>
+
+<h1>Coverage Summary for Class: TbDDFFileParser (org.thingsboard.server.common.data.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbDDFFileParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/86)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/106)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.common.data.util;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.core.LwM2m;
+&nbsp;import org.eclipse.leshan.core.model.InvalidDDFFileException;
+&nbsp;import org.eclipse.leshan.core.model.ObjectModel;
+&nbsp;import org.eclipse.leshan.core.model.ResourceModel;
+&nbsp;import org.eclipse.leshan.core.util.StringUtils;
+&nbsp;import org.w3c.dom.DOMException;
+&nbsp;import org.w3c.dom.Document;
+&nbsp;import org.w3c.dom.Node;
+&nbsp;import org.w3c.dom.NodeList;
+&nbsp;import org.xml.sax.SAXException;
+&nbsp;
+&nbsp;import javax.xml.parsers.DocumentBuilder;
+&nbsp;import javax.xml.parsers.DocumentBuilderFactory;
+&nbsp;import javax.xml.parsers.ParserConfigurationException;
+&nbsp;import java.io.IOException;
+&nbsp;import java.io.InputStream;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class TbDDFFileParser {</b>
+<b class="nc">&nbsp;    private static final TbDefaultDDFFileValidator ddfFileValidator = new TbDefaultDDFFileValidator();</b>
+&nbsp;
+&nbsp;    public List&lt;ObjectModel&gt; parse(InputStream inputStream, String streamName)
+&nbsp;            throws InvalidDDFFileException, IOException {
+<b class="nc">&nbsp;        streamName = streamName == null ? &quot;&quot; : streamName;</b>
+&nbsp;
+<b class="nc">&nbsp;        log.debug(&quot;Parsing DDF file {}&quot;, streamName);</b>
+&nbsp;
+&nbsp;        try {
+&nbsp;            // Parse XML file
+<b class="nc">&nbsp;            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();</b>
+<b class="nc">&nbsp;            factory.setNamespaceAware(true);</b>
+<b class="nc">&nbsp;            factory.setFeature(&quot;http://apache.org/xml/features/disallow-doctype-decl&quot;, true);</b>
+&nbsp;
+<b class="nc">&nbsp;            DocumentBuilder builder = factory.newDocumentBuilder();</b>
+<b class="nc">&nbsp;            Document document = builder.parse(inputStream);</b>
+&nbsp;
+&nbsp;            // Get DDF file validator
+<b class="nc">&nbsp;            LwM2m.LwM2mVersion lwm2mVersion = null;</b>
+<b class="nc">&nbsp;            ddfFileValidator.validate(document);</b>
+&nbsp;
+&nbsp;            // Build list of ObjectModel
+<b class="nc">&nbsp;            ArrayList&lt;ObjectModel&gt; objects = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            NodeList nodeList = document.getDocumentElement().getElementsByTagName(&quot;Object&quot;);</b>
+<b class="nc">&nbsp;            for (int i = 0; i &lt; nodeList.getLength(); i++) {</b>
+<b class="nc">&nbsp;                objects.add(parseObject(nodeList.item(i), streamName, lwm2mVersion, true));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return objects;</b>
+&nbsp;        } catch (InvalidDDFFileException | SAXException e) {
+<b class="nc">&nbsp;            throw new InvalidDDFFileException(e, &quot;Invalid DDF file %s&quot;, streamName);</b>
+&nbsp;        }
+&nbsp;        catch (ParserConfigurationException e) {
+<b class="nc">&nbsp;            throw new IllegalStateException(&quot;Unable to create Document Builder&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ObjectModel parseObject(Node object, String streamName, LwM2m.LwM2mVersion schemaVersion, boolean validate)
+&nbsp;            throws InvalidDDFFileException {
+&nbsp;
+<b class="nc">&nbsp;        Node objectType = object.getAttributes().getNamedItem(&quot;ObjectType&quot;);</b>
+<b class="nc">&nbsp;        if (validate &amp;&amp; (objectType == null || !&quot;MODefinition&quot;.equals(objectType.getTextContent()))) {</b>
+<b class="nc">&nbsp;            throw new InvalidDDFFileException(</b>
+&nbsp;                    &quot;Object element in %s MUST have a ObjectType attribute equals to &#39;MODefinition&#39;.&quot;, streamName);
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Integer id = null;</b>
+<b class="nc">&nbsp;        String name = null;</b>
+<b class="nc">&nbsp;        String description = null;</b>
+<b class="nc">&nbsp;        String version = ObjectModel.DEFAULT_VERSION;</b>
+<b class="nc">&nbsp;        Boolean multiple = null;</b>
+<b class="nc">&nbsp;        Boolean mandatory = null;</b>
+<b class="nc">&nbsp;        Map&lt;Integer, ResourceModel&gt; resources = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        String urn = null;</b>
+<b class="nc">&nbsp;        String description2 = null;</b>
+<b class="nc">&nbsp;        String lwm2mVersion = ObjectModel.DEFAULT_VERSION;</b>
+&nbsp;
+<b class="nc">&nbsp;        for (int i = 0; i &lt; object.getChildNodes().getLength(); i++) {</b>
+<b class="nc">&nbsp;            Node field = object.getChildNodes().item(i);</b>
+<b class="nc">&nbsp;            if (field.getNodeType() != Node.ELEMENT_NODE)</b>
+&nbsp;                continue;
+&nbsp;
+<b class="nc">&nbsp;            switch (field.getNodeName()) {</b>
+&nbsp;                case &quot;ObjectID&quot;:
+<b class="nc">&nbsp;                    id = Integer.valueOf(field.getTextContent());</b>
+&nbsp;                    break;
+&nbsp;                case &quot;Name&quot;:
+<b class="nc">&nbsp;                    name = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                case &quot;Description1&quot;:
+<b class="nc">&nbsp;                    description = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                case &quot;ObjectVersion&quot;:
+<b class="nc">&nbsp;                    if (!StringUtils.isEmpty(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        version = field.getTextContent();</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;MultipleInstances&quot;:
+<b class="nc">&nbsp;                    if (&quot;Multiple&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        multiple = true;</b>
+<b class="nc">&nbsp;                    } else if (&quot;Single&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        multiple = false;</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;Mandatory&quot;:
+<b class="nc">&nbsp;                    if (&quot;Mandatory&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        mandatory = true;</b>
+<b class="nc">&nbsp;                    } else if (&quot;Optional&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        mandatory = false;</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;Resources&quot;:
+<b class="nc">&nbsp;                    for (int j = 0; j &lt; field.getChildNodes().getLength(); j++) {</b>
+<b class="nc">&nbsp;                        Node item = field.getChildNodes().item(j);</b>
+<b class="nc">&nbsp;                        if (item.getNodeType() != Node.ELEMENT_NODE)</b>
+&nbsp;                            continue;
+&nbsp;
+<b class="nc">&nbsp;                        if (item.getNodeName().equals(&quot;Item&quot;)) {</b>
+<b class="nc">&nbsp;                            ResourceModel resource = parseResource(item, streamName);</b>
+<b class="nc">&nbsp;                            if (validate &amp;&amp; resources.containsKey(resource.id)) {</b>
+<b class="nc">&nbsp;                                throw new InvalidDDFFileException(</b>
+&nbsp;                                        &quot;Object %s in %s contains at least 2 resources with same id %s.&quot;,
+<b class="nc">&nbsp;                                        id != null ? id : &quot;&quot;, streamName, resource.id);</b>
+&nbsp;                            } else {
+<b class="nc">&nbsp;                                resources.put(resource.id, resource);</b>
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;ObjectURN&quot;:
+<b class="nc">&nbsp;                    urn = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                case &quot;LWM2MVersion&quot;:
+<b class="nc">&nbsp;                    if (!StringUtils.isEmpty(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        lwm2mVersion = field.getTextContent();</b>
+<b class="nc">&nbsp;                        if (schemaVersion != null &amp;&amp; !schemaVersion.toString().equals(lwm2mVersion)) {</b>
+<b class="nc">&nbsp;                            throw new InvalidDDFFileException(</b>
+&nbsp;                                    &quot;LWM2MVersion is not consistent with xml shema(xsi:noNamespaceSchemaLocation) in %s : %s  expected but was %s.&quot;,
+&nbsp;                                    streamName, schemaVersion, lwm2mVersion);
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;Description2&quot;:
+<b class="nc">&nbsp;                    description2 = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                default:
+&nbsp;                    break;
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return new ObjectModel(id, name, description, version, multiple, mandatory, resources.values(), urn,</b>
+&nbsp;                lwm2mVersion, description2);
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private ResourceModel parseResource(Node item, String streamName) throws DOMException, InvalidDDFFileException {
+&nbsp;
+<b class="nc">&nbsp;        Integer id = Integer.valueOf(item.getAttributes().getNamedItem(&quot;ID&quot;).getTextContent());</b>
+<b class="nc">&nbsp;        String name = null;</b>
+<b class="nc">&nbsp;        ResourceModel.Operations operations = null;</b>
+<b class="nc">&nbsp;        Boolean multiple = false;</b>
+<b class="nc">&nbsp;        Boolean mandatory = false;</b>
+<b class="nc">&nbsp;        ResourceModel.Type type = null;</b>
+<b class="nc">&nbsp;        String rangeEnumeration = null;</b>
+<b class="nc">&nbsp;        String units = null;</b>
+<b class="nc">&nbsp;        String description = null;</b>
+&nbsp;
+<b class="nc">&nbsp;        for (int i = 0; i &lt; item.getChildNodes().getLength(); i++) {</b>
+<b class="nc">&nbsp;            Node field = item.getChildNodes().item(i);</b>
+<b class="nc">&nbsp;            if (field.getNodeType() != Node.ELEMENT_NODE)</b>
+&nbsp;                continue;
+&nbsp;
+<b class="nc">&nbsp;            switch (field.getNodeName()) {</b>
+&nbsp;                case &quot;Name&quot;:
+<b class="nc">&nbsp;                    name = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                case &quot;Operations&quot;:
+<b class="nc">&nbsp;                    String strOp = field.getTextContent();</b>
+<b class="nc">&nbsp;                    if (strOp != null &amp;&amp; !strOp.isEmpty()) {</b>
+<b class="nc">&nbsp;                        operations = ResourceModel.Operations.valueOf(strOp);</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        operations = ResourceModel.Operations.NONE;</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;MultipleInstances&quot;:
+<b class="nc">&nbsp;                    if (&quot;Multiple&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        multiple = true;</b>
+<b class="nc">&nbsp;                    } else if (&quot;Single&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        multiple = false;</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;Mandatory&quot;:
+<b class="nc">&nbsp;                    if (&quot;Mandatory&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        mandatory = true;</b>
+<b class="nc">&nbsp;                    } else if (&quot;Optional&quot;.equals(field.getTextContent())) {</b>
+<b class="nc">&nbsp;                        mandatory = false;</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;Type&quot;:
+<b class="nc">&nbsp;                    switch (field.getTextContent()) {</b>
+&nbsp;                        case &quot;String&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.STRING;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Integer&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.INTEGER;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Float&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.FLOAT;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Boolean&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.BOOLEAN;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Opaque&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.OPAQUE;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Time&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.TIME;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Objlnk&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.OBJLNK;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Unsigned Integer&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.UNSIGNED_INTEGER;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;Corelnk&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.CORELINK;</b>
+&nbsp;                            break;
+&nbsp;                        case &quot;&quot;:
+<b class="nc">&nbsp;                            type = ResourceModel.Type.NONE;</b>
+&nbsp;                            break;
+&nbsp;                        default:
+&nbsp;                            break;
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                case &quot;RangeEnumeration&quot;:
+<b class="nc">&nbsp;                    rangeEnumeration = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                case &quot;Units&quot;:
+<b class="nc">&nbsp;                    units = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                case &quot;Description&quot;:
+<b class="nc">&nbsp;                    description = field.getTextContent();</b>
+&nbsp;                    break;
+&nbsp;                default:
+&nbsp;                    break;
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return new ResourceModel(id, name, operations, multiple, mandatory, type, rangeEnumeration, units, description);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

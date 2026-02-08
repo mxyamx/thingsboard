@@ -1,0 +1,253 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JpaAuditLogDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.audit</a>
+</div>
+
+<h1>Coverage Summary for Class: JpaAuditLogDao (org.thingsboard.server.dao.sql.audit)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JpaAuditLogDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.audit;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.audit.AuditLog;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.TimePageLink;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.audit.AuditLogDao;
+&nbsp;import org.thingsboard.server.dao.config.DefaultDataSource;
+&nbsp;import org.thingsboard.server.dao.model.sql.AuditLogEntity;
+&nbsp;import org.thingsboard.server.dao.sql.JpaPartitionedAbstractDao;
+&nbsp;import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
+&nbsp;import org.thingsboard.server.dao.util.SqlDao;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_TABLE_NAME;
+&nbsp;
+&nbsp;@DefaultDataSource
+&nbsp;@Component
+&nbsp;@SqlDao
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class JpaAuditLogDao extends JpaPartitionedAbstractDao&lt;AuditLogEntity, AuditLog&gt; implements AuditLogDao {
+&nbsp;
+&nbsp;    private final AuditLogRepository auditLogRepository;
+&nbsp;    private final SqlPartitioningRepository partitioningRepository;
+&nbsp;
+&nbsp;    @Value(&quot;${sql.audit_logs.partition_size:168}&quot;)
+&nbsp;    private int partitionSizeInHours;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantIdAndEntityId(UUID tenantId, EntityId entityId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+&nbsp;                auditLogRepository
+<b class="nc">&nbsp;                        .findAuditLogsByTenantIdAndEntityId(</b>
+&nbsp;                                tenantId,
+<b class="nc">&nbsp;                                entityId.getEntityType(),</b>
+<b class="nc">&nbsp;                                entityId.getId(),</b>
+<b class="nc">&nbsp;                                pageLink.getTextSearch(),</b>
+<b class="nc">&nbsp;                                pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                                pageLink.getEndTime(),</b>
+&nbsp;                                actionTypes,
+<b class="nc">&nbsp;                                DaoUtil.toPageable(pageLink)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantIdAndCustomerId(UUID tenantId, CustomerId customerId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+&nbsp;                auditLogRepository
+<b class="nc">&nbsp;                        .findAuditLogsByTenantIdAndCustomerId(</b>
+&nbsp;                                tenantId,
+<b class="nc">&nbsp;                                customerId.getId(),</b>
+<b class="nc">&nbsp;                                pageLink.getTextSearch(),</b>
+<b class="nc">&nbsp;                                pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                                pageLink.getEndTime(),</b>
+&nbsp;                                actionTypes,
+<b class="nc">&nbsp;                                DaoUtil.toPageable(pageLink)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantIdAndUserId(UUID tenantId, UserId userId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+&nbsp;                auditLogRepository
+<b class="nc">&nbsp;                        .findAuditLogsByTenantIdAndUserId(</b>
+&nbsp;                                tenantId,
+<b class="nc">&nbsp;                                userId.getId(),</b>
+<b class="nc">&nbsp;                                pageLink.getTextSearch(),</b>
+<b class="nc">&nbsp;                                pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                                pageLink.getEndTime(),</b>
+&nbsp;                                actionTypes,
+<b class="nc">&nbsp;                                DaoUtil.toPageable(pageLink)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AuditLog&gt; findAuditLogsByTenantId(UUID tenantId, List&lt;ActionType&gt; actionTypes, TimePageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                auditLogRepository.findByTenantId(</b>
+&nbsp;                        tenantId,
+<b class="nc">&nbsp;                        pageLink.getTextSearch(),</b>
+<b class="nc">&nbsp;                        pageLink.getStartTime(),</b>
+<b class="nc">&nbsp;                        pageLink.getEndTime(),</b>
+&nbsp;                        actionTypes,
+<b class="nc">&nbsp;                        DaoUtil.toPageable(pageLink)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void cleanUpAuditLogs(long expTime) {
+<b class="nc">&nbsp;        partitioningRepository.dropPartitionsBefore(AUDIT_LOG_TABLE_NAME, expTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void createPartition(AuditLogEntity entity) {
+<b class="nc">&nbsp;        partitioningRepository.createPartitionIfNotExists(AUDIT_LOG_TABLE_NAME, entity.getCreatedTime(), TimeUnit.HOURS.toMillis(partitionSizeInHours));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Class&lt;AuditLogEntity&gt; getEntityClass() {
+<b class="nc">&nbsp;        return AuditLogEntity.class;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected JpaRepository&lt;AuditLogEntity, UUID&gt; getRepository() {
+<b class="nc">&nbsp;        return auditLogRepository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

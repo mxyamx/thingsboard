@@ -1,0 +1,766 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbDate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.script.api.tbel</a>
+</div>
+
+<h1>Coverage Summary for Class: TbDate (org.thingsboard.script.api.tbel)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbDate</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/127)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/212)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.script.api.tbel;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonValue;
+&nbsp;import org.mvel2.ConversionException;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;
+&nbsp;import java.io.Serializable;
+&nbsp;import java.text.DateFormat;
+&nbsp;import java.text.SimpleDateFormat;
+&nbsp;import java.time.Instant;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.time.ZoneId;
+&nbsp;import java.time.ZoneOffset;
+&nbsp;import java.time.ZonedDateTime;
+&nbsp;import java.time.format.DateTimeFormatter;
+&nbsp;import java.time.format.DateTimeFormatterBuilder;
+&nbsp;import java.time.format.DateTimeParseException;
+&nbsp;import java.time.format.FormatStyle;
+&nbsp;import java.time.temporal.ChronoUnit;
+&nbsp;import java.time.temporal.TemporalAccessor;
+&nbsp;import java.util.Locale;
+&nbsp;import java.util.function.BiFunction;
+&nbsp;import java.util.function.Function;
+&nbsp;
+&nbsp;public class TbDate implements Serializable, Cloneable {
+&nbsp;
+&nbsp;    private Instant instant;
+&nbsp;
+<b class="nc">&nbsp;    private static final ZoneId zoneIdUTC = ZoneId.of(&quot;UTC&quot;);</b>
+<b class="nc">&nbsp;    private static final Locale localeUTC = Locale.forLanguageTag(&quot;UTC&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final DateTimeFormatter isoDateFormatter = DateTimeFormatter.ofPattern(</b>
+<b class="nc">&nbsp;            &quot;yyyy-MM-dd[[ ][&#39;T&#39;]HH:mm[:ss[.SSS]][ ][XXX][Z][z][VV][O]]&quot;).withZone(ZoneId.systemDefault());</b>
+&nbsp;
+<b class="nc">&nbsp;    public TbDate() {</b>
+<b class="nc">&nbsp;        this.instant = Instant.now();</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbDate(String s) {</b>
+<b class="nc">&nbsp;        this.instant = parseInstant(s);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbDate(String s, String pattern) {</b>
+<b class="nc">&nbsp;        this.instant = parseInstant(s, Locale.getDefault().toLanguageTag(), pattern);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbDate(String s, String pattern, String locale) {</b>
+<b class="nc">&nbsp;        this.instant = parseInstant(s, locale, pattern);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbDate(String s, String pattern, String locale, String zoneId) {</b>
+<b class="nc">&nbsp;        this.instant = parseInstant(s, pattern, locale, zoneId);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbDate(String s, String pattern, Locale locale, ZoneId zoneId) {</b>
+<b class="nc">&nbsp;        instant =  parseInstant(s, pattern, locale, zoneId);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbDate(long dateMilliSecond) {</b>
+<b class="nc">&nbsp;        instant = Instant.ofEpochMilli(dateMilliSecond);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbDate(int year, int month, int date) {
+<b class="nc">&nbsp;        this(year, month, date, 0, 0, 0, 0, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbDate(int year, int month, int date, String tz) {
+<b class="nc">&nbsp;        this(year, month, date, 0, 0, 0, 0, tz);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbDate(int year, int month, int date, int hrs, int min) {
+<b class="nc">&nbsp;        this(year, month, date, hrs, min, 0, 0, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbDate(int year, int month, int date, int hrs, int min, String tz) {
+<b class="nc">&nbsp;        this(year, month, date, hrs, min, 0, 0, tz);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbDate(int year, int month, int date, int hrs, int min, int second) {
+<b class="nc">&nbsp;        this(year, month, date, hrs, min, second, 0, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbDate(int year, int month, int date, int hrs, int min, int second, String tz) {
+<b class="nc">&nbsp;        this(year, month, date, hrs, min, second, 0, tz);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbDate(int year, int month, int date, int hrs, int min, int second, int milliSecond) {
+<b class="nc">&nbsp;        this(year, month, date, hrs, min, second, milliSecond, null);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public TbDate(int year, int month, int date, int hrs, int min, int second, int milliSecond, String tz) {</b>
+<b class="nc">&nbsp;        ZoneId zoneId = tz != null &amp;&amp; tz.length() &gt; 0 ? ZoneId.of(tz) : ZoneId.systemDefault();</b>
+<b class="nc">&nbsp;        instant = parseInstant(year, month, date, hrs, min, second,  milliSecond, zoneId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Instant getInstant() {
+<b class="nc">&nbsp;        return instant;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ZonedDateTime getZonedDateTime() {
+<b class="nc">&nbsp;        return getZonedDateTime(zoneIdUTC);</b>
+&nbsp;    }
+&nbsp;    public ZonedDateTime getZonedDateTime(ZoneId zoneId) {
+<b class="nc">&nbsp;        return instant.atZone(zoneId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalDateTime getLocalDateTime() {
+<b class="nc">&nbsp;        return LocalDateTime.ofInstant(this.instant,  ZoneId.systemDefault());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalDateTime getUTCDateTime() {
+<b class="nc">&nbsp;        return LocalDateTime.ofInstant(this.instant,  zoneIdUTC);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toDateString() {
+<b class="nc">&nbsp;        return toDateString(localeUTC.getLanguage());</b>
+&nbsp;    }
+&nbsp;    public String toDateString(String locale) {
+<b class="nc">&nbsp;        return toDateString(locale, ZoneId.systemDefault().toString());</b>
+&nbsp;    }
+&nbsp;    public String toDateString(String localeStr, String optionsStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, optionsStr, (locale, options) -&gt; DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;    public String toTimeString() {
+<b class="nc">&nbsp;        return toTimeString(Locale.getDefault().getLanguage());</b>
+&nbsp;    }
+&nbsp;    public String toTimeString(String locale) {
+<b class="nc">&nbsp;        return toTimeString(locale, ZoneId.systemDefault().toString());</b>
+&nbsp;    }
+&nbsp;    public String toTimeString(String localeStr, String optionsStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, optionsStr, (locale, options) -&gt; DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toISOString() {
+<b class="nc">&nbsp;        return instant.toString();</b>
+&nbsp;    }
+&nbsp;    public String toJSON() {
+<b class="nc">&nbsp;        return toISOString();</b>
+&nbsp;    }
+&nbsp;    public String toUTCString() {
+<b class="nc">&nbsp;        return toUTCString(localeUTC.getLanguage());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toUTCString(String localeStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, zoneIdUTC.getId(), (locale, options) -&gt; DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.MEDIUM).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @JsonValue
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        return toString(Locale.getDefault().getLanguage());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toString(String locale) {
+<b class="nc">&nbsp;        return toString(locale, ZoneId.systemDefault().toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toString(String localeStr, String optionsStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, optionsStr, (locale, options) -&gt; DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleDateString() {
+<b class="nc">&nbsp;        return toLocaleDateString(localeUTC.getLanguage());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleDateString(String localeStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, ZoneId.systemDefault().toString(), (locale, options) -&gt; DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleDateString(String localeStr, String optionsStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, optionsStr, (locale, options) -&gt; DateTimeFormatter.ofLocalizedDate(options.getDateStyle()).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleTimeString() {
+<b class="nc">&nbsp;        return toLocaleTimeString(Locale.getDefault().getLanguage());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleTimeString(String localeStr) {
+<b class="nc">&nbsp;        return toLocaleTimeString(localeStr, ZoneId.systemDefault().toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleTimeString(String localeStr, String optionsStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, optionsStr, (locale, options) -&gt; DateTimeFormatter.ofLocalizedTime(options.getTimeStyle()).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleString() {
+<b class="nc">&nbsp;        return toLocaleString(localeUTC.getLanguage(), ZoneId.systemDefault().toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleString(String locale) {
+<b class="nc">&nbsp;        return toLocaleString(locale, ZoneId.systemDefault().toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleString(String localeStr, String optionsStr) {
+<b class="nc">&nbsp;        return toLocaleString(localeStr, optionsStr, (locale, options) -&gt;</b>
+<b class="nc">&nbsp;                DateTimeFormatter.ofLocalizedDateTime(options.getDateStyle(), options.getTimeStyle()).withLocale(locale));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String toLocaleString(String localeStr, String optionsStr, BiFunction&lt;Locale, DateTimeFormatOptions, DateTimeFormatter&gt; formatterBuilder) {
+<b class="nc">&nbsp;        Locale locale = StringUtils.isNotEmpty(localeStr) ? Locale.forLanguageTag(localeStr) : Locale.getDefault();</b>
+<b class="nc">&nbsp;        DateTimeFormatOptions options = getDateFormattingOptions(optionsStr);</b>
+<b class="nc">&nbsp;        ZonedDateTime zdt = this.getInstant().atZone(options.getTimeZone().toZoneId());</b>
+&nbsp;        DateTimeFormatter formatter;
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(options.getPattern())) {</b>
+<b class="nc">&nbsp;            formatter = new DateTimeFormatterBuilder().appendPattern(options.getPattern()).toFormatter(locale);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            formatter = formatterBuilder.apply(locale, options);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return formatter.format(zdt);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private DateTimeFormatOptions getDateFormattingOptions(String optionsStr) {
+<b class="nc">&nbsp;        DateTimeFormatOptions opt = null;</b>
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(optionsStr)) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                opt = JacksonUtil.fromString(optionsStr, DateTimeFormatOptions.class);</b>
+&nbsp;            } catch (IllegalArgumentException iae) {
+<b class="nc">&nbsp;                opt = new DateTimeFormatOptions(optionsStr);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (opt == null) {</b>
+<b class="nc">&nbsp;            opt = new DateTimeFormatOptions();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return opt;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long now() {
+<b class="nc">&nbsp;        return Instant.now().toEpochMilli();</b>
+&nbsp;    }
+&nbsp;    public long parseSecond() {
+<b class="nc">&nbsp;        return instant.getEpochSecond();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public long parseSecondMilli() {
+<b class="nc">&nbsp;        return instant.toEpochMilli();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long UTC(int year) {
+<b class="nc">&nbsp;        return UTC(year, 0, 0, 0, 0, 0, 0);</b>
+&nbsp;    }
+&nbsp;    public static long UTC(int year, int month) {
+<b class="nc">&nbsp;        return UTC(year, month, 0, 0, 0, 0, 0);</b>
+&nbsp;    }
+&nbsp;    public static long UTC(int year, int month, int date) {
+<b class="nc">&nbsp;        return UTC(year, month, date, 0, 0, 0, 0);</b>
+&nbsp;    }
+&nbsp;    public static long UTC(int year, int month, int date, int hrs) {
+<b class="nc">&nbsp;        return UTC(year, month, date, hrs, 0, 0, 0);</b>
+&nbsp;    }
+&nbsp;    public static long UTC(int year, int month, int date, int hrs, int min) {
+<b class="nc">&nbsp;        return UTC(year, month, date, hrs, min, 0, 0);</b>
+&nbsp;    }
+&nbsp;    public static long UTC(int year, int month, int date, int hrs, int min, int sec) {
+<b class="nc">&nbsp;        return UTC(year, month, date, hrs, min, sec, 0);</b>
+&nbsp;    }
+&nbsp;    public static long UTC(int year, int month, int date, int hrs, int min, int sec, int ms) {
+<b class="nc">&nbsp;        year = year == 0 ? year = 1899 : year;</b>
+<b class="nc">&nbsp;        month = month == 0 ? month = 12 : month;</b>
+<b class="nc">&nbsp;        date = date == 0 ? date = 31 : date;</b>
+<b class="nc">&nbsp;        return parseInstant(year, month, date, hrs, min, sec, ms, zoneIdUTC).toEpochMilli();</b>
+&nbsp;    }
+&nbsp;    public int getUTCFullYear() {
+<b class="nc">&nbsp;        return getUTCDateTime().getYear();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getUTCMonth() {
+<b class="nc">&nbsp;        return getUTCDateTime().getMonthValue();</b>
+&nbsp;    }
+&nbsp;    // day in month
+&nbsp;    public int getUTCDate() {
+<b class="nc">&nbsp;        return getUTCDateTime().getDayOfMonth();</b>
+&nbsp;    }
+&nbsp;    // day in week
+&nbsp;    public int getUTCDay() {
+<b class="nc">&nbsp;        return getUTCDateTime().getDayOfWeek().getValue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getUTCHours() {
+<b class="nc">&nbsp;        return getUTCDateTime().getHour();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getUTCMinutes() {
+<b class="nc">&nbsp;        return getZonedDateTime().getMinute();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getUTCSeconds() {
+<b class="nc">&nbsp;        return getUTCDateTime().getSecond();</b>
+&nbsp;    }
+&nbsp;    public int getUTCMilliseconds() {
+<b class="nc">&nbsp;        return getUTCDateTime().getNano()/1000000;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUTCFullYear(int year) {
+<b class="nc">&nbsp;        if (getUTCDate() &gt; 28) {</b>
+<b class="nc">&nbsp;            long time = getZonedDateTime().withYear(year).withDayOfMonth(1).toInstant().toEpochMilli() + (getUTCDate() - 1) * 24 * 60 * 60 * 1000L;</b>
+<b class="nc">&nbsp;            this.instant = Instant.ofEpochMilli(time);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.instant = getZonedDateTime().withYear(year).toInstant();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    public void setUTCFullYear(int year, int month) {
+<b class="nc">&nbsp;        if (getUTCDate() &gt; 28) {</b>
+<b class="nc">&nbsp;            long time = getZonedDateTime().withYear(year).withMonth(month).withDayOfMonth(1).toInstant().toEpochMilli() + (getUTCDate() - 1) * 24 * 60 * 60 * 1000L;</b>
+<b class="nc">&nbsp;            this.instant = Instant.ofEpochMilli(time);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.instant = getZonedDateTime().withYear(year).withMonth(month).toInstant();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    public void setUTCFullYear(int year, int month, int date) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withYear(year).withMonth(month).withDayOfMonth(date).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCMonth(int month) {
+<b class="nc">&nbsp;        if (getUTCDate() &gt; 28) {</b>
+<b class="nc">&nbsp;            long time = getZonedDateTime().withMonth(month).withDayOfMonth(1).toInstant().toEpochMilli() + (getUTCDate() - 1) * 24 * 60 * 60 * 1000L;</b>
+<b class="nc">&nbsp;            this.instant = Instant.ofEpochMilli(time);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.instant = getZonedDateTime().withMonth(month).toInstant();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    public void setUTCMonth(int month, int date) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withMonth(month).withDayOfMonth(date).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCDate(int date) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withDayOfMonth(date).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCHours(int hrs) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withHour(hrs).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCHours(int hrs, int minutes) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withHour(hrs).withMinute(minutes).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCHours(int hrs, int minutes, int seconds) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withHour(hrs).withMinute(minutes).withSecond(seconds).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCHours(int hrs, int minutes, int seconds, int ms) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withHour(hrs).withMinute(minutes).withSecond(seconds).withNano(ms*1000000).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCMinutes(int minutes) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withMinute(minutes).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCMinutes(int minutes, int seconds) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withMinute(minutes).withSecond(seconds).toInstant();    }</b>
+&nbsp;    public void setUTCMinutes(int minutes, int seconds, int ms) {
+<b class="nc">&nbsp;        this.instant = parseInstant(getUTCFullYear(), getUTCMonth(), getUTCDate(), getUTCHours(), minutes, seconds, ms, zoneIdUTC);</b>
+&nbsp;    }
+&nbsp;    public void setUTCSeconds(int seconds) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withSecond(seconds).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCSeconds(int seconds, int ms) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withSecond(seconds).withNano(ms*1000000).toInstant();</b>
+&nbsp;    }
+&nbsp;    public void setUTCMilliseconds(int ms) {
+<b class="nc">&nbsp;        this.instant = getZonedDateTime().withNano(ms*1000000).toInstant();</b>
+&nbsp;    }
+&nbsp;    public int getFullYear() {
+<b class="nc">&nbsp;        return getLocalDateTime().getYear();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getMonth() {
+<b class="nc">&nbsp;        return getLocalDateTime().getMonthValue();</b>
+&nbsp;    }
+&nbsp;    // day in month
+&nbsp;    public int getDate() {
+<b class="nc">&nbsp;        return getLocalDateTime().getDayOfMonth();</b>
+&nbsp;    }
+&nbsp;    // day in week
+&nbsp;    public int getDay() {
+<b class="nc">&nbsp;        return getLocalDateTime().getDayOfWeek().getValue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getHours() {
+<b class="nc">&nbsp;        return getLocalDateTime().getHour();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getMinutes() {
+<b class="nc">&nbsp;        return getLocalDateTime().getMinute();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getSeconds() {
+<b class="nc">&nbsp;        return getLocalDateTime().getSecond();</b>
+&nbsp;    }
+&nbsp;    public int getMilliseconds() {
+<b class="nc">&nbsp;        return getLocalDateTime().getNano()/1000000;</b>
+&nbsp;    }
+&nbsp;    // Milliseconds since Jan 1, 1970, 00:00:00.000 GMT
+&nbsp;    public long getTime() {
+<b class="nc">&nbsp;        return instant.toEpochMilli();</b>
+&nbsp;    }
+&nbsp;    public long valueOf(){
+<b class="nc">&nbsp;        return getTime() ;</b>
+&nbsp;    }
+&nbsp;    public void setFullYear(int year) {
+<b class="nc">&nbsp;        Instant instantEpochWithYear = getZonedDateTime().withYear(year).toInstant();</b>
+<b class="nc">&nbsp;        if (getDate() &gt; 28) {</b>
+<b class="nc">&nbsp;            long time = getLocalDateTime().withYear(year).withDayOfMonth(1).toInstant(getLocaleZoneOffset(instantEpochWithYear)).toEpochMilli() + (getDate() - 1) * 24 * 60 * 60 * 1000L;</b>
+<b class="nc">&nbsp;            this.instant = Instant.ofEpochMilli(time);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.instant = getLocalDateTime().withYear(year).toInstant(getLocaleZoneOffset(instantEpochWithYear));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    public void setFullYear(int year, int month) {
+<b class="nc">&nbsp;        Instant instantEpochWithYear = getZonedDateTime().withYear(year).withMonth(month).toInstant();</b>
+<b class="nc">&nbsp;        if (getDate() &gt; 28) {</b>
+<b class="nc">&nbsp;            long time = getLocalDateTime().withYear(year).withMonth(month).withDayOfMonth(1).toInstant(getLocaleZoneOffset(instantEpochWithYear)).toEpochMilli() + (getDate() - 1) * 24 * 60 * 60 * 1000L;</b>
+<b class="nc">&nbsp;            this.instant = Instant.ofEpochMilli(time);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.instant = getLocalDateTime().withYear(year).withMonth(month).toInstant(getLocaleZoneOffset(instantEpochWithYear));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    public void setFullYear(int year, int month, int date) {
+<b class="nc">&nbsp;        Instant instantEpochWithYearMonthDate = getZonedDateTime().withYear(year).withMonth(month).withDayOfMonth(date).toInstant();</b>
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withYear(year).withMonth(month).withDayOfMonth(date).toInstant(getLocaleZoneOffset(instantEpochWithYearMonthDate));</b>
+&nbsp;    }
+&nbsp;    public void setMonth(int month) {
+<b class="nc">&nbsp;        Instant instantEpochWithYear = getZonedDateTime().withMonth(month).toInstant();</b>
+<b class="nc">&nbsp;        if (getDate() &gt; 28) {</b>
+<b class="nc">&nbsp;            long time = getLocalDateTime().withMonth(month).withDayOfMonth(1).toInstant(getLocaleZoneOffset(instantEpochWithYear)).toEpochMilli() + (getDate() - 1) * 24 * 60 * 60 * 1000L;</b>
+<b class="nc">&nbsp;            this.instant = Instant.ofEpochMilli(time);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            this.instant = getLocalDateTime().withMonth(month).toInstant(getLocaleZoneOffset(instantEpochWithYear));</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;    public void setMonth(int month, int date) {
+<b class="nc">&nbsp;        Instant instantEpochWithMonthDate = getZonedDateTime().withMonth(month).withDayOfMonth(date).toInstant();</b>
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withMonth(month).withDayOfMonth(date).toInstant(getLocaleZoneOffset(instantEpochWithMonthDate));</b>
+&nbsp;    }
+&nbsp;    public void setDate(int date) {
+<b class="nc">&nbsp;        Instant instantEpochWithDate = getZonedDateTime().withDayOfMonth(date).toInstant();</b>
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withDayOfMonth(date).toInstant(getLocaleZoneOffset(instantEpochWithDate));</b>
+&nbsp;    }
+&nbsp;    public void setHours(int hrs) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withHour(hrs).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setHours(int hrs, int minutes) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withHour(hrs).withMinute(minutes).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setHours(int hrs, int minutes, int seconds) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withHour(hrs).withMinute(minutes).withSecond(seconds).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setHours(int hrs, int minutes, int seconds, int ms) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withHour(hrs).withMinute(minutes).withSecond(seconds).withNano(ms*1000000).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setMinutes(int minutes) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withMinute(minutes).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setMinutes(int minutes, int seconds) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withMinute(minutes).withSecond(seconds).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;
+&nbsp;    }
+&nbsp;    public void setMinutes(int minutes, int seconds, int ms) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withMinute(minutes).withSecond(seconds).withNano(ms*1000000).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setSeconds(int seconds) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withSecond(seconds).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setSeconds(int seconds, int ms) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withSecond(seconds).withNano(ms*1000000).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;    public void setMilliseconds(int ms) {
+<b class="nc">&nbsp;        this.instant = getLocalDateTime().withNano(ms*1000000).toInstant(getLocaleZoneOffset(this.instant));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Milliseconds since Jan 1, 1970, 00:00:00.000 GMT
+&nbsp;    public void setTime(long dateMilliSecond) {
+<b class="nc">&nbsp;        instant = Instant.ofEpochMilli(dateMilliSecond);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addDays(int days) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusDays(days));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addYears(int years) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusYears(years));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addMonths(int months) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusMonths(months));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addWeeks(int weeks) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusWeeks(weeks));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addHours(int hours) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusHours(hours));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addMinutes(int minutes) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusMinutes(minutes));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addSeconds(int seconds) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusSeconds(seconds));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addNanos(long nanos) {
+<b class="nc">&nbsp;        adjustTime(zonedDateTime -&gt; zonedDateTime.plusNanos(nanos));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void adjustTime(Function&lt;ZonedDateTime, ZonedDateTime&gt; adjuster) {
+<b class="nc">&nbsp;        ZonedDateTime zonedDateTime = adjuster.apply(getZonedDateTime());</b>
+<b class="nc">&nbsp;        this.instant = zonedDateTime.toInstant();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ZoneOffset getLocaleZoneOffset(Instant... instants){
+<b class="nc">&nbsp;        return ZoneId.systemDefault().getRules().getOffset(instants.length &gt; 0 ? instants[0] : this.instant);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static long parse(String value, String format) {
+&nbsp;        try {
+<b class="nc">&nbsp;            DateFormat dateFormat = new SimpleDateFormat(format);</b>
+<b class="nc">&nbsp;            return dateFormat.parse(value).getTime();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return -1;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    public static long parse(String value) {
+&nbsp;        try {
+<b class="nc">&nbsp;            TemporalAccessor accessor = isoDateFormatter.parseBest(value,</b>
+&nbsp;                    ZonedDateTime::from,
+&nbsp;                    LocalDateTime::from,
+&nbsp;                    LocalDate::from);
+<b class="nc">&nbsp;            Instant instant = Instant.from(accessor);</b>
+<b class="nc">&nbsp;            return Instant.EPOCH.until(instant, ChronoUnit.MILLIS);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return -1;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Instant parseInstant(String s) {
+<b class="nc">&nbsp;        boolean isIsoFormat = s.length() &gt; 0 &amp;&amp; Character.isDigit(s.charAt(0));</b>
+<b class="nc">&nbsp;        if (isIsoFormat) {</b>
+<b class="nc">&nbsp;            return getInstant_ISO_OFFSET_DATE_TIME(s);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return getInstant_RFC_1123(s);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Instant parseInstant(String s, String localeStr, String pattern) {
+&nbsp;        try {
+<b class="nc">&nbsp;            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern, Locale.forLanguageTag(localeStr));</b>
+<b class="nc">&nbsp;            return Instant.from(formatter.parse(s));</b>
+&nbsp;        } catch (Exception ex) {
+&nbsp;            try {
+<b class="nc">&nbsp;                return parseInstant(s, pattern, localeStr, ZoneId.systemDefault().getId());</b>
+&nbsp;            } catch (final DateTimeParseException e) {
+<b class="nc">&nbsp;                final ConversionException exception = new ConversionException(&quot;Cannot parse value [&quot; + s + &quot;] as instant&quot;, ex);</b>
+&nbsp;                throw exception;
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Instant parseInstant(int year, int month, int date, int hrs, int min, int second, int secondMilli, ZoneId zoneId) {
+<b class="nc">&nbsp;        year = year &lt; 70 ? 2000 + year : year &lt;= 99 ? 1900 + year : year;</b>
+<b class="nc">&nbsp;        ZonedDateTime zonedDateTime = ZonedDateTime.of(year, month, date, hrs, min, second, secondMilli*1000000, zoneId);</b>
+<b class="nc">&nbsp;        return zonedDateTime.toInstant();</b>
+&nbsp;    }
+&nbsp;    private static Instant parseInstant(String s, String pattern, String localeStr, String zoneIdStr) {
+<b class="nc">&nbsp;        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(pattern, Locale.forLanguageTag(localeStr));</b>
+<b class="nc">&nbsp;        LocalDateTime localDateTime = LocalDateTime.parse(s, dateTimeFormatter);</b>
+<b class="nc">&nbsp;        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of(zoneIdStr));</b>
+<b class="nc">&nbsp;        return zonedDateTime.toInstant();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Instant getInstant_ISO_OFFSET_DATE_TIME(String s) {
+&nbsp;        // assuming  &quot;2007-12-03T10:15:30.00Z&quot;  UTC instant
+&nbsp;        // assuming  &quot;2007-12-03T10:15:30.00&quot;  ZoneId.systemDefault() instant
+&nbsp;        // assuming  &quot;2007-12-03T10:15:30.00-04:00&quot;  TZ instant
+&nbsp;        // assuming  &quot;2007-12-03T10:15:30.00+04:00&quot;  TZ instant
+<b class="nc">&nbsp;        DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return Instant.from(formatter.parse(s));</b>
+&nbsp;        } catch (DateTimeParseException ex) {
+&nbsp;            try {
+<b class="nc">&nbsp;                long timeMS = parse(s);</b>
+<b class="nc">&nbsp;                if (timeMS != -1) {</b>
+<b class="nc">&nbsp;                    return Instant.ofEpochMilli(timeMS);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    throw new ConversionException(&quot;Cannot parse value [&quot; + s + &quot;] as instant&quot;);</b>
+&nbsp;                }
+&nbsp;            } catch (final DateTimeParseException e) {
+<b class="nc">&nbsp;                throw new ConversionException(&quot;Cannot parse value [&quot; + s + &quot;] as instant&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;    private static Instant getInstant_RFC_1123(String s) {
+&nbsp;        // assuming RFC-1123 value &quot;Tue, 3 Jun 2008 11:05:30 GMT&quot;
+&nbsp;        // assuming RFC-1123 value &quot;Tue, 3 Jun 2008 11:05:30 GMT-02:00&quot;
+&nbsp;        // assuming RFC-1123 value &quot;Tue, 3 Jun 2008 11:05:30 -0200&quot;
+<b class="nc">&nbsp;        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return Instant.from(formatter.parse(s));</b>
+&nbsp;        } catch (DateTimeParseException ex) {
+&nbsp;            try {
+<b class="nc">&nbsp;                return getInstantWithLocalZoneOffsetId_RFC_1123(s);</b>
+&nbsp;            } catch (final DateTimeParseException e) {
+<b class="nc">&nbsp;                throw new ConversionException(&quot;Cannot parse value [&quot; + s + &quot;] as instant&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;    private static Instant getInstantWithLocalZoneOffsetId_RFC_1123(String value) {
+<b class="nc">&nbsp;        String s = value.trim() + &quot; GMT&quot;;</b>
+<b class="nc">&nbsp;        Instant instant = Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(s));</b>
+<b class="nc">&nbsp;        ZoneId systemZone = ZoneId.systemDefault(); // my timezone</b>
+<b class="nc">&nbsp;        String id =  systemZone.getRules().getOffset(instant).getId();</b>
+<b class="nc">&nbsp;        value =  value.trim() + &quot; &quot; + id.replaceAll(&quot;:&quot;, &quot;&quot;);</b>
+<b class="nc">&nbsp;        return Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(value));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Instant parseInstant(String s, String pattern, Locale locale, ZoneId zoneId) {
+<b class="nc">&nbsp;        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(pattern, locale);</b>
+<b class="nc">&nbsp;        LocalDateTime localDateTime = LocalDateTime.parse(s, dateTimeFormatter);</b>
+<b class="nc">&nbsp;        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);</b>
+<b class="nc">&nbsp;        return zonedDateTime.toInstant();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

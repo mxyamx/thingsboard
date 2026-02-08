@@ -1,0 +1,485 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EntityRelationController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: EntityRelationController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EntityRelationController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/97)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.security.access.prepost.PreAuthorize;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestParam;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelationInfo;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.config.annotations.ApiOperation;
+&nbsp;import org.thingsboard.server.dao.service.ConstraintValidator;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.ENTITY_TYPE_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RELATION_INFO_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RELATION_TYPE_GROUP_PARAM_DESCRIPTION;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.RELATION_TYPE_PARAM_DESCRIPTION;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@TbCoreComponent
+&nbsp;@RequestMapping(&quot;/api&quot;)
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class EntityRelationController extends BaseController {
+&nbsp;
+&nbsp;    private final TbEntityRelationService tbEntityRelationService;
+&nbsp;
+&nbsp;    public static final String TO_TYPE = &quot;toType&quot;;
+&nbsp;    public static final String FROM_ID = &quot;fromId&quot;;
+&nbsp;    public static final String FROM_TYPE = &quot;fromType&quot;;
+&nbsp;    public static final String RELATION_TYPE = &quot;relationType&quot;;
+&nbsp;    public static final String TO_ID = &quot;toId&quot;;
+&nbsp;
+&nbsp;    private static final String SECURITY_CHECKS_ENTITIES_DESCRIPTION = &quot;\n\nIf the user has the authority of &#39;System Administrator&#39;, the server checks that &#39;from&#39; and &#39;to&#39; entities are owned by the sysadmin. &quot; +
+&nbsp;            &quot;If the user has the authority of &#39;Tenant Administrator&#39;, the server checks that &#39;from&#39; and &#39;to&#39; entities are owned by the same tenant. &quot; +
+&nbsp;            &quot;If the user has the authority of &#39;Customer User&#39;, the server checks that the &#39;from&#39; and &#39;to&#39; entities are assigned to the same customer.&quot;;
+&nbsp;
+&nbsp;    private static final String SECURITY_CHECKS_ENTITY_DESCRIPTION = &quot;\n\nIf the user has the authority of &#39;System Administrator&#39;, the server checks that the entity is owned by the sysadmin. &quot; +
+&nbsp;            &quot;If the user has the authority of &#39;Tenant Administrator&#39;, the server checks that the entity is owned by the same tenant. &quot; +
+&nbsp;            &quot;If the user has the authority of &#39;Customer User&#39;, the server checks that the entity is assigned to the same customer.&quot;;
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Relation (saveRelation)&quot;,
+&nbsp;            notes = &quot;Creates or updates a relation between two entities in the platform. &quot; +
+&nbsp;                    &quot;Relations unique key is a combination of from/to entity id and relation type group and relation type. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITIES_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/relation&quot;)
+&nbsp;    public void saveRelation(@Parameter(description = &quot;A JSON value representing the relation.&quot;, required = true)
+&nbsp;                             @RequestBody EntityRelation relation) throws ThingsboardException {
+<b class="nc">&nbsp;        doSave(relation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Create Relation (saveRelationV2)&quot;,
+&nbsp;            notes = &quot;Creates or updates a relation between two entities in the platform. &quot; +
+&nbsp;                    &quot;Relations unique key is a combination of from/to entity id and relation type group and relation type. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITIES_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/v2/relation&quot;)
+&nbsp;    public EntityRelation saveRelationV2(@Parameter(description = &quot;A JSON value representing the relation.&quot;, required = true)
+&nbsp;                                         @RequestBody EntityRelation relation) throws ThingsboardException {
+<b class="nc">&nbsp;        return doSave(relation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityRelation doSave(EntityRelation relation) throws ThingsboardException {
+<b class="nc">&nbsp;        if (relation.getTypeGroup() == null) {</b>
+<b class="nc">&nbsp;            relation.setTypeGroup(RelationTypeGroup.COMMON);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ConstraintValidator.validateFields(relation);</b>
+<b class="nc">&nbsp;        checkCanCreateRelation(relation.getFrom());</b>
+<b class="nc">&nbsp;        checkCanCreateRelation(relation.getTo());</b>
+<b class="nc">&nbsp;        return tbEntityRelationService.save(getTenantId(), getCurrentUser().getCustomerId(), relation, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete Relation (deleteRelation)&quot;,
+&nbsp;            notes = &quot;Deletes a relation between two entities in the platform. &quot; + SECURITY_CHECKS_ENTITIES_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/relation&quot;, params = {FROM_ID, FROM_TYPE, RELATION_TYPE, TO_ID, TO_TYPE})
+&nbsp;    public void deleteRelation(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_ID) String strFromId,
+&nbsp;                               @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_TYPE) String strFromType,
+&nbsp;                               @Parameter(description = RELATION_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(RELATION_TYPE) String strRelationType,
+&nbsp;                               @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION) @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup,
+&nbsp;                               @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(TO_ID) String strToId,
+&nbsp;                               @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(TO_TYPE) String strToType) throws ThingsboardException {
+<b class="nc">&nbsp;        doDelete(strFromId, strFromType, strRelationType, strRelationTypeGroup, strToId, strToType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete Relation (deleteRelationV2)&quot;,
+&nbsp;            notes = &quot;Deletes a relation between two entities in the platform. &quot; + SECURITY_CHECKS_ENTITIES_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/v2/relation&quot;, params = {FROM_ID, FROM_TYPE, RELATION_TYPE, TO_ID, TO_TYPE})
+&nbsp;    public EntityRelation deleteRelationV2(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_ID) String strFromId,
+&nbsp;                                           @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_TYPE) String strFromType,
+&nbsp;                                           @Parameter(description = RELATION_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(RELATION_TYPE) String strRelationType,
+&nbsp;                                           @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION) @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup,
+&nbsp;                                           @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(TO_ID) String strToId,
+&nbsp;                                           @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(TO_TYPE) String strToType) throws ThingsboardException {
+<b class="nc">&nbsp;        return doDelete(strFromId, strFromType, strRelationType, strRelationTypeGroup, strToId, strToType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityRelation doDelete(String strFromId, String strFromType, String strRelationType, String strRelationTypeGroup, String strToId, String strToType) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(FROM_ID, strFromId);</b>
+<b class="nc">&nbsp;        checkParameter(FROM_TYPE, strFromType);</b>
+<b class="nc">&nbsp;        checkParameter(TO_ID, strToId);</b>
+<b class="nc">&nbsp;        checkParameter(TO_TYPE, strToType);</b>
+<b class="nc">&nbsp;        EntityId fromId = EntityIdFactory.getByTypeAndId(strFromType, strFromId);</b>
+<b class="nc">&nbsp;        EntityId toId = EntityIdFactory.getByTypeAndId(strToType, strToId);</b>
+<b class="nc">&nbsp;        checkCanCreateRelation(fromId);</b>
+<b class="nc">&nbsp;        checkCanCreateRelation(toId);</b>
+&nbsp;
+<b class="nc">&nbsp;        RelationTypeGroup relationTypeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        EntityRelation relation = new EntityRelation(fromId, toId, strRelationType, relationTypeGroup);</b>
+<b class="nc">&nbsp;        return tbEntityRelationService.delete(getTenantId(), getCurrentUser().getCustomerId(), relation, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Delete common relations (deleteCommonRelations)&quot;,
+&nbsp;            notes = &quot;Deletes all the relations (&#39;from&#39; and &#39;to&#39; direction) for the specified entity and relation type group: &#39;COMMON&#39;. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;,&#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @DeleteMapping(value = &quot;/relations&quot;, params = {&quot;entityId&quot;, &quot;entityType&quot;})
+&nbsp;    public void deleteRelations(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(&quot;entityId&quot;) String strId,
+&nbsp;                                @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(&quot;entityType&quot;) String strType) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(&quot;entityId&quot;, strId);</b>
+<b class="nc">&nbsp;        checkParameter(&quot;entityType&quot;, strType);</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndId(strType, strId);</b>
+<b class="nc">&nbsp;        checkEntityId(entityId, Operation.WRITE);</b>
+<b class="nc">&nbsp;        tbEntityRelationService.deleteCommonRelations(getTenantId(), getCurrentUser().getCustomerId(), entityId, getCurrentUser());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get Relation (getRelation)&quot;,
+&nbsp;            notes = &quot;Returns relation object between two specified entities if present. Otherwise throws exception. &quot; + SECURITY_CHECKS_ENTITIES_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/relation&quot;, params = {FROM_ID, FROM_TYPE, RELATION_TYPE, TO_ID, TO_TYPE})
+&nbsp;    public EntityRelation getRelation(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_ID) String strFromId,
+&nbsp;                                      @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_TYPE) String strFromType,
+&nbsp;                                      @Parameter(description = RELATION_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(RELATION_TYPE) String strRelationType,
+&nbsp;                                      @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION) @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup,
+&nbsp;                                      @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(TO_ID) String strToId,
+&nbsp;                                      @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(TO_TYPE) String strToType) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(FROM_ID, strFromId);</b>
+<b class="nc">&nbsp;        checkParameter(FROM_TYPE, strFromType);</b>
+<b class="nc">&nbsp;        checkParameter(TO_ID, strToId);</b>
+<b class="nc">&nbsp;        checkParameter(TO_TYPE, strToType);</b>
+<b class="nc">&nbsp;        EntityId fromId = EntityIdFactory.getByTypeAndId(strFromType, strFromId);</b>
+<b class="nc">&nbsp;        EntityId toId = EntityIdFactory.getByTypeAndId(strToType, strToId);</b>
+<b class="nc">&nbsp;        checkEntityId(fromId, Operation.READ);</b>
+<b class="nc">&nbsp;        checkEntityId(toId, Operation.READ);</b>
+<b class="nc">&nbsp;        RelationTypeGroup typeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return checkNotNull(relationService.getRelation(getTenantId(), fromId, toId, strRelationType, typeGroup));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get List of Relations (findByFrom)&quot;,
+&nbsp;            notes = &quot;Returns list of relation objects for the specified entity by the &#39;from&#39; direction. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/relations&quot;, params = {FROM_ID, FROM_TYPE})
+&nbsp;    public List&lt;EntityRelation&gt; findByFrom(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_ID) String strFromId,
+&nbsp;                                           @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_TYPE) String strFromType,
+&nbsp;                                           @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION)
+&nbsp;                                           @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(FROM_ID, strFromId);</b>
+<b class="nc">&nbsp;        checkParameter(FROM_TYPE, strFromType);</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndId(strFromType, strFromId);</b>
+<b class="nc">&nbsp;        checkEntityId(entityId, Operation.READ);</b>
+<b class="nc">&nbsp;        RelationTypeGroup typeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findByFrom(getTenantId(), entityId, typeGroup)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get List of Relation Infos (findInfoByFrom)&quot;,
+&nbsp;            notes = &quot;Returns list of relation info objects for the specified entity by the &#39;from&#39; direction. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITY_DESCRIPTION + &quot; &quot; + RELATION_INFO_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/relations/info&quot;, params = {FROM_ID, FROM_TYPE})
+&nbsp;    public List&lt;EntityRelationInfo&gt; findInfoByFrom(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_ID) String strFromId,
+&nbsp;                                                   @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_TYPE) String strFromType,
+&nbsp;                                                   @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION)
+&nbsp;                                                   @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkParameter(FROM_ID, strFromId);</b>
+<b class="nc">&nbsp;        checkParameter(FROM_TYPE, strFromType);</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndId(strFromType, strFromId);</b>
+<b class="nc">&nbsp;        checkEntityId(entityId, Operation.READ);</b>
+<b class="nc">&nbsp;        RelationTypeGroup typeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findInfoByFrom(getTenantId(), entityId, typeGroup).get()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get List of Relations (findByFrom)&quot;,
+&nbsp;            notes = &quot;Returns list of relation objects for the specified entity by the &#39;from&#39; direction and relation type. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/relations&quot;, params = {FROM_ID, FROM_TYPE, RELATION_TYPE})
+&nbsp;    public List&lt;EntityRelation&gt; findByFrom(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_ID) String strFromId,
+&nbsp;                                           @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(FROM_TYPE) String strFromType,
+&nbsp;                                           @Parameter(description = RELATION_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(RELATION_TYPE) String strRelationType,
+&nbsp;                                           @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION)
+&nbsp;                                           @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(FROM_ID, strFromId);</b>
+<b class="nc">&nbsp;        checkParameter(FROM_TYPE, strFromType);</b>
+<b class="nc">&nbsp;        checkParameter(RELATION_TYPE, strRelationType);</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndId(strFromType, strFromId);</b>
+<b class="nc">&nbsp;        checkEntityId(entityId, Operation.READ);</b>
+<b class="nc">&nbsp;        RelationTypeGroup typeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findByFromAndType(getTenantId(), entityId, strRelationType, typeGroup)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get List of Relations (findByTo)&quot;,
+&nbsp;            notes = &quot;Returns list of relation objects for the specified entity by the &#39;to&#39; direction. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/relations&quot;, params = {TO_ID, TO_TYPE})
+&nbsp;    public List&lt;EntityRelation&gt; findByTo(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(TO_ID) String strToId,
+&nbsp;                                         @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(TO_TYPE) String strToType,
+&nbsp;                                         @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION)
+&nbsp;                                         @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(TO_ID, strToId);</b>
+<b class="nc">&nbsp;        checkParameter(TO_TYPE, strToType);</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndId(strToType, strToId);</b>
+<b class="nc">&nbsp;        checkEntityId(entityId, Operation.READ);</b>
+<b class="nc">&nbsp;        RelationTypeGroup typeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findByTo(getTenantId(), entityId, typeGroup)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get List of Relation Infos (findInfoByTo)&quot;,
+&nbsp;            notes = &quot;Returns list of relation info objects for the specified entity by the &#39;to&#39; direction. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITY_DESCRIPTION + &quot; &quot; + RELATION_INFO_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/relations/info&quot;, params = {TO_ID, TO_TYPE})
+&nbsp;    public List&lt;EntityRelationInfo&gt; findInfoByTo(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(TO_ID) String strToId,
+&nbsp;                                                 @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(TO_TYPE) String strToType,
+&nbsp;                                                 @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION)
+&nbsp;                                                 @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkParameter(TO_ID, strToId);</b>
+<b class="nc">&nbsp;        checkParameter(TO_TYPE, strToType);</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndId(strToType, strToId);</b>
+<b class="nc">&nbsp;        checkEntityId(entityId, Operation.READ);</b>
+<b class="nc">&nbsp;        RelationTypeGroup typeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findInfoByTo(getTenantId(), entityId, typeGroup).get()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Get List of Relations (findByTo)&quot;,
+&nbsp;            notes = &quot;Returns list of relation objects for the specified entity by the &#39;to&#39; direction and relation type. &quot; +
+&nbsp;                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @GetMapping(value = &quot;/relations&quot;, params = {TO_ID, TO_TYPE, RELATION_TYPE})
+&nbsp;    public List&lt;EntityRelation&gt; findByTo(@Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @RequestParam(TO_ID) String strToId,
+&nbsp;                                         @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(TO_TYPE) String strToType,
+&nbsp;                                         @Parameter(description = RELATION_TYPE_PARAM_DESCRIPTION, required = true) @RequestParam(RELATION_TYPE) String strRelationType,
+&nbsp;                                         @Parameter(description = RELATION_TYPE_GROUP_PARAM_DESCRIPTION)
+&nbsp;                                         @RequestParam(value = &quot;relationTypeGroup&quot;, required = false) String strRelationTypeGroup) throws ThingsboardException {
+<b class="nc">&nbsp;        checkParameter(TO_ID, strToId);</b>
+<b class="nc">&nbsp;        checkParameter(TO_TYPE, strToType);</b>
+<b class="nc">&nbsp;        checkParameter(RELATION_TYPE, strRelationType);</b>
+<b class="nc">&nbsp;        EntityId entityId = EntityIdFactory.getByTypeAndId(strToType, strToId);</b>
+<b class="nc">&nbsp;        checkEntityId(entityId, Operation.READ);</b>
+<b class="nc">&nbsp;        RelationTypeGroup typeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findByToAndType(getTenantId(), entityId, strRelationType, typeGroup)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Find related entities (findByQuery)&quot;,
+&nbsp;            notes = &quot;Returns all entities that are related to the specific entity. &quot; +
+&nbsp;                    &quot;The entity id, relation type, entity types, depth of the search, and other query parameters defined using complex &#39;EntityRelationsQuery&#39; object. &quot; +
+&nbsp;                    &quot;See &#39;Model&#39; tab of the Parameters for more info.&quot;)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/relations&quot;)
+&nbsp;    public List&lt;EntityRelation&gt; findByQuery(@Parameter(description = &quot;A JSON value representing the entity relations query object.&quot;, required = true)
+&nbsp;                                            @RequestBody EntityRelationsQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkNotNull(query.getParameters());</b>
+<b class="nc">&nbsp;        checkNotNull(query.getFilters());</b>
+<b class="nc">&nbsp;        checkEntityId(query.getParameters().getEntityId(), Operation.READ);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findByQuery(getTenantId(), query).get()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiOperation(value = &quot;Find related entity infos (findInfoByQuery)&quot;,
+&nbsp;            notes = &quot;Returns all entity infos that are related to the specific entity. &quot; +
+&nbsp;                    &quot;The entity id, relation type, entity types, depth of the search, and other query parameters defined using complex &#39;EntityRelationsQuery&#39; object. &quot; +
+&nbsp;                    &quot;See &#39;Model&#39; tab of the Parameters for more info. &quot; + RELATION_INFO_DESCRIPTION)
+&nbsp;    @PreAuthorize(&quot;hasAnyAuthority(&#39;SYS_ADMIN&#39;, &#39;TENANT_ADMIN&#39;, &#39;CUSTOMER_USER&#39;)&quot;)
+&nbsp;    @PostMapping(&quot;/relations/info&quot;)
+&nbsp;    public List&lt;EntityRelationInfo&gt; findInfoByQuery(@Parameter(description = &quot;A JSON value representing the entity relations query object.&quot;, required = true)
+&nbsp;                                                    @RequestBody EntityRelationsQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        checkNotNull(query.getParameters());</b>
+<b class="nc">&nbsp;        checkNotNull(query.getFilters());</b>
+<b class="nc">&nbsp;        checkEntityId(query.getParameters().getEntityId(), Operation.READ);</b>
+<b class="nc">&nbsp;        return checkNotNull(filterRelationsByReadPermission(relationService.findInfoByQuery(getTenantId(), query).get()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkCanCreateRelation(EntityId entityId) throws ThingsboardException {
+<b class="nc">&nbsp;        SecurityUser currentUser = getCurrentUser();</b>
+<b class="nc">&nbsp;        var isTenantAdminAndRelateToSelf = currentUser.isTenantAdmin() &amp;&amp; currentUser.getTenantId().equals(entityId);</b>
+<b class="nc">&nbsp;        if (!isTenantAdminAndRelateToSelf) {</b>
+<b class="nc">&nbsp;            checkEntityId(entityId, Operation.WRITE);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T extends EntityRelation&gt; List&lt;T&gt; filterRelationsByReadPermission(List&lt;T&gt; relationsByQuery) {
+<b class="nc">&nbsp;        return relationsByQuery.stream().filter(relationByQuery -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                checkEntityId(relationByQuery.getTo(), Operation.READ);</b>
+&nbsp;            } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+&nbsp;            try {
+<b class="nc">&nbsp;                checkEntityId(relationByQuery.getFrom(), Operation.READ);</b>
+&nbsp;            } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return true;</b>
+<b class="nc">&nbsp;        }).toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static RelationTypeGroup parseRelationTypeGroup(String strRelationTypeGroup, RelationTypeGroup defaultValue) {
+<b class="nc">&nbsp;        if (StringUtils.isBlank(strRelationTypeGroup)) {</b>
+<b class="nc">&nbsp;            return defaultValue;</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            return RelationTypeGroup.valueOf(strRelationTypeGroup);</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            return defaultValue;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

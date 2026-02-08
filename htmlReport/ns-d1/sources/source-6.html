@@ -1,0 +1,211 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlarmService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.alarm</a>
+</div>
+
+<h1>Coverage Summary for Class: AlarmService (org.thingsboard.server.dao.alarm)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">AlarmService</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.alarm;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQuery;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQueryV2;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmStatus;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmCountQuery;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.OriginatorAlarmFilter;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.dao.entity.EntityDaoService;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;
+&nbsp;public interface AlarmService extends EntityDaoService {
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Designed for atomic operations over active alarms.
+&nbsp;     * Only one active alarm may exist for the pair {originatorId, alarmType}
+&nbsp;     */
+&nbsp;    AlarmApiCallResult createAlarm(AlarmCreateOrUpdateActiveRequest request);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Designed for atomic operations over active alarms.
+&nbsp;     * Only one active alarm may exist for the pair {originatorId, alarmType}
+&nbsp;     */
+&nbsp;    AlarmApiCallResult createAlarm(AlarmCreateOrUpdateActiveRequest request, boolean alarmCreationEnabled);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Designed to update existing alarm. Accepts only part of the alarm fields.
+&nbsp;     */
+&nbsp;    AlarmApiCallResult updateAlarm(AlarmUpdateRequest request);
+&nbsp;
+&nbsp;    AlarmApiCallResult acknowledgeAlarm(TenantId tenantId, AlarmId alarmId, long ackTs);
+&nbsp;
+&nbsp;    AlarmApiCallResult clearAlarm(TenantId tenantId, AlarmId alarmId, long clearTs, JsonNode details, boolean pushEvent);
+&nbsp;
+&nbsp;    AlarmApiCallResult assignAlarm(TenantId tenantId, AlarmId alarmId, UserId assigneeId, long ts);
+&nbsp;
+&nbsp;    AlarmApiCallResult unassignAlarm(TenantId tenantId, AlarmId alarmId, long ts);
+&nbsp;
+&nbsp;    AlarmApiCallResult delAlarm(TenantId tenantId, AlarmId alarmId);
+&nbsp;
+&nbsp;    AlarmApiCallResult delAlarm(TenantId tenantId, AlarmId alarmId, boolean checkAndDeleteAlarmType);
+&nbsp;
+&nbsp;    void delAlarmTypes(TenantId tenantId, Set&lt;String&gt; types);
+&nbsp;
+&nbsp;    // Other API
+&nbsp;    Alarm findAlarmById(TenantId tenantId, AlarmId alarmId);
+&nbsp;
+&nbsp;    ListenableFuture&lt;Alarm&gt; findAlarmByIdAsync(TenantId tenantId, AlarmId alarmId);
+&nbsp;
+&nbsp;    AlarmInfo findAlarmInfoById(TenantId tenantId, AlarmId alarmId);
+&nbsp;
+&nbsp;    PageData&lt;AlarmInfo&gt; findAlarms(TenantId tenantId, AlarmQuery query);
+&nbsp;
+&nbsp;    PageData&lt;AlarmInfo&gt; findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query);
+&nbsp;
+&nbsp;    PageData&lt;AlarmInfo&gt; findAlarmsV2(TenantId tenantId, AlarmQueryV2 query);
+&nbsp;
+&nbsp;    PageData&lt;AlarmInfo&gt; findCustomerAlarmsV2(TenantId tenantId, CustomerId customerId, AlarmQueryV2 query);
+&nbsp;
+&nbsp;    AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus,
+&nbsp;                                           AlarmStatus alarmStatus, String assigneeId);
+&nbsp;
+&nbsp;    Alarm findLatestActiveByOriginatorAndType(TenantId tenantId, EntityId originator, String type);
+&nbsp;
+&nbsp;    FluentFuture&lt;Alarm&gt; findLatestActiveByOriginatorAndTypeAsync(TenantId tenantId, EntityId originator, String type);
+&nbsp;
+&nbsp;    PageData&lt;AlarmData&gt; findAlarmDataByQueryForEntities(TenantId tenantId,
+&nbsp;                                                        AlarmDataQuery query, Collection&lt;EntityId&gt; orderedEntityIds);
+&nbsp;
+&nbsp;    List&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, long createdTimeOffset, AlarmId idOffset, int limit);
+&nbsp;
+&nbsp;    List&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByOriginatorId(TenantId tenantId, EntityId originatorId, long createdTimeOffset, AlarmId idOffset, int limit);
+&nbsp;
+&nbsp;    int deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId);
+&nbsp;
+&nbsp;    void deleteEntityAlarmRecordsByTenantId(TenantId tenantId);
+&nbsp;
+&nbsp;    long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, AlarmCountQuery query);
+&nbsp;
+&nbsp;    long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, AlarmCountQuery query, Collection&lt;EntityId&gt; orderedEntityIds);
+&nbsp;
+&nbsp;    PageData&lt;EntitySubtype&gt; findAlarmTypesByTenantId(TenantId tenantId, PageLink pageLink);
+&nbsp;
+&nbsp;    List&lt;UUID&gt; findActiveOriginatorAlarms(TenantId tenantId, OriginatorAlarmFilter originatorAlarmFilter, int limit);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

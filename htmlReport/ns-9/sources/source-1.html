@@ -1,0 +1,456 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EdgeGrpcClient</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.edge.rpc</a>
+</div>
+
+<h1>Coverage Summary for Class: EdgeGrpcClient (org.thingsboard.edge.rpc)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EdgeGrpcClient</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/76)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">EdgeGrpcClient$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/103)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.edge.rpc;
+&nbsp;
+&nbsp;import io.grpc.HttpConnectProxiedSocketAddress;
+&nbsp;import io.grpc.ManagedChannel;
+&nbsp;import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
+&nbsp;import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+&nbsp;import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
+&nbsp;import io.grpc.stub.StreamObserver;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.edge.exception.EdgeConnectionException;
+&nbsp;import org.thingsboard.server.common.data.ResourceUtils;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.gen.edge.v1.ConnectRequestMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.ConnectResponseCode;
+&nbsp;import org.thingsboard.server.gen.edge.v1.ConnectResponseMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+&nbsp;import org.thingsboard.server.gen.edge.v1.EdgeRpcServiceGrpc;
+&nbsp;import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+&nbsp;import org.thingsboard.server.gen.edge.v1.RequestMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.RequestMsgType;
+&nbsp;import org.thingsboard.server.gen.edge.v1.ResponseMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.SyncRequestMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+&nbsp;
+&nbsp;import javax.net.ssl.SSLException;
+&nbsp;import java.net.InetSocketAddress;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class EdgeGrpcClient implements EdgeRpcClient {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${cloud.rpc.host}&quot;)
+&nbsp;    private String rpcHost;
+&nbsp;    @Value(&quot;${cloud.rpc.port}&quot;)
+&nbsp;    private int rpcPort;
+&nbsp;    @Value(&quot;${cloud.rpc.timeout}&quot;)
+&nbsp;    private int timeoutSecs;
+&nbsp;    @Value(&quot;${cloud.rpc.keep_alive_time_sec:10}&quot;)
+&nbsp;    private int keepAliveTimeSec;
+&nbsp;    @Value(&quot;${cloud.rpc.keep_alive_timeout_sec:5}&quot;)
+&nbsp;    private int keepAliveTimeoutSec;
+&nbsp;    @Value(&quot;${cloud.rpc.ssl.enabled}&quot;)
+&nbsp;    private boolean sslEnabled;
+&nbsp;    @Value(&quot;${cloud.rpc.ssl.cert:}&quot;)
+&nbsp;    private String certResource;
+&nbsp;    @Value(&quot;${cloud.rpc.max_inbound_message_size:4194304}&quot;)
+&nbsp;    private int maxInboundMessageSize;
+&nbsp;    @Value(&quot;${cloud.rpc.proxy.enabled}&quot;)
+&nbsp;    private boolean proxyEnabled;
+&nbsp;    @Value(&quot;${cloud.rpc.proxy.host:}&quot;)
+&nbsp;    private String proxyHost;
+&nbsp;    @Value(&quot;${cloud.rpc.proxy.port:0}&quot;)
+&nbsp;    private int proxyPort;
+&nbsp;    @Value(&quot;${cloud.rpc.proxy.username:}&quot;)
+&nbsp;    private String proxyUsername;
+&nbsp;    @Value(&quot;${cloud.rpc.proxy.password:}&quot;)
+&nbsp;    private String proxyPassword;
+&nbsp;    @Getter
+&nbsp;    private int serverMaxInboundMessageSize;
+&nbsp;
+&nbsp;    private ManagedChannel channel;
+&nbsp;
+&nbsp;    private StreamObserver&lt;RequestMsg&gt; inputStream;
+&nbsp;
+<b class="nc">&nbsp;    private static final ReentrantLock uplinkMsgLock = new ReentrantLock();</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void connect(String edgeKey,
+&nbsp;                        String edgeSecret,
+&nbsp;                        Consumer&lt;UplinkResponseMsg&gt; onUplinkResponse,
+&nbsp;                        Consumer&lt;EdgeConfiguration&gt; onEdgeUpdate,
+&nbsp;                        Consumer&lt;DownlinkMsg&gt; onDownlink,
+&nbsp;                        Consumer&lt;Exception&gt; onError) {
+<b class="nc">&nbsp;        NettyChannelBuilder builder = NettyChannelBuilder.forAddress(rpcHost, rpcPort)</b>
+<b class="nc">&nbsp;                .maxInboundMessageSize(maxInboundMessageSize)</b>
+<b class="nc">&nbsp;                .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS)</b>
+<b class="nc">&nbsp;                .keepAliveTimeout(keepAliveTimeoutSec, TimeUnit.SECONDS)</b>
+<b class="nc">&nbsp;                .keepAliveWithoutCalls(true);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (sslEnabled) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                SslContextBuilder sslContextBuilder = GrpcSslContexts.forClient();</b>
+<b class="nc">&nbsp;                if (StringUtils.isNotEmpty(certResource)) {</b>
+<b class="nc">&nbsp;                    sslContextBuilder.trustManager(ResourceUtils.getInputStream(this, certResource));</b>
+&nbsp;                }
+<b class="nc">&nbsp;                builder.sslContext(sslContextBuilder.build());</b>
+&nbsp;            } catch (SSLException e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to initialize channel!&quot;, e);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            builder.usePlaintext();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (proxyEnabled &amp;&amp; StringUtils.isNotEmpty(proxyHost) &amp;&amp; proxyPort &gt; 0) {</b>
+<b class="nc">&nbsp;            InetSocketAddress proxyAddress = new InetSocketAddress(proxyHost, proxyPort);</b>
+<b class="nc">&nbsp;            InetSocketAddress targetAddress = new InetSocketAddress(rpcHost, rpcPort);</b>
+<b class="nc">&nbsp;            builder.proxyDetector(socketAddress -&gt; HttpConnectProxiedSocketAddress.newBuilder()</b>
+<b class="nc">&nbsp;                    .setTargetAddress(targetAddress)</b>
+<b class="nc">&nbsp;                    .setProxyAddress(proxyAddress)</b>
+<b class="nc">&nbsp;                    .setUsername(proxyUsername)</b>
+<b class="nc">&nbsp;                    .setPassword(proxyPassword)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        channel = builder.build();</b>
+<b class="nc">&nbsp;        EdgeRpcServiceGrpc.EdgeRpcServiceStub stub = EdgeRpcServiceGrpc.newStub(channel);</b>
+<b class="nc">&nbsp;        log.info(&quot;[{}] Sending a connect request to the TB!&quot;, edgeKey);</b>
+<b class="nc">&nbsp;        this.inputStream = stub.withCompression(&quot;gzip&quot;).handleMsgs(initOutputStream(edgeKey, onUplinkResponse, onEdgeUpdate, onDownlink, onError));</b>
+<b class="nc">&nbsp;        this.inputStream.onNext(RequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setMsgType(RequestMsgType.CONNECT_RPC_MESSAGE)</b>
+<b class="nc">&nbsp;                .setConnectRequestMsg(ConnectRequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                        .setEdgeRoutingKey(edgeKey)</b>
+<b class="nc">&nbsp;                        .setEdgeSecret(edgeSecret)</b>
+<b class="nc">&nbsp;                        .setEdgeVersion(getNewestEdgeVersion())</b>
+<b class="nc">&nbsp;                        .setMaxInboundMessageSize(maxInboundMessageSize)</b>
+<b class="nc">&nbsp;                        .build())</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static EdgeVersion getNewestEdgeVersion() {
+<b class="nc">&nbsp;        return EdgeVersionComparator.getNewestEdgeVersion();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private StreamObserver&lt;ResponseMsg&gt; initOutputStream(String edgeKey,
+&nbsp;                                                         Consumer&lt;UplinkResponseMsg&gt; onUplinkResponse,
+&nbsp;                                                         Consumer&lt;EdgeConfiguration&gt; onEdgeUpdate,
+&nbsp;                                                         Consumer&lt;DownlinkMsg&gt; onDownlink,
+&nbsp;                                                         Consumer&lt;Exception&gt; onError) {
+<b class="nc">&nbsp;        return new StreamObserver&lt;&gt;() {</b>
+&nbsp;            @Override
+&nbsp;            public void onNext(ResponseMsg responseMsg) {
+<b class="nc">&nbsp;                if (responseMsg.hasConnectResponseMsg()) {</b>
+<b class="nc">&nbsp;                    ConnectResponseMsg connectResponseMsg = responseMsg.getConnectResponseMsg();</b>
+<b class="nc">&nbsp;                    if (connectResponseMsg.getResponseCode().equals(ConnectResponseCode.ACCEPTED)) {</b>
+<b class="nc">&nbsp;                        if (connectResponseMsg.hasMaxInboundMessageSize()) {</b>
+<b class="nc">&nbsp;                            log.debug(&quot;[{}] Server max inbound message size: {}&quot;, edgeKey, connectResponseMsg.getMaxInboundMessageSize());</b>
+<b class="nc">&nbsp;                            serverMaxInboundMessageSize = connectResponseMsg.getMaxInboundMessageSize();</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        log.info(&quot;[{}] Configuration received: {}&quot;, edgeKey, connectResponseMsg.getConfiguration());</b>
+<b class="nc">&nbsp;                        onEdgeUpdate.accept(connectResponseMsg.getConfiguration());</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.error(&quot;[{}] Failed to establish the connection! Code: {}. Error message: {}.&quot;, edgeKey, connectResponseMsg.getResponseCode(), connectResponseMsg.getErrorMsg());</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            EdgeGrpcClient.this.disconnect(true);</b>
+&nbsp;                        } catch (InterruptedException e) {
+<b class="nc">&nbsp;                            log.error(&quot;[{}] Got interruption during disconnect!&quot;, edgeKey, e);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        onError.accept(new EdgeConnectionException(&quot;Failed to establish the connection! Response code: &quot; + connectResponseMsg.getResponseCode().name()));</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                } else if (responseMsg.hasEdgeUpdateMsg()) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Edge update message received {}&quot;, edgeKey, responseMsg.getEdgeUpdateMsg());</b>
+<b class="nc">&nbsp;                    onEdgeUpdate.accept(responseMsg.getEdgeUpdateMsg().getConfiguration());</b>
+<b class="nc">&nbsp;                } else if (responseMsg.hasUplinkResponseMsg()) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Uplink response message received {}&quot;, edgeKey, responseMsg.getUplinkResponseMsg());</b>
+<b class="nc">&nbsp;                    onUplinkResponse.accept(responseMsg.getUplinkResponseMsg());</b>
+<b class="nc">&nbsp;                } else if (responseMsg.hasDownlinkMsg()) {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Downlink message received {}&quot;, edgeKey, responseMsg.getDownlinkMsg());</b>
+<b class="nc">&nbsp;                    onDownlink.accept(responseMsg.getDownlinkMsg());</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            @Override
+&nbsp;            public void onError(Throwable t) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Stream was terminated due to error:&quot;, edgeKey, t);</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    EdgeGrpcClient.this.disconnect(true);</b>
+&nbsp;                } catch (InterruptedException e) {
+<b class="nc">&nbsp;                    log.error(&quot;[{}] Got interruption during disconnect!&quot;, edgeKey, e);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                onError.accept(new RuntimeException(t));</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            @Override
+&nbsp;            public void onCompleted() {
+<b class="nc">&nbsp;                log.info(&quot;[{}] Stream was closed and completed successfully!&quot;, edgeKey);</b>
+&nbsp;            }
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void disconnect(boolean onError) throws InterruptedException {
+<b class="nc">&nbsp;        if (!onError) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (inputStream != null) {</b>
+<b class="nc">&nbsp;                    inputStream.onCompleted();</b>
+&nbsp;                }
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Exception during onCompleted&quot;, e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (channel != null) {</b>
+<b class="nc">&nbsp;            channel.shutdown();</b>
+<b class="nc">&nbsp;            int attempt = 0;</b>
+&nbsp;            do {
+&nbsp;                try {
+<b class="nc">&nbsp;                    channel.awaitTermination(timeoutSecs, TimeUnit.SECONDS);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    log.error(&quot;Channel await termination was interrupted&quot;, e);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (attempt &gt; 5) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;We had reached maximum of termination attempts. Force closing channel&quot;);</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        channel.shutdownNow();</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        log.error(&quot;Exception during shutdownNow&quot;, e);</b>
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;                }
+<b class="nc">&nbsp;                attempt++;</b>
+<b class="nc">&nbsp;            } while (!channel.isTerminated());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendUplinkMsg(UplinkMsg msg) {
+<b class="nc">&nbsp;        uplinkMsgLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            this.inputStream.onNext(RequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                    .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)</b>
+<b class="nc">&nbsp;                    .setUplinkMsg(msg)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            uplinkMsgLock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendSyncRequestMsg(boolean fullSyncRequired) {
+<b class="nc">&nbsp;        uplinkMsgLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            SyncRequestMsg syncRequestMsg = SyncRequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                    .setFullSync(fullSyncRequired)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            this.inputStream.onNext(RequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                    .setMsgType(RequestMsgType.SYNC_REQUEST_RPC_MESSAGE)</b>
+<b class="nc">&nbsp;                    .setSyncRequestMsg(syncRequestMsg)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            uplinkMsgLock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendDownlinkResponseMsg(DownlinkResponseMsg downlinkResponseMsg) {
+<b class="nc">&nbsp;        uplinkMsgLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            this.inputStream.onNext(RequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                    .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)</b>
+<b class="nc">&nbsp;                    .setDownlinkResponseMsg(downlinkResponseMsg)</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            uplinkMsgLock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

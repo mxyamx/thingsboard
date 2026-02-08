@@ -1,0 +1,530 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JpaRelationDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.relation</a>
+</div>
+
+<h1>Coverage Summary for Class: JpaRelationDao (org.thingsboard.server.dao.sql.relation)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JpaRelationDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/180)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.relation;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelationPathQuery;
+&nbsp;import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationPathLevel;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.model.sql.RelationCompositeKey;
+&nbsp;import org.thingsboard.server.dao.model.sql.RelationEntity;
+&nbsp;import org.thingsboard.server.dao.relation.RelationDao;
+&nbsp;import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
+&nbsp;import org.thingsboard.server.dao.util.SqlDao;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.RELATION_FROM_ID_PROPERTY;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.RELATION_FROM_TYPE_PROPERTY;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TABLE_NAME;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TO_ID_PROPERTY;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TO_TYPE_PROPERTY;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TYPE_GROUP_PROPERTY;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TYPE_PROPERTY;
+&nbsp;import static org.thingsboard.server.dao.model.ModelConstants.VERSION_COLUMN;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@SqlDao
+<b class="nc">&nbsp;public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService implements RelationDao {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final List&lt;String&gt; ALL_TYPE_GROUP_NAMES = new ArrayList&lt;&gt;();</b>
+&nbsp;    private static final String RETURNING = &quot;RETURNING from_id, from_type, to_id, to_type, relation_type, relation_type_group, nextval(&#39;relation_version_seq&#39;) as version&quot;;
+&nbsp;    private static final String DELETE_QUERY = &quot;DELETE FROM relation WHERE from_id = ? AND from_type = ? AND to_id = ? AND to_type = ? AND relation_type = ? AND relation_type_group = ? &quot; + RETURNING;
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        Arrays.stream(RelationTypeGroup.values()).map(RelationTypeGroup::name).forEach(ALL_TYPE_GROUP_NAMES::add);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RelationRepository relationRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RelationInsertRepository relationInsertRepository;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findAllByFrom(TenantId tenantId, EntityId from, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(</b>
+<b class="nc">&nbsp;                relationRepository.findAllByFromIdAndFromTypeAndRelationTypeGroup(</b>
+<b class="nc">&nbsp;                        from.getId(),</b>
+<b class="nc">&nbsp;                        from.getEntityType().name(),</b>
+<b class="nc">&nbsp;                        typeGroup.name()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findAllByFrom(TenantId tenantId, EntityId from) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(</b>
+<b class="nc">&nbsp;                relationRepository.findAllByFromIdAndFromTypeAndRelationTypeGroupIn(</b>
+<b class="nc">&nbsp;                        from.getId(),</b>
+<b class="nc">&nbsp;                        from.getEntityType().name(),</b>
+&nbsp;                        ALL_TYPE_GROUP_NAMES));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findAllByFromAndType(TenantId tenantId, EntityId from, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(</b>
+<b class="nc">&nbsp;                relationRepository.findAllByFromIdAndFromTypeAndRelationTypeAndRelationTypeGroup(</b>
+<b class="nc">&nbsp;                        from.getId(),</b>
+<b class="nc">&nbsp;                        from.getEntityType().name(),</b>
+&nbsp;                        relationType,
+<b class="nc">&nbsp;                        typeGroup.name()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findAllByTo(TenantId tenantId, EntityId to, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(</b>
+<b class="nc">&nbsp;                relationRepository.findAllByToIdAndToTypeAndRelationTypeGroup(</b>
+<b class="nc">&nbsp;                        to.getId(),</b>
+<b class="nc">&nbsp;                        to.getEntityType().name(),</b>
+<b class="nc">&nbsp;                        typeGroup.name()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findAllByTo(TenantId tenantId, EntityId to) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(</b>
+<b class="nc">&nbsp;                relationRepository.findAllByToIdAndToTypeAndRelationTypeGroupIn(</b>
+<b class="nc">&nbsp;                        to.getId(),</b>
+<b class="nc">&nbsp;                        to.getEntityType().name(),</b>
+&nbsp;                        ALL_TYPE_GROUP_NAMES));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findAllByToAndType(TenantId tenantId, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(</b>
+<b class="nc">&nbsp;                relationRepository.findAllByToIdAndToTypeAndRelationTypeAndRelationTypeGroup(</b>
+<b class="nc">&nbsp;                        to.getId(),</b>
+<b class="nc">&nbsp;                        to.getEntityType().name(),</b>
+&nbsp;                        relationType,
+<b class="nc">&nbsp;                        typeGroup.name()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Boolean&gt; checkRelationAsync(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        return service.submit(() -&gt; checkRelation(tenantId, from, to, relationType, typeGroup));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean checkRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);</b>
+<b class="nc">&nbsp;        return relationRepository.existsById(key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityRelation getRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);</b>
+<b class="nc">&nbsp;        return DaoUtil.getData(relationRepository.findById(key));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private RelationCompositeKey getRelationCompositeKey(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        return new RelationCompositeKey(from.getId(),</b>
+<b class="nc">&nbsp;                from.getEntityType().name(),</b>
+<b class="nc">&nbsp;                to.getId(),</b>
+<b class="nc">&nbsp;                to.getEntityType().name(),</b>
+&nbsp;                relationType,
+<b class="nc">&nbsp;                typeGroup.name());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityRelation saveRelation(TenantId tenantId, EntityRelation relation) {
+<b class="nc">&nbsp;        return DaoUtil.getData(relationInsertRepository.saveOrUpdate(new RelationEntity(relation)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; saveRelations(TenantId tenantId, List&lt;EntityRelation&gt; relations) {
+<b class="nc">&nbsp;        List&lt;RelationEntity&gt; entities = relations.stream().map(RelationEntity::new).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(relationInsertRepository.saveOrUpdate(entities));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;EntityRelation&gt; saveRelationAsync(TenantId tenantId, EntityRelation relation) {
+<b class="nc">&nbsp;        return service.submit(() -&gt; DaoUtil.getData(relationInsertRepository.saveOrUpdate(new RelationEntity(relation))));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityRelation deleteRelation(TenantId tenantId, EntityRelation relation) {
+<b class="nc">&nbsp;        RelationCompositeKey key = new RelationCompositeKey(relation);</b>
+<b class="nc">&nbsp;        return deleteRelationIfExists(key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;EntityRelation&gt; deleteRelationAsync(TenantId tenantId, EntityRelation relation) {
+<b class="nc">&nbsp;        RelationCompositeKey key = new RelationCompositeKey(relation);</b>
+<b class="nc">&nbsp;        return service.submit(</b>
+<b class="nc">&nbsp;                () -&gt; deleteRelationIfExists(key));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityRelation deleteRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);</b>
+<b class="nc">&nbsp;        return deleteRelationIfExists(key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;EntityRelation&gt; deleteRelationAsync(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+<b class="nc">&nbsp;        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);</b>
+<b class="nc">&nbsp;        return service.submit(</b>
+<b class="nc">&nbsp;                () -&gt; deleteRelationIfExists(key));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EntityRelation deleteRelationIfExists(RelationCompositeKey key) {
+<b class="nc">&nbsp;        return jdbcTemplate.query(DELETE_QUERY, rs -&gt; {</b>
+<b class="nc">&nbsp;            if (!rs.next()) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            EntityRelation relation = new EntityRelation();</b>
+&nbsp;
+<b class="nc">&nbsp;            var fromId = rs.getObject(RELATION_FROM_ID_PROPERTY, UUID.class);</b>
+<b class="nc">&nbsp;            var fromType = rs.getString(RELATION_FROM_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;            var toId = rs.getObject(RELATION_TO_ID_PROPERTY, UUID.class);</b>
+<b class="nc">&nbsp;            var toType = rs.getString(RELATION_TO_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;            var relationTypeGroup = rs.getString(RELATION_TYPE_GROUP_PROPERTY);</b>
+<b class="nc">&nbsp;            var relationType = rs.getString(RELATION_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;            var version = rs.getLong(VERSION_COLUMN);</b>
+&nbsp;
+&nbsp;            //additionalInfo ignored (no need to send extra data for delete events)
+&nbsp;
+<b class="nc">&nbsp;            relation.setTo(EntityIdFactory.getByTypeAndUuid(toType, toId));</b>
+<b class="nc">&nbsp;            relation.setFrom(EntityIdFactory.getByTypeAndUuid(fromType, fromId));</b>
+<b class="nc">&nbsp;            relation.setType(relationType);</b>
+<b class="nc">&nbsp;            relation.setTypeGroup(RelationTypeGroup.valueOf(relationTypeGroup));</b>
+<b class="nc">&nbsp;            relation.setVersion(version);</b>
+<b class="nc">&nbsp;            return relation;</b>
+<b class="nc">&nbsp;        }, key.getFromId(), key.getFromType(), key.getToId(), key.getToType(), key.getRelationType(), key.getRelationTypeGroup());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; deleteOutboundRelations(TenantId tenantId, EntityId entity) {
+<b class="nc">&nbsp;        return deleteRelations(entity, null, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; deleteOutboundRelations(TenantId tenantId, EntityId entity, RelationTypeGroup relationTypeGroup) {
+<b class="nc">&nbsp;        return deleteRelations(entity, Collections.singletonList(relationTypeGroup.name()), false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; deleteInboundRelations(TenantId tenantId, EntityId entity) {
+<b class="nc">&nbsp;        return deleteRelations(entity, ALL_TYPE_GROUP_NAMES, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; deleteInboundRelations(TenantId tenantId, EntityId entity, RelationTypeGroup relationTypeGroup) {
+<b class="nc">&nbsp;        return deleteRelations(entity, Collections.singletonList(relationTypeGroup.name()), true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityRelation&gt; deleteRelations(EntityId entityId, List&lt;String&gt; relationTypeGroups, boolean inbound) {
+<b class="nc">&nbsp;        List&lt;Object&gt; params = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        params.add(entityId.getId());</b>
+<b class="nc">&nbsp;        params.add(entityId.getEntityType().name());</b>
+&nbsp;
+<b class="nc">&nbsp;        StringBuilder sqlBuilder = new StringBuilder(&quot;DELETE FROM relation WHERE &quot;);</b>
+<b class="nc">&nbsp;        if (inbound) {</b>
+<b class="nc">&nbsp;            sqlBuilder.append(&quot;to_id = ? AND to_type = ? &quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            sqlBuilder.append(&quot;from_id = ? AND from_type = ? &quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(relationTypeGroups)) {</b>
+<b class="nc">&nbsp;            sqlBuilder.append(&quot;AND relation_type_group IN (?&quot;);</b>
+<b class="nc">&nbsp;            sqlBuilder.append(&quot;, ?&quot;.repeat(Math.max(0, relationTypeGroups.size() - 1)));</b>
+<b class="nc">&nbsp;            sqlBuilder.append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;            params.addAll(relationTypeGroups);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        sqlBuilder.append(RETURNING);</b>
+&nbsp;
+<b class="nc">&nbsp;        return jdbcTemplate.queryForList(sqlBuilder.toString(), params.toArray()).stream()</b>
+<b class="nc">&nbsp;                .map(row -&gt; {</b>
+<b class="nc">&nbsp;                    EntityRelation relation = new EntityRelation();</b>
+&nbsp;
+<b class="nc">&nbsp;                    var fromId = row.get(RELATION_FROM_ID_PROPERTY);</b>
+<b class="nc">&nbsp;                    var fromType = row.get(RELATION_FROM_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;                    var toId = row.get(RELATION_TO_ID_PROPERTY);</b>
+<b class="nc">&nbsp;                    var toType = row.get(RELATION_TO_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;                    var relationTypeGroup = row.get(RELATION_TYPE_GROUP_PROPERTY);</b>
+<b class="nc">&nbsp;                    var relationType = row.get(RELATION_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;                    var version = row.get(VERSION_COLUMN);</b>
+&nbsp;
+&nbsp;                    //additionalInfo ignored (no need to send extra data for delete events)
+&nbsp;
+<b class="nc">&nbsp;                    relation.setTo(EntityIdFactory.getByTypeAndUuid((String) toType, (UUID) toId));</b>
+<b class="nc">&nbsp;                    relation.setFrom(EntityIdFactory.getByTypeAndUuid((String) fromType, (UUID) fromId));</b>
+<b class="nc">&nbsp;                    relation.setType((String) relationType);</b>
+<b class="nc">&nbsp;                    relation.setTypeGroup(RelationTypeGroup.valueOf((String) relationTypeGroup));</b>
+<b class="nc">&nbsp;                    relation.setVersion((Long) version);</b>
+<b class="nc">&nbsp;                    return relation;</b>
+<b class="nc">&nbsp;                }).toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findRuleNodeToRuleChainRelations(RuleChainType ruleChainType, int limit) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(relationRepository.findRuleNodeToRuleChainRelations(ruleChainType, PageRequest.of(0, limit)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityRelation&gt; findByRelationPathQuery(TenantId tenantId, EntityRelationPathQuery query, int limit) {
+<b class="nc">&nbsp;        List&lt;RelationPathLevel&gt; levels = query.levels();</b>
+<b class="nc">&nbsp;        if (levels == null || levels.isEmpty()) {</b>
+<b class="nc">&nbsp;            return List.of();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (limit &lt;= 0) {</b>
+<b class="nc">&nbsp;            return List.of();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        String sql = buildRelationPathSql(query);</b>
+<b class="nc">&nbsp;        Object[] params = buildRelationPathParams(query, limit);</b>
+&nbsp;
+<b class="nc">&nbsp;        log.trace(&quot;[{}] relation path query: {}&quot;, tenantId, sql);</b>
+&nbsp;
+<b class="nc">&nbsp;        return jdbcTemplate.queryForList(sql, params).stream()</b>
+<b class="nc">&nbsp;                .map(row -&gt; {</b>
+<b class="nc">&nbsp;                    var entityRelation = new EntityRelation();</b>
+<b class="nc">&nbsp;                    var fromId = (UUID) row.get(RELATION_FROM_ID_PROPERTY);</b>
+<b class="nc">&nbsp;                    var fromType = (String) row.get(RELATION_FROM_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;                    var toId = (UUID) row.get(RELATION_TO_ID_PROPERTY);</b>
+<b class="nc">&nbsp;                    var toType = (String) row.get(RELATION_TO_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;                    var grp = (String) row.get(RELATION_TYPE_GROUP_PROPERTY);</b>
+<b class="nc">&nbsp;                    var type = (String) row.get(RELATION_TYPE_PROPERTY);</b>
+<b class="nc">&nbsp;                    var version = (Long) row.get(VERSION_COLUMN);</b>
+&nbsp;
+<b class="nc">&nbsp;                    entityRelation.setFrom(EntityIdFactory.getByTypeAndUuid(fromType, fromId));</b>
+<b class="nc">&nbsp;                    entityRelation.setTo(EntityIdFactory.getByTypeAndUuid(toType, toId));</b>
+<b class="nc">&nbsp;                    entityRelation.setType(type);</b>
+<b class="nc">&nbsp;                    entityRelation.setTypeGroup(RelationTypeGroup.valueOf(grp));</b>
+<b class="nc">&nbsp;                    entityRelation.setVersion(version);</b>
+<b class="nc">&nbsp;                    return entityRelation;</b>
+&nbsp;                })
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Object[] buildRelationPathParams(EntityRelationPathQuery query, int limit) {
+<b class="nc">&nbsp;        final List&lt;Object&gt; params = new ArrayList&lt;&gt;();</b>
+&nbsp;        // seed
+<b class="nc">&nbsp;        params.add(query.rootEntityId().getId());</b>
+<b class="nc">&nbsp;        params.add(query.rootEntityId().getEntityType().name());</b>
+&nbsp;
+&nbsp;        // levels
+<b class="nc">&nbsp;        for (var lvl : query.levels()) {</b>
+<b class="nc">&nbsp;            params.add(lvl.relationType());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // limit
+<b class="nc">&nbsp;        params.add(limit);</b>
+&nbsp;
+<b class="nc">&nbsp;        return params.toArray();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String buildRelationPathSql(EntityRelationPathQuery query) {
+<b class="nc">&nbsp;        List&lt;RelationPathLevel&gt; levels = query.levels();</b>
+<b class="nc">&nbsp;        StringBuilder sb = new StringBuilder();</b>
+&nbsp;
+<b class="nc">&nbsp;        sb.append(&quot;WITH seed AS (\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;  SELECT ?::uuid AS id, ?::varchar AS type\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;)&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        String prev = &quot;seed&quot;;</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; levels.size() - 1; i++) {</b>
+<b class="nc">&nbsp;            RelationPathLevel lvl = levels.get(i);</b>
+<b class="nc">&nbsp;            boolean down = lvl.direction() == EntitySearchDirection.FROM;</b>
+&nbsp;
+<b class="nc">&nbsp;            String cur = &quot;lvl&quot; + (i + 1);</b>
+<b class="nc">&nbsp;            String joinCond = down</b>
+<b class="nc">&nbsp;                    ? &quot;r.from_id = p.id AND r.from_type = p.type&quot;</b>
+<b class="nc">&nbsp;                    : &quot;r.to_id   = p.id AND r.to_type   = p.type&quot;;</b>
+<b class="nc">&nbsp;            String selectNext = down</b>
+<b class="nc">&nbsp;                    ? &quot;r.to_id   AS id, r.to_type   AS type&quot;</b>
+<b class="nc">&nbsp;                    : &quot;r.from_id AS id, r.from_type AS type&quot;;</b>
+&nbsp;
+<b class="nc">&nbsp;            sb.append(&quot;,\n&quot;).append(cur).append(&quot; AS (\n&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;  SELECT &quot;).append(selectNext).append(&quot;\n&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;  FROM &quot;).append(RELATION_TABLE_NAME).append(&quot; r\n&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;  JOIN &quot;).append(prev).append(&quot; p ON &quot;).append(joinCond).append(&quot;\n&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;  WHERE r.relation_type_group = &#39;&quot;).append(RelationTypeGroup.COMMON).append(&quot;&#39;\n&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;    AND r.relation_type = ?\n&quot;)</b>
+<b class="nc">&nbsp;                    .append(&quot;)&quot;);</b>
+<b class="nc">&nbsp;            prev = cur;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        RelationPathLevel last = levels.get(levels.size() - 1);</b>
+<b class="nc">&nbsp;        boolean lastDown = last.direction() == EntitySearchDirection.FROM;</b>
+<b class="nc">&nbsp;        String prevForLast = (levels.size() == 1) ? &quot;seed&quot; : prev;</b>
+<b class="nc">&nbsp;        String lastJoin = lastDown</b>
+<b class="nc">&nbsp;                ? &quot;r.from_id = p.id AND r.from_type = p.type&quot;</b>
+<b class="nc">&nbsp;                : &quot;r.to_id   = p.id AND r.to_type   = p.type&quot;;</b>
+&nbsp;
+<b class="nc">&nbsp;        sb.append(&quot;\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;SELECT r.from_id, r.from_type, r.to_id, r.to_type,\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;       r.relation_type_group, r.relation_type, r.version\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;FROM &quot;).append(RELATION_TABLE_NAME).append(&quot; r\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;JOIN &quot;).append(prevForLast).append(&quot; p ON &quot;).append(lastJoin).append(&quot;\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;WHERE r.relation_type_group = &#39;&quot;).append(RelationTypeGroup.COMMON).append(&quot;&#39;\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;  AND r.relation_type = ?\n&quot;)</b>
+<b class="nc">&nbsp;                .append(&quot;LIMIT ?&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        return sb.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

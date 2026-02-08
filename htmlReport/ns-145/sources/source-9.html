@@ -1,0 +1,538 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ZkDiscoveryService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.discovery</a>
+</div>
+
+<h1>Coverage Summary for Class: ZkDiscoveryService (org.thingsboard.server.queue.discovery)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ZkDiscoveryService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/139)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ZkDiscoveryService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/140)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.discovery;
+&nbsp;
+&nbsp;import com.google.protobuf.InvalidProtocolBufferException;
+&nbsp;import com.google.protobuf.ProtocolStringList;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.curator.framework.CuratorFramework;
+&nbsp;import org.apache.curator.framework.CuratorFrameworkFactory;
+&nbsp;import org.apache.curator.framework.imps.CuratorFrameworkState;
+&nbsp;import org.apache.curator.framework.recipes.cache.ChildData;
+&nbsp;import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+&nbsp;import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+&nbsp;import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+&nbsp;import org.apache.curator.framework.state.ConnectionState;
+&nbsp;import org.apache.curator.framework.state.ConnectionStateListener;
+&nbsp;import org.apache.curator.retry.RetryForever;
+&nbsp;import org.apache.curator.utils.CloseableUtils;
+&nbsp;import org.apache.zookeeper.CreateMode;
+&nbsp;import org.apache.zookeeper.KeeperException;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+&nbsp;import org.springframework.boot.context.event.ApplicationReadyEvent;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.util.Assert;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.discovery.event.OtherServiceShutdownEvent;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.NoSuchElementException;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.ScheduledFuture;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type.CHILD_REMOVED;
+&nbsp;
+&nbsp;@Service
+&nbsp;@ConditionalOnProperty(prefix = &quot;zk&quot;, value = &quot;enabled&quot;, havingValue = &quot;true&quot;, matchIfMissing = false)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheListener {
+&nbsp;
+&nbsp;    @Value(&quot;${zk.url}&quot;)
+&nbsp;    private String zkUrl;
+&nbsp;    @Value(&quot;${zk.retry_interval_ms}&quot;)
+&nbsp;    private Integer zkRetryInterval;
+&nbsp;    @Value(&quot;${zk.connection_timeout_ms}&quot;)
+&nbsp;    private Integer zkConnectionTimeout;
+&nbsp;    @Value(&quot;${zk.session_timeout_ms}&quot;)
+&nbsp;    private Integer zkSessionTimeout;
+&nbsp;    @Getter
+&nbsp;    @Value(&quot;${zk.zk_dir}&quot;)
+&nbsp;    private String zkDir;
+&nbsp;    @Value(&quot;${zk.recalculate_delay:0}&quot;)
+&nbsp;    private Long recalculateDelay;
+&nbsp;
+&nbsp;    protected final ConcurrentHashMap&lt;String, ScheduledFuture&lt;?&gt;&gt; delayedTasks;
+&nbsp;
+&nbsp;    private final ApplicationEventPublisher applicationEventPublisher;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final PartitionService partitionService;
+&nbsp;
+&nbsp;    private ScheduledExecutorService zkExecutorService;
+&nbsp;    @Getter
+&nbsp;    private CuratorFramework client;
+&nbsp;    private PathChildrenCache cache;
+&nbsp;    private String nodePath;
+&nbsp;    private String zkNodesDir;
+&nbsp;
+<b class="nc">&nbsp;    private volatile boolean stopped = true;</b>
+&nbsp;
+&nbsp;    public ZkDiscoveryService(ApplicationEventPublisher applicationEventPublisher,
+&nbsp;                              TbServiceInfoProvider serviceInfoProvider,
+<b class="nc">&nbsp;                              PartitionService partitionService) {</b>
+<b class="nc">&nbsp;        this.applicationEventPublisher = applicationEventPublisher;</b>
+<b class="nc">&nbsp;        this.serviceInfoProvider = serviceInfoProvider;</b>
+<b class="nc">&nbsp;        this.partitionService = partitionService;</b>
+<b class="nc">&nbsp;        delayedTasks = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="nc">&nbsp;        log.info(&quot;Initializing...&quot;);</b>
+<b class="nc">&nbsp;        Assert.hasLength(zkUrl, missingProperty(&quot;zk.url&quot;));</b>
+<b class="nc">&nbsp;        Assert.notNull(zkRetryInterval, missingProperty(&quot;zk.retry_interval_ms&quot;));</b>
+<b class="nc">&nbsp;        Assert.notNull(zkConnectionTimeout, missingProperty(&quot;zk.connection_timeout_ms&quot;));</b>
+<b class="nc">&nbsp;        Assert.notNull(zkSessionTimeout, missingProperty(&quot;zk.session_timeout_ms&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        zkExecutorService = ThingsBoardExecutors.newSingleThreadScheduledExecutor(&quot;zk-discovery&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;Initializing discovery service using ZK connect string: {}&quot;, zkUrl);</b>
+&nbsp;
+<b class="nc">&nbsp;        zkNodesDir = zkDir + &quot;/nodes&quot;;</b>
+<b class="nc">&nbsp;        initZkClient();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;TransportProtos.ServiceInfo&gt; getOtherServers() {
+<b class="nc">&nbsp;        return cache.getCurrentData().stream()</b>
+<b class="nc">&nbsp;                .filter(cd -&gt; !cd.getPath().equals(nodePath))</b>
+<b class="nc">&nbsp;                .map(cd -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        return TransportProtos.ServiceInfo.parseFrom(cd.getData());</b>
+&nbsp;                    } catch (NoSuchElementException | InvalidProtocolBufferException e) {
+<b class="nc">&nbsp;                        log.error(&quot;Failed to decode ZK node&quot;, e);</b>
+<b class="nc">&nbsp;                        throw new RuntimeException(e);</b>
+&nbsp;                    }
+&nbsp;                })
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isMonolith() {
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.DISCOVERY_SERVICE)
+&nbsp;    public void onApplicationEvent(ApplicationReadyEvent event) {
+<b class="nc">&nbsp;        if (stopped) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Ignoring application ready event. Service is stopped.&quot;);</b>
+&nbsp;            return;
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.info(&quot;Received application ready event. Starting current ZK node.&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        subscribeToEvents();</b>
+<b class="nc">&nbsp;        if (client.getState() != CuratorFrameworkState.STARTED) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Ignoring application ready event, ZK client is not started, ZK client state [{}]&quot;, client.getState());</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        log.info(&quot;Going to publish current server...&quot;);</b>
+<b class="nc">&nbsp;        publishCurrentServer();</b>
+<b class="nc">&nbsp;        log.info(&quot;Going to recalculate partitions...&quot;);</b>
+<b class="nc">&nbsp;        recalculatePartitions();</b>
+&nbsp;
+<b class="nc">&nbsp;        zkExecutorService.scheduleAtFixedRate(this::publishCurrentServer, 1, 1, TimeUnit.MINUTES);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    public synchronized void publishCurrentServer() {
+<b class="nc">&nbsp;        TransportProtos.ServiceInfo self = serviceInfoProvider.getServiceInfo();</b>
+<b class="nc">&nbsp;        if (currentServerExists()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Updating ZK node for current instance: {}&quot;, self.getServiceId(), nodePath);</b>
+<b class="nc">&nbsp;            client.setData().forPath(nodePath, serviceInfoProvider.generateNewServiceInfoWithCurrentSystemInfo().toByteArray());</b>
+&nbsp;        } else {
+&nbsp;            try {
+<b class="nc">&nbsp;                log.info(&quot;[{}] Creating ZK node for current instance&quot;, self.getServiceId());</b>
+<b class="nc">&nbsp;                nodePath = client.create()</b>
+<b class="nc">&nbsp;                        .creatingParentsIfNeeded()</b>
+<b class="nc">&nbsp;                        .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(zkNodesDir + &quot;/&quot;, self.toByteArray());</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] Created ZK node for current instance: {}&quot;, self.getServiceId(), nodePath);</b>
+<b class="nc">&nbsp;                client.getConnectionStateListenable().addListener(checkReconnect(self));</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to create ZK node&quot;, e);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void setReady(boolean ready) {
+<b class="nc">&nbsp;        log.debug(&quot;Marking current service as {}&quot;, ready ? &quot;ready&quot; : &quot;NOT ready&quot;);</b>
+<b class="nc">&nbsp;        boolean changed = serviceInfoProvider.setReady(ready);</b>
+<b class="nc">&nbsp;        if (changed) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                publishCurrentServer();</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to update server readiness status&quot;, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean currentServerExists() {
+<b class="nc">&nbsp;        if (nodePath == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="nc">&nbsp;            TransportProtos.ServiceInfo self = serviceInfoProvider.getServiceInfo();</b>
+<b class="nc">&nbsp;            TransportProtos.ServiceInfo registeredServerInfo = null;</b>
+<b class="nc">&nbsp;            registeredServerInfo = TransportProtos.ServiceInfo.parseFrom(client.getData().forPath(nodePath));</b>
+<b class="nc">&nbsp;            if (self.equals(registeredServerInfo)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        } catch (KeeperException.NoNodeException e) {
+<b class="nc">&nbsp;            log.info(&quot;ZK node does not exist: {}&quot;, nodePath);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Couldn&#39;t check if ZK node exists&quot;, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ConnectionStateListener checkReconnect(TransportProtos.ServiceInfo self) {
+<b class="nc">&nbsp;        return (client, newState) -&gt; {</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}] ZK state changed: {}&quot;, self.getServiceId(), newState);</b>
+<b class="nc">&nbsp;            if (newState == ConnectionState.LOST) {</b>
+<b class="nc">&nbsp;                zkExecutorService.submit(this::reconnect);</b>
+&nbsp;            }
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private volatile boolean reconnectInProgress = false;</b>
+&nbsp;
+&nbsp;    private synchronized void reconnect() {
+<b class="nc">&nbsp;        if (!reconnectInProgress) {</b>
+<b class="nc">&nbsp;            reconnectInProgress = true;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                destroyZkClient();</b>
+<b class="nc">&nbsp;                initZkClient();</b>
+<b class="nc">&nbsp;                subscribeToEvents();</b>
+<b class="nc">&nbsp;                publishCurrentServer();</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to reconnect to ZK: {}&quot;, e.getMessage(), e);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                reconnectInProgress = false;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void initZkClient() {
+&nbsp;        try {
+<b class="nc">&nbsp;            client = CuratorFrameworkFactory.newClient(zkUrl, zkSessionTimeout, zkConnectionTimeout, new RetryForever(zkRetryInterval));</b>
+<b class="nc">&nbsp;            client.start();</b>
+<b class="nc">&nbsp;            client.blockUntilConnected();</b>
+<b class="nc">&nbsp;            cache = new PathChildrenCache(client, zkNodesDir, true);</b>
+<b class="nc">&nbsp;            cache.start();</b>
+<b class="nc">&nbsp;            stopped = false;</b>
+<b class="nc">&nbsp;            log.info(&quot;ZK client connected&quot;);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to connect to ZK: {}&quot;, e.getMessage(), e);</b>
+<b class="nc">&nbsp;            CloseableUtils.closeQuietly(cache);</b>
+<b class="nc">&nbsp;            CloseableUtils.closeQuietly(client);</b>
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void subscribeToEvents() {
+<b class="nc">&nbsp;        cache.getListenable().addListener(this);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void unpublishCurrentServer() {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (nodePath != null) {</b>
+<b class="nc">&nbsp;                client.delete().forPath(nodePath);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to delete ZK node {}&quot;, nodePath, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void destroyZkClient() {
+<b class="nc">&nbsp;        stopped = true;</b>
+<b class="nc">&nbsp;        unpublishCurrentServer();</b>
+<b class="nc">&nbsp;        CloseableUtils.closeQuietly(cache);</b>
+<b class="nc">&nbsp;        CloseableUtils.closeQuietly(client);</b>
+<b class="nc">&nbsp;        log.info(&quot;ZK client disconnected&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void destroy() {
+<b class="nc">&nbsp;        zkExecutorService.shutdownNow();</b>
+<b class="nc">&nbsp;        destroyZkClient();</b>
+<b class="nc">&nbsp;        log.info(&quot;Stopped discovery service&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String missingProperty(String propertyName) {
+<b class="nc">&nbsp;        return &quot;The &quot; + propertyName + &quot; property need to be set!&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void childEvent(CuratorFramework curatorFramework, PathChildrenCacheEvent pathChildrenCacheEvent) throws Exception {
+<b class="nc">&nbsp;        if (stopped) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Ignoring {}. Service is stopped.&quot;, pathChildrenCacheEvent);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        if (client.getState() != CuratorFrameworkState.STARTED) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Ignoring {}, ZK client is not started, ZK client state [{}]&quot;, pathChildrenCacheEvent, client.getState());</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        ChildData data = pathChildrenCacheEvent.getData();</b>
+<b class="nc">&nbsp;        if (data == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Ignoring {} due to empty child data&quot;, pathChildrenCacheEvent);</b>
+&nbsp;            return;
+<b class="nc">&nbsp;        } else if (data.getData() == null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Ignoring {} due to empty child&#39;s data&quot;, pathChildrenCacheEvent);</b>
+&nbsp;            return;
+<b class="nc">&nbsp;        } else if (nodePath != null &amp;&amp; nodePath.equals(data.getPath())) {</b>
+<b class="nc">&nbsp;            if (pathChildrenCacheEvent.getType() == CHILD_REMOVED) {</b>
+<b class="nc">&nbsp;                log.info(&quot;ZK node for current instance is somehow deleted.&quot;);</b>
+<b class="nc">&nbsp;                publishCurrentServer();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            log.debug(&quot;Ignoring event about current server {}&quot;, pathChildrenCacheEvent);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;        TransportProtos.ServiceInfo instance;
+&nbsp;        try {
+<b class="nc">&nbsp;            instance = TransportProtos.ServiceInfo.parseFrom(data.getData());</b>
+&nbsp;        } catch (InvalidProtocolBufferException e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to decode server instance for node {}&quot;, data.getPath(), e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String serviceId = instance.getServiceId();</b>
+<b class="nc">&nbsp;        ProtocolStringList serviceTypesList = instance.getServiceTypesList();</b>
+&nbsp;
+<b class="nc">&nbsp;        log.trace(&quot;Processing [{}] event for [{}]&quot;, pathChildrenCacheEvent.getType(), serviceId);</b>
+<b class="nc">&nbsp;        switch (pathChildrenCacheEvent.getType()) {</b>
+&nbsp;            case CHILD_ADDED:
+<b class="nc">&nbsp;                ScheduledFuture&lt;?&gt; task = delayedTasks.remove(serviceId);</b>
+<b class="nc">&nbsp;                if (task != null) {</b>
+<b class="nc">&nbsp;                    if (task.cancel(false)) {</b>
+<b class="nc">&nbsp;                        log.info(&quot;[{}] Recalculate partitions ignored. Service was restarted in time [{}].&quot;,</b>
+&nbsp;                                serviceId, serviceTypesList);
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        log.debug(&quot;[{}] Going to recalculate partitions. Service was not restarted in time [{}]!&quot;,</b>
+&nbsp;                                serviceId, serviceTypesList);
+<b class="nc">&nbsp;                        recalculatePartitions();</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.trace(&quot;[{}] Going to recalculate partitions due to adding new node [{}].&quot;,</b>
+&nbsp;                            serviceId, serviceTypesList);
+<b class="nc">&nbsp;                    recalculatePartitions();</b>
+&nbsp;                }
+&nbsp;                break;
+&nbsp;            case CHILD_REMOVED:
+<b class="nc">&nbsp;                zkExecutorService.submit(() -&gt; applicationEventPublisher.publishEvent(new OtherServiceShutdownEvent(this, serviceId, serviceTypesList)));</b>
+<b class="nc">&nbsp;                ScheduledFuture&lt;?&gt; future = zkExecutorService.schedule(() -&gt; {</b>
+<b class="nc">&nbsp;                    log.debug(&quot;[{}] Going to recalculate partitions due to removed node [{}]&quot;,</b>
+&nbsp;                            serviceId, serviceTypesList);
+<b class="nc">&nbsp;                    ScheduledFuture&lt;?&gt; removedTask = delayedTasks.remove(serviceId);</b>
+<b class="nc">&nbsp;                    if (removedTask != null) {</b>
+<b class="nc">&nbsp;                        recalculatePartitions();</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }, recalculateDelay, TimeUnit.MILLISECONDS);</b>
+<b class="nc">&nbsp;                delayedTasks.put(serviceId, future);</b>
+&nbsp;                break;
+&nbsp;            default:
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * A single entry point to recalculate partitions
+&nbsp;     * Synchronized to ensure that other servers info is up to date
+&nbsp;     * */
+&nbsp;    synchronized void recalculatePartitions() {
+<b class="nc">&nbsp;        delayedTasks.values().forEach(future -&gt; future.cancel(false));</b>
+<b class="nc">&nbsp;        delayedTasks.clear();</b>
+<b class="nc">&nbsp;        partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

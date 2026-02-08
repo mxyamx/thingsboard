@@ -1,0 +1,434 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DynamicProtoUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.common.data</a>
+</div>
+
+<h1>Coverage Summary for Class: DynamicProtoUtils (org.thingsboard.server.common.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DynamicProtoUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/139)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.common.data;
+&nbsp;
+&nbsp;import com.github.os72.protobuf.dynamic.DynamicSchema;
+&nbsp;import com.github.os72.protobuf.dynamic.EnumDefinition;
+&nbsp;import com.github.os72.protobuf.dynamic.MessageDefinition;
+&nbsp;import com.google.protobuf.Descriptors;
+&nbsp;import com.google.protobuf.DynamicMessage;
+&nbsp;import com.google.protobuf.InvalidProtocolBufferException;
+&nbsp;import com.google.protobuf.util.JsonFormat;
+&nbsp;import com.squareup.wire.Syntax;
+&nbsp;import com.squareup.wire.schema.Field;
+&nbsp;import com.squareup.wire.schema.Location;
+&nbsp;import com.squareup.wire.schema.internal.parser.EnumConstantElement;
+&nbsp;import com.squareup.wire.schema.internal.parser.EnumElement;
+&nbsp;import com.squareup.wire.schema.internal.parser.FieldElement;
+&nbsp;import com.squareup.wire.schema.internal.parser.MessageElement;
+&nbsp;import com.squareup.wire.schema.internal.parser.OneOfElement;
+&nbsp;import com.squareup.wire.schema.internal.parser.ProtoFileElement;
+&nbsp;import com.squareup.wire.schema.internal.parser.ProtoParser;
+&nbsp;import com.squareup.wire.schema.internal.parser.TypeElement;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class DynamicProtoUtils {</b>
+&nbsp;
+<b class="nc">&nbsp;    public static final Location LOCATION = new Location(&quot;&quot;, &quot;&quot;, -1, -1);</b>
+&nbsp;    public static final String PROTO_3_SYNTAX = &quot;proto3&quot;;
+&nbsp;
+&nbsp;    public static Descriptors.Descriptor getDescriptor(String protoSchema, String schemaName) {
+&nbsp;        try {
+<b class="nc">&nbsp;            DynamicMessage.Builder builder = getDynamicMessageBuilder(protoSchema, schemaName);</b>
+<b class="nc">&nbsp;            return builder.getDescriptorForType();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;Failed to get Message Descriptor due to {}&quot;, e.getMessage());</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static DynamicMessage.Builder getDynamicMessageBuilder(String protoSchema, String schemaName) {
+<b class="nc">&nbsp;        ProtoFileElement protoFileElement = getProtoFileElement(protoSchema);</b>
+<b class="nc">&nbsp;        DynamicSchema dynamicSchema = getDynamicSchema(protoFileElement, schemaName);</b>
+<b class="nc">&nbsp;        String lastMsgName = getMessageTypes(protoFileElement.getTypes()).stream()</b>
+<b class="nc">&nbsp;                .map(MessageElement::getName).reduce((previous, last) -&gt; last).get();</b>
+<b class="nc">&nbsp;        return dynamicSchema.newMessageBuilder(lastMsgName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static DynamicSchema getDynamicSchema(ProtoFileElement protoFileElement, String schemaName) {
+<b class="nc">&nbsp;        DynamicSchema.Builder schemaBuilder = DynamicSchema.newBuilder();</b>
+<b class="nc">&nbsp;        schemaBuilder.setName(schemaName);</b>
+<b class="nc">&nbsp;        schemaBuilder.setSyntax(PROTO_3_SYNTAX);</b>
+<b class="nc">&nbsp;        schemaBuilder.setPackage(StringUtils.isNotEmpty(protoFileElement.getPackageName()) ?</b>
+<b class="nc">&nbsp;                protoFileElement.getPackageName() : schemaName.toLowerCase());</b>
+<b class="nc">&nbsp;        List&lt;TypeElement&gt; types = protoFileElement.getTypes();</b>
+<b class="nc">&nbsp;        List&lt;MessageElement&gt; messageTypes = getMessageTypes(types);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!messageTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;            List&lt;EnumElement&gt; enumTypes = getEnumElements(types);</b>
+<b class="nc">&nbsp;            if (!enumTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;                enumTypes.forEach(enumElement -&gt; {</b>
+<b class="nc">&nbsp;                    EnumDefinition enumDefinition = getEnumDefinition(enumElement);</b>
+<b class="nc">&nbsp;                    schemaBuilder.addEnumDefinition(enumDefinition);</b>
+&nbsp;                });
+&nbsp;            }
+<b class="nc">&nbsp;            List&lt;MessageDefinition&gt; messageDefinitions = getMessageDefinitions(messageTypes);</b>
+<b class="nc">&nbsp;            messageDefinitions.forEach(schemaBuilder::addMessageDefinition);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                return schemaBuilder.build();</b>
+&nbsp;            } catch (Descriptors.DescriptorValidationException e) {
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Failed to create dynamic schema due to: &quot; + e.getMessage());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Failed to get Dynamic Schema! Message types is empty for schema:&quot; + schemaName);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ProtoFileElement getProtoFileElement(String protoSchema) {
+<b class="nc">&nbsp;        return new ProtoParser(LOCATION, protoSchema.toCharArray()).readProtoFile();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String dynamicMsgToJson(Descriptors.Descriptor descriptor, byte[] payload) throws InvalidProtocolBufferException {
+<b class="nc">&nbsp;        DynamicMessage dynamicMessage = DynamicMessage.parseFrom(descriptor, payload);</b>
+<b class="nc">&nbsp;        return JsonFormat.printer().includingDefaultValueFields().print(dynamicMessage);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static DynamicMessage jsonToDynamicMessage(DynamicMessage.Builder builder, String payload) throws InvalidProtocolBufferException {
+<b class="nc">&nbsp;        JsonFormat.parser().ignoringUnknownFields().merge(payload, builder);</b>
+<b class="nc">&nbsp;        return builder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;MessageElement&gt; getMessageTypes(List&lt;TypeElement&gt; types) {
+<b class="nc">&nbsp;        return types.stream()</b>
+<b class="nc">&nbsp;                .filter(typeElement -&gt; typeElement instanceof MessageElement)</b>
+<b class="nc">&nbsp;                .map(typeElement -&gt; (MessageElement) typeElement)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;EnumElement&gt; getEnumElements(List&lt;TypeElement&gt; types) {
+<b class="nc">&nbsp;        return types.stream()</b>
+<b class="nc">&nbsp;                .filter(typeElement -&gt; typeElement instanceof EnumElement)</b>
+<b class="nc">&nbsp;                .map(typeElement -&gt; (EnumElement) typeElement)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static List&lt;MessageDefinition&gt; getMessageDefinitions(List&lt;MessageElement&gt; messageElementsList) {
+<b class="nc">&nbsp;        if (!messageElementsList.isEmpty()) {</b>
+<b class="nc">&nbsp;            List&lt;MessageDefinition&gt; messageDefinitions = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            messageElementsList.forEach(messageElement -&gt; {</b>
+<b class="nc">&nbsp;                MessageDefinition.Builder messageDefinitionBuilder = MessageDefinition.newBuilder(messageElement.getName());</b>
+&nbsp;
+<b class="nc">&nbsp;                List&lt;TypeElement&gt; nestedTypes = messageElement.getNestedTypes();</b>
+<b class="nc">&nbsp;                if (!nestedTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;                    List&lt;EnumElement&gt; nestedEnumTypes = getEnumElements(nestedTypes);</b>
+<b class="nc">&nbsp;                    if (!nestedEnumTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;                        nestedEnumTypes.forEach(enumElement -&gt; {</b>
+<b class="nc">&nbsp;                            EnumDefinition nestedEnumDefinition = getEnumDefinition(enumElement);</b>
+<b class="nc">&nbsp;                            messageDefinitionBuilder.addEnumDefinition(nestedEnumDefinition);</b>
+&nbsp;                        });
+&nbsp;                    }
+<b class="nc">&nbsp;                    List&lt;MessageElement&gt; nestedMessageTypes = getMessageTypes(nestedTypes);</b>
+<b class="nc">&nbsp;                    List&lt;MessageDefinition&gt; nestedMessageDefinitions = getMessageDefinitions(nestedMessageTypes);</b>
+<b class="nc">&nbsp;                    nestedMessageDefinitions.forEach(messageDefinitionBuilder::addMessageDefinition);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                List&lt;FieldElement&gt; messageElementFields = messageElement.getFields();</b>
+<b class="nc">&nbsp;                List&lt;OneOfElement&gt; oneOfs = messageElement.getOneOfs();</b>
+<b class="nc">&nbsp;                if (!oneOfs.isEmpty()) {</b>
+<b class="nc">&nbsp;                    for (OneOfElement oneOfelement : oneOfs) {</b>
+<b class="nc">&nbsp;                        MessageDefinition.OneofBuilder oneofBuilder = messageDefinitionBuilder.addOneof(oneOfelement.getName());</b>
+<b class="nc">&nbsp;                        addMessageFieldsToTheOneOfDefinition(oneOfelement.getFields(), oneofBuilder);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                if (!messageElementFields.isEmpty()) {</b>
+<b class="nc">&nbsp;                    addMessageFieldsToTheMessageDefinition(messageElementFields, messageDefinitionBuilder);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                messageDefinitions.add(messageDefinitionBuilder.build());</b>
+&nbsp;            });
+<b class="nc">&nbsp;            return messageDefinitions;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static EnumDefinition getEnumDefinition(EnumElement enumElement) {
+<b class="nc">&nbsp;        List&lt;EnumConstantElement&gt; enumElementTypeConstants = enumElement.getConstants();</b>
+<b class="nc">&nbsp;        EnumDefinition.Builder enumDefinitionBuilder = EnumDefinition.newBuilder(enumElement.getName());</b>
+<b class="nc">&nbsp;        if (!enumElementTypeConstants.isEmpty()) {</b>
+<b class="nc">&nbsp;            enumElementTypeConstants.forEach(constantElement -&gt; enumDefinitionBuilder.addValue(constantElement.getName(), constantElement.getTag()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return enumDefinitionBuilder.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private static void addMessageFieldsToTheMessageDefinition(List&lt;FieldElement&gt; messageElementFields, MessageDefinition.Builder messageDefinitionBuilder) {
+<b class="nc">&nbsp;        messageElementFields.forEach(fieldElement -&gt; {</b>
+<b class="nc">&nbsp;            String labelStr = null;</b>
+<b class="nc">&nbsp;            if (fieldElement.getLabel() != null) {</b>
+<b class="nc">&nbsp;                labelStr = fieldElement.getLabel().name().toLowerCase();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            messageDefinitionBuilder.addField(</b>
+&nbsp;                    labelStr,
+<b class="nc">&nbsp;                    fieldElement.getType(),</b>
+<b class="nc">&nbsp;                    fieldElement.getName(),</b>
+<b class="nc">&nbsp;                    fieldElement.getTag());</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void addMessageFieldsToTheOneOfDefinition(List&lt;FieldElement&gt; oneOfsElementFields, MessageDefinition.OneofBuilder oneofBuilder) {
+<b class="nc">&nbsp;        oneOfsElementFields.forEach(fieldElement -&gt; oneofBuilder.addField(</b>
+<b class="nc">&nbsp;                fieldElement.getType(),</b>
+<b class="nc">&nbsp;                fieldElement.getName(),</b>
+<b class="nc">&nbsp;                fieldElement.getTag()));</b>
+<b class="nc">&nbsp;        oneofBuilder.msgDefBuilder();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // validation
+&nbsp;
+&nbsp;    public static void validateProtoSchema(String schema, String schemaName, String exceptionPrefix) throws IllegalArgumentException {
+<b class="nc">&nbsp;        ProtoParser schemaParser = new ProtoParser(LOCATION, schema.toCharArray());</b>
+&nbsp;        ProtoFileElement protoFileElement;
+&nbsp;        try {
+<b class="nc">&nbsp;            protoFileElement = schemaParser.readProtoFile();</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(exceptionPrefix + &quot; failed to parse &quot; + schemaName + &quot; due to: &quot; + e.getMessage());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        checkProtoFileSyntax(schemaName, protoFileElement);</b>
+<b class="nc">&nbsp;        checkProtoFileCommonSettings(schemaName, protoFileElement.getOptions().isEmpty(), &quot; Schema options don&#39;t support!&quot;, exceptionPrefix);</b>
+<b class="nc">&nbsp;        checkProtoFileCommonSettings(schemaName, protoFileElement.getPublicImports().isEmpty(), &quot; Schema public imports don&#39;t support!&quot;, exceptionPrefix);</b>
+<b class="nc">&nbsp;        checkProtoFileCommonSettings(schemaName, protoFileElement.getImports().isEmpty(), &quot; Schema imports don&#39;t support!&quot;, exceptionPrefix);</b>
+<b class="nc">&nbsp;        checkProtoFileCommonSettings(schemaName, protoFileElement.getExtendDeclarations().isEmpty(), &quot; Schema extend declarations don&#39;t support!&quot;, exceptionPrefix);</b>
+<b class="nc">&nbsp;        checkTypeElements(schemaName, protoFileElement, exceptionPrefix);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkProtoFileSyntax(String schemaName, ProtoFileElement protoFileElement) {
+<b class="nc">&nbsp;        if (protoFileElement.getSyntax() == null || !protoFileElement.getSyntax().equals(Syntax.PROTO_3)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;[Transport Configuration] invalid schema syntax: &quot; + protoFileElement.getSyntax() +</b>
+&nbsp;                    &quot; for &quot; + schemaName + &quot; provided! Only &quot; + Syntax.PROTO_3 + &quot; allowed!&quot;);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkProtoFileCommonSettings(String schemaName, boolean isEmptySettings, String invalidSettingsMessage, String exceptionPrefix) {
+<b class="nc">&nbsp;        if (!isEmptySettings) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(invalidSchemaProvidedMessage(schemaName, exceptionPrefix) + invalidSettingsMessage);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkTypeElements(String schemaName, ProtoFileElement protoFileElement, String exceptionPrefix) {
+<b class="nc">&nbsp;        List&lt;TypeElement&gt; types = protoFileElement.getTypes();</b>
+<b class="nc">&nbsp;        if (!types.isEmpty()) {</b>
+<b class="nc">&nbsp;            if (types.stream().noneMatch(typeElement -&gt; typeElement instanceof MessageElement)) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(invalidSchemaProvidedMessage(schemaName, exceptionPrefix) + &quot; At least one Message definition should exists!&quot;);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                checkEnumElements(schemaName, getEnumElements(types), exceptionPrefix);</b>
+<b class="nc">&nbsp;                checkMessageElements(schemaName, getMessageTypes(types), exceptionPrefix);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new IllegalArgumentException(invalidSchemaProvidedMessage(schemaName, exceptionPrefix) + &quot; Type elements is empty!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkFieldElements(String schemaName, List&lt;FieldElement&gt; fieldElements, String exceptionPrefix) {
+<b class="nc">&nbsp;        if (!fieldElements.isEmpty()) {</b>
+<b class="nc">&nbsp;            boolean hasRequiredLabel = fieldElements.stream().anyMatch(fieldElement -&gt; {</b>
+<b class="nc">&nbsp;                Field.Label label = fieldElement.getLabel();</b>
+<b class="nc">&nbsp;                return label != null &amp;&amp; label.equals(Field.Label.REQUIRED);</b>
+&nbsp;            });
+<b class="nc">&nbsp;            if (hasRequiredLabel) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(invalidSchemaProvidedMessage(schemaName, exceptionPrefix) + &quot; Required labels are not supported!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            boolean hasDefaultValue = fieldElements.stream().anyMatch(fieldElement -&gt; fieldElement.getDefaultValue() != null);</b>
+<b class="nc">&nbsp;            if (hasDefaultValue) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(invalidSchemaProvidedMessage(schemaName, exceptionPrefix) + &quot; Default values are not supported!&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkEnumElements(String schemaName, List&lt;EnumElement&gt; enumTypes, String exceptionPrefix) {
+<b class="nc">&nbsp;        if (enumTypes.stream().anyMatch(enumElement -&gt; !enumElement.getNestedTypes().isEmpty())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(invalidSchemaProvidedMessage(schemaName, exceptionPrefix) + &quot; Nested types in Enum definitions are not supported!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (enumTypes.stream().anyMatch(enumElement -&gt; !enumElement.getOptions().isEmpty())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(invalidSchemaProvidedMessage(schemaName, exceptionPrefix) + &quot; Enum definitions options are not supported!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkMessageElements(String schemaName, List&lt;MessageElement&gt; messageElementsList, String exceptionPrefix) {
+<b class="nc">&nbsp;        if (!messageElementsList.isEmpty()) {</b>
+<b class="nc">&nbsp;            messageElementsList.forEach(messageElement -&gt; {</b>
+<b class="nc">&nbsp;                checkProtoFileCommonSettings(schemaName, messageElement.getGroups().isEmpty(),</b>
+&nbsp;                        &quot; Message definition groups don&#39;t support!&quot;, exceptionPrefix);
+<b class="nc">&nbsp;                checkProtoFileCommonSettings(schemaName, messageElement.getOptions().isEmpty(),</b>
+&nbsp;                        &quot; Message definition options don&#39;t support!&quot;, exceptionPrefix);
+<b class="nc">&nbsp;                checkProtoFileCommonSettings(schemaName, messageElement.getExtensions().isEmpty(),</b>
+&nbsp;                        &quot; Message definition extensions don&#39;t support!&quot;, exceptionPrefix);
+<b class="nc">&nbsp;                checkProtoFileCommonSettings(schemaName, messageElement.getReserveds().isEmpty(),</b>
+&nbsp;                        &quot; Message definition reserved elements don&#39;t support!&quot;, exceptionPrefix);
+<b class="nc">&nbsp;                checkFieldElements(schemaName, messageElement.getFields(), exceptionPrefix);</b>
+<b class="nc">&nbsp;                List&lt;OneOfElement&gt; oneOfs = messageElement.getOneOfs();</b>
+<b class="nc">&nbsp;                if (!oneOfs.isEmpty()) {</b>
+<b class="nc">&nbsp;                    oneOfs.forEach(oneOfElement -&gt; {</b>
+<b class="nc">&nbsp;                        checkProtoFileCommonSettings(schemaName, oneOfElement.getGroups().isEmpty(),</b>
+&nbsp;                                &quot; OneOf definition groups don&#39;t support!&quot;, exceptionPrefix);
+<b class="nc">&nbsp;                        checkFieldElements(schemaName, oneOfElement.getFields(), exceptionPrefix);</b>
+&nbsp;                    });
+&nbsp;                }
+<b class="nc">&nbsp;                List&lt;TypeElement&gt; nestedTypes = messageElement.getNestedTypes();</b>
+<b class="nc">&nbsp;                if (!nestedTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;                    List&lt;EnumElement&gt; nestedEnumTypes = getEnumElements(nestedTypes);</b>
+<b class="nc">&nbsp;                    if (!nestedEnumTypes.isEmpty()) {</b>
+<b class="nc">&nbsp;                        checkEnumElements(schemaName, nestedEnumTypes, exceptionPrefix);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    List&lt;MessageElement&gt; nestedMessageTypes = getMessageTypes(nestedTypes);</b>
+<b class="nc">&nbsp;                    checkMessageElements(schemaName, nestedMessageTypes, exceptionPrefix);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String invalidSchemaProvidedMessage(String schemaName, String exceptionPrefix) {
+<b class="nc">&nbsp;        return exceptionPrefix + &quot; invalid &quot; + schemaName + &quot; provided!&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

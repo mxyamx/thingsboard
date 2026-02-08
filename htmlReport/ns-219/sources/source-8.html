@@ -1,0 +1,200 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SparkplugTopicService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.mqtt.util.sparkplug</a>
+</div>
+
+<h1>Coverage Summary for Class: SparkplugTopicService (org.thingsboard.server.transport.mqtt.util.sparkplug)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SparkplugTopicService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.mqtt.util.sparkplug;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.transport.mqtt.TbMqttTransportComponent;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMessageType.STATE;
+&nbsp;import static org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugTopic.parseTopic;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@TbMqttTransportComponent
+<b class="nc">&nbsp;public class SparkplugTopicService {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final Map&lt;String, SparkplugTopic&gt; SPLIT_TOPIC_CACHE = new HashMap&lt;&gt;();</b>
+&nbsp;    public static final String TOPIC_ROOT_SPB_V_1_0 = &quot;spBv1.0&quot;;
+&nbsp;    public static final String TOPIC_ROOT_CERT_SP = &quot;$sparkplug/certificates/&quot;;
+&nbsp;    public static final String TOPIC_SPLIT_REGEXP = &quot;/&quot;;
+<b class="nc">&nbsp;    public static final String TOPIC_STATE_REGEXP = TOPIC_ROOT_SPB_V_1_0 + TOPIC_SPLIT_REGEXP + STATE.name() + TOPIC_SPLIT_REGEXP;</b>
+&nbsp;
+&nbsp;    public static SparkplugTopic getSplitTopic(String topic) throws ThingsboardException {
+<b class="nc">&nbsp;        SparkplugTopic sparkplugTopic = SPLIT_TOPIC_CACHE.get(topic);</b>
+<b class="nc">&nbsp;        if (sparkplugTopic == null) {</b>
+&nbsp;            // validation topic
+<b class="nc">&nbsp;            sparkplugTopic = parseTopic(topic);</b>
+<b class="nc">&nbsp;            SPLIT_TOPIC_CACHE.put(topic, sparkplugTopic);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return sparkplugTopic;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * all ID Element MUST be a UTF-8 string
+&nbsp;     * and with the exception of the reserved characters of + (plus), / (forward slash).
+&nbsp;     * Publish: $sparkplug/certificates/spBv1.0/G1/NBIRTH/E1
+&nbsp;     * Publish: spBv1.0/G1/NBIRTH/E1
+&nbsp;     * Publish: $sparkplug/certificates/spBv1.0/G1/DBIRTH/E1/D1
+&nbsp;     * Publish: spBv1.0/G1/DBIRTH/E1/D1
+&nbsp;     * @param topic
+&nbsp;     * @return
+&nbsp;     * @throws ThingsboardException
+&nbsp;     */
+&nbsp;    public static SparkplugTopic parseTopicPublish(String topic) throws ThingsboardException {
+<b class="nc">&nbsp;        topic = topic.startsWith(TOPIC_ROOT_CERT_SP) ? topic.substring(TOPIC_ROOT_CERT_SP.length()) : topic;</b>
+<b class="nc">&nbsp;        topic = topic.indexOf(&quot;+&quot;) &gt; 0 ? topic.substring(0, topic.indexOf(&quot;+&quot;)): topic;</b>
+<b class="nc">&nbsp;        return getSplitTopic(topic);</b>
+&nbsp;    }
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

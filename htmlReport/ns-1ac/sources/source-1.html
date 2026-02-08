@@ -1,0 +1,370 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultNotificationRuleProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.notification.rule</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultNotificationRuleProcessor (org.thingsboard.server.service.notification.rule)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultNotificationRuleProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/60)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultNotificationRuleProcessor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/61)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.notification.rule;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.context.event.EventListener;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.rule.engine.api.NotificationCenter;
+&nbsp;import org.thingsboard.server.cache.limits.RateLimitService;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationRequestId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationRuleId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.limit.LimitedApi;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequest;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
+&nbsp;import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger.DeduplicationStrategy;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerConfig;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+&nbsp;import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationRequestService;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.notification.NotificationDeduplicationService;
+&nbsp;import org.thingsboard.server.service.executors.NotificationExecutorService;
+&nbsp;import org.thingsboard.server.service.notification.rule.cache.NotificationRulesCache;
+&nbsp;import org.thingsboard.server.service.notification.rule.trigger.NotificationRuleTriggerProcessor;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.EnumMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@SuppressWarnings({&quot;rawtypes&quot;, &quot;unchecked&quot;})
+&nbsp;public class DefaultNotificationRuleProcessor implements NotificationRuleProcessor {
+&nbsp;
+&nbsp;    private final NotificationRulesCache notificationRulesCache;
+&nbsp;    private final NotificationRequestService notificationRequestService;
+&nbsp;    private final NotificationDeduplicationService deduplicationService;
+&nbsp;    private final PartitionService partitionService;
+&nbsp;    private final RateLimitService rateLimitService;
+&nbsp;    @Lazy
+&nbsp;    private final NotificationCenter notificationCenter;
+&nbsp;    private final NotificationExecutorService notificationExecutor;
+&nbsp;
+&nbsp;    private final Map&lt;NotificationRuleTriggerType, NotificationRuleTriggerProcessor&gt; triggerProcessors = new EnumMap&lt;&gt;(NotificationRuleTriggerType.class);
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void process(NotificationRuleTrigger trigger) {
+<b class="nc">&nbsp;        NotificationRuleTriggerType triggerType = trigger.getType();</b>
+<b class="nc">&nbsp;        TenantId tenantId = triggerType.isTenantLevel() ? trigger.getTenantId() : TenantId.SYS_TENANT_ID;</b>
+<b class="nc">&nbsp;        notificationExecutor.submit(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                List&lt;NotificationRule&gt; enabledRules = notificationRulesCache.getEnabled(tenantId, triggerType);</b>
+<b class="nc">&nbsp;                if (enabledRules.isEmpty()) {</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                List&lt;NotificationRule&gt; rulesToProcess = filterNotificationRules(trigger, enabledRules);</b>
+<b class="nc">&nbsp;                for (NotificationRule rule : rulesToProcess) {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        processNotificationRule(rule, trigger, DeduplicationStrategy.ONLY_MATCHING.equals(trigger.getDeduplicationStrategy()));</b>
+&nbsp;                    } catch (Throwable e) {
+<b class="nc">&nbsp;                        log.error(&quot;Failed to process notification rule {} for trigger type {} with trigger object {}&quot;, rule.getId(), rule.getTriggerType(), trigger, e);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.error(&quot;Failed to process notification rules for trigger: {}&quot;, trigger, e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;NotificationRule&gt; filterNotificationRules(NotificationRuleTrigger trigger, List&lt;NotificationRule&gt; enabledRules) {
+<b class="nc">&nbsp;        List&lt;NotificationRule&gt; rulesToProcess = new ArrayList&lt;&gt;(enabledRules);</b>
+<b class="nc">&nbsp;        rulesToProcess.removeIf(rule -&gt; switch (trigger.getDeduplicationStrategy()) {</b>
+&nbsp;            case ONLY_MATCHING -&gt; {
+<b class="nc">&nbsp;                boolean matched = matchesFilter(trigger, rule.getTriggerConfig());</b>
+<b class="nc">&nbsp;                yield !matched || deduplicationService.alreadyProcessed(trigger, rule);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            case ALL -&gt; deduplicationService.alreadyProcessed(trigger, rule);</b>
+<b class="nc">&nbsp;            default -&gt; false;</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return rulesToProcess;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processNotificationRule(NotificationRule rule, NotificationRuleTrigger trigger, boolean alreadyMatched) {
+<b class="nc">&nbsp;        NotificationRuleTriggerConfig triggerConfig = rule.getTriggerConfig();</b>
+<b class="nc">&nbsp;        log.debug(&quot;Processing notification rule &#39;{}&#39; for trigger type {}&quot;, rule.getName(), rule.getTriggerType());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (matchesClearRule(trigger, triggerConfig)) {</b>
+<b class="nc">&nbsp;            List&lt;NotificationRequest&gt; scheduledRequests = notificationRequestService.findNotificationRequestsByRuleIdAndOriginatorEntityIdAndStatus(</b>
+<b class="nc">&nbsp;                    rule.getTenantId(), rule.getId(), trigger.getOriginatorEntityId(), NotificationRequestStatus.SCHEDULED</b>
+&nbsp;            );
+<b class="nc">&nbsp;            scheduledRequests.forEach(notificationRequest -&gt; {</b>
+<b class="nc">&nbsp;                notificationCenter.deleteNotificationRequest(rule.getTenantId(), notificationRequest.getId());</b>
+&nbsp;            });
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (alreadyMatched || matchesFilter(trigger, triggerConfig)) {</b>
+<b class="nc">&nbsp;            if (!rateLimitService.checkRateLimit(LimitedApi.NOTIFICATION_REQUESTS_PER_RULE, rule.getTenantId(), rule.getId())) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Rate limit for notification requests per rule was exceeded (rule &#39;{}&#39;)&quot;, rule.getTenantId(), rule.getName());</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            NotificationInfo notificationInfo = constructNotificationInfo(trigger, triggerConfig);</b>
+<b class="nc">&nbsp;            rule.getRecipientsConfig().getTargetsTable().forEach((delay, targets) -&gt; {</b>
+<b class="nc">&nbsp;                submitNotificationRequest(targets, rule, trigger.getOriginatorEntityId(), notificationInfo, delay);</b>
+&nbsp;            });
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void submitNotificationRequest(List&lt;UUID&gt; targets, NotificationRule rule,
+&nbsp;                                           EntityId originatorEntityId, NotificationInfo notificationInfo, int delayInSec) {
+<b class="nc">&nbsp;        NotificationRequestConfig config = new NotificationRequestConfig();</b>
+<b class="nc">&nbsp;        if (delayInSec &gt; 0) {</b>
+<b class="nc">&nbsp;            config.setSendingDelayInSec(delayInSec);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        NotificationRequest notificationRequest = NotificationRequest.builder()</b>
+<b class="nc">&nbsp;                .tenantId(rule.getTenantId())</b>
+<b class="nc">&nbsp;                .targets(targets)</b>
+<b class="nc">&nbsp;                .templateId(rule.getTemplateId())</b>
+<b class="nc">&nbsp;                .additionalConfig(config)</b>
+<b class="nc">&nbsp;                .info(notificationInfo)</b>
+<b class="nc">&nbsp;                .ruleId(rule.getId())</b>
+<b class="nc">&nbsp;                .originatorEntityId(originatorEntityId)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            log.debug(&quot;Submitting notification request for rule &#39;{}&#39; with delay of {} sec to targets {}&quot;, rule.getName(), delayInSec, targets);</b>
+<b class="nc">&nbsp;            notificationCenter.processNotificationRequest(rule.getTenantId(), notificationRequest, null);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to process notification request for tenant {} for rule {}&quot;, rule.getTenantId(), rule.getId(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean matchesFilter(NotificationRuleTrigger trigger, NotificationRuleTriggerConfig triggerConfig) {
+<b class="nc">&nbsp;        return triggerProcessors.get(triggerConfig.getTriggerType()).matchesFilter(trigger, triggerConfig);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean matchesClearRule(NotificationRuleTrigger trigger, NotificationRuleTriggerConfig triggerConfig) {
+<b class="nc">&nbsp;        return triggerProcessors.get(triggerConfig.getTriggerType()).matchesClearRule(trigger, triggerConfig);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private NotificationInfo constructNotificationInfo(NotificationRuleTrigger trigger, NotificationRuleTriggerConfig triggerConfig) {
+<b class="nc">&nbsp;        return triggerProcessors.get(triggerConfig.getTriggerType()).constructNotificationInfo(trigger);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @EventListener(ComponentLifecycleMsg.class)
+&nbsp;    public void onNotificationRuleDeleted(ComponentLifecycleMsg componentLifecycleMsg) {
+<b class="nc">&nbsp;        if (componentLifecycleMsg.getEvent() != ComponentLifecycleEvent.DELETED ||</b>
+<b class="nc">&nbsp;                componentLifecycleMsg.getEntityId().getEntityType() != EntityType.NOTIFICATION_RULE) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        TenantId tenantId = componentLifecycleMsg.getTenantId();</b>
+<b class="nc">&nbsp;        NotificationRuleId notificationRuleId = (NotificationRuleId) componentLifecycleMsg.getEntityId();</b>
+<b class="nc">&nbsp;        if (partitionService.isMyPartition(ServiceType.TB_CORE, tenantId, notificationRuleId)) {</b>
+<b class="nc">&nbsp;            notificationExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;                List&lt;NotificationRequestId&gt; scheduledForRule = notificationRequestService.findNotificationRequestsIdsByStatusAndRuleId(tenantId, NotificationRequestStatus.SCHEDULED, notificationRuleId);</b>
+<b class="nc">&nbsp;                for (NotificationRequestId notificationRequestId : scheduledForRule) {</b>
+<b class="nc">&nbsp;                    notificationCenter.deleteNotificationRequest(tenantId, notificationRequestId);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setTriggerProcessors(Collection&lt;NotificationRuleTriggerProcessor&gt; processors) {
+<b class="nc">&nbsp;        processors.forEach(processor -&gt; {</b>
+<b class="nc">&nbsp;            triggerProcessors.put(processor.getTriggerType(), processor);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

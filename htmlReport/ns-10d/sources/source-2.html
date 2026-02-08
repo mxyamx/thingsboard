@@ -1,0 +1,243 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EntityViewRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.entityview</a>
+</div>
+
+<h1>Coverage Summary for Class: EntityViewRepository (org.thingsboard.server.dao.sql.entityview)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">EntityViewRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.entityview;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Limit;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.edqs.fields.EntityViewFields;
+&nbsp;import org.thingsboard.server.dao.ExportableEntityRepository;
+&nbsp;import org.thingsboard.server.dao.model.sql.EntityViewEntity;
+&nbsp;import org.thingsboard.server.dao.model.sql.EntityViewInfoEntity;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public interface EntityViewRepository extends JpaRepository&lt;EntityViewEntity, UUID&gt;, ExportableEntityRepository&lt;EntityViewEntity&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.EntityViewInfoEntity(e, c.title, c.additionalInfo) &quot; +
+&nbsp;            &quot;FROM EntityViewEntity e &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = e.customerId &quot; +
+&nbsp;            &quot;WHERE e.id = :entityViewId&quot;)
+&nbsp;    EntityViewInfoEntity findEntityViewInfoById(@Param(&quot;entityViewId&quot;) UUID entityViewId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewEntity&gt; findByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                          @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.EntityViewInfoEntity(e, c.title, c.additionalInfo) &quot; +
+&nbsp;            &quot;FROM EntityViewEntity e &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = e.customerId &quot; +
+&nbsp;            &quot;WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewInfoEntity&gt; findEntityViewInfosByTenantId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                             @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                             Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewEntity&gt; findByTenantIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                 @Param(&quot;type&quot;) String type,
+&nbsp;                                                 @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                 Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.EntityViewInfoEntity(e, c.title, c.additionalInfo) &quot; +
+&nbsp;            &quot;FROM EntityViewEntity e &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = e.customerId &quot; +
+&nbsp;            &quot;WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewInfoEntity&gt; findEntityViewInfosByTenantIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                    @Param(&quot;type&quot;) String type,
+&nbsp;                                                                    @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                                    Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewEntity&gt; findByTenantIdAndCustomerId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                       @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                       @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                       Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.EntityViewInfoEntity(e, c.title, c.additionalInfo) &quot; +
+&nbsp;            &quot;FROM EntityViewEntity e &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = e.customerId &quot; +
+&nbsp;            &quot;WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.customerId = :customerId &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewInfoEntity&gt; findEntityViewInfosByTenantIdAndCustomerId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                          @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                                          @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                                          Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.customerId = :customerId &quot; +
+&nbsp;            &quot;AND e.type = :type &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewEntity&gt; findByTenantIdAndCustomerIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                              @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                              @Param(&quot;type&quot;) String type,
+&nbsp;                                                              @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                              Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.dao.model.sql.EntityViewInfoEntity(e, c.title, c.additionalInfo) &quot; +
+&nbsp;            &quot;FROM EntityViewEntity e &quot; +
+&nbsp;            &quot;LEFT JOIN CustomerEntity c on c.id = e.customerId &quot; +
+&nbsp;            &quot;WHERE e.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND e.customerId = :customerId &quot; +
+&nbsp;            &quot;AND e.type = :type &quot; +
+&nbsp;            &quot;AND (:textSearch IS NULL OR ilike(e.name, CONCAT(&#39;%&#39;, :textSearch, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewInfoEntity&gt; findEntityViewInfosByTenantIdAndCustomerIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                                                 @Param(&quot;customerId&quot;) UUID customerId,
+&nbsp;                                                                                 @Param(&quot;type&quot;) String type,
+&nbsp;                                                                                 @Param(&quot;textSearch&quot;) String textSearch,
+&nbsp;                                                                                 Pageable pageable);
+&nbsp;
+&nbsp;    EntityViewEntity findByTenantIdAndName(UUID tenantId, String name);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.EntityInfo(a.id, &#39;ENTITY_VIEW&#39;, a.name) &quot; +
+&nbsp;            &quot;FROM EntityViewEntity a WHERE a.tenantId = :tenantId AND a.name LIKE CONCAT(:prefix, &#39;%&#39;)&quot;)
+&nbsp;    List&lt;EntityInfo&gt; findEntityInfosByNamePrefix(UUID tenantId, String prefix);
+&nbsp;
+&nbsp;    List&lt;EntityViewEntity&gt; findAllByTenantIdAndEntityId(UUID tenantId, UUID entityId);
+&nbsp;
+&nbsp;    boolean existsByTenantIdAndEntityId(UUID tenantId, UUID entityId);
+&nbsp;
+&nbsp;    List&lt;EntityViewEntity&gt; findEntityViewsByTenantIdAndIdIn(UUID tenantId, List&lt;UUID&gt; entityViewIds);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT DISTINCT ev.type FROM EntityViewEntity ev WHERE ev.tenantId = :tenantId&quot;)
+&nbsp;    List&lt;String&gt; findTenantEntityViewTypes(@Param(&quot;tenantId&quot;) UUID tenantId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT ev FROM EntityViewEntity ev, RelationEntity re WHERE ev.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ev.id = re.toId AND re.toType = &#39;ENTITY_VIEW&#39; AND re.relationTypeGroup = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :edgeId AND re.fromType = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(ev.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewEntity&gt; findByTenantIdAndEdgeId(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                               @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                               @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                               Pageable pageable);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT ev FROM EntityViewEntity ev, RelationEntity re WHERE ev.tenantId = :tenantId &quot; +
+&nbsp;            &quot;AND ev.id = re.toId AND re.toType = &#39;ENTITY_VIEW&#39; AND re.relationTypeGroup = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND re.relationType = &#39;Contains&#39; AND re.fromId = :edgeId AND re.fromType = &#39;EDGE&#39; &quot; +
+&nbsp;            &quot;AND ev.type = :type &quot; +
+&nbsp;            &quot;AND (:searchText IS NULL OR ilike(ev.name, CONCAT(&#39;%&#39;, :searchText, &#39;%&#39;)) = true)&quot;)
+&nbsp;    Page&lt;EntityViewEntity&gt; findByTenantIdAndEdgeIdAndType(@Param(&quot;tenantId&quot;) UUID tenantId,
+&nbsp;                                                   @Param(&quot;edgeId&quot;) UUID edgeId,
+&nbsp;                                                   @Param(&quot;type&quot;) String type,
+&nbsp;                                                   @Param(&quot;searchText&quot;) String searchText,
+&nbsp;                                                   Pageable pageable);
+&nbsp;    @Query(&quot;SELECT externalId FROM EntityViewEntity WHERE id = :id&quot;)
+&nbsp;    UUID getExternalIdById(@Param(&quot;id&quot;) UUID id);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT new org.thingsboard.server.common.data.edqs.fields.EntityViewFields(e.id, e.createdTime, e.tenantId, &quot; +
+&nbsp;            &quot;e.customerId, e.name, e.type, e.additionalInfo, e.version) &quot; +
+&nbsp;            &quot;FROM EntityViewEntity e WHERE e.id &gt; :id ORDER BY e.id&quot;)
+&nbsp;    List&lt;EntityViewFields&gt; findNextBatch(@Param(&quot;id&quot;) UUID id, Limit limit);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

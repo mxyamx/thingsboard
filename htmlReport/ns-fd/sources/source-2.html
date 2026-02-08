@@ -1,0 +1,326 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DataValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.service</a>
+</div>
+
+<h1>Coverage Summary for Class: DataValidator (org.thingsboard.server.dao.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DataValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/63)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.service;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.exception.EntitiesLimitExceededException;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.io.FileUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.thingsboard.server.common.data.BaseData;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.dao.TenantEntityWithDataDao;
+&nbsp;import org.thingsboard.server.dao.usagerecord.ApiLimitService;
+&nbsp;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.regex.Matcher;
+&nbsp;import java.util.regex.Pattern;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class DataValidator&lt;D extends BaseData&lt;?&gt;&gt; {</b>
+<b class="nc">&nbsp;    private static final Pattern EMAIL_PATTERN =</b>
+<b class="nc">&nbsp;            Pattern.compile(&quot;^[A-Z0-9_!#$%&amp;&#39;*+/=?`{|}~^.-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$&quot;, Pattern.CASE_INSENSITIVE);</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final Pattern QUEUE_PATTERN = Pattern.compile(&quot;^[a-zA-Z0-9_.\\-]+$&quot;);</b>
+&nbsp;    private static final String DOMAIN_REGEX = &quot;^(((?!-))(xn--|_)?[a-z0-9-]{0,61}[a-z0-9]{1,1}\\.)*(xn--)?([a-z0-9][a-z0-9\\-]{0,60}|[a-z0-9-]{1,30}\\.[a-z]{2,})$&quot;;
+<b class="nc">&nbsp;    private static final Pattern DOMAIN_PATTERN = Pattern.compile(DOMAIN_REGEX);</b>
+&nbsp;    private static final String LOCALHOST_REGEX = &quot;^localhost(:\\d{1,5})?$&quot;;
+<b class="nc">&nbsp;    private static final Pattern LOCALHOST_PATTERN = Pattern.compile(LOCALHOST_REGEX);</b>
+&nbsp;    private static final String NAME = &quot;name&quot;;
+&nbsp;    private static final String TOPIC = &quot;topic&quot;;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private ApiLimitService apiLimitService;
+&nbsp;
+&nbsp;    // Returns old instance of the same object that is fetched during validation.
+&nbsp;    public D validate(D data, Function&lt;D, TenantId&gt; tenantIdFunction) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (data == null) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(&quot;Data object can&#39;t be null!&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            ConstraintValidator.validateFields(data);</b>
+&nbsp;
+<b class="nc">&nbsp;            TenantId tenantId = tenantIdFunction.apply(data);</b>
+<b class="nc">&nbsp;            validateDataImpl(tenantId, data);</b>
+&nbsp;            D old;
+<b class="nc">&nbsp;            if (data.getId() == null) {</b>
+<b class="nc">&nbsp;                validateCreate(tenantId, data);</b>
+<b class="nc">&nbsp;                old = null;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                old = validateUpdate(tenantId, data);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return old;</b>
+&nbsp;        } catch (DataValidationException e) {
+<b class="nc">&nbsp;            log.error(&quot;{} object is invalid: [{}]&quot;, data == null ? &quot;Data&quot; : data.getClass().getSimpleName(), e.getMessage());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void validateDataImpl(TenantId tenantId, D data) {
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    protected void validateCreate(TenantId tenantId, D data) {
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    protected D validateUpdate(TenantId tenantId, D data) {
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void validateDelete(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    public void validateString(String exceptionPrefix, String name) {
+<b class="nc">&nbsp;        if (StringUtils.isBlank(name)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(exceptionPrefix + &quot; should be specified!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (StringUtils.contains0x00(name)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(exceptionPrefix + &quot; should not contain 0x00 symbol!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected boolean isSameData(D existentData, D actualData) {
+<b class="nc">&nbsp;        return actualData.getId() != null &amp;&amp; existentData.getId().equals(actualData.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void validateEmail(String email) {
+<b class="nc">&nbsp;        if (!doValidateEmail(email)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Invalid email address format &#39;&quot; + email + &quot;&#39;!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean doValidateEmail(String email) {
+<b class="nc">&nbsp;        if (email == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Matcher emailMatcher = EMAIL_PATTERN.matcher(email);</b>
+<b class="nc">&nbsp;        return emailMatcher.matches();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void validateNumberOfEntitiesPerTenant(TenantId tenantId,
+&nbsp;                                                     EntityType entityType) {
+<b class="nc">&nbsp;        if (!apiLimitService.checkEntitiesLimit(tenantId, entityType)) {</b>
+<b class="nc">&nbsp;            long limit = apiLimitService.getLimit(tenantId, profileConfiguration -&gt; profileConfiguration.getEntitiesLimit(entityType));</b>
+<b class="nc">&nbsp;            throw new EntitiesLimitExceededException(tenantId, entityType, limit);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void validateMaxSumDataSizePerTenant(TenantId tenantId,
+&nbsp;                                                   TenantEntityWithDataDao dataDao,
+&nbsp;                                                   long maxSumDataSize,
+&nbsp;                                                   long currentDataSize,
+&nbsp;                                                   EntityType entityType) {
+<b class="nc">&nbsp;        if (maxSumDataSize &gt; 0) {</b>
+<b class="nc">&nbsp;            if (dataDao.sumDataSizeByTenantId(tenantId) + currentDataSize &gt; maxSumDataSize) {</b>
+<b class="nc">&nbsp;                throw new DataValidationException(String.format(&quot;%ss total size exceeds the maximum of &quot; + FileUtils.byteCountToDisplaySize(maxSumDataSize), entityType.getNormalName()));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected static void validateJsonStructure(JsonNode expectedNode, JsonNode actualNode) {
+<b class="nc">&nbsp;        Set&lt;String&gt; expectedFields = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Iterator&lt;String&gt; fieldsIterator = expectedNode.fieldNames();</b>
+<b class="nc">&nbsp;        while (fieldsIterator.hasNext()) {</b>
+<b class="nc">&nbsp;            expectedFields.add(fieldsIterator.next());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;String&gt; actualFields = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        fieldsIterator = actualNode.fieldNames();</b>
+<b class="nc">&nbsp;        while (fieldsIterator.hasNext()) {</b>
+<b class="nc">&nbsp;            actualFields.add(fieldsIterator.next());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!expectedFields.containsAll(actualFields) || !actualFields.containsAll(expectedFields)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(&quot;Provided json structure is different from stored one &#39;&quot; + actualNode + &quot;&#39;!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected static void validateQueueName(String name) {
+<b class="nc">&nbsp;        validateQueueNameOrTopic(name, NAME);</b>
+<b class="nc">&nbsp;        if (DataConstants.CF_QUEUE_NAME.equals(name) || DataConstants.CF_STATES_QUEUE_NAME.equals(name)) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(String.format(&quot;The queue name &#39;%s&#39; is not allowed. This name is reserved for internal use. Please choose a different name.&quot;, name));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected static void validateQueueTopic(String topic) {
+<b class="nc">&nbsp;        validateQueueNameOrTopic(topic, TOPIC);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static void validateQueueNameOrTopic(String value, String fieldName) {
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(value) || value.trim().length() == 0) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(String.format(&quot;Queue %s should be specified!&quot;, fieldName));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!QUEUE_PATTERN.matcher(value).matches()) {</b>
+<b class="nc">&nbsp;            throw new DataValidationException(</b>
+<b class="nc">&nbsp;                    String.format(&quot;Queue %s contains a character other than ASCII alphanumerics, &#39;.&#39;, &#39;_&#39; and &#39;-&#39;!&quot;, fieldName));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean isValidDomain(String domainName) {
+<b class="nc">&nbsp;        if (domainName == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (LOCALHOST_PATTERN.matcher(domainName).matches()) {</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return DOMAIN_PATTERN.matcher(domainName).matches();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

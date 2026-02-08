@@ -1,0 +1,660 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DeviceState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.profile</a>
+</div>
+
+<h1>Coverage Summary for Class: DeviceState (org.thingsboard.rule.engine.profile)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DeviceState</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/137)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/229)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DeviceState$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/137)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/231)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.profile;
+&nbsp;
+&nbsp;import com.google.gson.JsonElement;
+&nbsp;import com.google.gson.JsonParser;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.profile.state.PersistedAlarmState;
+&nbsp;import org.thingsboard.rule.engine.profile.state.PersistedDeviceState;
+&nbsp;import org.thingsboard.server.common.adaptor.JsonConverter;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.DataConstants;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmCondition;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionSpec;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmConditionSpecType;
+&nbsp;import org.thingsboard.server.common.data.device.profile.AlarmRule;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
+&nbsp;import org.thingsboard.server.common.data.device.profile.DurationAlarmConditionSpec;
+&nbsp;import org.thingsboard.server.common.data.exception.ApiUsageLimitsExceededException;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.KvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.query.DynamicValue;
+&nbsp;import org.thingsboard.server.common.data.query.DynamicValueSourceType;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNodeState;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.dao.sql.query.EntityKeyMapping;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ACTIVITY_EVENT;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_ACK;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_CLEAR;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_DELETE;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_ASSIGNED;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_UNASSIGNED;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.INACTIVITY_EVENT;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.POST_ATTRIBUTES_REQUEST;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_REQUEST;
+&nbsp;import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATED;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Deprecated
+&nbsp;class DeviceState {
+&nbsp;
+&nbsp;    private final boolean persistState;
+&nbsp;    private final DeviceId deviceId;
+&nbsp;    private final ProfileState deviceProfile;
+&nbsp;    private RuleNodeState state;
+&nbsp;    private PersistedDeviceState pds;
+&nbsp;    private DataSnapshot latestValues;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;String, AlarmState&gt; alarmStates = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;    private final DynamicPredicateValueCtx dynamicPredicateValueCtx;
+&nbsp;
+<b class="nc">&nbsp;    DeviceState(TbContext ctx, TbDeviceProfileNodeConfiguration config, DeviceId deviceId, ProfileState deviceProfile, RuleNodeState state) {</b>
+<b class="nc">&nbsp;        this.persistState = config.isPersistAlarmRulesState();</b>
+<b class="nc">&nbsp;        this.deviceId = deviceId;</b>
+<b class="nc">&nbsp;        this.deviceProfile = deviceProfile;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (hasDurationRulesWithDynamicValueFromCurrentDevice(deviceProfile)) {</b>
+<b class="nc">&nbsp;            latestValues = fetchLatestValues(ctx, deviceId);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        this.dynamicPredicateValueCtx = new DynamicPredicateValueCtxImpl(ctx.getTenantId(), deviceId, ctx);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (config.isPersistAlarmRulesState()) {</b>
+<b class="nc">&nbsp;            if (state != null) {</b>
+<b class="nc">&nbsp;                this.state = state;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                this.state = ctx.findRuleNodeStateForEntity(deviceId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (this.state != null) {</b>
+<b class="nc">&nbsp;                pds = JacksonUtil.fromString(this.state.getStateData(), PersistedDeviceState.class);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                this.state = new RuleNodeState();</b>
+<b class="nc">&nbsp;                this.state.setRuleNodeId(ctx.getSelfId());</b>
+<b class="nc">&nbsp;                this.state.setEntityId(deviceId);</b>
+<b class="nc">&nbsp;                pds = new PersistedDeviceState();</b>
+<b class="nc">&nbsp;                pds.setAlarmStates(new HashMap&lt;&gt;());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (pds != null) {</b>
+<b class="nc">&nbsp;            for (DeviceProfileAlarm alarm : deviceProfile.getAlarmSettings()) {</b>
+<b class="nc">&nbsp;                alarmStates.computeIfAbsent(alarm.getId(),</b>
+<b class="nc">&nbsp;                        a -&gt; new AlarmState(deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateProfile(TbContext ctx, DeviceProfile deviceProfile) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        Set&lt;AlarmConditionFilterKey&gt; oldKeys = Set.copyOf(this.deviceProfile.getEntityKeys());</b>
+<b class="nc">&nbsp;        this.deviceProfile.updateDeviceProfile(deviceProfile);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (latestValues == null &amp;&amp; hasDurationRulesWithDynamicValueFromCurrentDevice(this.deviceProfile)) {</b>
+<b class="nc">&nbsp;            latestValues = fetchLatestValues(ctx, deviceId);</b>
+<b class="nc">&nbsp;        } else if (latestValues != null) {</b>
+<b class="nc">&nbsp;            Set&lt;AlarmConditionFilterKey&gt; keysToFetch = new HashSet&lt;&gt;(this.deviceProfile.getEntityKeys());</b>
+<b class="nc">&nbsp;            keysToFetch.removeAll(oldKeys);</b>
+<b class="nc">&nbsp;            if (!keysToFetch.isEmpty()) {</b>
+<b class="nc">&nbsp;                addEntityKeysToSnapshot(ctx, deviceId, keysToFetch, latestValues);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        Set&lt;String&gt; newAlarmStateIds = this.deviceProfile.getAlarmSettings().stream().map(DeviceProfileAlarm::getId).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;        alarmStates.keySet().removeIf(id -&gt; !newAlarmStateIds.contains(id));</b>
+<b class="nc">&nbsp;        for (DeviceProfileAlarm alarm : this.deviceProfile.getAlarmSettings()) {</b>
+<b class="nc">&nbsp;            if (alarmStates.containsKey(alarm.getId())) {</b>
+<b class="nc">&nbsp;                alarmStates.get(alarm.getId()).updateState(alarm, getOrInitPersistedAlarmState(alarm));</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                alarmStates.putIfAbsent(alarm.getId(), new AlarmState(this.deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean hasDurationRulesWithDynamicValueFromCurrentDevice(ProfileState deviceProfile) {
+<b class="nc">&nbsp;        return deviceProfile.getAlarmSettings().stream().anyMatch(DeviceState::isDurationRuleWithDynamicValueFromCurrentDevice);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean isDurationRuleWithDynamicValueFromCurrentDevice(DeviceProfileAlarm alarm) {
+<b class="nc">&nbsp;        return Stream.concat(alarm.getCreateRules().values().stream(), Stream.ofNullable(alarm.getClearRule()))</b>
+<b class="nc">&nbsp;                .map(AlarmRule::getCondition)</b>
+<b class="nc">&nbsp;                .map(AlarmCondition::getSpec)</b>
+<b class="nc">&nbsp;                .anyMatch(spec -&gt; isDurationRule(spec) &amp;&amp; hasDynamicDurationValueFromCurrentDevice((DurationAlarmConditionSpec) spec));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean isDurationRule(AlarmConditionSpec spec) {
+<b class="nc">&nbsp;        return spec instanceof DurationAlarmConditionSpec durationSpec &amp;&amp; durationSpec.getType() == AlarmConditionSpecType.DURATION;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean hasDynamicDurationValueFromCurrentDevice(DurationAlarmConditionSpec spec) {
+<b class="nc">&nbsp;        DynamicValue&lt;Long&gt; dynamicValue = spec.getPredicate().getDynamicValue();</b>
+<b class="nc">&nbsp;        return dynamicValue != null &amp;&amp; dynamicValue.getSourceType() == DynamicValueSourceType.CURRENT_DEVICE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void harvestAlarms(TbContext ctx, long ts) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Going to harvest alarms: {}&quot;, ctx.getSelfId(), ts);</b>
+<b class="nc">&nbsp;        boolean stateChanged = false;</b>
+<b class="nc">&nbsp;        for (AlarmState state : alarmStates.values()) {</b>
+<b class="nc">&nbsp;            state.setDataSnapshot(latestValues);</b>
+<b class="nc">&nbsp;            stateChanged |= state.process(ctx, ts);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (persistState &amp;&amp; stateChanged) {</b>
+<b class="nc">&nbsp;            state.setStateData(JacksonUtil.toString(pds));</b>
+<b class="nc">&nbsp;            state = ctx.saveRuleNodeState(state);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void process(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        if (latestValues == null) {</b>
+<b class="nc">&nbsp;            latestValues = fetchLatestValues(ctx, deviceId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        boolean stateChanged = false;</b>
+<b class="nc">&nbsp;        if (msg.isTypeOf(POST_TELEMETRY_REQUEST)) {</b>
+<b class="nc">&nbsp;            stateChanged = processTelemetryRequest(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(TIMESERIES_UPDATED)) {</b>
+<b class="nc">&nbsp;            stateChanged = processTelemetryUpdatedNotification(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(POST_ATTRIBUTES_REQUEST)) {</b>
+<b class="nc">&nbsp;            stateChanged = processAttributesUpdateRequest(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOneOf(ACTIVITY_EVENT, INACTIVITY_EVENT)) {</b>
+<b class="nc">&nbsp;            stateChanged = processDeviceActivityEvent(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(ATTRIBUTES_UPDATED)) {</b>
+<b class="nc">&nbsp;            stateChanged = processAttributesUpdateNotification(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(ATTRIBUTES_DELETED)) {</b>
+<b class="nc">&nbsp;            stateChanged = processAttributesDeleteNotification(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(ALARM_CLEAR)) {</b>
+<b class="nc">&nbsp;            stateChanged = processAlarmClearNotification(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(ALARM_ACK)) {</b>
+<b class="nc">&nbsp;            processAlarmAckNotification(ctx, msg);</b>
+<b class="nc">&nbsp;        } else if (msg.isTypeOf(ALARM_DELETE)) {</b>
+<b class="nc">&nbsp;            processAlarmDeleteNotification(ctx, msg);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (msg.isTypeOneOf(ENTITY_ASSIGNED, ENTITY_UNASSIGNED)) {</b>
+<b class="nc">&nbsp;                dynamicPredicateValueCtx.resetCustomer();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            ctx.tellSuccess(msg);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (persistState &amp;&amp; stateChanged) {</b>
+<b class="nc">&nbsp;            state.setStateData(JacksonUtil.toString(pds));</b>
+<b class="nc">&nbsp;            state = ctx.saveRuleNodeState(state);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean processDeviceActivityEvent(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        String scope = msg.getMetaData().getValue(DataConstants.SCOPE);</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(scope)) {</b>
+<b class="nc">&nbsp;            return processTelemetryRequest(ctx, msg);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return processAttributes(ctx, msg, scope);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean processAlarmClearNotification(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        boolean stateChanged = false;</b>
+<b class="nc">&nbsp;        Alarm alarmNf = JacksonUtil.fromString(msg.getData(), Alarm.class);</b>
+<b class="nc">&nbsp;        for (DeviceProfileAlarm alarm : deviceProfile.getAlarmSettings()) {</b>
+<b class="nc">&nbsp;            AlarmState alarmState = alarmStates.computeIfAbsent(alarm.getId(),</b>
+<b class="nc">&nbsp;                    a -&gt; new AlarmState(this.deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));</b>
+<b class="nc">&nbsp;            stateChanged |= alarmState.processAlarmClear(ctx, alarmNf);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.tellSuccess(msg);</b>
+<b class="nc">&nbsp;        return stateChanged;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processAlarmAckNotification(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        Alarm alarmNf = JacksonUtil.fromString(msg.getData(), Alarm.class);</b>
+<b class="nc">&nbsp;        for (DeviceProfileAlarm alarm : deviceProfile.getAlarmSettings()) {</b>
+<b class="nc">&nbsp;            AlarmState alarmState = alarmStates.computeIfAbsent(alarm.getId(),</b>
+<b class="nc">&nbsp;                    a -&gt; new AlarmState(this.deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));</b>
+<b class="nc">&nbsp;            alarmState.processAckAlarm(alarmNf);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.tellSuccess(msg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processAlarmDeleteNotification(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        Alarm alarm = JacksonUtil.fromString(msg.getData(), Alarm.class);</b>
+<b class="nc">&nbsp;        alarmStates.values().removeIf(alarmState -&gt; alarmState.getCurrentAlarm() != null</b>
+<b class="nc">&nbsp;                &amp;&amp; alarmState.getCurrentAlarm().getId().equals(alarm.getId()));</b>
+<b class="nc">&nbsp;        ctx.tellSuccess(msg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean processAttributesUpdateNotification(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        String scope = msg.getMetaData().getValue(DataConstants.SCOPE);</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(scope)) {</b>
+<b class="nc">&nbsp;            scope = DataConstants.CLIENT_SCOPE;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return processAttributes(ctx, msg, scope);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean processAttributesDeleteNotification(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        boolean stateChanged = false;</b>
+<b class="nc">&nbsp;        List&lt;String&gt; keys = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        JsonParser.parseString(msg.getData()).getAsJsonObject().get(&quot;attributes&quot;).getAsJsonArray().forEach(e -&gt; keys.add(e.getAsString()));</b>
+<b class="nc">&nbsp;        String scope = msg.getMetaData().getValue(DataConstants.SCOPE);</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(scope)) {</b>
+<b class="nc">&nbsp;            scope = DataConstants.CLIENT_SCOPE;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!keys.isEmpty()) {</b>
+<b class="nc">&nbsp;            EntityKeyType keyType = getKeyTypeFromScope(scope);</b>
+<b class="nc">&nbsp;            Set&lt;AlarmConditionFilterKey&gt; removedKeys = keys.stream().map(key -&gt; new EntityKey(keyType, key))</b>
+<b class="nc">&nbsp;                    .peek(latestValues::removeValue)</b>
+<b class="nc">&nbsp;                    .map(DataSnapshot::toConditionKey).collect(Collectors.toSet());</b>
+<b class="nc">&nbsp;            SnapshotUpdate update = new SnapshotUpdate(AlarmConditionKeyType.ATTRIBUTE, removedKeys);</b>
+&nbsp;
+<b class="nc">&nbsp;            for (DeviceProfileAlarm alarm : deviceProfile.getAlarmSettings()) {</b>
+<b class="nc">&nbsp;                AlarmState alarmState = alarmStates.computeIfAbsent(alarm.getId(),</b>
+<b class="nc">&nbsp;                        a -&gt; new AlarmState(this.deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));</b>
+<b class="nc">&nbsp;                stateChanged |= alarmState.process(ctx, msg, latestValues, update);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.tellSuccess(msg);</b>
+<b class="nc">&nbsp;        return stateChanged;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected boolean processAttributesUpdateRequest(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        return processAttributes(ctx, msg, DataConstants.CLIENT_SCOPE);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean processAttributes(TbContext ctx, TbMsg msg, String scope) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        boolean stateChanged = false;</b>
+<b class="nc">&nbsp;        List&lt;AttributeKvEntry&gt; attributes = JsonConverter.convertToAttributes(JsonParser.parseString(msg.getData()));</b>
+<b class="nc">&nbsp;        if (!attributes.isEmpty()) {</b>
+<b class="nc">&nbsp;            SnapshotUpdate update = merge(latestValues, attributes, scope);</b>
+<b class="nc">&nbsp;            for (DeviceProfileAlarm alarm : deviceProfile.getAlarmSettings()) {</b>
+<b class="nc">&nbsp;                AlarmState alarmState = alarmStates.computeIfAbsent(alarm.getId(),</b>
+<b class="nc">&nbsp;                        a -&gt; new AlarmState(this.deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));</b>
+<b class="nc">&nbsp;                stateChanged |= alarmState.process(ctx, msg, latestValues, update);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.tellSuccess(msg);</b>
+<b class="nc">&nbsp;        return stateChanged;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected boolean processTelemetryRequest(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        return processTelemetryUpdate(ctx, msg, JsonParser.parseString(msg.getData()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected boolean processTelemetryUpdatedNotification(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        JsonElement msgData = JsonParser.parseString(msg.getData());</b>
+<b class="nc">&nbsp;        JsonElement telemetryData = Optional.ofNullable(JsonParser.parseString(msg.getData()))</b>
+<b class="nc">&nbsp;                .filter(JsonElement::isJsonObject)</b>
+<b class="nc">&nbsp;                .map(e -&gt; e.getAsJsonObject().get(&quot;timeseries&quot;))</b>
+<b class="nc">&nbsp;                .orElse(msgData);</b>
+<b class="nc">&nbsp;        return processTelemetryUpdate(ctx, msg, telemetryData);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean processTelemetryUpdate(TbContext ctx, TbMsg msg, JsonElement telemetryData) throws ExecutionException, InterruptedException {
+<b class="nc">&nbsp;        boolean stateChanged = false;</b>
+<b class="nc">&nbsp;        Map&lt;Long, List&lt;KvEntry&gt;&gt; tsKvMap = JsonConverter.convertToSortedTelemetry(telemetryData, msg.getMetaDataTs());</b>
+&nbsp;        // iterate over data by ts (ASC order).
+<b class="nc">&nbsp;        for (Map.Entry&lt;Long, List&lt;KvEntry&gt;&gt; entry : tsKvMap.entrySet()) {</b>
+<b class="nc">&nbsp;            Long ts = entry.getKey();</b>
+<b class="nc">&nbsp;            List&lt;KvEntry&gt; data = entry.getValue();</b>
+<b class="nc">&nbsp;            SnapshotUpdate update = merge(latestValues, ts, data);</b>
+<b class="nc">&nbsp;            if (update.hasUpdate()) {</b>
+<b class="nc">&nbsp;                for (DeviceProfileAlarm alarm : deviceProfile.getAlarmSettings()) {</b>
+<b class="nc">&nbsp;                    AlarmState alarmState = alarmStates.computeIfAbsent(alarm.getId(),</b>
+<b class="nc">&nbsp;                            a -&gt; new AlarmState(this.deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        stateChanged |= alarmState.process(ctx, msg, latestValues, update);</b>
+&nbsp;                    } catch (ApiUsageLimitsExceededException e) {
+<b class="nc">&nbsp;                        alarmStates.remove(alarm.getId());</b>
+&nbsp;                        throw e;
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.tellSuccess(msg);</b>
+<b class="nc">&nbsp;        return stateChanged;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private SnapshotUpdate merge(DataSnapshot latestValues, Long newTs, List&lt;KvEntry&gt; data) {
+<b class="nc">&nbsp;        Set&lt;AlarmConditionFilterKey&gt; keys = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (KvEntry entry : data) {</b>
+<b class="nc">&nbsp;            AlarmConditionFilterKey entityKey = new AlarmConditionFilterKey(AlarmConditionKeyType.TIME_SERIES, entry.getKey());</b>
+<b class="nc">&nbsp;            if (latestValues.putValue(entityKey, newTs, toEntityValue(entry))) {</b>
+<b class="nc">&nbsp;                keys.add(entityKey);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        latestValues.setTs(newTs);</b>
+<b class="nc">&nbsp;        return new SnapshotUpdate(AlarmConditionKeyType.TIME_SERIES, keys);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private SnapshotUpdate merge(DataSnapshot latestValues, List&lt;AttributeKvEntry&gt; attributes, String scope) {
+<b class="nc">&nbsp;        long newTs = 0;</b>
+<b class="nc">&nbsp;        Set&lt;AlarmConditionFilterKey&gt; keys = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (AttributeKvEntry entry : attributes) {</b>
+<b class="nc">&nbsp;            newTs = Math.max(newTs, entry.getLastUpdateTs());</b>
+<b class="nc">&nbsp;            AlarmConditionFilterKey entityKey = new AlarmConditionFilterKey(AlarmConditionKeyType.ATTRIBUTE, entry.getKey());</b>
+<b class="nc">&nbsp;            if (latestValues.putValue(entityKey, newTs, toEntityValue(entry))) {</b>
+<b class="nc">&nbsp;                keys.add(entityKey);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        latestValues.setTs(newTs);</b>
+<b class="nc">&nbsp;        return new SnapshotUpdate(AlarmConditionKeyType.ATTRIBUTE, keys);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static EntityKeyType getKeyTypeFromScope(String scope) {
+<b class="nc">&nbsp;        switch (scope) {</b>
+&nbsp;            case DataConstants.CLIENT_SCOPE:
+<b class="nc">&nbsp;                return EntityKeyType.CLIENT_ATTRIBUTE;</b>
+&nbsp;            case DataConstants.SHARED_SCOPE:
+<b class="nc">&nbsp;                return EntityKeyType.SHARED_ATTRIBUTE;</b>
+&nbsp;            case DataConstants.SERVER_SCOPE:
+<b class="nc">&nbsp;                return EntityKeyType.SERVER_ATTRIBUTE;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return EntityKeyType.ATTRIBUTE;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    private DataSnapshot fetchLatestValues(TbContext ctx, EntityId originator) {
+<b class="nc">&nbsp;        Set&lt;AlarmConditionFilterKey&gt; entityKeysToFetch = deviceProfile.getEntityKeys();</b>
+<b class="nc">&nbsp;        DataSnapshot result = new DataSnapshot(entityKeysToFetch);</b>
+<b class="nc">&nbsp;        addEntityKeysToSnapshot(ctx, originator, entityKeysToFetch, result);</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addEntityKeysToSnapshot(TbContext ctx, EntityId originator, Set&lt;AlarmConditionFilterKey&gt; entityKeysToFetch, DataSnapshot result) throws InterruptedException, ExecutionException {
+<b class="nc">&nbsp;        Set&lt;String&gt; attributeKeys = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Set&lt;String&gt; latestTsKeys = new HashSet&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        Device device = null;</b>
+<b class="nc">&nbsp;        for (AlarmConditionFilterKey entityKey : entityKeysToFetch) {</b>
+<b class="nc">&nbsp;            String key = entityKey.getKey();</b>
+<b class="nc">&nbsp;            switch (entityKey.getType()) {</b>
+&nbsp;                case ATTRIBUTE:
+<b class="nc">&nbsp;                    attributeKeys.add(key);</b>
+&nbsp;                    break;
+&nbsp;                case TIME_SERIES:
+<b class="nc">&nbsp;                    latestTsKeys.add(key);</b>
+&nbsp;                    break;
+&nbsp;                case ENTITY_FIELD:
+<b class="nc">&nbsp;                    if (device == null) {</b>
+<b class="nc">&nbsp;                        device = ctx.getDeviceService().findDeviceById(ctx.getTenantId(), new DeviceId(originator.getId()));</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (device != null) {</b>
+<b class="nc">&nbsp;                        switch (key) {</b>
+&nbsp;                            case EntityKeyMapping.NAME:
+<b class="nc">&nbsp;                                result.putValue(entityKey, device.getCreatedTime(), EntityKeyValue.fromString(device.getName()));</b>
+&nbsp;                                break;
+&nbsp;                            case EntityKeyMapping.TYPE:
+<b class="nc">&nbsp;                                result.putValue(entityKey, device.getCreatedTime(), EntityKeyValue.fromString(device.getType()));</b>
+&nbsp;                                break;
+&nbsp;                            case EntityKeyMapping.CREATED_TIME:
+<b class="nc">&nbsp;                                result.putValue(entityKey, device.getCreatedTime(), EntityKeyValue.fromLong(device.getCreatedTime()));</b>
+&nbsp;                                break;
+&nbsp;                            case EntityKeyMapping.LABEL:
+<b class="nc">&nbsp;                                result.putValue(entityKey, device.getCreatedTime(), EntityKeyValue.fromString(device.getLabel()));</b>
+&nbsp;                                break;
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    break;
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (!latestTsKeys.isEmpty()) {</b>
+<b class="nc">&nbsp;            List&lt;TsKvEntry&gt; data = ctx.getTimeseriesService().findLatest(ctx.getTenantId(), originator, latestTsKeys).get();</b>
+<b class="nc">&nbsp;            for (TsKvEntry entry : data) {</b>
+<b class="nc">&nbsp;                if (entry.getValue() != null) {</b>
+<b class="nc">&nbsp;                    result.putValue(new AlarmConditionFilterKey(AlarmConditionKeyType.TIME_SERIES, entry.getKey()), entry.getTs(), toEntityValue(entry));</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        if (!attributeKeys.isEmpty()) {</b>
+<b class="nc">&nbsp;            addToSnapshot(result, ctx.getAttributesService().find(ctx.getTenantId(), originator, AttributeScope.CLIENT_SCOPE, attributeKeys).get());</b>
+<b class="nc">&nbsp;            addToSnapshot(result, ctx.getAttributesService().find(ctx.getTenantId(), originator, AttributeScope.SHARED_SCOPE, attributeKeys).get());</b>
+<b class="nc">&nbsp;            addToSnapshot(result, ctx.getAttributesService().find(ctx.getTenantId(), originator, AttributeScope.SERVER_SCOPE, attributeKeys).get());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addToSnapshot(DataSnapshot snapshot, List&lt;AttributeKvEntry&gt; data) {
+<b class="nc">&nbsp;        for (AttributeKvEntry entry : data) {</b>
+<b class="nc">&nbsp;            if (entry.getValue() != null) {</b>
+<b class="nc">&nbsp;                EntityKeyValue value = toEntityValue(entry);</b>
+<b class="nc">&nbsp;                snapshot.putValue(new AlarmConditionFilterKey(AlarmConditionKeyType.ATTRIBUTE, entry.getKey()), entry.getLastUpdateTs(), value);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static EntityKeyValue toEntityValue(KvEntry entry) {
+<b class="nc">&nbsp;        switch (entry.getDataType()) {</b>
+&nbsp;            case STRING:
+<b class="nc">&nbsp;                return EntityKeyValue.fromString(entry.getStrValue().get());</b>
+&nbsp;            case LONG:
+<b class="nc">&nbsp;                return EntityKeyValue.fromLong(entry.getLongValue().get());</b>
+&nbsp;            case DOUBLE:
+<b class="nc">&nbsp;                return EntityKeyValue.fromDouble(entry.getDoubleValue().get());</b>
+&nbsp;            case BOOLEAN:
+<b class="nc">&nbsp;                return EntityKeyValue.fromBool(entry.getBooleanValue().get());</b>
+&nbsp;            case JSON:
+<b class="nc">&nbsp;                return EntityKeyValue.fromJson(entry.getJsonValue().get());</b>
+&nbsp;            default:
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Can&#39;t parse entry: &quot; + entry.getDataType());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public DeviceProfileId getProfileId() {
+<b class="nc">&nbsp;        return deviceProfile.getProfileId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PersistedAlarmState getOrInitPersistedAlarmState(DeviceProfileAlarm alarm) {
+<b class="nc">&nbsp;        if (pds != null) {</b>
+<b class="nc">&nbsp;            PersistedAlarmState alarmState = pds.getAlarmStates().get(alarm.getId());</b>
+<b class="nc">&nbsp;            if (alarmState == null) {</b>
+<b class="nc">&nbsp;                alarmState = new PersistedAlarmState();</b>
+<b class="nc">&nbsp;                alarmState.setCreateRuleStates(new HashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;                pds.getAlarmStates().put(alarm.getId(), alarmState);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return alarmState;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTransportTenantProfileCache</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.common.transport.service</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTransportTenantProfileCache (org.thingsboard.server.common.transport.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTransportTenantProfileCache</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.common.transport.service;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageState;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantProfileId;
+&nbsp;import org.thingsboard.server.common.transport.TransportService;
+&nbsp;import org.thingsboard.server.common.transport.TransportTenantProfileCache;
+&nbsp;import org.thingsboard.server.common.transport.limits.TransportRateLimitService;
+&nbsp;import org.thingsboard.server.common.transport.profile.TenantProfileUpdateResult;
+&nbsp;import org.thingsboard.server.common.util.ProtoUtils;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.util.TbTransportComponent;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+&nbsp;@Component
+&nbsp;@TbTransportComponent
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class DefaultTransportTenantProfileCache implements TransportTenantProfileCache {</b>
+&nbsp;
+<b class="nc">&nbsp;    private final Lock tenantProfileFetchLock = new ReentrantLock();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantProfileId, TenantProfile&gt; profiles = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantId, TenantProfileId&gt; tenantIds = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;TenantProfileId, Set&lt;TenantId&gt;&gt; tenantProfileIds = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    private TransportRateLimitService rateLimitService;
+&nbsp;    private TransportService transportService;
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    public void setRateLimitService(TransportRateLimitService rateLimitService) {
+<b class="nc">&nbsp;        this.rateLimitService = rateLimitService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Lazy
+&nbsp;    @Autowired
+&nbsp;    public void setTransportService(TransportService transportService) {
+<b class="nc">&nbsp;        this.transportService = transportService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfile get(TenantId tenantId) {
+<b class="nc">&nbsp;        return getTenantProfile(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TenantProfileUpdateResult put(TransportProtos.TenantProfileProto proto) {
+<b class="nc">&nbsp;        TenantProfile profile = ProtoUtils.fromProto(proto);</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}] put: {}&quot;, profile.getId(), profile);</b>
+<b class="nc">&nbsp;        profiles.put(profile.getId(), profile);</b>
+<b class="nc">&nbsp;        Set&lt;TenantId&gt; affectedTenants = tenantProfileIds.get(profile.getId());</b>
+<b class="nc">&nbsp;        return new TenantProfileUpdateResult(profile, affectedTenants != null ? affectedTenants : Collections.emptySet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean put(TenantId tenantId, TenantProfileId profileId) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] put: {}&quot;, tenantId, profileId);</b>
+<b class="nc">&nbsp;        TenantProfileId oldProfileId = tenantIds.get(tenantId);</b>
+<b class="nc">&nbsp;        if (oldProfileId != null &amp;&amp; !oldProfileId.equals(profileId)) {</b>
+<b class="nc">&nbsp;            tenantProfileIds.computeIfAbsent(oldProfileId, id -&gt; ConcurrentHashMap.newKeySet()).remove(tenantId);</b>
+<b class="nc">&nbsp;            tenantIds.put(tenantId, profileId);</b>
+<b class="nc">&nbsp;            tenantProfileIds.computeIfAbsent(profileId, id -&gt; ConcurrentHashMap.newKeySet()).add(tenantId);</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;TenantId&gt; remove(TenantProfileId profileId) {
+<b class="nc">&nbsp;        Set&lt;TenantId&gt; tenants = tenantProfileIds.remove(profileId);</b>
+<b class="nc">&nbsp;        if (tenants != null) {</b>
+<b class="nc">&nbsp;            tenants.forEach(tenantIds::remove);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        profiles.remove(profileId);</b>
+<b class="nc">&nbsp;        return tenants;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TenantProfile getTenantProfile(TenantId tenantId) {
+<b class="nc">&nbsp;        TenantProfile profile = null;</b>
+<b class="nc">&nbsp;        TenantProfileId tenantProfileId = tenantIds.get(tenantId);</b>
+<b class="nc">&nbsp;        if (tenantProfileId != null) {</b>
+<b class="nc">&nbsp;            profile = profiles.get(tenantProfileId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (profile == null) {</b>
+<b class="nc">&nbsp;            tenantProfileFetchLock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                tenantProfileId = tenantIds.get(tenantId);</b>
+<b class="nc">&nbsp;                if (tenantProfileId != null) {</b>
+<b class="nc">&nbsp;                    profile = profiles.get(tenantProfileId);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (profile == null) {</b>
+<b class="nc">&nbsp;                    TransportProtos.GetEntityProfileRequestMsg msg = TransportProtos.GetEntityProfileRequestMsg.newBuilder()</b>
+<b class="nc">&nbsp;                            .setEntityType(EntityType.TENANT.name())</b>
+<b class="nc">&nbsp;                            .setEntityIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                            .setEntityIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                            .build();</b>
+<b class="nc">&nbsp;                    TransportProtos.GetEntityProfileResponseMsg entityProfileMsg = transportService.getEntityProfile(msg);</b>
+<b class="nc">&nbsp;                    profile = ProtoUtils.fromProto(entityProfileMsg.getTenantProfile());</b>
+<b class="nc">&nbsp;                    TenantProfile existingProfile = profiles.get(profile.getId());</b>
+<b class="nc">&nbsp;                    if (existingProfile != null) {</b>
+<b class="nc">&nbsp;                        profile = existingProfile;</b>
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        profiles.put(profile.getId(), profile);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    tenantProfileIds.computeIfAbsent(profile.getId(), id -&gt; ConcurrentHashMap.newKeySet()).add(tenantId);</b>
+<b class="nc">&nbsp;                    tenantIds.put(tenantId, profile.getId());</b>
+<b class="nc">&nbsp;                    ApiUsageState apiUsageState = ProtoUtils.fromProto(entityProfileMsg.getApiState());</b>
+<b class="nc">&nbsp;                    rateLimitService.update(tenantId, apiUsageState.isTransportEnabled());</b>
+&nbsp;                }
+&nbsp;            } finally {
+<b class="nc">&nbsp;                tenantProfileFetchLock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return profile;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

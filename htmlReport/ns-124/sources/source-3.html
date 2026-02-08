@@ -1,0 +1,306 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SqlPartitioningRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sqlts.insert.sql</a>
+</div>
+
+<h1>Coverage Summary for Class: SqlPartitioningRepository (org.thingsboard.server.dao.sqlts.insert.sql)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SqlPartitioningRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/62)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sqlts.insert.sql;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Primary;
+&nbsp;import org.springframework.dao.DataAccessException;
+&nbsp;import org.springframework.jdbc.core.JdbcTemplate;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.springframework.transaction.annotation.Propagation;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.dao.timeseries.SqlPartition;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+&nbsp;@Primary
+&nbsp;@Repository
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class SqlPartitioningRepository {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private JdbcTemplate jdbcTemplate;
+&nbsp;
+&nbsp;    private static final String SELECT_PARTITIONS_STMT = &quot;SELECT tablename from pg_tables WHERE schemaname = current_schema() and tablename like concat(?, &#39;_%&#39;)&quot;;
+&nbsp;
+&nbsp;    private static final int PSQL_VERSION_14 = 140000;
+&nbsp;    private volatile Integer currentServerVersion;
+&nbsp;
+<b class="nc">&nbsp;    private final Map&lt;String, Map&lt;Long, SqlPartition&gt;&gt; tablesPartitions = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final ReentrantLock partitionCreationLock = new ReentrantLock();</b>
+&nbsp;
+&nbsp;    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+&nbsp;    public void save(SqlPartition partition) {
+<b class="nc">&nbsp;        getJdbcTemplate().execute(partition.getQuery());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional(propagation = Propagation.NOT_SUPPORTED) // executing non-transactionally, so that parent transaction is not aborted on partition save error
+&nbsp;    public void createPartitionIfNotExists(String table, long entityTs, long partitionDurationMs) {
+<b class="nc">&nbsp;        long partitionStartTs = calculatePartitionStartTime(entityTs, partitionDurationMs);</b>
+<b class="nc">&nbsp;        Map&lt;Long, SqlPartition&gt; partitions = tablesPartitions.computeIfAbsent(table, t -&gt; new ConcurrentHashMap&lt;&gt;());</b>
+<b class="nc">&nbsp;        if (!partitions.containsKey(partitionStartTs)) {</b>
+<b class="nc">&nbsp;            SqlPartition partition = new SqlPartition(table, partitionStartTs, getPartitionEndTime(partitionStartTs, partitionDurationMs), Long.toString(partitionStartTs));</b>
+<b class="nc">&nbsp;            partitionCreationLock.lock();</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (partitions.containsKey(partitionStartTs)) return;</b>
+<b class="nc">&nbsp;                log.info(&quot;Saving partition {}-{} for table {}&quot;, partition.getStart(), partition.getEnd(), table);</b>
+<b class="nc">&nbsp;                save(partition);</b>
+<b class="nc">&nbsp;                log.trace(&quot;Adding partition to map: {}&quot;, partition);</b>
+<b class="nc">&nbsp;                partitions.put(partition.getStart(), partition);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                String error = ExceptionUtils.getRootCauseMessage(e);</b>
+<b class="nc">&nbsp;                if (StringUtils.containsAny(error, &quot;would overlap partition&quot;, &quot;already exists&quot;)) {</b>
+<b class="nc">&nbsp;                    partitions.put(partition.getStart(), partition);</b>
+<b class="nc">&nbsp;                    log.debug(&quot;Couldn&#39;t save partition {}-{} for table {}: {}&quot;, partition.getStart(), partition.getEnd(), table, error);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.warn(&quot;Couldn&#39;t save partition {}-{} for table {}: {}&quot;, partition.getStart(), partition.getEnd(), table, error);</b>
+&nbsp;                }
+&nbsp;            } finally {
+<b class="nc">&nbsp;                partitionCreationLock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public long dropPartitionsBefore(String table, long ts, long partitionDurationMs) {
+<b class="nc">&nbsp;        List&lt;Long&gt; partitions = fetchPartitions(table);</b>
+<b class="nc">&nbsp;        long lastDroppedPartitionEndTime = -1;</b>
+<b class="nc">&nbsp;        for (Long partitionStartTime : partitions) {</b>
+<b class="nc">&nbsp;            long partitionEndTime = getPartitionEndTime(partitionStartTime, partitionDurationMs);</b>
+<b class="nc">&nbsp;            if (partitionEndTime &lt; ts) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}] Detaching expired partition: [{}-{}]&quot;, table, partitionStartTime, partitionEndTime);</b>
+<b class="nc">&nbsp;                boolean success = detachAndDropPartition(table, partitionStartTime);</b>
+<b class="nc">&nbsp;                if (success) {</b>
+<b class="nc">&nbsp;                    log.info(&quot;[{}] Detached expired partition: {}&quot;, table, partitionStartTime);</b>
+<b class="nc">&nbsp;                    lastDroppedPartitionEndTime = Math.max(partitionEndTime, lastDroppedPartitionEndTime);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Skipping valid partition: {}&quot;, table, partitionStartTime);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return lastDroppedPartitionEndTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void cleanupPartitionsCache(String table, long expTime, long partitionDurationMs) {
+<b class="nc">&nbsp;        Map&lt;Long, SqlPartition&gt; partitions = tablesPartitions.get(table);</b>
+<b class="nc">&nbsp;        if (partitions == null) return;</b>
+<b class="nc">&nbsp;        partitions.keySet().removeIf(startTime -&gt; getPartitionEndTime(startTime, partitionDurationMs) &lt; expTime);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean detachAndDropPartition(String table, long partitionTs) {
+<b class="nc">&nbsp;        Map&lt;Long, SqlPartition&gt; cachedPartitions = tablesPartitions.get(table);</b>
+<b class="nc">&nbsp;        if (cachedPartitions != null) cachedPartitions.remove(partitionTs);</b>
+&nbsp;
+<b class="nc">&nbsp;        String tablePartition = table + &quot;_&quot; + partitionTs;</b>
+<b class="nc">&nbsp;        String detachPsqlStmtStr = &quot;ALTER TABLE &quot; + table + &quot; DETACH PARTITION &quot; + tablePartition;</b>
+&nbsp;
+&nbsp;        // hotfix of ERROR: partition &quot;integration_debug_event_1678323600000&quot; already pending detach in partitioned table &quot;public.integration_debug_event&quot;
+&nbsp;        // https://github.com/thingsboard/thingsboard/issues/8271
+&nbsp;        // if (getCurrentServerVersion() &gt;= PSQL_VERSION_14) {
+&nbsp;        //    detachPsqlStmtStr += &quot; CONCURRENTLY&quot;;
+&nbsp;        // }
+&nbsp;
+<b class="nc">&nbsp;        String dropStmtStr = &quot;DROP TABLE &quot; + tablePartition;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            getJdbcTemplate().execute(detachPsqlStmtStr);</b>
+<b class="nc">&nbsp;            getJdbcTemplate().execute(dropStmtStr);</b>
+<b class="nc">&nbsp;            return true;</b>
+&nbsp;        } catch (DataAccessException e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Error occurred trying to detach and drop the partition {} &quot;, table, partitionTs, e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static long getPartitionEndTime(long startTime, long partitionDurationMs) {
+<b class="nc">&nbsp;        return startTime + partitionDurationMs;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;Long&gt; fetchPartitions(String table) {
+<b class="nc">&nbsp;        List&lt;Long&gt; partitions = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        List&lt;String&gt; partitionsTables = getJdbcTemplate().queryForList(SELECT_PARTITIONS_STMT, String.class, table);</b>
+<b class="nc">&nbsp;        for (String partitionTableName : partitionsTables) {</b>
+<b class="nc">&nbsp;            String partitionTsStr = partitionTableName.substring(table.length() + 1);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                partitions.add(Long.parseLong(partitionTsStr));</b>
+&nbsp;            } catch (NumberFormatException nfe) {
+<b class="nc">&nbsp;                log.debug(&quot;Failed to parse table name: {}&quot;, partitionTableName);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return partitions;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public long calculatePartitionStartTime(long ts, long partitionDuration) {
+<b class="nc">&nbsp;        return ts - (ts % partitionDuration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private synchronized int getCurrentServerVersion() {
+<b class="nc">&nbsp;        if (currentServerVersion == null) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                currentServerVersion = getJdbcTemplate().queryForObject(&quot;SELECT current_setting(&#39;server_version_num&#39;)&quot;, Integer.class);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;Error occurred during fetch of the server version&quot;, e);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (currentServerVersion == null) {</b>
+<b class="nc">&nbsp;                currentServerVersion = 0;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return currentServerVersion;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected JdbcTemplate getJdbcTemplate() {
+<b class="nc">&nbsp;        return jdbcTemplate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

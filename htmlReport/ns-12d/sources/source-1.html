@@ -1,0 +1,361 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ApiUsageStateServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.usagerecord</a>
+</div>
+
+<h1>Coverage Summary for Class: ApiUsageStateServiceImpl (org.thingsboard.server.dao.usagerecord)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ApiUsageStateServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/95)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.usagerecord;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.thingsboard.server.common.data.ApiFeature;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageRecordKey;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageState;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageStateValue;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.Tenant;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.id.ApiUsageStateId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.LongDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.StringDataEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+&nbsp;import org.thingsboard.server.dao.entity.AbstractEntityService;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+&nbsp;import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantProfileDao;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;import org.thingsboard.server.dao.timeseries.TimeseriesService;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service(&quot;ApiUsageStateDaoService&quot;)
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class ApiUsageStateServiceImpl extends AbstractEntityService implements ApiUsageStateService {
+&nbsp;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;
+&nbsp;    private final ApiUsageStateDao apiUsageStateDao;
+&nbsp;    private final TenantProfileDao tenantProfileDao;
+&nbsp;    private final TenantService tenantService;
+&nbsp;    private final TimeseriesService tsService;
+&nbsp;    private final DataValidator&lt;ApiUsageState&gt; apiUsageStateValidator;
+&nbsp;
+&nbsp;    public ApiUsageStateServiceImpl(ApiUsageStateDao apiUsageStateDao, TenantProfileDao tenantProfileDao,
+&nbsp;                                    TenantService tenantService, @Lazy TimeseriesService tsService,
+<b class="nc">&nbsp;                                    DataValidator&lt;ApiUsageState&gt; apiUsageStateValidator) {</b>
+<b class="nc">&nbsp;        this.apiUsageStateDao = apiUsageStateDao;</b>
+<b class="nc">&nbsp;        this.tenantProfileDao = tenantProfileDao;</b>
+<b class="nc">&nbsp;        this.tenantService = tenantService;</b>
+<b class="nc">&nbsp;        this.tsService = tsService;</b>
+<b class="nc">&nbsp;        this.apiUsageStateValidator = apiUsageStateValidator;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void deleteApiUsageStateByEntityId(EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing deleteApiUsageStateByEntityId [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        validateId(entityId.getId(), id -&gt; &quot;Invalid entity id &quot; + id);</b>
+<b class="nc">&nbsp;        ApiUsageState apiUsageState = findApiUsageStateByEntityId(entityId);</b>
+<b class="nc">&nbsp;        deleteApiUsageState(apiUsageState);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteApiUsageState(ApiUsageState apiUsageState) {
+<b class="nc">&nbsp;        if (apiUsageState != null) {</b>
+<b class="nc">&nbsp;            apiUsageStateDao.removeById(apiUsageState.getTenantId(), apiUsageState.getUuidId());</b>
+<b class="nc">&nbsp;            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(apiUsageState.getTenantId()).entityId(apiUsageState.getId()).build());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+<b class="nc">&nbsp;        ApiUsageState apiUsageState = findApiUsageStateById(tenantId, (ApiUsageStateId) id);</b>
+<b class="nc">&nbsp;        deleteApiUsageState(apiUsageState);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ApiUsageState createDefaultApiUsageState(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        entityId = Objects.requireNonNullElse(entityId, tenantId);</b>
+<b class="nc">&nbsp;        log.trace(&quot;Executing createDefaultUsageRecord [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+&nbsp;
+<b class="nc">&nbsp;        ApiUsageStateValue smsApiUsageState = ApiUsageStateValue.ENABLED;</b>
+&nbsp;
+<b class="nc">&nbsp;        DefaultTenantProfileConfiguration configuration = null;</b>
+<b class="nc">&nbsp;        if (entityId.getEntityType() == EntityType.TENANT &amp;&amp; !entityId.equals(TenantId.SYS_TENANT_ID)) {</b>
+<b class="nc">&nbsp;            tenantId = (TenantId) entityId;</b>
+<b class="nc">&nbsp;            Tenant tenant = tenantService.findTenantById(tenantId);</b>
+<b class="nc">&nbsp;            TenantProfile tenantProfile = tenantProfileDao.findById(tenantId, tenant.getTenantProfileId().getId());</b>
+<b class="nc">&nbsp;            configuration = (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();</b>
+&nbsp;
+<b class="nc">&nbsp;            if (configuration.getSmsEnabled() != null &amp;&amp; !configuration.getSmsEnabled()) {</b>
+<b class="nc">&nbsp;                smsApiUsageState = ApiUsageStateValue.DISABLED;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ApiUsageState apiUsageState = new ApiUsageState();</b>
+<b class="nc">&nbsp;        apiUsageState.setTenantId(tenantId);</b>
+<b class="nc">&nbsp;        apiUsageState.setEntityId(entityId);</b>
+<b class="nc">&nbsp;        apiUsageState.setTransportState(ApiUsageStateValue.ENABLED);</b>
+<b class="nc">&nbsp;        apiUsageState.setReExecState(ApiUsageStateValue.ENABLED);</b>
+<b class="nc">&nbsp;        apiUsageState.setJsExecState(ApiUsageStateValue.ENABLED);</b>
+<b class="nc">&nbsp;        apiUsageState.setTbelExecState(ApiUsageStateValue.ENABLED);</b>
+<b class="nc">&nbsp;        apiUsageState.setDbStorageState(ApiUsageStateValue.ENABLED);</b>
+<b class="nc">&nbsp;        apiUsageState.setSmsExecState(smsApiUsageState);</b>
+<b class="nc">&nbsp;        apiUsageState.setEmailExecState(ApiUsageStateValue.ENABLED);</b>
+<b class="nc">&nbsp;        apiUsageState.setAlarmExecState(ApiUsageStateValue.ENABLED);</b>
+<b class="nc">&nbsp;        apiUsageStateValidator.validate(apiUsageState, ApiUsageState::getTenantId);</b>
+&nbsp;
+<b class="nc">&nbsp;        ApiUsageState saved = apiUsageStateDao.save(apiUsageState.getTenantId(), apiUsageState);</b>
+&nbsp;
+<b class="nc">&nbsp;        eventPublisher.publishEvent(SaveEntityEvent.builder()</b>
+<b class="nc">&nbsp;                .tenantId(saved.getTenantId())</b>
+<b class="nc">&nbsp;                .entityId(saved.getId())</b>
+<b class="nc">&nbsp;                .entity(saved)</b>
+<b class="nc">&nbsp;                .created(true)</b>
+<b class="nc">&nbsp;                .broadcastEvent(false)</b>
+<b class="nc">&nbsp;                .build());</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;TsKvEntry&gt; apiUsageStates = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.TRANSPORT.getApiStateKey(), ApiUsageStateValue.ENABLED.name())));</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.DB.getApiStateKey(), ApiUsageStateValue.ENABLED.name())));</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.RE.getApiStateKey(), ApiUsageStateValue.ENABLED.name())));</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.JS.getApiStateKey(), ApiUsageStateValue.ENABLED.name())));</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.TBEL.getApiStateKey(), ApiUsageStateValue.ENABLED.name())));</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.EMAIL.getApiStateKey(), ApiUsageStateValue.ENABLED.name())));</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.SMS.getApiStateKey(), smsApiUsageState.name())));</b>
+<b class="nc">&nbsp;        apiUsageStates.add(new BasicTsKvEntry(saved.getCreatedTime(),</b>
+<b class="nc">&nbsp;                new StringDataEntry(ApiFeature.ALARM.getApiStateKey(), ApiUsageStateValue.ENABLED.name())));</b>
+<b class="nc">&nbsp;        tsService.save(tenantId, saved.getId(), apiUsageStates, 0L);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (configuration != null) {</b>
+<b class="nc">&nbsp;            List&lt;TsKvEntry&gt; profileThresholds = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (ApiUsageRecordKey key : ApiUsageRecordKey.values()) {</b>
+<b class="nc">&nbsp;                if (key.getApiLimitKey() == null) continue;</b>
+<b class="nc">&nbsp;                profileThresholds.add(new BasicTsKvEntry(saved.getCreatedTime(), new LongDataEntry(key.getApiLimitKey(), configuration.getProfileThreshold(key))));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            tsService.save(tenantId, saved.getId(), profileThresholds, 0L);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return saved;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ApiUsageState update(ApiUsageState apiUsageState) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing save [{}]&quot;, apiUsageState.getTenantId());</b>
+<b class="nc">&nbsp;        validateId(apiUsageState.getTenantId(), id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(apiUsageState.getId(), __ -&gt; &quot;Can&#39;t save new usage state. Only update is allowed!&quot;);</b>
+<b class="nc">&nbsp;        apiUsageState.setVersion(null);</b>
+<b class="nc">&nbsp;        ApiUsageState savedState = apiUsageStateDao.save(apiUsageState.getTenantId(), apiUsageState);</b>
+<b class="nc">&nbsp;        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedState.getTenantId()).entityId(savedState.getId())</b>
+<b class="nc">&nbsp;                .entity(savedState).build());</b>
+<b class="nc">&nbsp;        return savedState;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ApiUsageState findTenantApiUsageState(TenantId tenantId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findTenantUsageRecord, tenantId [{}]&quot;, tenantId);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        return apiUsageStateDao.findTenantApiUsageState(tenantId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ApiUsageState findApiUsageStateByEntityId(EntityId entityId) {
+<b class="nc">&nbsp;        validateId(entityId.getId(), id -&gt; &quot;Invalid entity id &quot; + id);</b>
+<b class="nc">&nbsp;        return apiUsageStateDao.findApiUsageStateByEntityId(entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ApiUsageState findApiUsageStateById(TenantId tenantId, ApiUsageStateId id) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findApiUsageStateById, tenantId [{}], apiUsageStateId [{}]&quot;, tenantId, id);</b>
+<b class="nc">&nbsp;        validateId(tenantId, t -&gt; INCORRECT_TENANT_ID + t);</b>
+<b class="nc">&nbsp;        validateId(id, u -&gt; &quot;Incorrect apiUsageStateId &quot; + u);</b>
+<b class="nc">&nbsp;        return apiUsageStateDao.findById(tenantId, id.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; findEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return Optional.ofNullable(findApiUsageStateById(tenantId, new ApiUsageStateId(entityId.getId())));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;HasId&lt;?&gt;&gt;&gt; findEntityAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return FluentFuture.from(apiUsageStateDao.findByIdAsync(tenantId, entityId.getId()))</b>
+<b class="nc">&nbsp;                .transform(Optional::ofNullable, directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void deleteByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        deleteApiUsageStateByEntityId(tenantId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.API_USAGE_STATE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

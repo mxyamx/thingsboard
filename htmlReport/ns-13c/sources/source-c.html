@@ -1,0 +1,415 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ThingsboardErrorResponseHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.exception</a>
+</div>
+
+<h1>Coverage Summary for Class: ThingsboardErrorResponseHandler (org.thingsboard.server.exception)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ThingsboardErrorResponseHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/123)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.exception;
+&nbsp;
+&nbsp;import jakarta.servlet.RequestDispatcher;
+&nbsp;import jakarta.servlet.ServletException;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+&nbsp;import org.hibernate.exception.ConstraintViolationException;
+&nbsp;import org.springframework.boot.web.servlet.error.ErrorController;
+&nbsp;import org.springframework.dao.DataAccessException;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.HttpStatusCode;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.lang.Nullable;
+&nbsp;import org.springframework.security.access.AccessDeniedException;
+&nbsp;import org.springframework.security.authentication.BadCredentialsException;
+&nbsp;import org.springframework.security.authentication.CredentialsExpiredException;
+&nbsp;import org.springframework.security.authentication.DisabledException;
+&nbsp;import org.springframework.security.authentication.LockedException;
+&nbsp;import org.springframework.security.core.AuthenticationException;
+&nbsp;import org.springframework.security.core.userdetails.UsernameNotFoundException;
+&nbsp;import org.springframework.security.web.access.AccessDeniedHandler;
+&nbsp;import org.springframework.stereotype.Controller;
+&nbsp;import org.springframework.web.bind.annotation.ExceptionHandler;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RestControllerAdvice;
+&nbsp;import org.springframework.web.client.HttpClientErrorException;
+&nbsp;import org.springframework.web.context.request.WebRequest;
+&nbsp;import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+&nbsp;import org.springframework.web.util.WebUtils;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.msg.tools.MaxPayloadSizeExceededException;
+&nbsp;import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+&nbsp;import org.thingsboard.server.service.security.exception.AuthMethodNotSupportedException;
+&nbsp;import org.thingsboard.server.service.security.exception.JwtExpiredTokenException;
+&nbsp;import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
+&nbsp;import org.thingsboard.server.service.security.exception.UserPasswordNotValidException;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Controller
+&nbsp;@RestControllerAdvice
+<b class="nc">&nbsp;public class ThingsboardErrorResponseHandler extends ResponseEntityExceptionHandler implements AccessDeniedHandler, ErrorController {</b>
+&nbsp;
+<b class="nc">&nbsp;    private static final Map&lt;HttpStatus, ThingsboardErrorCode&gt; statusToErrorCodeMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.BAD_REQUEST, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.UNAUTHORIZED, ThingsboardErrorCode.AUTHENTICATION);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.FORBIDDEN, ThingsboardErrorCode.PERMISSION_DENIED);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.NOT_FOUND, ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.METHOD_NOT_ALLOWED, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.NOT_ACCEPTABLE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.TOO_MANY_REQUESTS, ThingsboardErrorCode.TOO_MANY_REQUESTS);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.INTERNAL_SERVER_ERROR, ThingsboardErrorCode.GENERAL);</b>
+<b class="nc">&nbsp;        statusToErrorCodeMap.put(HttpStatus.SERVICE_UNAVAILABLE, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private static final Map&lt;ThingsboardErrorCode, HttpStatus&gt; errorCodeToStatusMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    static {
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.GENERAL, HttpStatus.INTERNAL_SERVER_ERROR);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.JWT_TOKEN_EXPIRED, HttpStatus.UNAUTHORIZED);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.CREDENTIALS_EXPIRED, HttpStatus.UNAUTHORIZED);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.PERMISSION_DENIED, HttpStatus.FORBIDDEN);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.INVALID_ARGUMENTS, HttpStatus.BAD_REQUEST);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.BAD_REQUEST_PARAMS, HttpStatus.BAD_REQUEST);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.ITEM_NOT_FOUND, HttpStatus.NOT_FOUND);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.TOO_MANY_REQUESTS, HttpStatus.TOO_MANY_REQUESTS);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.TOO_MANY_UPDATES, HttpStatus.TOO_MANY_REQUESTS);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.SUBSCRIPTION_VIOLATION, HttpStatus.FORBIDDEN);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.ENTITIES_LIMIT_EXCEEDED, HttpStatus.FORBIDDEN);</b>
+<b class="nc">&nbsp;        errorCodeToStatusMap.put(ThingsboardErrorCode.VERSION_CONFLICT, HttpStatus.CONFLICT);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static ThingsboardErrorCode statusToErrorCode(HttpStatus status) {
+<b class="nc">&nbsp;        return statusToErrorCodeMap.getOrDefault(status, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static HttpStatus errorCodeToStatus(ThingsboardErrorCode errorCode) {
+<b class="nc">&nbsp;        return errorCodeToStatusMap.getOrDefault(errorCode, HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @RequestMapping(&quot;/error&quot;)
+&nbsp;    public ResponseEntity&lt;Object&gt; handleError(HttpServletRequest request) {
+<b class="nc">&nbsp;        HttpStatus httpStatus = Optional.ofNullable(request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE))</b>
+<b class="nc">&nbsp;                .map(status -&gt; HttpStatus.resolve(Integer.parseInt(status.toString())))</b>
+<b class="nc">&nbsp;                .orElse(HttpStatus.INTERNAL_SERVER_ERROR);</b>
+<b class="nc">&nbsp;        String errorMessage = Optional.ofNullable(request.getAttribute(RequestDispatcher.ERROR_EXCEPTION))</b>
+<b class="nc">&nbsp;                .map(e -&gt; (ExceptionUtils.getMessage((Throwable) e)))</b>
+<b class="nc">&nbsp;                .orElse(httpStatus.getReasonPhrase());</b>
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(ThingsboardErrorResponse.of(errorMessage, statusToErrorCode(httpStatus), httpStatus), httpStatus);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @ExceptionHandler(AccessDeniedException.class)
+&nbsp;    public void handle(HttpServletRequest request, HttpServletResponse response,
+&nbsp;                       AccessDeniedException accessDeniedException) throws IOException,
+&nbsp;            ServletException {
+<b class="nc">&nbsp;        if (!response.isCommitted()) {</b>
+<b class="nc">&nbsp;            response.setContentType(MediaType.APPLICATION_JSON_VALUE);</b>
+<b class="nc">&nbsp;            response.setStatus(HttpStatus.FORBIDDEN.value());</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(),</b>
+<b class="nc">&nbsp;                    ThingsboardErrorResponse.of(&quot;You don&#39;t have permission to perform this operation!&quot;,</b>
+&nbsp;                            ThingsboardErrorCode.PERMISSION_DENIED, HttpStatus.FORBIDDEN));
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ExceptionHandler(Exception.class)
+&nbsp;    public void handle(Exception exception, HttpServletResponse response) {
+<b class="nc">&nbsp;        log.debug(&quot;Processing exception {}&quot;, exception.getMessage(), exception);</b>
+<b class="nc">&nbsp;        if (!response.isCommitted()) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                response.setContentType(MediaType.APPLICATION_JSON_VALUE);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (exception instanceof ThingsboardException thingsboardException) {</b>
+<b class="nc">&nbsp;                    if (thingsboardException.getErrorCode() == ThingsboardErrorCode.SUBSCRIPTION_VIOLATION) {</b>
+<b class="nc">&nbsp;                        handleSubscriptionException(thingsboardException, response);</b>
+<b class="nc">&nbsp;                    } else if (thingsboardException.getErrorCode() == ThingsboardErrorCode.DATABASE) {</b>
+<b class="nc">&nbsp;                        handleDatabaseException(thingsboardException.getCause(), response);</b>
+<b class="nc">&nbsp;                    } else if (thingsboardException.getErrorCode() == ThingsboardErrorCode.ENTITIES_LIMIT_EXCEEDED) {</b>
+<b class="nc">&nbsp;                        if (thingsboardException.getCause() instanceof EntitiesLimitExceededException entitiesLimitExceededException) {</b>
+<b class="nc">&nbsp;                            handleEntitiesLimitExceededException(entitiesLimitExceededException, response);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            handleEntitiesLimitExceededException(thingsboardException, response);</b>
+&nbsp;                        }
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        handleThingsboardException(thingsboardException, response);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                } else if (exception instanceof TbRateLimitsException rateLimitsException) {</b>
+<b class="nc">&nbsp;                    handleRateLimitException(response, rateLimitsException);</b>
+<b class="nc">&nbsp;                } else if (exception instanceof AccessDeniedException) {</b>
+<b class="nc">&nbsp;                    handleAccessDeniedException(response);</b>
+<b class="nc">&nbsp;                } else if (exception instanceof AuthenticationException authenticationException) {</b>
+<b class="nc">&nbsp;                    handleAuthenticationException(authenticationException, response);</b>
+<b class="nc">&nbsp;                } else if (exception instanceof MaxPayloadSizeExceededException maxPayloadSizeExceededException) {</b>
+<b class="nc">&nbsp;                    handleMaxPayloadSizeExceededException(response, maxPayloadSizeExceededException);</b>
+<b class="nc">&nbsp;                } else if (exception instanceof DataAccessException e) {</b>
+<b class="nc">&nbsp;                    handleDatabaseException(e, response);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());</b>
+<b class="nc">&nbsp;                    JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(exception.getMessage(),</b>
+&nbsp;                            ThingsboardErrorCode.GENERAL, HttpStatus.INTERNAL_SERVER_ERROR));
+&nbsp;                }
+&nbsp;            } catch (IOException e) {
+<b class="nc">&nbsp;                log.error(&quot;Can&#39;t handle exception&quot;, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected ResponseEntity&lt;Object&gt; handleExceptionInternal(
+&nbsp;            Exception ex, @Nullable Object body,
+&nbsp;            HttpHeaders headers, HttpStatusCode statusCode,
+&nbsp;            WebRequest request) {
+<b class="nc">&nbsp;        if (HttpStatus.INTERNAL_SERVER_ERROR.equals(statusCode)) {</b>
+<b class="nc">&nbsp;            request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ThingsboardErrorCode errorCode = statusToErrorCode((HttpStatus) statusCode);</b>
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(ThingsboardErrorResponse.of(ex.getMessage(), errorCode, (HttpStatus) statusCode), headers, statusCode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleThingsboardException(ThingsboardException thingsboardException, HttpServletResponse response) throws IOException {
+<b class="nc">&nbsp;        ThingsboardErrorCode errorCode = thingsboardException.getErrorCode();</b>
+<b class="nc">&nbsp;        HttpStatus status = errorCodeToStatus(errorCode);</b>
+<b class="nc">&nbsp;        response.setStatus(status.value());</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(thingsboardException.getMessage(), errorCode, status));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleRateLimitException(HttpServletResponse response, TbRateLimitsException exception) throws IOException {
+<b class="nc">&nbsp;        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());</b>
+<b class="nc">&nbsp;        String message = &quot;Too many requests for current &quot; + exception.getEntityType().name().toLowerCase() + &quot;!&quot;;</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(),</b>
+<b class="nc">&nbsp;                ThingsboardErrorResponse.of(message,</b>
+&nbsp;                        ThingsboardErrorCode.TOO_MANY_REQUESTS, HttpStatus.TOO_MANY_REQUESTS));
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleMaxPayloadSizeExceededException(HttpServletResponse response, MaxPayloadSizeExceededException exception) throws IOException {
+<b class="nc">&nbsp;        response.setStatus(HttpStatus.PAYLOAD_TOO_LARGE.value());</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(),</b>
+<b class="nc">&nbsp;                ThingsboardErrorResponse.of(exception.getMessage(),</b>
+&nbsp;                        ThingsboardErrorCode.BAD_REQUEST_PARAMS, HttpStatus.PAYLOAD_TOO_LARGE));
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleSubscriptionException(ThingsboardException subscriptionException, HttpServletResponse response) throws IOException {
+<b class="nc">&nbsp;        response.setStatus(HttpStatus.FORBIDDEN.value());</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(),</b>
+<b class="nc">&nbsp;                JacksonUtil.fromBytes(((HttpClientErrorException) subscriptionException.getCause()).getResponseBodyAsByteArray(), Object.class));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleDatabaseException(Throwable databaseException, HttpServletResponse response) throws IOException {
+&nbsp;        ThingsboardErrorResponse errorResponse;
+<b class="nc">&nbsp;        if (databaseException instanceof ConstraintViolationException) {</b>
+<b class="nc">&nbsp;            errorResponse = ThingsboardErrorResponse.of(ExceptionUtils.getRootCause(databaseException).getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS, HttpStatus.BAD_REQUEST);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;Database error: {} - {}&quot;, databaseException.getClass().getSimpleName(), ExceptionUtils.getRootCauseMessage(databaseException));</b>
+<b class="nc">&nbsp;            errorResponse = ThingsboardErrorResponse.of(&quot;Database error&quot;, ThingsboardErrorCode.DATABASE, HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        writeResponse(errorResponse, response);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleEntitiesLimitExceededException(ThingsboardException entitiesLimitExceededException, HttpServletResponse response) throws IOException {
+<b class="nc">&nbsp;        response.setStatus(HttpStatus.FORBIDDEN.value());</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(),</b>
+<b class="nc">&nbsp;                JacksonUtil.fromBytes(((HttpClientErrorException) entitiesLimitExceededException.getCause()).getResponseBodyAsByteArray(), Object.class));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleEntitiesLimitExceededException(EntitiesLimitExceededException entitiesLimitExceededException, HttpServletResponse response) throws IOException {
+<b class="nc">&nbsp;        EntityType entityType = entitiesLimitExceededException.getEntityType();</b>
+<b class="nc">&nbsp;        Long limit = entitiesLimitExceededException.getLimit();</b>
+<b class="nc">&nbsp;        response.setStatus(HttpStatus.FORBIDDEN.value());</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(),</b>
+<b class="nc">&nbsp;                ThingsboardEntitiesLimitExceededResponse.of(entitiesLimitExceededException.getMessage(), entityType, limit));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleAccessDeniedException(HttpServletResponse response) throws IOException {
+<b class="nc">&nbsp;        response.setStatus(HttpStatus.FORBIDDEN.value());</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(),</b>
+<b class="nc">&nbsp;                ThingsboardErrorResponse.of(&quot;You don&#39;t have permission to perform this operation!&quot;,</b>
+&nbsp;                        ThingsboardErrorCode.PERMISSION_DENIED, HttpStatus.FORBIDDEN));
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleAuthenticationException(AuthenticationException authenticationException, HttpServletResponse response) throws IOException {
+<b class="nc">&nbsp;        response.setStatus(HttpStatus.UNAUTHORIZED.value());</b>
+<b class="nc">&nbsp;        if (authenticationException instanceof BadCredentialsException || authenticationException instanceof UsernameNotFoundException) {</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(&quot;Invalid username or password&quot;, ThingsboardErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));</b>
+<b class="nc">&nbsp;        } else if (authenticationException instanceof DisabledException) {</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(&quot;User account is not active&quot;, ThingsboardErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));</b>
+<b class="nc">&nbsp;        } else if (authenticationException instanceof LockedException) {</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(&quot;User account is locked due to security policy&quot;, ThingsboardErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));</b>
+<b class="nc">&nbsp;        } else if (authenticationException instanceof JwtExpiredTokenException) {</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(&quot;Token has expired&quot;, ThingsboardErrorCode.JWT_TOKEN_EXPIRED, HttpStatus.UNAUTHORIZED));</b>
+<b class="nc">&nbsp;        } else if (authenticationException instanceof AuthMethodNotSupportedException) {</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(authenticationException.getMessage(), ThingsboardErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));</b>
+<b class="nc">&nbsp;        } else if (authenticationException instanceof UserPasswordExpiredException expiredException) {</b>
+<b class="nc">&nbsp;            String resetToken = expiredException.getResetToken();</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardCredentialsExpiredResponse.of(expiredException.getMessage(), resetToken));</b>
+<b class="nc">&nbsp;        } else if (authenticationException instanceof UserPasswordNotValidException expiredException) {</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardCredentialsViolationResponse.of(expiredException.getMessage()));</b>
+<b class="nc">&nbsp;        } else if (authenticationException instanceof CredentialsExpiredException credentialsExpiredException) {</b>
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardCredentialsViolationResponse.of(credentialsExpiredException.getMessage(), ThingsboardErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            JacksonUtil.writeValue(response.getWriter(), ThingsboardErrorResponse.of(&quot;Authentication failed&quot;, ThingsboardErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // TODO: refactor this class to use this method instead of boilerplate JacksonUtil.writeValue(response.getWriter(), ...
+&nbsp;    private void writeResponse(ThingsboardErrorResponse errorResponse, HttpServletResponse response) throws IOException {
+<b class="nc">&nbsp;        response.setContentType(MediaType.APPLICATION_JSON_VALUE);</b>
+<b class="nc">&nbsp;        response.setStatus(errorResponse.getStatus());</b>
+<b class="nc">&nbsp;        JacksonUtil.writeValue(response.getWriter(), errorResponse);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

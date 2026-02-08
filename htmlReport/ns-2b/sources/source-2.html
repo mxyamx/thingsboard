@@ -1,0 +1,294 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbGpsGeofencingActionNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.geo</a>
+</div>
+
+<h1>Coverage Summary for Class: TbGpsGeofencingActionNode (org.thingsboard.rule.engine.geo)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbGpsGeofencingActionNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.geo;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.google.gson.JsonObject;
+&nbsp;import com.google.gson.JsonParser;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.StringDataEntry;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.TimeoutException;
+&nbsp;
+&nbsp;import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.ENTERED;
+&nbsp;import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.INSIDE;
+&nbsp;import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.LEFT;
+&nbsp;import static org.thingsboard.rule.engine.util.GpsGeofencingEvents.OUTSIDE;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.ACTION,
+&nbsp;        name = &quot;gps geofencing events&quot;,
+&nbsp;        version = 1,
+&nbsp;        configClazz = TbGpsGeofencingActionNodeConfiguration.class,
+&nbsp;        relationTypes = {&quot;Success&quot;, &quot;Entered&quot;, &quot;Left&quot;, &quot;Inside&quot;, &quot;Outside&quot;},
+&nbsp;        nodeDescription = &quot;Produces incoming messages using GPS based geofencing&quot;,
+&nbsp;        nodeDetails = &quot;Extracts latitude and longitude parameters from incoming message and returns different events based on configuration parameters. &quot; +
+&nbsp;                &quot;&lt;br&gt;&lt;br&gt;&quot; +
+&nbsp;                &quot;If an object with coordinates extracted from incoming message enters the geofence, sends a message with the type &lt;code&gt;Entered&lt;/code&gt;. &quot; +
+&nbsp;                &quot;If an object leaves the geofence, sends a message with the type &lt;code&gt;Left&lt;/code&gt;. &quot; +
+&nbsp;                &quot;If the presence monitoring strategy &lt;b&gt;\&quot;On first message\&quot;&lt;/b&gt; is selected, sends messages via rule node connection type &lt;code&gt;Inside&lt;/code&gt; or &lt;code&gt;Outside&lt;/code&gt; only the first time the geofencing and duration conditions are satisfied; otherwise sends messages via rule node connection type &lt;code&gt;Success&lt;/code&gt;. &quot; +
+&nbsp;                &quot;If the presence monitoring strategy &lt;b&gt;\&quot;On each message\&quot;&lt;/b&gt; is selected, sends messages via rule node connection type &lt;code&gt;Inside&lt;/code&gt; or &lt;code&gt;Outside&lt;/code&gt; every time the geofencing condition is satisfied. &quot; +
+&nbsp;                &quot;&lt;br&gt;&lt;br&gt;&quot; +
+&nbsp;                &quot;Output connections: &lt;code&gt;Entered&lt;/code&gt;, &lt;code&gt;Left&lt;/code&gt;, &lt;code&gt;Inside&lt;/code&gt;, &lt;code&gt;Outside&lt;/code&gt;, &lt;code&gt;Success&lt;/code&gt;&quot;,
+&nbsp;        configDirective = &quot;tbActionNodeGpsGeofencingConfig&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/action/gps-geofencing-events/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbGpsGeofencingActionNode extends AbstractGeofencingNode&lt;TbGpsGeofencingActionNodeConfiguration&gt; {</b>
+&nbsp;
+&nbsp;    private static final String REPORT_PRESENCE_STATUS_ON_EACH_MESSAGE = &quot;reportPresenceStatusOnEachMessage&quot;;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;EntityId, EntityGeofencingState&gt; entityStates = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    private final Gson gson = new Gson();</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
+<b class="nc">&nbsp;        boolean matches = checkMatches(msg);</b>
+<b class="nc">&nbsp;        long ts = System.currentTimeMillis();</b>
+&nbsp;
+<b class="nc">&nbsp;        EntityGeofencingState entityState = entityStates.computeIfAbsent(msg.getOriginator(), key -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                Optional&lt;AttributeKvEntry&gt; entry = ctx.getAttributesService()</b>
+<b class="nc">&nbsp;                        .find(ctx.getTenantId(), msg.getOriginator(), AttributeScope.SERVER_SCOPE, ctx.getServiceId())</b>
+<b class="nc">&nbsp;                        .get(1, TimeUnit.MINUTES);</b>
+<b class="nc">&nbsp;                if (entry.isPresent()) {</b>
+<b class="nc">&nbsp;                    JsonObject element = JsonParser.parseString(entry.get().getValueAsString()).getAsJsonObject();</b>
+<b class="nc">&nbsp;                    return new EntityGeofencingState(element.get(&quot;inside&quot;).getAsBoolean(), element.get(&quot;stateSwitchTime&quot;).getAsLong(), element.get(&quot;stayed&quot;).getAsBoolean());</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    return new EntityGeofencingState(false, 0L, false);</b>
+&nbsp;                }
+&nbsp;            } catch (InterruptedException | TimeoutException | ExecutionException e) {
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;
+<b class="nc">&nbsp;        if (entityState.getStateSwitchTime() == 0L || entityState.isInside() != matches) {</b>
+<b class="nc">&nbsp;            switchState(ctx, msg.getOriginator(), entityState, matches, ts);</b>
+<b class="nc">&nbsp;            ctx.tellNext(msg, matches ? ENTERED : LEFT);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (config.isReportPresenceStatusOnEachMessage()) {</b>
+<b class="nc">&nbsp;            ctx.tellNext(msg, entityState.isInside() ? INSIDE : OUTSIDE);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (entityState.isStayed()) {</b>
+<b class="nc">&nbsp;            ctx.tellSuccess(msg);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        long stayTime = ts - entityState.getStateSwitchTime();</b>
+<b class="nc">&nbsp;        if (stayTime &gt; (entityState.isInside() ?</b>
+<b class="nc">&nbsp;                TimeUnit.valueOf(config.getMinInsideDurationTimeUnit()).toMillis(config.getMinInsideDuration()) :</b>
+<b class="nc">&nbsp;                TimeUnit.valueOf(config.getMinOutsideDurationTimeUnit()).toMillis(config.getMinOutsideDuration()))) {</b>
+<b class="nc">&nbsp;            setStaid(ctx, msg.getOriginator(), entityState);</b>
+<b class="nc">&nbsp;            ctx.tellNext(msg, entityState.isInside() ? INSIDE : OUTSIDE);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ctx.tellSuccess(msg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void switchState(TbContext ctx, EntityId entityId, EntityGeofencingState entityState, boolean matches, long ts) {
+<b class="nc">&nbsp;        entityState.setInside(matches);</b>
+<b class="nc">&nbsp;        entityState.setStateSwitchTime(ts);</b>
+<b class="nc">&nbsp;        entityState.setStayed(false);</b>
+<b class="nc">&nbsp;        persist(ctx, entityId, entityState);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setStaid(TbContext ctx, EntityId entityId, EntityGeofencingState entityState) {
+<b class="nc">&nbsp;        entityState.setStayed(true);</b>
+<b class="nc">&nbsp;        persist(ctx, entityId, entityState);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void persist(TbContext ctx, EntityId entityId, EntityGeofencingState entityState) {
+<b class="nc">&nbsp;        JsonObject object = new JsonObject();</b>
+<b class="nc">&nbsp;        object.addProperty(&quot;inside&quot;, entityState.isInside());</b>
+<b class="nc">&nbsp;        object.addProperty(&quot;stateSwitchTime&quot;, entityState.getStateSwitchTime());</b>
+<b class="nc">&nbsp;        object.addProperty(&quot;stayed&quot;, entityState.isStayed());</b>
+<b class="nc">&nbsp;        AttributeKvEntry entry = new BaseAttributeKvEntry(new StringDataEntry(ctx.getServiceId(), gson.toJson(object)), System.currentTimeMillis());</b>
+<b class="nc">&nbsp;        List&lt;AttributeKvEntry&gt; attributeKvEntryList = Collections.singletonList(entry);</b>
+<b class="nc">&nbsp;        ctx.getAttributesService().save(ctx.getTenantId(), entityId, AttributeScope.SERVER_SCOPE, attributeKvEntryList);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Class&lt;TbGpsGeofencingActionNodeConfiguration&gt; getConfigClazz() {
+<b class="nc">&nbsp;        return TbGpsGeofencingActionNodeConfiguration.class;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        boolean hasChanges = false;</b>
+<b class="nc">&nbsp;        if (fromVersion == 0) {</b>
+<b class="nc">&nbsp;            if (!oldConfiguration.has(REPORT_PRESENCE_STATUS_ON_EACH_MESSAGE)) {</b>
+<b class="nc">&nbsp;                hasChanges = true;</b>
+<b class="nc">&nbsp;                ((ObjectNode) oldConfiguration).put(REPORT_PRESENCE_STATUS_ON_EACH_MESSAGE, false);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(hasChanges, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

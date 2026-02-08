@@ -1,0 +1,285 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbCoapClientState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.coap.client</a>
+</div>
+
+<h1>Coverage Summary for Class: TbCoapClientState (org.thingsboard.server.transport.coap.client)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbCoapClientState</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/43)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.coap.client;
+&nbsp;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceTransportType;
+&nbsp;import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
+&nbsp;import org.thingsboard.server.common.data.device.data.PowerMode;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.transport.coap.TransportConfigurationContainer;
+&nbsp;import org.thingsboard.server.transport.coap.adaptors.CoapTransportAdaptor;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReentrantLock;
+&nbsp;
+&nbsp;@Data
+&nbsp;public class TbCoapClientState {
+&nbsp;
+&nbsp;    private final DeviceId deviceId;
+&nbsp;    private final Lock lock;
+&nbsp;
+&nbsp;    private volatile TransportConfigurationContainer configuration;
+&nbsp;    private volatile CoapTransportAdaptor adaptor;
+&nbsp;    private volatile ValidateDeviceCredentialsResponse credentials;
+&nbsp;    private volatile TransportProtos.SessionInfoProto session;
+&nbsp;    private volatile DefaultCoapClientContext.CoapSessionListener listener;
+&nbsp;    private volatile TbCoapObservationState attrs;
+&nbsp;    private volatile TbCoapObservationState rpc;
+&nbsp;    private volatile int contentFormat;
+&nbsp;
+&nbsp;    private TransportProtos.AttributeUpdateNotificationMsg missedAttributeUpdates;
+&nbsp;
+&nbsp;    private DeviceProfileId profileId;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private PowerMode powerMode;
+&nbsp;    @Getter
+&nbsp;    private Long psmActivityTimer;
+&nbsp;    @Getter
+&nbsp;    private Long edrxCycle;
+&nbsp;    @Getter
+&nbsp;    private Long pagingTransmissionWindow;
+&nbsp;    @Getter
+&nbsp;    @Setter
+&nbsp;    private boolean asleep;
+&nbsp;    @Getter
+&nbsp;    private long lastUplinkTime;
+&nbsp;    @Getter
+&nbsp;    @Setter
+&nbsp;    private Future&lt;Void&gt; sleepTask;
+&nbsp;
+<b class="nc">&nbsp;    private boolean firstEdrxDownlink = true;</b>
+&nbsp;
+<b class="nc">&nbsp;    public TbCoapClientState(DeviceId deviceId) {</b>
+<b class="nc">&nbsp;        this.deviceId = deviceId;</b>
+<b class="nc">&nbsp;        this.lock = new ReentrantLock();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void init(ValidateDeviceCredentialsResponse credentials) {
+<b class="nc">&nbsp;        this.credentials = credentials;</b>
+<b class="nc">&nbsp;        this.profileId = credentials.getDeviceInfo().getDeviceProfileId();</b>
+<b class="nc">&nbsp;        this.powerMode = credentials.getDeviceInfo().getPowerMode();</b>
+<b class="nc">&nbsp;        this.edrxCycle = credentials.getDeviceInfo().getEdrxCycle();</b>
+<b class="nc">&nbsp;        this.psmActivityTimer = credentials.getDeviceInfo().getPsmActivityTimer();</b>
+<b class="nc">&nbsp;        this.pagingTransmissionWindow = credentials.getDeviceInfo().getPagingTransmissionWindow();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void lock() {
+<b class="nc">&nbsp;        lock.lock();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void unlock() {
+<b class="nc">&nbsp;        lock.unlock();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public long updateLastUplinkTime(long ts) {
+<b class="nc">&nbsp;        if (ts &gt; lastUplinkTime) {</b>
+<b class="nc">&nbsp;            this.lastUplinkTime = ts;</b>
+<b class="nc">&nbsp;            this.firstEdrxDownlink = true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return lastUplinkTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean checkFirstDownlink() {
+<b class="nc">&nbsp;        boolean result = firstEdrxDownlink;</b>
+<b class="nc">&nbsp;        firstEdrxDownlink = false;</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onDeviceUpdate(Device device) {
+<b class="nc">&nbsp;        this.profileId = device.getDeviceProfileId();</b>
+<b class="nc">&nbsp;        var data = device.getDeviceData();</b>
+<b class="nc">&nbsp;        if (data.getTransportConfiguration() != null &amp;&amp; data.getTransportConfiguration().getType().equals(DeviceTransportType.COAP)) {</b>
+<b class="nc">&nbsp;            CoapDeviceTransportConfiguration configuration = (CoapDeviceTransportConfiguration) data.getTransportConfiguration();</b>
+<b class="nc">&nbsp;            this.powerMode = configuration.getPowerMode();</b>
+<b class="nc">&nbsp;            this.edrxCycle = configuration.getEdrxCycle();</b>
+<b class="nc">&nbsp;            this.psmActivityTimer = configuration.getPsmActivityTimer();</b>
+<b class="nc">&nbsp;            this.pagingTransmissionWindow = configuration.getPagingTransmissionWindow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addQueuedNotification(TransportProtos.AttributeUpdateNotificationMsg msg) {
+<b class="nc">&nbsp;        if (missedAttributeUpdates == null) {</b>
+<b class="nc">&nbsp;            missedAttributeUpdates = msg;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            Map&lt;String, TransportProtos.TsKvProto&gt; updatedAttrs = new HashMap&lt;&gt;(missedAttributeUpdates.getSharedUpdatedCount() + msg.getSharedUpdatedCount());</b>
+<b class="nc">&nbsp;            Set&lt;String&gt; deletedKeys = new HashSet&lt;&gt;(missedAttributeUpdates.getSharedDeletedCount() + msg.getSharedDeletedCount());</b>
+<b class="nc">&nbsp;            for (TransportProtos.TsKvProto oldUpdatedAttrs : missedAttributeUpdates.getSharedUpdatedList()) {</b>
+<b class="nc">&nbsp;                updatedAttrs.put(oldUpdatedAttrs.getKv().getKey(), oldUpdatedAttrs);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            deletedKeys.addAll(msg.getSharedDeletedList());</b>
+<b class="nc">&nbsp;            for (TransportProtos.TsKvProto newUpdatedAttrs : msg.getSharedUpdatedList()) {</b>
+<b class="nc">&nbsp;                updatedAttrs.put(newUpdatedAttrs.getKv().getKey(), newUpdatedAttrs);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            deletedKeys.addAll(msg.getSharedDeletedList());</b>
+<b class="nc">&nbsp;            for (String deletedKey : msg.getSharedDeletedList()) {</b>
+<b class="nc">&nbsp;                updatedAttrs.remove(deletedKey);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            missedAttributeUpdates = TransportProtos.AttributeUpdateNotificationMsg.newBuilder().addAllSharedUpdated(updatedAttrs.values()).addAllSharedDeleted(deletedKeys).build();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public TransportProtos.AttributeUpdateNotificationMsg getAndClearMissedUpdates() {
+<b class="nc">&nbsp;        var result = this.missedAttributeUpdates;</b>
+<b class="nc">&nbsp;        this.missedAttributeUpdates = null;</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

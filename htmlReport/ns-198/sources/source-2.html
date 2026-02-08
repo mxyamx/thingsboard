@@ -1,0 +1,233 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultUserService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.entitiy.user</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultUserService (org.thingsboard.server.service.entitiy.user)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultUserService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.entitiy.user;
+&nbsp;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.rule.engine.api.MailService;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.UserActivationLink;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.security.UserCredentials;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+&nbsp;import org.thingsboard.server.service.security.system.SystemSecurityService;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@AllArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultUserService extends AbstractTbEntityService implements TbUserService {
+&nbsp;
+&nbsp;    private final UserService userService;
+&nbsp;    private final MailService mailService;
+&nbsp;    private final SystemSecurityService systemSecurityService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public User save(TenantId tenantId, CustomerId customerId, User tbUser, boolean sendActivationMail,
+&nbsp;                     HttpServletRequest request, User user) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = tbUser.getId() == null ? ActionType.ADDED : ActionType.UPDATED;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            boolean sendEmail = tbUser.getId() == null &amp;&amp; sendActivationMail;</b>
+<b class="nc">&nbsp;            User savedUser = checkNotNull(userService.saveUser(tenantId, tbUser));</b>
+<b class="nc">&nbsp;            if (sendEmail) {</b>
+<b class="nc">&nbsp;                UserActivationLink activationLink = getActivationLink(tenantId, customerId, savedUser.getId(), request);</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    mailService.sendActivationEmail(activationLink.value(), activationLink.ttlMs(), savedUser.getEmail());</b>
+&nbsp;                } catch (ThingsboardException e) {
+<b class="nc">&nbsp;                    userService.deleteUser(tenantId, savedUser);</b>
+<b class="nc">&nbsp;                    throw new ThingsboardException(&quot;Couldn&#39;t send user activation email&quot;, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId, actionType, user);</b>
+<b class="nc">&nbsp;            return savedUser;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.USER), tbUser, actionType, user, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void delete(TenantId tenantId, CustomerId customerId, User user, User responsibleUser) throws ThingsboardException {
+<b class="nc">&nbsp;        ActionType actionType = ActionType.DELETED;</b>
+<b class="nc">&nbsp;        UserId userId = user.getId();</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            userService.deleteUser(tenantId, user);</b>
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, userId, user, customerId, actionType, responsibleUser, customerId.toString());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.USER),</b>
+<b class="nc">&nbsp;                    actionType, responsibleUser, e, userId.toString());</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UserActivationLink getActivationLink(TenantId tenantId, CustomerId customerId, UserId userId, HttpServletRequest request) throws ThingsboardException {
+<b class="nc">&nbsp;        UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, userId);</b>
+<b class="nc">&nbsp;        if (!userCredentials.isEnabled() &amp;&amp; userCredentials.getActivateToken() != null) {</b>
+<b class="nc">&nbsp;            userCredentials = userService.checkUserActivationToken(tenantId, userCredentials);</b>
+<b class="nc">&nbsp;            String baseUrl = systemSecurityService.getBaseUrl(tenantId, customerId, request);</b>
+<b class="nc">&nbsp;            String link = baseUrl + &quot;/api/noauth/activate?activateToken=&quot; + userCredentials.getActivateToken();</b>
+<b class="nc">&nbsp;            return new UserActivationLink(link, userCredentials.getActivationTokenTtl());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;User is already activated!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

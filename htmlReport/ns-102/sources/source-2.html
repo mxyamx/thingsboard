@@ -1,0 +1,701 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JpaAlarmDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.sql.alarm</a>
+</div>
+
+<h1>Coverage Summary for Class: JpaAlarmDao (org.thingsboard.server.dao.sql.alarm)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JpaAlarmDao</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/104)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/254)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.sql.alarm;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.domain.Slice;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.EntitySubtype;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmAssignee;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmPropagationInfo;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQuery;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmQueryV2;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+&nbsp;import org.thingsboard.server.common.data.alarm.EntityAlarm;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.page.SortOrder;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmCountQuery;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmData;
+&nbsp;import org.thingsboard.server.common.data.query.AlarmDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.OriginatorAlarmFilter;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.dao.DaoUtil;
+&nbsp;import org.thingsboard.server.dao.TenantEntityDao;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmDao;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;import org.thingsboard.server.dao.model.sql.AlarmEntity;
+&nbsp;import org.thingsboard.server.dao.model.sql.EntityAlarmEntity;
+&nbsp;import org.thingsboard.server.dao.sql.JpaAbstractDao;
+&nbsp;import org.thingsboard.server.dao.sql.query.AlarmQueryRepository;
+&nbsp;import org.thingsboard.server.dao.util.SqlDao;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.page.SortOrder.Direction.ASC;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.convertTenantEntityTypesToDto;
+&nbsp;import static org.thingsboard.server.dao.DaoUtil.toPageable;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@SqlDao
+<b class="nc">&nbsp;public class JpaAlarmDao extends JpaAbstractDao&lt;AlarmEntity, Alarm&gt; implements AlarmDao, TenantEntityDao&lt;Alarm&gt; {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AlarmRepository alarmRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AlarmQueryRepository alarmQueryRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityAlarmRepository entityAlarmRepository;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Class&lt;AlarmEntity&gt; getEntityClass() {
+<b class="nc">&nbsp;        return AlarmEntity.class;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected JpaRepository&lt;AlarmEntity, UUID&gt; getRepository() {
+<b class="nc">&nbsp;        return alarmRepository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        List&lt;AlarmEntity&gt; latest = alarmRepository.findLatestByOriginatorAndType(</b>
+<b class="nc">&nbsp;                originator.getId(),</b>
+&nbsp;                type,
+<b class="nc">&nbsp;                PageRequest.of(0, 1));</b>
+<b class="nc">&nbsp;        return latest.isEmpty() ? null : DaoUtil.getData(latest.get(0));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findLatestActiveByOriginatorAndType(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        List&lt;AlarmEntity&gt; latest = alarmRepository.findLatestActiveByOriginatorAndType(</b>
+<b class="nc">&nbsp;                originator.getId(),</b>
+&nbsp;                type,
+<b class="nc">&nbsp;                PageRequest.of(0, 1));</b>
+<b class="nc">&nbsp;        return latest.isEmpty() ? null : DaoUtil.getData(latest.get(0));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Alarm&gt; findLatestActiveByOriginatorAndTypeAsync(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        return FluentFuture.from(service.submit(() -&gt; findLatestActiveByOriginatorAndType(tenantId, originator, type)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Alarm&gt; findLatestByOriginatorAndTypeAsync(TenantId tenantId, EntityId originator, String type) {
+<b class="nc">&nbsp;        return service.submit(() -&gt; findLatestByOriginatorAndType(tenantId, originator, type));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Alarm findAlarmById(TenantId tenantId, UUID key) {
+<b class="nc">&nbsp;        return findById(tenantId, key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmInfo findAlarmInfoById(TenantId tenantId, UUID key) {
+<b class="nc">&nbsp;        return DaoUtil.getData(alarmRepository.findAlarmInfoById(tenantId.getId(), key));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Alarm&gt; findAlarmByIdAsync(TenantId tenantId, UUID key) {
+<b class="nc">&nbsp;        return findByIdAsync(tenantId, key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findAlarms(TenantId tenantId, AlarmQuery query) {
+<b class="nc">&nbsp;        log.trace(&quot;Try to find alarms by entity [{}], status [{}] and pageLink [{}]&quot;, query.getAffectedEntityId(), query.getStatus(), query.getPageLink());</b>
+<b class="nc">&nbsp;        EntityId affectedEntity = query.getAffectedEntityId();</b>
+<b class="nc">&nbsp;        AlarmStatusFilter asf = AlarmStatusFilter.from(query);</b>
+<b class="nc">&nbsp;        if (affectedEntity != null) {</b>
+<b class="nc">&nbsp;            return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                    alarmRepository.findAlarms(</b>
+<b class="nc">&nbsp;                            tenantId.getId(),</b>
+<b class="nc">&nbsp;                            affectedEntity.getId(),</b>
+<b class="nc">&nbsp;                            affectedEntity.getEntityType().name(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getStartTime(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getEndTime(),</b>
+<b class="nc">&nbsp;                            asf.hasClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasClearFilter() &amp;&amp; asf.getClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter() &amp;&amp; asf.getAckFilter(),</b>
+<b class="nc">&nbsp;                            DaoUtil.getId(query.getAssigneeId()),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getTextSearch(),</b>
+<b class="nc">&nbsp;                            DaoUtil.toPageable(query.getPageLink())</b>
+&nbsp;                    )
+&nbsp;            );
+&nbsp;        } else {
+<b class="nc">&nbsp;            return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                    alarmRepository.findAllAlarms(</b>
+<b class="nc">&nbsp;                            tenantId.getId(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getStartTime(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getEndTime(),</b>
+<b class="nc">&nbsp;                            asf.hasClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasClearFilter() &amp;&amp; asf.getClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter() &amp;&amp; asf.getAckFilter(),</b>
+<b class="nc">&nbsp;                            DaoUtil.getId(query.getAssigneeId()),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getTextSearch(),</b>
+<b class="nc">&nbsp;                            DaoUtil.toPageable(query.getPageLink())</b>
+&nbsp;                    )
+&nbsp;            );
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query) {
+<b class="nc">&nbsp;        log.trace(&quot;Try to find customer alarms by status [{}] and pageLink [{}]&quot;, query.getStatus(), query.getPageLink());</b>
+<b class="nc">&nbsp;        AlarmStatusFilter asf = AlarmStatusFilter.from(query);</b>
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                alarmRepository.findCustomerAlarms(</b>
+<b class="nc">&nbsp;                        tenantId.getId(),</b>
+<b class="nc">&nbsp;                        customerId.getId(),</b>
+<b class="nc">&nbsp;                        query.getPageLink().getStartTime(),</b>
+<b class="nc">&nbsp;                        query.getPageLink().getEndTime(),</b>
+<b class="nc">&nbsp;                        asf.hasClearFilter(),</b>
+<b class="nc">&nbsp;                        asf.hasClearFilter() &amp;&amp; asf.getClearFilter(),</b>
+<b class="nc">&nbsp;                        asf.hasAckFilter(),</b>
+<b class="nc">&nbsp;                        asf.hasAckFilter() &amp;&amp; asf.getAckFilter(),</b>
+<b class="nc">&nbsp;                        DaoUtil.getId(query.getAssigneeId()),</b>
+<b class="nc">&nbsp;                        query.getPageLink().getTextSearch(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(query.getPageLink())</b>
+&nbsp;                )
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findAlarmsV2(TenantId tenantId, AlarmQueryV2 query) {
+<b class="nc">&nbsp;        log.trace(&quot;Try to find alarms by entity [{}], query [{}] and pageLink [{}]&quot;, query.getAffectedEntityId(), query, query.getPageLink());</b>
+<b class="nc">&nbsp;        EntityId affectedEntity = query.getAffectedEntityId();</b>
+<b class="nc">&nbsp;        List&lt;String&gt; typeList = query.getTypeList() != null &amp;&amp; !query.getTypeList().isEmpty() ? query.getTypeList() : null;</b>
+<b class="nc">&nbsp;        List&lt;AlarmSeverity&gt; severityList = query.getSeverityList() != null &amp;&amp; !query.getSeverityList().isEmpty() ? query.getSeverityList() : null;</b>
+<b class="nc">&nbsp;        AlarmStatusFilter asf = AlarmStatusFilter.from(query.getStatusList());</b>
+<b class="nc">&nbsp;        if (affectedEntity != null) {</b>
+<b class="nc">&nbsp;            return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                    alarmRepository.findAlarmsV2(</b>
+<b class="nc">&nbsp;                            tenantId.getId(),</b>
+<b class="nc">&nbsp;                            affectedEntity.getId(),</b>
+<b class="nc">&nbsp;                            affectedEntity.getEntityType().name(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getStartTime(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getEndTime(),</b>
+&nbsp;                            typeList,
+&nbsp;                            severityList,
+<b class="nc">&nbsp;                            asf.hasClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasClearFilter() &amp;&amp; asf.getClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter() &amp;&amp; asf.getAckFilter(),</b>
+<b class="nc">&nbsp;                            DaoUtil.getId(query.getAssigneeId()),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getTextSearch(),</b>
+<b class="nc">&nbsp;                            DaoUtil.toPageable(query.getPageLink())</b>
+&nbsp;                    )
+&nbsp;            );
+&nbsp;        } else {
+<b class="nc">&nbsp;            return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                    alarmRepository.findAllAlarmsV2(</b>
+<b class="nc">&nbsp;                            tenantId.getId(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getStartTime(),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getEndTime(),</b>
+&nbsp;                            typeList,
+&nbsp;                            severityList,
+<b class="nc">&nbsp;                            asf.hasClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasClearFilter() &amp;&amp; asf.getClearFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter(),</b>
+<b class="nc">&nbsp;                            asf.hasAckFilter() &amp;&amp; asf.getAckFilter(),</b>
+<b class="nc">&nbsp;                            DaoUtil.getId(query.getAssigneeId()),</b>
+<b class="nc">&nbsp;                            query.getPageLink().getTextSearch(),</b>
+<b class="nc">&nbsp;                            DaoUtil.toPageable(query.getPageLink())</b>
+&nbsp;                    )
+&nbsp;            );
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmInfo&gt; findCustomerAlarmsV2(TenantId tenantId, CustomerId customerId, AlarmQueryV2 query) {
+<b class="nc">&nbsp;        log.trace(&quot;Try to find customer alarms by query [{}] and pageLink [{}]&quot;, query, query.getPageLink());</b>
+<b class="nc">&nbsp;        List&lt;String&gt; typeList = query.getTypeList() != null &amp;&amp; !query.getTypeList().isEmpty() ? query.getTypeList() : null;</b>
+<b class="nc">&nbsp;        List&lt;AlarmSeverity&gt; severityList = query.getSeverityList() != null &amp;&amp; !query.getSeverityList().isEmpty() ? query.getSeverityList() : null;</b>
+<b class="nc">&nbsp;        AlarmStatusFilter asf = AlarmStatusFilter.from(query.getStatusList());</b>
+<b class="nc">&nbsp;        return DaoUtil.toPageData(</b>
+<b class="nc">&nbsp;                alarmRepository.findCustomerAlarmsV2(</b>
+<b class="nc">&nbsp;                        tenantId.getId(),</b>
+<b class="nc">&nbsp;                        customerId.getId(),</b>
+<b class="nc">&nbsp;                        query.getPageLink().getStartTime(),</b>
+<b class="nc">&nbsp;                        query.getPageLink().getEndTime(),</b>
+&nbsp;                        typeList,
+&nbsp;                        severityList,
+<b class="nc">&nbsp;                        asf.hasClearFilter(),</b>
+<b class="nc">&nbsp;                        asf.hasClearFilter() &amp;&amp; asf.getClearFilter(),</b>
+<b class="nc">&nbsp;                        asf.hasAckFilter(),</b>
+<b class="nc">&nbsp;                        asf.hasAckFilter() &amp;&amp; asf.getAckFilter(),</b>
+<b class="nc">&nbsp;                        DaoUtil.getId(query.getAssigneeId()),</b>
+<b class="nc">&nbsp;                        query.getPageLink().getTextSearch(),</b>
+<b class="nc">&nbsp;                        DaoUtil.toPageable(query.getPageLink())</b>
+&nbsp;                )
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmData&gt; findAlarmDataByQueryForEntities(TenantId tenantId, AlarmDataQuery query, Collection&lt;EntityId&gt; orderedEntityIds) {
+<b class="nc">&nbsp;        return alarmQueryRepository.findAlarmDataByQueryForEntities(tenantId, query, orderedEntityIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Set&lt;AlarmSeverity&gt; findAlarmSeverities(TenantId tenantId, EntityId entityId, AlarmStatusFilter asf, String assigneeId) {
+<b class="nc">&nbsp;        return alarmRepository.findAlarmSeverities(tenantId.getId(), entityId.getId(), entityId.getEntityType().name(),</b>
+<b class="nc">&nbsp;                asf.hasClearFilter(),</b>
+<b class="nc">&nbsp;                asf.hasClearFilter() &amp;&amp; asf.getClearFilter(),</b>
+<b class="nc">&nbsp;                asf.hasAckFilter(),</b>
+<b class="nc">&nbsp;                asf.hasAckFilter() &amp;&amp; asf.getAckFilter(),</b>
+<b class="nc">&nbsp;                StringUtils.isNotBlank(assigneeId) ? UUID.fromString(assigneeId) : null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;AlarmId&gt; findAlarmsIdsByEndTsBeforeAndTenantId(Long time, TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.pageToPageData(alarmRepository.findAlarmsIdsByEndTsBeforeAndTenantId(time, tenantId.getId(), DaoUtil.toPageable(pageLink)))</b>
+<b class="nc">&nbsp;                .mapData(AlarmId::new);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, long createdTimeOffset, AlarmId idOffset, int limit) {
+&nbsp;        Slice&lt;TbPair&lt;UUID, Long&gt;&gt; result;
+<b class="nc">&nbsp;        Pageable pageRequest = toPageable(new PageLink(limit), List.of(SortOrder.of(&quot;createdTime&quot;, ASC), SortOrder.of(&quot;id&quot;, ASC)));</b>
+<b class="nc">&nbsp;        if (idOffset == null) {</b>
+<b class="nc">&nbsp;            result = alarmRepository.findAlarmIdsByAssigneeId(tenantId.getId(), userId.getId(), pageRequest);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result = alarmRepository.findAlarmIdsByAssigneeId(tenantId.getId(), userId.getId(), createdTimeOffset, idOffset.getId(), pageRequest);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return DaoUtil.pageToPageData(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;TbPair&lt;UUID, Long&gt;&gt; findAlarmIdsByOriginatorId(TenantId tenantId, EntityId originatorId, long createdTimeOffset, AlarmId idOffset, int limit) {
+&nbsp;        Slice&lt;TbPair&lt;UUID, Long&gt;&gt; result;
+<b class="nc">&nbsp;        Pageable pageRequest = toPageable(new PageLink(limit), List.of(SortOrder.of(&quot;createdTime&quot;, ASC), SortOrder.of(&quot;id&quot;, ASC)));</b>
+<b class="nc">&nbsp;        if (idOffset == null) {</b>
+<b class="nc">&nbsp;            result = alarmRepository.findAlarmIdsByOriginatorId(originatorId.getId(), pageRequest);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result = alarmRepository.findAlarmIdsByOriginatorId(originatorId.getId(), createdTimeOffset, idOffset.getId(), pageRequest);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return DaoUtil.pageToPageData(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void createEntityAlarmRecord(EntityAlarm entityAlarm) {
+<b class="nc">&nbsp;        log.debug(&quot;Saving entity {}&quot;, entityAlarm);</b>
+<b class="nc">&nbsp;        entityAlarmRepository.save(new EntityAlarmEntity(entityAlarm));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityAlarm&gt; findEntityAlarmRecords(TenantId tenantId, AlarmId id) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Try to find entity alarm records using [{}]&quot;, tenantId, id);</b>
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(entityAlarmRepository.findAllByAlarmId(id.getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;EntityAlarm&gt; findEntityAlarmRecordsByEntityId(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return DaoUtil.convertDataList(entityAlarmRepository.findAllByEntityId(entityId.getId()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return entityAlarmRepository.deleteByEntityId(entityId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteEntityAlarmRecordsByTenantId(TenantId tenantId) {
+<b class="nc">&nbsp;        entityAlarmRepository.deleteByTenantId(tenantId.getId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult createOrUpdateActiveAlarm(AlarmCreateOrUpdateActiveRequest request, boolean alarmCreationEnabled) {
+<b class="nc">&nbsp;        UUID tenantUUID = request.getTenantId().getId();</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}] createOrUpdateActiveAlarm [{}] {}&quot;, tenantUUID, alarmCreationEnabled, request);</b>
+&nbsp;
+<b class="nc">&nbsp;        AlarmPropagationInfo ap = getSafePropagationInfo(request.getPropagation());</b>
+<b class="nc">&nbsp;        return toAlarmApiResult(alarmRepository.createOrUpdateActiveAlarm(</b>
+&nbsp;                tenantUUID,
+<b class="nc">&nbsp;                request.getCustomerId() != null ? request.getCustomerId().getId() : CustomerId.NULL_UUID,</b>
+<b class="nc">&nbsp;                request.getEdgeAlarmId() != null ? request.getEdgeAlarmId().getId() : UUID.randomUUID(),</b>
+<b class="nc">&nbsp;                System.currentTimeMillis(),</b>
+<b class="nc">&nbsp;                request.getOriginator().getId(),</b>
+<b class="nc">&nbsp;                request.getOriginator().getEntityType().ordinal(),</b>
+<b class="nc">&nbsp;                request.getType(),</b>
+<b class="nc">&nbsp;                request.getSeverity().name(),</b>
+<b class="nc">&nbsp;                request.getStartTs(), request.getEndTs(),</b>
+<b class="nc">&nbsp;                getDetailsAsString(request.getDetails()),</b>
+<b class="nc">&nbsp;                ap.isPropagate(),</b>
+<b class="nc">&nbsp;                ap.isPropagateToOwner(),</b>
+<b class="nc">&nbsp;                ap.isPropagateToTenant(),</b>
+<b class="nc">&nbsp;                getPropagationTypes(ap),</b>
+&nbsp;                alarmCreationEnabled
+&nbsp;        ));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult updateAlarm(AlarmUpdateRequest request) {
+<b class="nc">&nbsp;        UUID tenantUUID = request.getTenantId().getId();</b>
+<b class="nc">&nbsp;        UUID alarmUUID = request.getAlarmId().getId();</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] updateAlarm {}&quot;, tenantUUID, alarmUUID, request);</b>
+&nbsp;
+<b class="nc">&nbsp;        AlarmPropagationInfo ap = getSafePropagationInfo(request.getPropagation());</b>
+<b class="nc">&nbsp;        return toAlarmApiResult(alarmRepository.updateAlarm(</b>
+&nbsp;                tenantUUID,
+&nbsp;                alarmUUID,
+<b class="nc">&nbsp;                request.getSeverity().name(),</b>
+<b class="nc">&nbsp;                request.getStartTs(), request.getEndTs(),</b>
+<b class="nc">&nbsp;                getDetailsAsString(request.getDetails()),</b>
+<b class="nc">&nbsp;                ap.isPropagate(),</b>
+<b class="nc">&nbsp;                ap.isPropagateToOwner(),</b>
+<b class="nc">&nbsp;                ap.isPropagateToTenant(),</b>
+<b class="nc">&nbsp;                getPropagationTypes(ap)</b>
+&nbsp;        ));
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult acknowledgeAlarm(TenantId tenantId, AlarmId id, long ackTs) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] acknowledgeAlarm [{}]&quot;, tenantId, id, ackTs);</b>
+<b class="nc">&nbsp;        return toAlarmApiResult(alarmRepository.acknowledgeAlarm(tenantId.getId(), id.getId(), ackTs));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult clearAlarm(TenantId tenantId, AlarmId id, long clearTs, JsonNode details) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] clearAlarm [{}]&quot;, tenantId, id, clearTs);</b>
+<b class="nc">&nbsp;        return toAlarmApiResult(alarmRepository.clearAlarm(tenantId.getId(), id.getId(), clearTs, details != null ? getDetailsAsString(details) : null));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult assignAlarm(TenantId tenantId, AlarmId id, UserId assigneeId, long assignTime) {
+<b class="nc">&nbsp;        return toAlarmApiResult(alarmRepository.assignAlarm(tenantId.getId(), id.getId(), assigneeId.getId(), assignTime));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AlarmApiCallResult unassignAlarm(TenantId tenantId, AlarmId id, long unassignTime) {
+<b class="nc">&nbsp;        return toAlarmApiResult(alarmRepository.unassignAlarm(tenantId.getId(), id.getId(), unassignTime));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, AlarmCountQuery query, Collection&lt;EntityId&gt; orderedEntityIds) {
+<b class="nc">&nbsp;        return alarmQueryRepository.countAlarmsByQuery(tenantId, customerId, query, orderedEntityIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntitySubtype&gt; findTenantAlarmTypes(UUID tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        Page&lt;String&gt; page = alarmRepository.findTenantAlarmTypes(tenantId, Objects.toString(pageLink.getTextSearch(), &quot;&quot;), toPageable(pageLink, false));</b>
+<b class="nc">&nbsp;        if (page.isEmpty()) {</b>
+<b class="nc">&nbsp;            return PageData.emptyPageData();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;EntitySubtype&gt; data = convertTenantEntityTypesToDto(tenantId, EntityType.ALARM, page.getContent());</b>
+<b class="nc">&nbsp;        return new PageData&lt;&gt;(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean removeAlarmTypesIfNoAlarmsPresent(UUID tenantId, Set&lt;String&gt; types) {
+<b class="nc">&nbsp;        return alarmRepository.deleteTypeIfNoAlarmsExist(tenantId, types) &gt; 0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;UUID&gt; findActiveOriginatorAlarms(TenantId tenantId, OriginatorAlarmFilter filter, int limit) {
+<b class="nc">&nbsp;        return alarmRepository.findActiveOriginatorAlarms(filter.getOriginatorId().getId(),</b>
+<b class="nc">&nbsp;                filter.getTypeList(), filter.getSeverityList() != null ? filter.getSeverityList().stream().map(Enum::name).toList() : null,</b>
+&nbsp;                limit);
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String getPropagationTypes(AlarmPropagationInfo ap) {
+&nbsp;        String propagateRelationTypes;
+<b class="nc">&nbsp;        if (!CollectionUtils.isEmpty(ap.getPropagateRelationTypes())) {</b>
+<b class="nc">&nbsp;            propagateRelationTypes = String.join(&quot;,&quot;, ap.getPropagateRelationTypes());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            propagateRelationTypes = &quot;&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return propagateRelationTypes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static AlarmPropagationInfo getSafePropagationInfo(AlarmPropagationInfo ap) {
+<b class="nc">&nbsp;        return ap != null ? ap : AlarmPropagationInfo.EMPTY;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String getDetailsAsString(JsonNode details) {
+<b class="nc">&nbsp;        var detailsStr = JacksonUtil.toString(details);</b>
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(detailsStr)) {</b>
+<b class="nc">&nbsp;            detailsStr = &quot;{}&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return detailsStr;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmApiCallResult toAlarmApiResult(String str) {
+<b class="nc">&nbsp;        var json = JacksonUtil.toJsonNode(str);</b>
+<b class="nc">&nbsp;        var result = AlarmApiCallResult.builder();</b>
+<b class="nc">&nbsp;        boolean success = json.get(&quot;success&quot;).asBoolean();</b>
+<b class="nc">&nbsp;        result.successful(success);</b>
+<b class="nc">&nbsp;        if (success) {</b>
+<b class="nc">&nbsp;            boolean modified = false;</b>
+<b class="nc">&nbsp;            boolean created = false;</b>
+<b class="nc">&nbsp;            boolean cleared = false;</b>
+<b class="nc">&nbsp;            if (json.has(&quot;modified&quot;)) {</b>
+<b class="nc">&nbsp;                modified = json.get(&quot;modified&quot;).asBoolean();</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (json.has(&quot;created&quot;)) {</b>
+<b class="nc">&nbsp;                created = json.get(&quot;created&quot;).asBoolean();</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (json.has(&quot;cleared&quot;)) {</b>
+<b class="nc">&nbsp;                cleared = json.get(&quot;cleared&quot;).asBoolean();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            result.created(created);</b>
+<b class="nc">&nbsp;            result.cleared(cleared);</b>
+<b class="nc">&nbsp;            result.modified(created || cleared || modified);</b>
+<b class="nc">&nbsp;            if (json.has(&quot;alarm&quot;) &amp;&amp; !json.get(&quot;alarm&quot;).isNull()) {</b>
+<b class="nc">&nbsp;                result.alarm(toAlarmInfo(json.get(&quot;alarm&quot;)));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (json.has(&quot;old&quot;) &amp;&amp; !json.get(&quot;old&quot;).isNull()) {</b>
+<b class="nc">&nbsp;                result.old(toAlarm(json.get(&quot;old&quot;)));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AlarmInfo toAlarmInfo(JsonNode json) {
+<b class="nc">&nbsp;        AlarmInfo alarmInfo = new AlarmInfo(toAlarm(json));</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.ALARM_ORIGINATOR_NAME_PROPERTY).ifPresent(alarmInfo::setOriginatorName);</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.ALARM_ORIGINATOR_LABEL_PROPERTY).ifPresent(alarmInfo::setOriginatorLabel);</b>
+<b class="nc">&nbsp;        if (alarmInfo.getAssigneeId() != null) {</b>
+<b class="nc">&nbsp;            var assigneeBuilder = AlarmAssignee.builder().id(alarmInfo.getAssigneeId());</b>
+<b class="nc">&nbsp;            getSafe(json, ModelConstants.ALARM_ASSIGNEE_FIRST_NAME_PROPERTY).ifPresent(assigneeBuilder::firstName);</b>
+<b class="nc">&nbsp;            getSafe(json, ModelConstants.ALARM_ASSIGNEE_LAST_NAME_PROPERTY).ifPresent(assigneeBuilder::lastName);</b>
+<b class="nc">&nbsp;            getSafe(json, ModelConstants.ALARM_ASSIGNEE_EMAIL_PROPERTY).ifPresent(assigneeBuilder::email);</b>
+<b class="nc">&nbsp;            alarmInfo.setAssignee(assigneeBuilder.build());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return alarmInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Alarm toAlarm(JsonNode json) {
+<b class="nc">&nbsp;        Alarm alarm = new Alarm(new AlarmId(UUID.fromString(json.get(ModelConstants.ID_PROPERTY).asText())));</b>
+<b class="nc">&nbsp;        alarm.setCreatedTime(json.get(ModelConstants.CREATED_TIME_PROPERTY).asLong());</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.TENANT_ID_COLUMN).ifPresent(s -&gt; alarm.setTenantId(TenantId.fromUUID(UUID.fromString(s))));</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.CUSTOMER_ID_PROPERTY).ifPresent(s -&gt; alarm.setCustomerId(new CustomerId(UUID.fromString(s))));</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.ASSIGNEE_ID_PROPERTY).ifPresent(s -&gt; alarm.setAssigneeId(new UserId(UUID.fromString(s))));</b>
+<b class="nc">&nbsp;        alarm.setOriginator(EntityIdFactory.getByTypeAndUuid(</b>
+<b class="nc">&nbsp;                json.get(ModelConstants.ALARM_ORIGINATOR_TYPE_PROPERTY).asInt(),</b>
+<b class="nc">&nbsp;                json.get(ModelConstants.ALARM_ORIGINATOR_ID_PROPERTY).asText()));</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.ALARM_TYPE_PROPERTY).ifPresent(alarm::setType);</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.ALARM_SEVERITY_PROPERTY).map(AlarmSeverity::valueOf).ifPresent(alarm::setSeverity);</b>
+<b class="nc">&nbsp;        alarm.setAcknowledged(json.get(ModelConstants.ALARM_ACKNOWLEDGED_PROPERTY).asBoolean());</b>
+<b class="nc">&nbsp;        alarm.setCleared(json.get(ModelConstants.ALARM_CLEARED_PROPERTY).asBoolean());</b>
+<b class="nc">&nbsp;        alarm.setPropagate(json.get(ModelConstants.ALARM_PROPAGATE_PROPERTY).asBoolean());</b>
+<b class="nc">&nbsp;        alarm.setPropagateToOwner(json.get(ModelConstants.ALARM_PROPAGATE_TO_OWNER_PROPERTY).asBoolean());</b>
+<b class="nc">&nbsp;        alarm.setPropagateToTenant(json.get(ModelConstants.ALARM_PROPAGATE_TO_TENANT_PROPERTY).asBoolean());</b>
+<b class="nc">&nbsp;        alarm.setStartTs(json.get(ModelConstants.ALARM_START_TS_PROPERTY).asLong());</b>
+<b class="nc">&nbsp;        alarm.setEndTs(json.get(ModelConstants.ALARM_END_TS_PROPERTY).asLong());</b>
+<b class="nc">&nbsp;        alarm.setAckTs(json.get(ModelConstants.ALARM_ACK_TS_PROPERTY).asLong());</b>
+<b class="nc">&nbsp;        alarm.setClearTs(json.get(ModelConstants.ALARM_CLEAR_TS_PROPERTY).asLong());</b>
+<b class="nc">&nbsp;        alarm.setAssignTs(json.get(ModelConstants.ALARM_ASSIGN_TS_PROPERTY).asLong());</b>
+<b class="nc">&nbsp;        getSafe(json, ModelConstants.ALARM_DETAILS_PROPERTY).map(JacksonUtil::toJsonNode).ifPresent(alarm::setDetails);</b>
+<b class="nc">&nbsp;        alarm.setPropagateRelationTypes(getSafe(json, ModelConstants.ALARM_PROPAGATE_RELATION_TYPES).filter(StringUtils::isNoneEmpty)</b>
+<b class="nc">&nbsp;                .map(s -&gt; Arrays.asList(s.split(&quot;,&quot;))).orElse(Collections.emptyList()));</b>
+<b class="nc">&nbsp;        return alarm;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Optional&lt;String&gt; getSafe(JsonNode json, String fieldName) {
+<b class="nc">&nbsp;        if (json.has(fieldName)) {</b>
+<b class="nc">&nbsp;            var element = json.get(fieldName);</b>
+<b class="nc">&nbsp;            if (element.isNull() || !element.isTextual()) {</b>
+<b class="nc">&nbsp;                return Optional.empty();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return Optional.of(element.asText());</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            return Optional.empty();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;Alarm&gt; findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+<b class="nc">&nbsp;        return DaoUtil.toPageData(alarmRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.ALARM;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

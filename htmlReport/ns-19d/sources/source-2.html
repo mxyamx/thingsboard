@@ -1,0 +1,305 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HousekeeperService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.housekeeper</a>
+</div>
+
+<h1>Coverage Summary for Class: HousekeeperService (org.thingsboard.server.service.housekeeper)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HousekeeperService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/63)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.housekeeper;
+&nbsp;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
+&nbsp;import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+&nbsp;import org.thingsboard.server.common.data.notification.rule.trigger.TaskProcessingFailureTrigger;
+&nbsp;import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.housekeeper.HousekeeperConfig;
+&nbsp;import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.housekeeper.processor.HousekeeperTaskProcessor;
+&nbsp;import org.thingsboard.server.service.housekeeper.stats.HousekeeperStatsService;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.Future;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.TimeoutException;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@TbCoreComponent
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class HousekeeperService {
+&nbsp;
+&nbsp;    private final Map&lt;HousekeeperTaskType, HousekeeperTaskProcessor&lt;?&gt;&gt; taskProcessors;
+&nbsp;
+&nbsp;    private final HousekeeperConfig config;
+&nbsp;    private final HousekeeperReprocessingService reprocessingService;
+&nbsp;    private final Optional&lt;HousekeeperStatsService&gt; statsService;
+&nbsp;    private final NotificationRuleProcessor notificationRuleProcessor;
+&nbsp;    private final QueueConsumerManager&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; consumer;
+&nbsp;
+<b class="nc">&nbsp;    private final ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;housekeeper-consumer&quot;));</b>
+<b class="nc">&nbsp;    private final ExecutorService taskExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;housekeeper-task-processor&quot;));</b>
+&nbsp;
+&nbsp;    public HousekeeperService(HousekeeperConfig config,
+&nbsp;                              HousekeeperReprocessingService reprocessingService,
+&nbsp;                              TbCoreQueueFactory queueFactory,
+&nbsp;                              Optional&lt;HousekeeperStatsService&gt; statsService,
+&nbsp;                              NotificationRuleProcessor notificationRuleProcessor,
+<b class="nc">&nbsp;                              @Lazy List&lt;HousekeeperTaskProcessor&lt;?&gt;&gt; taskProcessors) {</b>
+<b class="nc">&nbsp;        this.config = config;</b>
+<b class="nc">&nbsp;        this.reprocessingService = reprocessingService;</b>
+<b class="nc">&nbsp;        this.statsService = statsService;</b>
+<b class="nc">&nbsp;        this.notificationRuleProcessor = notificationRuleProcessor;</b>
+<b class="nc">&nbsp;        this.consumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .name(&quot;Housekeeper&quot;)</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                .pollInterval(config.getPollInterval())</b>
+<b class="nc">&nbsp;                .consumerCreator(queueFactory::createHousekeeperMsgConsumer)</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumerExecutor)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        this.taskProcessors = taskProcessors.stream().collect(Collectors.toMap(HousekeeperTaskProcessor::getTaskType, p -&gt; p));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
+&nbsp;    public void afterStartUp() {
+<b class="nc">&nbsp;        consumer.subscribe();</b>
+<b class="nc">&nbsp;        consumer.launch();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsgs(List&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt;&gt; consumer) {
+<b class="nc">&nbsp;        for (TbProtoQueueMsg&lt;ToHousekeeperServiceMsg&gt; msg : msgs) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;Processing task: {}&quot;, msg);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                processTask(msg.getValue());</b>
+&nbsp;            } catch (InterruptedException e) {
+&nbsp;                return;
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.error(&quot;Unexpected error during message processing [{}]&quot;, msg, e);</b>
+<b class="nc">&nbsp;                reprocessingService.submitForReprocessing(msg.getValue(), e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+&nbsp;    protected &lt;T extends HousekeeperTask&gt; void processTask(ToHousekeeperServiceMsg msg) throws Exception {
+<b class="nc">&nbsp;        HousekeeperTask task = JacksonUtil.fromString(msg.getTask().getValue(), HousekeeperTask.class);</b>
+<b class="nc">&nbsp;        HousekeeperTaskType taskType = task.getTaskType();</b>
+<b class="nc">&nbsp;        if (config.getDisabledTaskTypes().contains(taskType)) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;Task type {} is disabled, ignoring {}&quot;, taskType, task);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        HousekeeperTaskProcessor&lt;T&gt; taskProcessor = (HousekeeperTaskProcessor&lt;T&gt;) taskProcessors.get(taskType);</b>
+<b class="nc">&nbsp;        if (taskProcessor == null) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Unsupported task type &quot; + taskType);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Future&lt;Object&gt; future = null;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            long startTs = System.currentTimeMillis();</b>
+<b class="nc">&nbsp;            future = taskExecutor.submit(() -&gt; {</b>
+<b class="nc">&nbsp;                taskProcessor.process((T) task);</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            });
+<b class="nc">&nbsp;            future.get(config.getTaskProcessingTimeout(), TimeUnit.MILLISECONDS);</b>
+&nbsp;
+<b class="nc">&nbsp;            long timing = System.currentTimeMillis() - startTs;</b>
+<b class="nc">&nbsp;            if (log.isDebugEnabled()) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}] Processed {} in {} ms (attempt {})&quot;, task.getTenantId(), task.getDescription(), timing, msg.getTask().getAttempt());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            statsService.ifPresent(statsService -&gt; statsService.reportProcessed(taskType, msg, timing));</b>
+&nbsp;        } catch (InterruptedException e) {
+&nbsp;            throw e;
+&nbsp;        } catch (Throwable e) {
+<b class="nc">&nbsp;            Throwable error = e;</b>
+<b class="nc">&nbsp;            if (e instanceof ExecutionException) {</b>
+<b class="nc">&nbsp;                error = e.getCause();</b>
+<b class="nc">&nbsp;            } else if (e instanceof TimeoutException) {</b>
+<b class="nc">&nbsp;                error = new TimeoutException(&quot;Timeout after &quot; + config.getTaskProcessingTimeout() + &quot; ms&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (msg.getTask().getAttempt() &lt; config.getMaxReprocessingAttempts()) {</b>
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Failed to process {} (attempt {}), submitting for reprocessing&quot;,</b>
+<b class="nc">&nbsp;                        task.getTenantId(), task.getDescription(), msg.getTask().getAttempt(), error);</b>
+<b class="nc">&nbsp;                reprocessingService.submitForReprocessing(msg, error);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.error(&quot;[{}] Failed to process task in {} attempts: {}&quot;, task.getTenantId(), msg.getTask().getAttempt(), msg, e);</b>
+<b class="nc">&nbsp;                notificationRuleProcessor.process(TaskProcessingFailureTrigger.builder()</b>
+<b class="nc">&nbsp;                        .task(task)</b>
+<b class="nc">&nbsp;                        .error(error)</b>
+<b class="nc">&nbsp;                        .attempt(msg.getTask().getAttempt())</b>
+<b class="nc">&nbsp;                        .build());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            statsService.ifPresent(statsService -&gt; statsService.reportFailure(taskType, msg));</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (future != null &amp;&amp; !future.isDone()) {</b>
+<b class="nc">&nbsp;                future.cancel(true);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    private void stop() {
+<b class="nc">&nbsp;        consumer.stop();</b>
+<b class="nc">&nbsp;        consumerExecutor.shutdownNow();</b>
+<b class="nc">&nbsp;        taskExecutor.shutdownNow();</b>
+<b class="nc">&nbsp;        log.info(&quot;Stopped Housekeeper service&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

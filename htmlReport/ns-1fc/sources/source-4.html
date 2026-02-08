@@ -1,0 +1,230 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LwM2MInMemoryBootstrapConfigStore</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.bootstrap.store</a>
+</div>
+
+<h1>Coverage Summary for Class: LwM2MInMemoryBootstrapConfigStore (org.thingsboard.server.transport.lwm2m.bootstrap.store)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LwM2MInMemoryBootstrapConfigStore</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.bootstrap.store;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.leshan.server.bootstrap.BootstrapConfig;
+&nbsp;import org.eclipse.leshan.server.bootstrap.ConfigurationChecker;
+&nbsp;import org.eclipse.leshan.server.bootstrap.InMemoryBootstrapConfigStore;
+&nbsp;import org.eclipse.leshan.server.bootstrap.InvalidConfigurationException;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.thingsboard.server.queue.util.TbLwM2mBootstrapTransportComponent;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;import java.util.concurrent.locks.ReadWriteLock;
+&nbsp;import java.util.concurrent.locks.ReentrantReadWriteLock;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Component(&quot;LwM2MInMemoryBootstrapConfigStore&quot;)
+&nbsp;@TbLwM2mBootstrapTransportComponent
+<b class="nc">&nbsp;public class LwM2MInMemoryBootstrapConfigStore extends InMemoryBootstrapConfigStore {</b>
+<b class="nc">&nbsp;    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();</b>
+<b class="nc">&nbsp;    private final Lock readLock = readWriteLock.readLock();</b>
+<b class="nc">&nbsp;    private final Lock writeLock = readWriteLock.writeLock();</b>
+<b class="nc">&nbsp;    protected final ConfigurationChecker configChecker = new LwM2MConfigurationChecker();</b>
+&nbsp;
+&nbsp;
+&nbsp;    public BootstrapConfig get(String endpoint) {
+<b class="nc">&nbsp;        return bootstrapByEndpoint.get(endpoint);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Map&lt;String, BootstrapConfig&gt; getAll() {
+<b class="nc">&nbsp;        readLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return super.getAll();</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            readLock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void add(String endpoint, BootstrapConfig config) throws InvalidConfigurationException {
+<b class="nc">&nbsp;        writeLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            addToStore(endpoint, config);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            writeLock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public BootstrapConfig remove(String endpoint) {
+<b class="nc">&nbsp;        writeLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            return super.remove(endpoint);</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            writeLock.unlock();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addToStore(String endpoint, BootstrapConfig config) throws InvalidConfigurationException {
+<b class="nc">&nbsp;        configChecker.verify(config);</b>
+&nbsp;        // Check PSK identity uniqueness for bootstrap server:
+<b class="nc">&nbsp;        PskByServer pskToAdd = getBootstrapPskIdentity(config);</b>
+<b class="nc">&nbsp;        if (pskToAdd != null) {</b>
+<b class="nc">&nbsp;            BootstrapConfig existingConfig = bootstrapByPskId.get(pskToAdd);</b>
+<b class="nc">&nbsp;            if (existingConfig != null) {</b>
+&nbsp;                // check if this config will be replace by the new one.
+<b class="nc">&nbsp;                BootstrapConfig previousConfig = bootstrapByEndpoint.get(endpoint);</b>
+<b class="nc">&nbsp;                if (previousConfig != existingConfig) {</b>
+<b class="nc">&nbsp;                    throw new InvalidConfigurationException(</b>
+&nbsp;                            &quot;Psk identity [%s] already used for this bootstrap server [%s]&quot;, pskToAdd.identity,
+&nbsp;                            pskToAdd.serverUrl);
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        bootstrapByEndpoint.put(endpoint, config);</b>
+<b class="nc">&nbsp;        if (pskToAdd != null) {</b>
+<b class="nc">&nbsp;            bootstrapByPskId.put(pskToAdd, config);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

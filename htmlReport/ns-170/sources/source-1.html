@@ -1,0 +1,261 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseDeviceProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge.rpc.processor.device</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseDeviceProcessor (org.thingsboard.server.service.edge.rpc.processor.device)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseDeviceProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/53)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge.rpc.processor.device;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.data.util.Pair;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.msg.TbMsgType;
+&nbsp;import org.thingsboard.server.common.data.security.DeviceCredentials;
+&nbsp;import org.thingsboard.server.dao.service.DataValidator;
+&nbsp;import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+&nbsp;import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private DataValidator&lt;Device&gt; deviceValidator;
+&nbsp;
+&nbsp;    protected Pair&lt;Boolean, Boolean&gt; saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
+<b class="nc">&nbsp;        boolean created = false;</b>
+<b class="nc">&nbsp;        boolean deviceNameUpdated = false;</b>
+<b class="nc">&nbsp;        deviceCreationLock.lock();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            Device device = JacksonUtil.fromString(deviceUpdateMsg.getEntity(), Device.class, true);</b>
+<b class="nc">&nbsp;            if (device == null) {</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;[{&quot; + tenantId + &quot;}] deviceUpdateMsg {&quot; + deviceUpdateMsg + &quot;} cannot be converted to device&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);</b>
+<b class="nc">&nbsp;            if (deviceById == null) {</b>
+<b class="nc">&nbsp;                created = true;</b>
+<b class="nc">&nbsp;                device.setId(null);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                device.setId(deviceId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (isSaveRequired(deviceById, device)) {</b>
+<b class="nc">&nbsp;                deviceNameUpdated = updateDeviceNameIfDuplicateExists(tenantId, deviceId, device);</b>
+<b class="nc">&nbsp;                setCustomerId(tenantId, created ? null : deviceById.getCustomerId(), device, deviceUpdateMsg);</b>
+&nbsp;
+<b class="nc">&nbsp;                deviceValidator.validate(device, Device::getTenantId);</b>
+<b class="nc">&nbsp;                if (created) {</b>
+<b class="nc">&nbsp;                    device.setId(deviceId);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                Device savedDevice = edgeCtx.getDeviceService().saveDevice(device, false);</b>
+<b class="nc">&nbsp;                edgeCtx.getClusterService().onDeviceUpdated(savedDevice, created ? null : device);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}] Failed to process device update msg [{}]&quot;, tenantId, deviceUpdateMsg, e);</b>
+&nbsp;            throw e;
+&nbsp;        } finally {
+<b class="nc">&nbsp;            deviceCreationLock.unlock();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Pair.of(created, deviceNameUpdated);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean updateDeviceNameIfDuplicateExists(TenantId tenantId, DeviceId deviceId, Device device) {
+<b class="nc">&nbsp;        Device deviceByName = edgeCtx.getDeviceService().findDeviceByTenantIdAndName(tenantId, device.getName());</b>
+&nbsp;
+<b class="nc">&nbsp;        return generateUniqueNameIfDuplicateExists(tenantId, deviceId, device, deviceByName).map(uniqueName -&gt; {</b>
+<b class="nc">&nbsp;            device.setName(uniqueName);</b>
+<b class="nc">&nbsp;            return true;</b>
+<b class="nc">&nbsp;        }).orElse(false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void updateDeviceCredentials(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+<b class="nc">&nbsp;        DeviceCredentials deviceCredentials = JacksonUtil.fromString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class, true);</b>
+<b class="nc">&nbsp;        if (deviceCredentials == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;[{&quot; + tenantId + &quot;}] deviceCredentialsUpdateMsg {&quot; + deviceCredentialsUpdateMsg + &quot;} cannot be converted to device credentials&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        Device device = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceCredentials.getDeviceId());</b>
+<b class="nc">&nbsp;        if (device != null) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]&quot;,</b>
+<b class="nc">&nbsp;                    tenantId, device.getName(), deviceCredentials.getCredentialsId(), deviceCredentials.getCredentialsValue());</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                DeviceCredentials deviceCredentialsByDeviceId = edgeCtx.getDeviceCredentialsService().findDeviceCredentialsByDeviceId(tenantId, device.getId());</b>
+<b class="nc">&nbsp;                if (deviceCredentialsByDeviceId == null) {</b>
+<b class="nc">&nbsp;                    deviceCredentialsByDeviceId = new DeviceCredentials();</b>
+<b class="nc">&nbsp;                    deviceCredentialsByDeviceId.setDeviceId(device.getId());</b>
+&nbsp;                }
+<b class="nc">&nbsp;                deviceCredentialsByDeviceId.setCredentialsType(deviceCredentials.getCredentialsType());</b>
+<b class="nc">&nbsp;                deviceCredentialsByDeviceId.setCredentialsId(deviceCredentials.getCredentialsId());</b>
+<b class="nc">&nbsp;                deviceCredentialsByDeviceId.setCredentialsValue(deviceCredentials.getCredentialsValue());</b>
+<b class="nc">&nbsp;                edgeCtx.getDeviceCredentialsService().updateDeviceCredentials(tenantId, deviceCredentialsByDeviceId);</b>
+&nbsp;
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;[{}] Can&#39;t update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]&quot;,</b>
+<b class="nc">&nbsp;                        tenantId, device.getName(), deviceCredentialsUpdateMsg, e);</b>
+<b class="nc">&nbsp;                throw new RuntimeException(e);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.warn(&quot;[{}] Can&#39;t find device by id [{}], deviceCredentialsUpdateMsg [{}]&quot;, tenantId, deviceCredentials.getDeviceId(), deviceCredentialsUpdateMsg);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg);
+&nbsp;
+&nbsp;    protected void deleteDevice(TenantId tenantId, DeviceId deviceId) {
+<b class="nc">&nbsp;        deleteDevice(tenantId, null, deviceId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void deleteDevice(TenantId tenantId, Edge edge, DeviceId deviceId) {
+<b class="nc">&nbsp;        Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);</b>
+<b class="nc">&nbsp;        if (deviceById != null) {</b>
+<b class="nc">&nbsp;            edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);</b>
+<b class="nc">&nbsp;            pushEntityEventToRuleEngine(tenantId, edge, deviceById, TbMsgType.ENTITY_DELETED);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

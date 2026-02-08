@@ -1,0 +1,266 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AssetBulkImportService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.asset</a>
+</div>
+
+<h1>Coverage Summary for Class: AssetBulkImportService (org.thingsboard.server.service.asset)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AssetBulkImportService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AssetBulkImportService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.asset;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.fasterxml.jackson.databind.node.TextNode;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.SneakyThrows;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetProfile;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportColumnType;
+&nbsp;import org.thingsboard.server.dao.asset.AssetProfileService;
+&nbsp;import org.thingsboard.server.dao.asset.AssetService;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.entitiy.asset.TbAssetService;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.sync.ie.importing.csv.AbstractBulkImportService;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbCoreComponent
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class AssetBulkImportService extends AbstractBulkImportService&lt;Asset&gt; {
+&nbsp;    private final AssetService assetService;
+&nbsp;    private final TbAssetService tbAssetService;
+&nbsp;    private final AssetProfileService assetProfileService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void setEntityFields(Asset entity, Map&lt;BulkImportColumnType, String&gt; fields) {
+<b class="nc">&nbsp;        ObjectNode additionalInfo = getOrCreateAdditionalInfoObj(entity);</b>
+<b class="nc">&nbsp;        fields.forEach((columnType, value) -&gt; {</b>
+<b class="nc">&nbsp;            switch (columnType) {</b>
+&nbsp;                case NAME:
+<b class="nc">&nbsp;                    entity.setName(value);</b>
+&nbsp;                    break;
+&nbsp;                case TYPE:
+<b class="nc">&nbsp;                    entity.setType(value);</b>
+&nbsp;                    break;
+&nbsp;                case LABEL:
+<b class="nc">&nbsp;                    entity.setLabel(value);</b>
+&nbsp;                    break;
+&nbsp;                case DESCRIPTION:
+<b class="nc">&nbsp;                    additionalInfo.set(&quot;description&quot;, new TextNode(value));</b>
+&nbsp;                    break;
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        entity.setAdditionalInfo(additionalInfo);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+<b class="nc">&nbsp;    @SneakyThrows</b>
+&nbsp;    protected Asset saveEntity(SecurityUser user, Asset entity, Map&lt;BulkImportColumnType, String&gt; fields) {
+&nbsp;        AssetProfile assetProfile;
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(entity.getType())) {</b>
+<b class="nc">&nbsp;            assetProfile = assetProfileService.findOrCreateAssetProfile(entity.getTenantId(), entity.getType());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            assetProfile = assetProfileService.findDefaultAssetProfile(entity.getTenantId());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        entity.setAssetProfileId(assetProfile.getId());</b>
+<b class="nc">&nbsp;        return tbAssetService.save(entity, user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected Asset findOrCreateEntity(TenantId tenantId, String name) {
+<b class="nc">&nbsp;        return Optional.ofNullable(assetService.findAssetByTenantIdAndName(tenantId, name))</b>
+<b class="nc">&nbsp;                .orElseGet(Asset::new);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void setOwners(Asset entity, SecurityUser user) {
+<b class="nc">&nbsp;        entity.setTenantId(user.getTenantId());</b>
+<b class="nc">&nbsp;        entity.setCustomerId(user.getCustomerId());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected EntityType getEntityType() {
+<b class="nc">&nbsp;        return EntityType.ASSET;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

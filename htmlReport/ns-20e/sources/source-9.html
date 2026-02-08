@@ -1,0 +1,952 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbLwM2mRedisRegistrationStore</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.transport.lwm2m.server.store</a>
+</div>
+
+<h1>Coverage Summary for Class: TbLwM2mRedisRegistrationStore (org.thingsboard.server.transport.lwm2m.server.store)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbLwM2mRedisRegistrationStore</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/146)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/284)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TbLwM2mRedisRegistrationStore$Cleaner</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/58)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/156)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/297)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.transport.lwm2m.server.store;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.eclipse.californium.core.coap.Token;
+&nbsp;import org.eclipse.californium.core.network.RandomTokenGenerator;
+&nbsp;import org.eclipse.californium.core.network.TokenGenerator;
+&nbsp;import org.eclipse.californium.core.network.serialization.UdpDataParser;
+&nbsp;import org.eclipse.californium.core.network.serialization.UdpDataSerializer;
+&nbsp;import org.eclipse.leshan.core.Destroyable;
+&nbsp;import org.eclipse.leshan.core.Startable;
+&nbsp;import org.eclipse.leshan.core.Stoppable;
+&nbsp;import org.eclipse.leshan.core.node.LwM2mPath;
+&nbsp;import org.eclipse.leshan.core.observation.CompositeObservation;
+&nbsp;import org.eclipse.leshan.core.observation.Observation;
+&nbsp;import org.eclipse.leshan.core.observation.ObservationIdentifier;
+&nbsp;import org.eclipse.leshan.core.observation.SingleObservation;
+&nbsp;import org.eclipse.leshan.core.peer.LwM2mIdentity;
+&nbsp;import org.eclipse.leshan.core.util.Validate;
+&nbsp;import org.eclipse.leshan.server.redis.serialization.ObservationSerDes;
+&nbsp;import org.eclipse.leshan.server.redis.serialization.RegistrationSerDes;
+&nbsp;import org.eclipse.leshan.server.registration.Deregistration;
+&nbsp;import org.eclipse.leshan.server.registration.ExpirationListener;
+&nbsp;import org.eclipse.leshan.server.registration.Registration;
+&nbsp;import org.eclipse.leshan.server.registration.RegistrationStore;
+&nbsp;import org.eclipse.leshan.server.registration.RegistrationUpdate;
+&nbsp;import org.eclipse.leshan.server.registration.UpdatedRegistration;
+&nbsp;import org.springframework.data.redis.connection.RedisClusterConnection;
+&nbsp;import org.springframework.data.redis.connection.RedisConnection;
+&nbsp;import org.springframework.data.redis.connection.RedisConnectionFactory;
+&nbsp;import org.springframework.data.redis.core.Cursor;
+&nbsp;import org.springframework.data.redis.core.ScanOptions;
+&nbsp;import org.springframework.integration.redis.util.RedisLockRegistry;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
+&nbsp;import org.thingsboard.server.transport.lwm2m.server.LwM2mVersionedModelProvider;
+&nbsp;
+&nbsp;import java.net.InetSocketAddress;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.Iterator;
+&nbsp;import java.util.LinkedList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.ScheduledFuture;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.locks.Lock;
+&nbsp;
+&nbsp;import static java.nio.charset.StandardCharsets.UTF_8;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbLwM2mRedisRegistrationStore implements RegistrationStore, Startable, Stoppable, Destroyable {
+&nbsp;    /** Default time in seconds between 2 cleaning tasks (used to remove expired registration). */
+&nbsp;    public static final long DEFAULT_CLEAN_PERIOD = 60;
+&nbsp;    public static final int DEFAULT_CLEAN_LIMIT = 500;
+&nbsp;    /** Defaut Extra time for registration lifetime in seconds */
+&nbsp;    public static final long DEFAULT_GRACE_PERIOD = 0;
+&nbsp;
+&nbsp;    // Redis key prefixes
+&nbsp;    public static final String REG_EP = &quot;REG:EP:&quot;; // (Endpoint =&gt; Registration)
+&nbsp;    private static final String REG_EP_REGID_IDX = &quot;EP:REGID:&quot;; // secondary index key (Registration ID =&gt; Endpoint)
+&nbsp;    private static final String REG_EP_ADDR_IDX = &quot;EP:ADDR:&quot;; // secondary index key (Socket Address =&gt; Endpoint)
+&nbsp;    private static final String REG_EP_IDENTITY = &quot;EP:IDENTITY:&quot;; // secondary index key (Identity =&gt; Endpoint)
+&nbsp;    private static final String LOCK_EP = &quot;LOCK:EP:&quot;;
+<b class="nc">&nbsp;    private static final byte[] OBS_TKN = &quot;OBS:TKN:&quot;.getBytes(UTF_8);</b>
+<b class="nc">&nbsp;    private static final byte[] OBS_TKN_GET_ALL = &quot;OBS:TKN:*&quot;.getBytes(UTF_8);</b>
+&nbsp;    private static final String OBS_TKNS_REGID_IDX = &quot;TKNS:REGID:&quot;; // secondary index (token list by registration)
+<b class="nc">&nbsp;    private static final byte[] EXP_EP = &quot;EXP:EP&quot;.getBytes(UTF_8); // a sorted set used for registration expiration</b>
+&nbsp;    // (expiration date, Endpoint)
+&nbsp;
+<b class="nc">&nbsp;    private final RegistrationSerDes registrationSerDes = new RegistrationSerDes();</b>
+<b class="nc">&nbsp;    private final ObservationSerDes observationSerDes = new ObservationSerDes();</b>
+<b class="nc">&nbsp;    private final org.eclipse.leshan.server.californium.observation.ObservationSerDes observationSerDesCoap =</b>
+&nbsp;            new org.eclipse.leshan.server.californium.observation.ObservationSerDes(new UdpDataParser(), new UdpDataSerializer());
+&nbsp;    private final RedisConnectionFactory connectionFactory;
+&nbsp;
+&nbsp;    // Listener use to notify when a registration expires
+&nbsp;    private ExpirationListener expirationListener;
+&nbsp;
+&nbsp;    private final ScheduledExecutorService schedExecutor;
+&nbsp;    private ScheduledFuture&lt;?&gt; cleanerTask;
+<b class="nc">&nbsp;    private boolean started = false;</b>
+&nbsp;
+&nbsp;    private final long cleanPeriod; // in seconds
+&nbsp;    private final int cleanLimit; // maximum number to clean in a clean period
+&nbsp;    private final long gracePeriod; // in seconds
+&nbsp;
+&nbsp;    private final RedisLockRegistry redisLock;
+&nbsp;
+&nbsp;    private final LwM2MTransportServerConfig config;
+&nbsp;    private TokenGenerator tokenGenerator;
+&nbsp;
+&nbsp;    private final LwM2mVersionedModelProvider modelProvider;
+&nbsp;
+&nbsp;    public TbLwM2mRedisRegistrationStore(LwM2MTransportServerConfig config, RedisConnectionFactory connectionFactory, LwM2mVersionedModelProvider modelProvider) {
+<b class="nc">&nbsp;        this(config, connectionFactory, DEFAULT_CLEAN_PERIOD, DEFAULT_GRACE_PERIOD, DEFAULT_CLEAN_LIMIT, modelProvider); // default clean period 60s</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbLwM2mRedisRegistrationStore(LwM2MTransportServerConfig config, RedisConnectionFactory connectionFactory, long cleanPeriodInSec, long lifetimeGracePeriodInSec, int cleanLimit, LwM2mVersionedModelProvider modelProvider) {
+<b class="nc">&nbsp;        this(config, connectionFactory, ThingsBoardExecutors.newSingleThreadScheduledExecutor(String.format(&quot;RedisRegistrationStore Cleaner (%ds)&quot;, cleanPeriodInSec)), cleanPeriodInSec, lifetimeGracePeriodInSec, cleanLimit, modelProvider);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public TbLwM2mRedisRegistrationStore(LwM2MTransportServerConfig config, RedisConnectionFactory connectionFactory, ScheduledExecutorService schedExecutor, long cleanPeriodInSec,
+<b class="nc">&nbsp;                                         long lifetimeGracePeriodInSec, int cleanLimit, LwM2mVersionedModelProvider modelProvider) {</b>
+<b class="nc">&nbsp;        this.connectionFactory = connectionFactory;</b>
+<b class="nc">&nbsp;        this.schedExecutor = schedExecutor;</b>
+<b class="nc">&nbsp;        this.cleanPeriod = cleanPeriodInSec;</b>
+<b class="nc">&nbsp;        this.cleanLimit = cleanLimit;</b>
+<b class="nc">&nbsp;        this.gracePeriod = lifetimeGracePeriodInSec;</b>
+<b class="nc">&nbsp;        this.redisLock = new RedisLockRegistry(connectionFactory, &quot;Registration&quot;);</b>
+<b class="nc">&nbsp;        this.config = config;</b>
+<b class="nc">&nbsp;        this.modelProvider = modelProvider;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /* *************** Redis Key utility function **************** */
+&nbsp;
+&nbsp;    private byte[] toKey(byte[] prefix, byte[] key) {
+<b class="nc">&nbsp;        byte[] result = new byte[prefix.length + key.length];</b>
+<b class="nc">&nbsp;        System.arraycopy(prefix, 0, result, 0, prefix.length);</b>
+<b class="nc">&nbsp;        System.arraycopy(key, 0, result, prefix.length, key.length);</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] toKey(String prefix, String registrationID) {
+<b class="nc">&nbsp;        return (prefix + registrationID).getBytes();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String toLockKey(String endpoint) {
+<b class="nc">&nbsp;        return new String(toKey(LOCK_EP, endpoint));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String toLockKey(byte[] endpoint) {
+<b class="nc">&nbsp;        return new String(toKey(LOCK_EP.getBytes(UTF_8), endpoint));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /* *************** Leshan Registration API **************** */
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Deregistration addRegistration(Registration registration) {
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            String lockKey = toLockKey(registration.getEndpoint());</b>
+&nbsp;
+&nbsp;            try {
+<b class="nc">&nbsp;                lock = redisLock.obtain(lockKey);</b>
+<b class="nc">&nbsp;                lock.lock();</b>
+&nbsp;                // add registration
+<b class="nc">&nbsp;                byte[] k = toEndpointKey(registration.getEndpoint());</b>
+<b class="nc">&nbsp;                byte[] old = connection.getSet(k, serializeReg(registration));</b>
+&nbsp;
+&nbsp;                // add registration: secondary indexes
+<b class="nc">&nbsp;                byte[] regid_idx = toRegIdKey(registration.getId());</b>
+<b class="nc">&nbsp;                connection.set(regid_idx, registration.getEndpoint().getBytes(UTF_8));</b>
+<b class="nc">&nbsp;                byte[] addr_idx = toRegAddrKey(registration.getSocketAddress());</b>
+<b class="nc">&nbsp;                connection.set(addr_idx, registration.getEndpoint().getBytes(UTF_8));</b>
+<b class="nc">&nbsp;                byte[] identity_idx = toRegIdentityKey(registration.getClientTransportData().getIdentity());</b>
+<b class="nc">&nbsp;                connection.set(identity_idx, registration.getEndpoint().getBytes(UTF_8));</b>
+&nbsp;
+&nbsp;                // Add or update expiration
+<b class="nc">&nbsp;                addOrUpdateExpiration(connection, registration);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (old != null) {</b>
+<b class="nc">&nbsp;                    Registration oldRegistration = deserializeReg(old);</b>
+&nbsp;                    // remove old secondary index
+<b class="nc">&nbsp;                    if (!registration.getId().equals(oldRegistration.getId()))</b>
+<b class="nc">&nbsp;                        connection.del(toRegIdKey(oldRegistration.getId()));</b>
+<b class="nc">&nbsp;                    if (!oldRegistration.getSocketAddress().equals(registration.getSocketAddress())) {</b>
+<b class="nc">&nbsp;                        removeAddrIndex(connection, oldRegistration);</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    if (!oldRegistration.getClientTransportData().getIdentity().equals(registration.getClientTransportData().getIdentity())) {</b>
+<b class="nc">&nbsp;                        removeIdentityIndex(connection, oldRegistration);</b>
+&nbsp;                    }
+&nbsp;                    // remove old observation
+<b class="nc">&nbsp;                    Collection&lt;Observation&gt; obsRemoved = unsafeRemoveAllObservations(connection, oldRegistration.getId());</b>
+&nbsp;
+<b class="nc">&nbsp;                    return new Deregistration(oldRegistration, obsRemoved);</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                if (lock != null) {</b>
+<b class="nc">&nbsp;                    lock.unlock();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public UpdatedRegistration updateRegistration(RegistrationUpdate update) {
+<b class="nc">&nbsp;        log.trace(&quot;updateRegistration [{}]&quot;, update);</b>
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+&nbsp;
+&nbsp;            // Fetch the registration ep by registration ID index
+<b class="nc">&nbsp;            byte[] ep = connection.get(toRegIdKey(update.getRegistrationId()));</b>
+<b class="nc">&nbsp;            if (ep == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String lockKey = toLockKey(ep);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                lock = redisLock.obtain(lockKey);</b>
+<b class="nc">&nbsp;                lock.lock();</b>
+&nbsp;
+&nbsp;                // Fetch the registration
+<b class="nc">&nbsp;                byte[] data = connection.get(toEndpointKey(ep));</b>
+<b class="nc">&nbsp;                if (data == null) {</b>
+<b class="nc">&nbsp;                    return null;</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                Registration r = deserializeReg(data);</b>
+&nbsp;
+<b class="nc">&nbsp;                Registration updatedRegistration = update.update(r);</b>
+&nbsp;
+&nbsp;                // Store the new registration
+<b class="nc">&nbsp;                connection.set(toEndpointKey(updatedRegistration.getEndpoint()), serializeReg(updatedRegistration));</b>
+&nbsp;
+&nbsp;                // Add or update expiration
+<b class="nc">&nbsp;                addOrUpdateExpiration(connection, updatedRegistration);</b>
+&nbsp;
+&nbsp;                /** Update secondary index :
+&nbsp;                 * If registration is already associated to this address we don&#39;t care as we only want to keep the most
+&nbsp;                 * recent binding. */
+<b class="nc">&nbsp;                byte[] addr_idx = toRegAddrKey(updatedRegistration.getSocketAddress());</b>
+<b class="nc">&nbsp;                connection.set(addr_idx, updatedRegistration.getEndpoint().getBytes(UTF_8));</b>
+<b class="nc">&nbsp;                if (!r.getSocketAddress().equals(updatedRegistration.getSocketAddress())) {</b>
+<b class="nc">&nbsp;                    removeAddrIndex(connection, r);</b>
+&nbsp;                }
+<b class="nc">&nbsp;                if (!r.getClientTransportData().getIdentity().equals(updatedRegistration.getClientTransportData().getIdentity())) {</b>
+<b class="nc">&nbsp;                    removeIdentityIndex(connection, r);</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                return new UpdatedRegistration(r, updatedRegistration);</b>
+&nbsp;
+&nbsp;            } finally {
+<b class="nc">&nbsp;                if (lock != null) {</b>
+<b class="nc">&nbsp;                    lock.unlock();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Registration getRegistration(String registrationId) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            return getRegistration(connection, registrationId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Registration getRegistration(RedisConnection connection, String registrationId) {
+<b class="nc">&nbsp;        byte[] ep = connection.get(toRegIdKey(registrationId));</b>
+<b class="nc">&nbsp;        if (ep == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        byte[] data = connection.get(toEndpointKey(ep));</b>
+<b class="nc">&nbsp;        if (data == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return deserializeReg(data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Registration getRegistrationByEndpoint(String endpoint) {
+<b class="nc">&nbsp;        Validate.notNull(endpoint);</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            byte[] data = connection.get(toEndpointKey(endpoint));</b>
+<b class="nc">&nbsp;            if (data == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return deserializeReg(data);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Registration getRegistrationByAdress(InetSocketAddress address) {
+<b class="nc">&nbsp;        Validate.notNull(address);</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            byte[] ep = connection.get(toRegAddrKey(address));</b>
+<b class="nc">&nbsp;            if (ep == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            byte[] data = connection.get(toEndpointKey(ep));</b>
+<b class="nc">&nbsp;            if (data == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return deserializeReg(data);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Registration getRegistrationByIdentity(LwM2mIdentity identity) {
+<b class="nc">&nbsp;        Validate.notNull(identity);</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            byte[] ep = connection.get(toRegIdentityKey(identity));</b>
+<b class="nc">&nbsp;            if (ep == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            byte[] data = connection.get(toEndpointKey(ep));</b>
+<b class="nc">&nbsp;            if (data == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return deserializeReg(data);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Iterator&lt;Registration&gt; getAllRegistrations() {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            Collection&lt;Registration&gt; list = new LinkedList&lt;&gt;();</b>
+<b class="nc">&nbsp;            ScanOptions scanOptions = ScanOptions.scanOptions().count(100).match(REG_EP + &quot;*&quot;).build();</b>
+<b class="nc">&nbsp;            List&lt;Cursor&lt;byte[]&gt;&gt; scans = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            if (connection instanceof RedisClusterConnection) {</b>
+<b class="nc">&nbsp;                ((RedisClusterConnection) connection).clusterGetNodes().forEach(node -&gt; {</b>
+<b class="nc">&nbsp;                    scans.add(((RedisClusterConnection) connection).scan(node, scanOptions));</b>
+&nbsp;                });
+&nbsp;            } else {
+<b class="nc">&nbsp;                scans.add(connection.scan(scanOptions));</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            scans.forEach(scan -&gt; {</b>
+<b class="nc">&nbsp;                scan.forEachRemaining(key -&gt; {</b>
+<b class="nc">&nbsp;                    byte[] element = connection.get(key);</b>
+<b class="nc">&nbsp;                    list.add(deserializeReg(element));</b>
+&nbsp;                });
+&nbsp;            });
+<b class="nc">&nbsp;            return list.iterator();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Deregistration removeRegistration(String registrationId) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            return removeRegistration(connection, registrationId, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private Deregistration removeRegistration(RedisConnection connection, String registrationId, boolean removeOnlyIfNotAlive) {
+&nbsp;        // fetch the client ep by registration ID index
+<b class="nc">&nbsp;        byte[] ep = connection.get(toRegIdKey(registrationId));</b>
+<b class="nc">&nbsp;        if (ep == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Lock lock = null;</b>
+<b class="nc">&nbsp;        String lockKey = toLockKey(ep);</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            lock = redisLock.obtain(lockKey);</b>
+<b class="nc">&nbsp;            lock.lock();</b>
+&nbsp;
+&nbsp;            // fetch the client
+<b class="nc">&nbsp;            byte[] data = connection.get(toEndpointKey(ep));</b>
+<b class="nc">&nbsp;            if (data == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            Registration r = deserializeReg(data);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (!removeOnlyIfNotAlive || !r.isAlive(gracePeriod)) {</b>
+<b class="nc">&nbsp;                long nbRemoved = connection.del(toRegIdKey(r.getId()));</b>
+<b class="nc">&nbsp;                if (nbRemoved &gt; 0) {</b>
+<b class="nc">&nbsp;                    connection.del(toEndpointKey(r.getEndpoint()));</b>
+<b class="nc">&nbsp;                    Collection&lt;Observation&gt; obsRemoved = unsafeRemoveAllObservations(connection, r.getId());</b>
+<b class="nc">&nbsp;                    removeAddrIndex(connection, r);</b>
+<b class="nc">&nbsp;                    removeIdentityIndex(connection, r);</b>
+<b class="nc">&nbsp;                    removeExpiration(connection, r);</b>
+<b class="nc">&nbsp;                    return new Deregistration(r, obsRemoved);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        } finally {
+<b class="nc">&nbsp;            if (lock != null) {</b>
+<b class="nc">&nbsp;                lock.unlock();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeAddrIndex(RedisConnection connection, Registration r) {
+<b class="nc">&nbsp;        removeSecondaryIndex(connection, toRegAddrKey(r.getSocketAddress()), r.getEndpoint());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeIdentityIndex(RedisConnection connection, Registration r) {
+<b class="nc">&nbsp;        removeSecondaryIndex(connection, toRegIdentityKey(r.getClientTransportData().getIdentity()), r.getEndpoint());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    //TODO: JedisCluster didn&#39;t implement Transaction, maybe should use some advanced key creation strategies
+&nbsp;    private void removeSecondaryIndex(RedisConnection connection, byte[] indexKey, String endpointName) {
+&nbsp;        // Watch the key to remove.
+&nbsp;//        connection.watch(indexKey);
+&nbsp;
+<b class="nc">&nbsp;        byte[] epFromAddr = connection.get(indexKey);</b>
+&nbsp;        // Delete the key if needed.
+<b class="nc">&nbsp;        if (Arrays.equals(epFromAddr, endpointName.getBytes(UTF_8))) {</b>
+&nbsp;            // Try to delete the key
+&nbsp;//            connection.multi();
+<b class="nc">&nbsp;            connection.del(indexKey);</b>
+&nbsp;//            connection.exec();
+&nbsp;            // if transaction failed this is not an issue as the index is probably reused and we don&#39;t need to
+&nbsp;            // delete it anymore.
+&nbsp;        } else {
+&nbsp;            // the key must not be deleted.
+&nbsp;//            connection.unwatch();
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addOrUpdateExpiration(RedisConnection connection, Registration registration) {
+<b class="nc">&nbsp;        connection.zAdd(EXP_EP, registration.getExpirationTimeStamp(gracePeriod), registration.getEndpoint().getBytes(UTF_8));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void removeExpiration(RedisConnection connection, Registration registration) {
+<b class="nc">&nbsp;        connection.zRem(EXP_EP, registration.getEndpoint().getBytes(UTF_8));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] toRegIdKey(String registrationId) {
+<b class="nc">&nbsp;        return toKey(REG_EP_REGID_IDX, registrationId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] toRegAddrKey(InetSocketAddress addr) {
+<b class="nc">&nbsp;        return toKey(REG_EP_ADDR_IDX, addr.getAddress().toString() + &quot;:&quot; + addr.getPort());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] toRegIdentityKey(LwM2mIdentity identity) {
+<b class="nc">&nbsp;        return toKey(REG_EP_IDENTITY, identity.toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] toEndpointKey(String endpoint) {
+<b class="nc">&nbsp;        return toKey(REG_EP, endpoint);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] toEndpointKey(byte[] endpoint) {
+<b class="nc">&nbsp;        return toKey(REG_EP.getBytes(UTF_8), endpoint);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] serializeReg(Registration registration) {
+<b class="nc">&nbsp;        return registrationSerDes.bSerialize(registration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Registration deserializeReg(byte[] data) {
+<b class="nc">&nbsp;        return registrationSerDes.deserialize(data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /* *************** Leshan Observation API **************** */
+&nbsp;
+&nbsp;    /*
+&nbsp;     * The observation is not persisted here, it is done by the Californium layer (in the implementation of the
+&nbsp;     * org.eclipse.californium.core.observe.ObservationStore#add method)
+&nbsp;     */
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;Observation&gt; addObservation(String registrationId, Observation observation, boolean addIfAbsent) {
+<b class="nc">&nbsp;        List&lt;Observation&gt; removed = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+&nbsp;
+&nbsp;            // fetch the client ep by registration ID index
+<b class="nc">&nbsp;            byte[] ep = connection.commands().get(toRegIdKey(registrationId));</b>
+<b class="nc">&nbsp;            if (ep == null) {</b>
+<b class="nc">&nbsp;                throw new IllegalStateException(String.format(</b>
+&nbsp;                        &quot;can not add observation %s there is no registration with id %s&quot;, observation, registrationId));
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Lock lock = null;</b>
+<b class="nc">&nbsp;            String lockKey = toLockKey(ep);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                lock = redisLock.obtain(lockKey);</b>
+<b class="nc">&nbsp;                lock.lock();</b>
+<b class="nc">&nbsp;                updateObservation(registrationId, observation, addIfAbsent, removed, connection);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                if (lock != null) {</b>
+<b class="nc">&nbsp;                    lock.unlock();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return removed;</b>
+&nbsp;    }
+&nbsp;    private void updateObservation(String registrationId, Observation observation, boolean addIfAbsent,
+&nbsp;                                   List&lt;Observation&gt; removed, RedisConnection connection) {
+&nbsp;
+&nbsp;        // Add and Get previous observation
+&nbsp;        byte[] previousValue;
+<b class="nc">&nbsp;        byte[] key = toKey(OBS_TKN, observation.getId().getBytes());</b>
+<b class="nc">&nbsp;        byte[] serializeObs = serializeObs(observation);</b>
+&nbsp;        // we analyze the present previous value
+<b class="nc">&nbsp;        if (addIfAbsent) {</b>
+<b class="nc">&nbsp;            previousValue = connection.stringCommands().get(key);</b>
+<b class="nc">&nbsp;            if (previousValue == null) {</b>
+<b class="nc">&nbsp;                connection.stringCommands().set(key, serializeObs);</b>
+<b class="nc">&nbsp;                previousValue = serializeObs;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                connection.stringCommands().set(key, serializeObs);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            previousValue = connection.stringCommands().getSet(key, serializeObs);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // secondary index to get the list by registrationId
+<b class="nc">&nbsp;        connection.listCommands().lPush(toKey(OBS_TKNS_REGID_IDX, registrationId), observation.getId().getBytes());</b>
+&nbsp;
+&nbsp;        // log any collisions
+&nbsp;        Observation previousObservation;
+<b class="nc">&nbsp;        if (previousValue != null &amp;&amp; previousValue.length != 0) {</b>
+<b class="nc">&nbsp;            previousObservation = deserializeObs(previousValue);</b>
+<b class="nc">&nbsp;            log.warn(&quot;Token collision ? observation [{}] will be replaced by observation [{}] &quot;,</b>
+&nbsp;                    previousObservation, observation);
+&nbsp;        }
+&nbsp;
+&nbsp;        // cancel existing observations for the same path and registration id.
+<b class="nc">&nbsp;        for (Observation obs : getObservations(connection, registrationId)) {</b>
+<b class="nc">&nbsp;            if (areTheSamePaths(observation, obs) &amp;&amp; !observation.getId().equals(obs.getId())) {</b>
+<b class="nc">&nbsp;                removed.add(obs);</b>
+<b class="nc">&nbsp;                unsafeRemoveObservation(connection, registrationId, obs.getId().getBytes());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean areTheSamePaths(Observation observation, Observation obs) {
+<b class="nc">&nbsp;        if (observation instanceof SingleObservation &amp;&amp; obs instanceof SingleObservation) {</b>
+<b class="nc">&nbsp;            return ((SingleObservation) observation).getPath().equals(((SingleObservation) obs).getPath());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (observation instanceof CompositeObservation &amp;&amp; obs instanceof CompositeObservation) {</b>
+<b class="nc">&nbsp;            return ((CompositeObservation) observation).getPaths().equals(((CompositeObservation) obs).getPaths());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;    @Override
+&nbsp;    public Collection&lt;Observation&gt; getObservations(String registrationId) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            return getObservations(connection, registrationId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Observation getObservation(String registrationId, ObservationIdentifier observationId) {
+<b class="nc">&nbsp;        return getObservations(registrationId).stream().filter(</b>
+<b class="nc">&nbsp;                o -&gt; o.getId().getAsHexString().equals(observationId.getAsHexString())).findFirst().get();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Observation getObservation(ObservationIdentifier observationId) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            byte[] observationValue = connection.get(toKey(OBS_TKN, observationId.getBytes()));</b>
+<b class="nc">&nbsp;            return deserializeObs(observationValue);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Observation removeObservation(String registrationId, ObservationIdentifier observationId) {
+<b class="nc">&nbsp;        return removeObservation(registrationId, observationId.getBytes());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Observation removeObservation(String registrationId, byte[] observationId) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+&nbsp;
+&nbsp;            // fetch the client ep by registration ID index
+<b class="nc">&nbsp;            byte[] ep = connection.get(toRegIdKey(registrationId));</b>
+<b class="nc">&nbsp;            if (ep == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // remove observation
+<b class="nc">&nbsp;            Lock lock = null;</b>
+<b class="nc">&nbsp;            String lockKey = toLockKey(ep);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                lock = redisLock.obtain(lockKey);</b>
+<b class="nc">&nbsp;                lock.lock();</b>
+&nbsp;
+<b class="nc">&nbsp;                Observation observation = get(new Token(observationId));</b>
+<b class="nc">&nbsp;                if (observation != null &amp;&amp; registrationId.equals(observation.getRegistrationId())) {</b>
+<b class="nc">&nbsp;                    unsafeRemoveObservation(connection, registrationId, observationId);</b>
+<b class="nc">&nbsp;                    return observation;</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;
+&nbsp;            } finally {
+<b class="nc">&nbsp;                if (lock != null) {</b>
+<b class="nc">&nbsp;                    lock.unlock();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private Collection&lt;Observation&gt; getObservations(RedisConnection connection, String registrationId) {
+<b class="nc">&nbsp;        Collection&lt;Observation&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (byte[] token : connection.listCommands().lRange(toKey(OBS_TKNS_REGID_IDX, registrationId), 0, -1)) {</b>
+<b class="nc">&nbsp;            byte[] obs = connection.stringCommands().get(toKey(OBS_TKN, token));</b>
+<b class="nc">&nbsp;            if (obs != null) {</b>
+<b class="nc">&nbsp;                result.add(deserializeObs(obs));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Collection&lt;Observation&gt; removeObservations(String registrationId) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+&nbsp;            // check registration exists
+<b class="nc">&nbsp;            Registration registration = getRegistration(connection, registrationId);</b>
+<b class="nc">&nbsp;            if (registration == null)</b>
+<b class="nc">&nbsp;                return Collections.emptyList();</b>
+&nbsp;
+&nbsp;            // get endpoint and create lock
+<b class="nc">&nbsp;            String endpoint = registration.getEndpoint();</b>
+<b class="nc">&nbsp;            Lock lock = null;</b>
+<b class="nc">&nbsp;            String lockKey = toLockKey(endpoint);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                lock = redisLock.obtain(lockKey);</b>
+<b class="nc">&nbsp;                lock.lock();</b>
+<b class="nc">&nbsp;                return unsafeRemoveAllObservations(connection, registrationId);</b>
+&nbsp;            } finally {
+<b class="nc">&nbsp;                if (lock != null) {</b>
+<b class="nc">&nbsp;                    lock.unlock();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public Observation get(Token token) {
+<b class="nc">&nbsp;        try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;            byte[] obs = connection.get(toKey(OBS_TKN, token.getBytes()));</b>
+<b class="nc">&nbsp;            if (obs == null) {</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return deserializeObs(obs);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /* *************** Observation utility functions **************** */
+&nbsp;
+&nbsp;    private TokenGenerator getTokenGenerator() {
+<b class="nc">&nbsp;        if (this.tokenGenerator == null) {</b>
+<b class="nc">&nbsp;            this.tokenGenerator = new RandomTokenGenerator(config.getCoapConfig());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return this.tokenGenerator;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void unsafeRemoveObservation(RedisConnection connection, String registrationId, byte[] observationId) {
+<b class="nc">&nbsp;        if (connection.commands().del(toKey(OBS_TKN, observationId)) &gt; 0L) {</b>
+<b class="nc">&nbsp;            connection.listCommands().lRem(toKey(OBS_TKNS_REGID_IDX, registrationId), 0, observationId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Collection&lt;Observation&gt; unsafeRemoveAllObservations(RedisConnection connection, String registrationId) {
+<b class="nc">&nbsp;        Collection&lt;Observation&gt; removed = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        byte[] regIdKey = toKey(OBS_TKNS_REGID_IDX, registrationId);</b>
+&nbsp;
+&nbsp;        // fetch all observations by token
+<b class="nc">&nbsp;        for (byte[] token : connection.lRange(regIdKey, 0, -1)) {</b>
+<b class="nc">&nbsp;            byte[] obs = connection.get(toKey(OBS_TKN, token));</b>
+<b class="nc">&nbsp;            if (obs != null) {</b>
+<b class="nc">&nbsp;                removed.add(deserializeObs(obs));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            connection.del(toKey(OBS_TKN, token));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        connection.del(regIdKey);</b>
+&nbsp;
+<b class="nc">&nbsp;        return removed;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private byte[] serializeObs(Observation obs) {
+<b class="nc">&nbsp;        return observationSerDes.serialize(obs);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cancelObservation(Observation observation, String registrationId, List&lt;Observation&gt; removed, RedisConnection connection) {
+<b class="nc">&nbsp;        for (Observation obs : getObservations(connection, registrationId)) {</b>
+<b class="nc">&nbsp;            cancelExistingObservation(connection, observation, obs, removed);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void cancelExistingObservation(RedisConnection connection, Observation observation, Observation obs, List&lt;Observation&gt; removed) {
+<b class="nc">&nbsp;        LwM2mPath pathObservation = ((SingleObservation) observation).getPath();</b>
+<b class="nc">&nbsp;        LwM2mPath pathObs = ((SingleObservation) obs).getPath();</b>
+<b class="nc">&nbsp;        if ((!pathObservation.equals(pathObs) &amp;&amp; pathObs.startWith(pathObservation)) ||        // pathObservation = &quot;3&quot;, pathObs = &quot;3/0/9&quot;</b>
+<b class="nc">&nbsp;                (pathObservation.equals(pathObs) &amp;&amp; !observation.getId().equals(obs.getId()))) {</b>
+<b class="nc">&nbsp;            unsafeRemoveObservation(connection, obs.getRegistrationId(), obs.getId().getBytes());</b>
+<b class="nc">&nbsp;            removed.add(obs);</b>
+<b class="nc">&nbsp;        } else if (!pathObservation.equals(pathObs) &amp;&amp; pathObservation.startWith(pathObs)) {    // pathObservation = &quot;3/0/9&quot;, pathObs = &quot;3&quot;</b>
+<b class="nc">&nbsp;            unsafeRemoveObservation(connection, obs.getRegistrationId(), observation.getId().getBytes());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Observation deserializeObs(byte[] data) {
+<b class="nc">&nbsp;        return data == null ? null : observationSerDes.deserialize(data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /* *************** Expiration handling **************** */
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Start regular cleanup of dead registrations.
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public synchronized void start() {
+<b class="nc">&nbsp;        if (!started) {</b>
+<b class="nc">&nbsp;            started = true;</b>
+<b class="nc">&nbsp;            cleanerTask = schedExecutor.scheduleAtFixedRate(new Cleaner(), cleanPeriod, cleanPeriod, TimeUnit.SECONDS);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Stop the underlying cleanup of the registrations.
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public synchronized void stop() {
+<b class="nc">&nbsp;        if (started) {</b>
+<b class="nc">&nbsp;            started = false;</b>
+<b class="nc">&nbsp;            if (cleanerTask != null) {</b>
+<b class="nc">&nbsp;                cleanerTask.cancel(false);</b>
+<b class="nc">&nbsp;                cleanerTask = null;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Destroy &quot;cleanup&quot; scheduler.
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public synchronized void destroy() {
+<b class="nc">&nbsp;        started = false;</b>
+<b class="nc">&nbsp;        schedExecutor.shutdownNow();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            schedExecutor.awaitTermination(5, TimeUnit.SECONDS);</b>
+&nbsp;        } catch (InterruptedException e) {
+<b class="nc">&nbsp;            log.warn(&quot;Destroying RedisRegistrationStore was interrupted.&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private class Cleaner implements Runnable {</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public void run() {
+<b class="nc">&nbsp;            try (var connection = connectionFactory.getConnection()) {</b>
+<b class="nc">&nbsp;                Set&lt;byte[]&gt; endpointsExpired = connection.zRangeByScore(EXP_EP, Double.NEGATIVE_INFINITY,</b>
+<b class="nc">&nbsp;                        System.currentTimeMillis(), 0, cleanLimit);</b>
+&nbsp;
+<b class="nc">&nbsp;                for (byte[] endpoint : endpointsExpired) {</b>
+<b class="nc">&nbsp;                    byte[] data = connection.get(toEndpointKey(endpoint));</b>
+<b class="nc">&nbsp;                    if (data != null &amp;&amp; data.length &gt; 0) {</b>
+<b class="nc">&nbsp;                        Registration r = deserializeReg(data);</b>
+<b class="nc">&nbsp;                        if (!r.isAlive(gracePeriod)) {</b>
+<b class="nc">&nbsp;                            Deregistration dereg = removeRegistration(connection, r.getId(), true);</b>
+<b class="nc">&nbsp;                            if (dereg != null)</b>
+<b class="nc">&nbsp;                                expirationListener.registrationExpired(dereg.getRegistration(), dereg.getObservations());</b>
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.warn(&quot;Unexpected Exception while registration cleaning&quot;, e);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void setExpirationListener(ExpirationListener listener) {
+<b class="nc">&nbsp;        expirationListener = listener;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setExecutor(ScheduledExecutorService executor) {
+&nbsp;        // TODO should we reuse californium executor ?
+<b class="nc">&nbsp;    }</b>
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

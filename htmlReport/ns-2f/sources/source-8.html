@@ -1,0 +1,287 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbAbstractGetMappedDataNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.metadata</a>
+</div>
+
+<h1>Coverage Summary for Class: TbAbstractGetMappedDataNode (org.thingsboard.rule.engine.metadata)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbAbstractGetMappedDataNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/69)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.metadata;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.util.EntitiesFieldsAsyncLoader;
+&nbsp;import org.thingsboard.rule.engine.util.TbMsgSource;
+&nbsp;import org.thingsboard.server.common.data.AttributeScope;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.kv.KvEntry;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.common.util.DonAsynchron.withCallback;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public abstract class TbAbstractGetMappedDataNode&lt;T extends EntityId, C extends TbGetMappedDataNodeConfiguration&gt; extends TbAbstractNodeWithFetchTo&lt;C&gt; {</b>
+&nbsp;
+&nbsp;    protected void checkIfMappingIsNotEmptyOrElseThrow(Map&lt;String, String&gt; dataMapping) throws TbNodeException {
+<b class="nc">&nbsp;        if (dataMapping == null || dataMapping.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;At least one mapping entry should be specified!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void processFieldsData(TbContext ctx, TbMsg msg, T entityId, ObjectNode msgDataAsJsonNode, boolean ignoreNullStrings) {
+<b class="nc">&nbsp;        var mappingsMap = processFieldsMappingPatterns(msg);</b>
+<b class="nc">&nbsp;        withCallback(getEntityFieldsAsync(ctx, entityId, mappingsMap, ignoreNullStrings),</b>
+<b class="nc">&nbsp;                data -&gt; putFieldsDataAndTell(ctx, msg, msgDataAsJsonNode, data),</b>
+<b class="nc">&nbsp;                t -&gt; ctx.tellFailure(msg, t),</b>
+<b class="nc">&nbsp;                MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void processAttributesKvEntryData(TbContext ctx, TbMsg msg, T entityId, ObjectNode msgDataAsJsonNode) {
+<b class="nc">&nbsp;        var mappingsMap = processKvEntryMappingPatterns(msg);</b>
+<b class="nc">&nbsp;        var sourceKeys = List.copyOf(mappingsMap.keySet());</b>
+<b class="nc">&nbsp;        withCallback(getAttributesAsync(ctx, entityId, sourceKeys),</b>
+<b class="nc">&nbsp;                data -&gt; putKvEntryDataAndTell(ctx, msg, data, mappingsMap, msgDataAsJsonNode),</b>
+<b class="nc">&nbsp;                t -&gt; ctx.tellFailure(msg, t),</b>
+<b class="nc">&nbsp;                MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void processTsKvEntryData(TbContext ctx, TbMsg msg, T entityId, ObjectNode msgDataAsJsonNode) {
+<b class="nc">&nbsp;        var mappingsMap = processKvEntryMappingPatterns(msg);</b>
+<b class="nc">&nbsp;        var sourceKeys = List.copyOf(mappingsMap.keySet());</b>
+<b class="nc">&nbsp;        withCallback(getLatestTelemetryAsync(ctx, entityId, sourceKeys),</b>
+<b class="nc">&nbsp;                data -&gt; putKvEntryDataAndTell(ctx, msg, data, mappingsMap, msgDataAsJsonNode),</b>
+<b class="nc">&nbsp;                t -&gt; ctx.tellFailure(msg, t),</b>
+<b class="nc">&nbsp;                MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void putFieldsDataAndTell(TbContext ctx, TbMsg msg, ObjectNode msgDataAsJsonNode, Map&lt;String, String&gt; targetKeysToSourceValuesMap) {
+<b class="nc">&nbsp;        TbMsgMetaData msgMetaData = msg.getMetaData().copy();</b>
+<b class="nc">&nbsp;        for (var entry : targetKeysToSourceValuesMap.entrySet()) {</b>
+<b class="nc">&nbsp;            var targetKeyName = entry.getKey();</b>
+<b class="nc">&nbsp;            var sourceFieldValue = entry.getValue();</b>
+<b class="nc">&nbsp;            if (TbMsgSource.DATA.equals(fetchTo)) {</b>
+<b class="nc">&nbsp;                msgDataAsJsonNode.put(targetKeyName, sourceFieldValue);</b>
+<b class="nc">&nbsp;            } else if (TbMsgSource.METADATA.equals(fetchTo)) {</b>
+<b class="nc">&nbsp;                msgMetaData.putValue(targetKeyName, sourceFieldValue);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        TbMsg outMsg = transformMessage(msg, msgDataAsJsonNode, msgMetaData);</b>
+<b class="nc">&nbsp;        ctx.tellSuccess(outMsg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void putKvEntryDataAndTell(TbContext ctx, TbMsg msg, List&lt;? extends KvEntry&gt; data, Map&lt;String, String&gt; map, ObjectNode msgData) {
+<b class="nc">&nbsp;        var msgMetaData = msg.getMetaData().copy();</b>
+<b class="nc">&nbsp;        for (KvEntry entry : data) {</b>
+<b class="nc">&nbsp;            String targetKey = map.get(entry.getKey());</b>
+<b class="nc">&nbsp;            enrichMessage(msgData, msgMetaData, entry, targetKey);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        ctx.tellSuccess(transformMessage(msg, msgData, msgMetaData));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, String&gt; processFieldsMappingPatterns(TbMsg msg) {
+<b class="nc">&nbsp;        var mappingsMap = new HashMap&lt;String, String&gt;();</b>
+<b class="nc">&nbsp;        config.getDataMapping().forEach((sourceField, targetKey) -&gt; {</b>
+<b class="nc">&nbsp;            String patternProcessedTargetKey = TbNodeUtils.processPattern(targetKey, msg);</b>
+<b class="nc">&nbsp;            mappingsMap.put(sourceField, patternProcessedTargetKey);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return mappingsMap;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, String&gt; processKvEntryMappingPatterns(TbMsg msg) {
+<b class="nc">&nbsp;        var mappingsMap = new HashMap&lt;String, String&gt;();</b>
+<b class="nc">&nbsp;        config.getDataMapping().forEach((sourceKey, targetKey) -&gt; {</b>
+<b class="nc">&nbsp;            String patternProcessedSourceKey = TbNodeUtils.processPattern(sourceKey, msg);</b>
+<b class="nc">&nbsp;            String patternProcessedTargetKey = TbNodeUtils.processPattern(targetKey, msg);</b>
+<b class="nc">&nbsp;            mappingsMap.put(patternProcessedSourceKey, patternProcessedTargetKey);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return mappingsMap;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Map&lt;String, String&gt;&gt; getEntityFieldsAsync(TbContext ctx, EntityId entityId, Map&lt;String, String&gt; mappingsMap, boolean ignoreNullStrings) {
+<b class="nc">&nbsp;        return Futures.transform(EntitiesFieldsAsyncLoader.findAsync(ctx, entityId),</b>
+&nbsp;                fieldsData -&gt; {
+<b class="nc">&nbsp;                    var targetKeysToSourceValuesMap = new HashMap&lt;String, String&gt;();</b>
+<b class="nc">&nbsp;                    for (var mappingEntry : mappingsMap.entrySet()) {</b>
+<b class="nc">&nbsp;                        var sourceFieldName = mappingEntry.getKey();</b>
+<b class="nc">&nbsp;                        var targetKeyName = mappingEntry.getValue();</b>
+<b class="nc">&nbsp;                        var sourceFieldValue = fieldsData.getFieldValue(sourceFieldName, ignoreNullStrings);</b>
+<b class="nc">&nbsp;                        if (sourceFieldValue != null) {</b>
+<b class="nc">&nbsp;                            targetKeysToSourceValuesMap.put(targetKeyName, sourceFieldValue);</b>
+&nbsp;                        }
+&nbsp;                    }
+<b class="nc">&nbsp;                    return targetKeysToSourceValuesMap;</b>
+<b class="nc">&nbsp;                }, ctx.getDbCallbackExecutor()</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;List&lt;KvEntry&gt;&gt; getAttributesAsync(TbContext ctx, EntityId entityId, List&lt;String&gt; attrKeys) {
+<b class="nc">&nbsp;        var latest = ctx.getAttributesService().find(ctx.getTenantId(), entityId, AttributeScope.SERVER_SCOPE, attrKeys);</b>
+<b class="nc">&nbsp;        return Futures.transform(latest, l -&gt;</b>
+<b class="nc">&nbsp;                        l.stream()</b>
+<b class="nc">&nbsp;                                .map(i -&gt; (KvEntry) i)</b>
+<b class="nc">&nbsp;                                .collect(Collectors.toList()),</b>
+<b class="nc">&nbsp;                ctx.getDbCallbackExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;List&lt;KvEntry&gt;&gt; getLatestTelemetryAsync(TbContext ctx, EntityId entityId, List&lt;String&gt; timeseriesKeys) {
+<b class="nc">&nbsp;        var latest = ctx.getTimeseriesService().findLatest(ctx.getTenantId(), entityId, timeseriesKeys);</b>
+<b class="nc">&nbsp;        return Futures.transform(latest, l -&gt;</b>
+<b class="nc">&nbsp;                        l.stream()</b>
+<b class="nc">&nbsp;                                .map(i -&gt; (KvEntry) i)</b>
+<b class="nc">&nbsp;                                .collect(Collectors.toList()),</b>
+<b class="nc">&nbsp;                ctx.getDbCallbackExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

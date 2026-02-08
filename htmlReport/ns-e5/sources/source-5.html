@@ -1,0 +1,536 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseEntityService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.entity</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseEntityService (org.thingsboard.server.dao.entity)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseEntityService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/96)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/160)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.entity;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.FluentFuture;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.context.annotation.Lazy;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.thingsboard.server.common.data.EntityInfo;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.HasCustomerId;
+&nbsp;import org.thingsboard.server.common.data.HasEmail;
+&nbsp;import org.thingsboard.server.common.data.HasLabel;
+&nbsp;import org.thingsboard.server.common.data.HasName;
+&nbsp;import org.thingsboard.server.common.data.HasTitle;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.edqs.query.EdqsRequest;
+&nbsp;import org.thingsboard.server.common.data.edqs.query.EdqsResponse;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.NameLabelAndCustomerDetails;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.page.PageData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityCountQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityData;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataPageLink;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataQuery;
+&nbsp;import org.thingsboard.server.common.data.query.EntityFilterType;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKeyType;
+&nbsp;import org.thingsboard.server.common.data.query.EntityListFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityNameFilter;
+&nbsp;import org.thingsboard.server.common.data.query.EntityTypeFilter;
+&nbsp;import org.thingsboard.server.common.data.query.KeyFilter;
+&nbsp;import org.thingsboard.server.common.data.query.RelationsQueryFilter;
+&nbsp;import org.thingsboard.server.common.data.query.TsValue;
+&nbsp;import org.thingsboard.server.common.msg.edqs.EdqsApiService;
+&nbsp;import org.thingsboard.server.common.msg.edqs.EdqsService;
+&nbsp;import org.thingsboard.server.common.stats.EdqsStatsService;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+&nbsp;import static org.thingsboard.server.common.data.id.EntityId.NULL_UUID;
+&nbsp;import static org.thingsboard.server.common.data.query.EntityFilterType.ENTITY_NAME;
+&nbsp;import static org.thingsboard.server.common.data.query.EntityFilterType.ENTITY_TYPE;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateEntityDataPageLink;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class BaseEntityService extends AbstractEntityService implements EntityService {</b>
+&nbsp;
+&nbsp;    public static final String INCORRECT_TENANT_ID = &quot;Incorrect tenantId &quot;;
+&nbsp;    public static final String INCORRECT_CUSTOMER_ID = &quot;Incorrect customerId &quot;;
+<b class="nc">&nbsp;    public static final CustomerId NULL_CUSTOMER_ID = new CustomerId(NULL_UUID);</b>
+&nbsp;
+&nbsp;    private static final int MAX_ENTITY_IDS_SIZE = 1024;
+<b class="nc">&nbsp;    private static final Set&lt;EntityFilterType&gt; EXCLUDED_TYPES_FROM_OPTIMIZATION = Set.of(</b>
+&nbsp;            EntityFilterType.ENTITY_LIST, EntityFilterType.SINGLE_ENTITY, EntityFilterType.RELATIONS_QUERY);
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityQueryDao entityQueryDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private EntityServiceRegistry entityServiceRegistry;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EdqsService edqsService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    @Lazy
+&nbsp;    private EdqsApiService edqsApiService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EdqsStatsService edqsStatsService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, EntityCountQuery query) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing countEntitiesByQuery, tenantId [{}], customerId [{}], query [{}]&quot;, tenantId, customerId, query);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validateEntityCountQuery(query);</b>
+&nbsp;
+<b class="nc">&nbsp;        long startNs = System.nanoTime();</b>
+&nbsp;        Long result;
+<b class="nc">&nbsp;        if (edqsService.isApiEnabled() &amp;&amp; validForEdqs(query) &amp;&amp; !tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            EdqsRequest request = EdqsRequest.builder()</b>
+<b class="nc">&nbsp;                    .entityCountQuery(query)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            EdqsResponse response = processEdqsRequest(tenantId, customerId, request);</b>
+<b class="nc">&nbsp;            result = response.getEntityCountQueryResult();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            result = entityQueryDao.countEntitiesByQuery(tenantId, customerId, query);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        edqsStatsService.reportEntityCountQuery(tenantId, query, System.nanoTime() - startNs);</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public PageData&lt;EntityData&gt; findEntityDataByQuery(TenantId tenantId, CustomerId customerId, EntityDataQuery query) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing findEntityDataByQuery, tenantId [{}], customerId [{}], query [{}]&quot;, tenantId, customerId, query);</b>
+<b class="nc">&nbsp;        validateId(tenantId, id -&gt; INCORRECT_TENANT_ID + id);</b>
+<b class="nc">&nbsp;        validateId(customerId, id -&gt; INCORRECT_CUSTOMER_ID + id);</b>
+<b class="nc">&nbsp;        validateEntityDataQuery(query);</b>
+&nbsp;
+<b class="nc">&nbsp;        long startNs = System.nanoTime();</b>
+&nbsp;        PageData&lt;EntityData&gt; result;
+<b class="nc">&nbsp;        if (edqsService.isApiEnabled() &amp;&amp; validForEdqs(query) &amp;&amp; !tenantId.isSysTenantId()) {</b>
+<b class="nc">&nbsp;            EdqsRequest request = EdqsRequest.builder()</b>
+<b class="nc">&nbsp;                    .entityDataQuery(query)</b>
+<b class="nc">&nbsp;                    .build();</b>
+<b class="nc">&nbsp;            EdqsResponse response = processEdqsRequest(tenantId, customerId, request);</b>
+<b class="nc">&nbsp;            result = response.getEntityDataQueryResult();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (!isValidForOptimization(query)) {</b>
+<b class="nc">&nbsp;                result = entityQueryDao.findEntityDataByQuery(tenantId, customerId, query);</b>
+&nbsp;            } else {
+&nbsp;                // 1 step - find entity data by filter and sort columns
+<b class="nc">&nbsp;                PageData&lt;EntityData&gt; entityDataByQuery = findEntityIdsByFilterAndSorterColumns(tenantId, customerId, query);</b>
+<b class="nc">&nbsp;                if (entityDataByQuery == null || entityDataByQuery.getData().isEmpty()) {</b>
+<b class="nc">&nbsp;                    result = entityDataByQuery;</b>
+&nbsp;                } else {
+&nbsp;                    // 2 step - find entity data by entity ids from the 1st step
+<b class="nc">&nbsp;                    List&lt;EntityData&gt; entities = fetchEntityDataByIdsFromInitialQuery(tenantId, customerId, query, entityDataByQuery.getData());</b>
+<b class="nc">&nbsp;                    result = new PageData&lt;&gt;(entities, entityDataByQuery.getTotalPages(), entityDataByQuery.getTotalElements(), entityDataByQuery.hasNext());</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        edqsStatsService.reportEntityDataQuery(tenantId, query, System.nanoTime() - startNs);</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean validForEdqs(EntityCountQuery query) { // for compatibility with PE
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private EdqsResponse processEdqsRequest(TenantId tenantId, CustomerId customerId, EdqsRequest request) {
+&nbsp;        EdqsResponse response;
+&nbsp;        try {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Sending request to EDQS: {}&quot;, tenantId, request);</b>
+<b class="nc">&nbsp;            response = edqsApiService.processRequest(tenantId, customerId, request).get();</b>
+&nbsp;        } catch (InterruptedException | ExecutionException e) {
+<b class="nc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        log.debug(&quot;[{}] Received response from EDQS: {}&quot;, tenantId, response);</b>
+<b class="nc">&nbsp;        if (response.getError() != null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(response.getError());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;String&gt; fetchEntityName(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing fetchEntityName [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        return fetchAndConvert(tenantId, entityId, this::getName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;String&gt; fetchEntityLabel(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing fetchEntityLabel [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        return fetchAndConvert(tenantId, entityId, this::getLabel);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;CustomerId&gt; fetchEntityCustomerId(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing fetchEntityCustomerId [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        return fetchAndConvert(tenantId, entityId, this::getCustomerId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FluentFuture&lt;Optional&lt;CustomerId&gt;&gt; fetchEntityCustomerIdAsync(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return fetchAndConvertAsync(tenantId, entityId, this::getCustomerId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;NameLabelAndCustomerDetails&gt; fetchNameLabelAndCustomerDetails(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        log.trace(&quot;Executing fetchNameLabelAndCustomerDetails [{}]&quot;, entityId);</b>
+<b class="nc">&nbsp;        return fetchAndConvert(tenantId, entityId, this::getNameLabelAndCustomerDetails);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Optional&lt;HasId&lt;?&gt;&gt; fetchEntity(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        return fetchAndConvert(tenantId, entityId, Function.identity());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Map&lt;EntityId, EntityInfo&gt; fetchEntityInfos(TenantId tenantId, CustomerId customerId, Set&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        Map&lt;EntityId, EntityInfo&gt; infos = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        entityIds.stream()</b>
+<b class="nc">&nbsp;                .collect(Collectors.groupingBy(EntityId::getEntityType))</b>
+<b class="nc">&nbsp;                .forEach((entityType, ids) -&gt; {</b>
+<b class="nc">&nbsp;                    EntityListFilter filter = new EntityListFilter();</b>
+<b class="nc">&nbsp;                    filter.setEntityType(entityType);</b>
+<b class="nc">&nbsp;                    filter.setEntityList(ids.stream().map(Object::toString).toList());</b>
+<b class="nc">&nbsp;                    EntityDataQuery query = new EntityDataQuery(filter, new EntityDataPageLink(ids.size(), 0, null, null),</b>
+<b class="nc">&nbsp;                            List.of(new EntityKey(EntityKeyType.ENTITY_FIELD, ModelConstants.NAME_PROPERTY)), Collections.emptyList(), Collections.emptyList());</b>
+&nbsp;
+<b class="nc">&nbsp;                    entityQueryDao.findEntityDataByQuery(tenantId, customerId, query).getData().forEach(entityData -&gt; {</b>
+<b class="nc">&nbsp;                        EntityId entityId = entityData.getEntityId();</b>
+<b class="nc">&nbsp;                        Optional.ofNullable(entityData.getLatest().get(EntityKeyType.ENTITY_FIELD))</b>
+<b class="nc">&nbsp;                                .map(fields -&gt; fields.get(ModelConstants.NAME_PROPERTY))</b>
+<b class="nc">&nbsp;                                .map(TsValue::getValue).ifPresent(name -&gt; {</b>
+<b class="nc">&nbsp;                                    infos.put(entityId, new EntityInfo(entityId, name));</b>
+&nbsp;                                });
+&nbsp;                    });
+&nbsp;                });
+<b class="nc">&nbsp;        return infos;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; Optional&lt;T&gt; fetchAndConvert(TenantId tenantId, EntityId entityId, Function&lt;HasId&lt;?&gt;, T&gt; converter) {
+<b class="nc">&nbsp;        EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(entityId.getEntityType());</b>
+<b class="nc">&nbsp;        Optional&lt;HasId&lt;?&gt;&gt; entityOpt = entityDaoService.findEntity(tenantId, entityId);</b>
+<b class="nc">&nbsp;        return entityOpt.map(converter);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; FluentFuture&lt;Optional&lt;T&gt;&gt; fetchAndConvertAsync(TenantId tenantId, EntityId entityId, Function&lt;HasId&lt;?&gt;, T&gt; converter) {
+<b class="nc">&nbsp;        EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(entityId.getEntityType());</b>
+<b class="nc">&nbsp;        return entityDaoService.findEntityAsync(tenantId, entityId)</b>
+<b class="nc">&nbsp;                .transform(entityOpt -&gt; entityOpt.map(converter), directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getName(HasId&lt;?&gt; entity) {
+<b class="nc">&nbsp;        return entity instanceof HasName ? ((HasName) entity).getName() : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getLabel(HasId&lt;?&gt; entity) {
+<b class="nc">&nbsp;        if (entity instanceof HasTitle &amp;&amp; StringUtils.isNotEmpty(((HasTitle) entity).getTitle())) {</b>
+<b class="nc">&nbsp;            return ((HasTitle) entity).getTitle();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (entity instanceof HasLabel &amp;&amp; StringUtils.isNotEmpty(((HasLabel) entity).getLabel())) {</b>
+<b class="nc">&nbsp;            return ((HasLabel) entity).getLabel();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (entity instanceof HasEmail &amp;&amp; StringUtils.isNotEmpty(((HasEmail) entity).getEmail())) {</b>
+<b class="nc">&nbsp;            return ((HasEmail) entity).getEmail();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (entity instanceof HasName &amp;&amp; StringUtils.isNotEmpty(((HasName) entity).getName())) {</b>
+<b class="nc">&nbsp;            return ((HasName) entity).getName();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private CustomerId getCustomerId(HasId&lt;?&gt; entity) {
+<b class="nc">&nbsp;        if (entity instanceof HasCustomerId hasCustomerId) {</b>
+<b class="nc">&nbsp;            CustomerId customerId = hasCustomerId.getCustomerId();</b>
+<b class="nc">&nbsp;            if (customerId == null) {</b>
+<b class="nc">&nbsp;                customerId = NULL_CUSTOMER_ID;</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return customerId;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return NULL_CUSTOMER_ID;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private NameLabelAndCustomerDetails getNameLabelAndCustomerDetails(HasId&lt;?&gt; entity) {
+<b class="nc">&nbsp;        return new NameLabelAndCustomerDetails(getName(entity), getLabel(entity), getCustomerId(entity));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validateEntityCountQuery(EntityCountQuery query) {
+<b class="nc">&nbsp;        if (query == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Query must be specified.&quot;);</b>
+<b class="nc">&nbsp;        } else if (query.getEntityFilter() == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Query entity filter must be specified.&quot;);</b>
+<b class="nc">&nbsp;        } else if (query.getEntityFilter().getType() == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Query entity filter type must be specified.&quot;);</b>
+<b class="nc">&nbsp;        } else if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {</b>
+<b class="nc">&nbsp;            validateRelationQuery((RelationsQueryFilter) query.getEntityFilter());</b>
+<b class="nc">&nbsp;        } else if (query.getEntityFilter().getType().equals(ENTITY_TYPE)) {</b>
+<b class="nc">&nbsp;            validateEntityTypeQuery((EntityTypeFilter) query.getEntityFilter());</b>
+<b class="nc">&nbsp;        } else if (query.getEntityFilter().getType().equals(ENTITY_NAME)) {</b>
+<b class="nc">&nbsp;            validateEntityNameQuery((EntityNameFilter) query.getEntityFilter());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validateEntityDataQuery(EntityDataQuery query) {
+<b class="nc">&nbsp;        validateEntityCountQuery(query);</b>
+<b class="nc">&nbsp;        validateEntityDataPageLink(query.getPageLink());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validateEntityTypeQuery(EntityTypeFilter filter) {
+<b class="nc">&nbsp;        if (filter.getEntityType() == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Entity type is required&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validateEntityNameQuery(EntityNameFilter filter) {
+<b class="nc">&nbsp;        if (filter.getEntityType() == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Entity type is required&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validateRelationQuery(RelationsQueryFilter queryFilter) {
+<b class="nc">&nbsp;        if (queryFilter.isMultiRoot() &amp;&amp; queryFilter.getMultiRootEntitiesType() == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Multi-root relation query filter should contain &#39;multiRootEntitiesType&#39;&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (queryFilter.isMultiRoot() &amp;&amp; CollectionUtils.isEmpty(queryFilter.getMultiRootEntityIds())) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Multi-root relation query filter should contain &#39;multiRootEntityIds&#39; array that contains string representation of UUIDs&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!queryFilter.isMultiRoot() &amp;&amp; queryFilter.getRootEntity() == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Relation query filter root entity should not be blank&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isValidForOptimization(EntityDataQuery query) {
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(query.getPageLink().getTextSearch())) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (EXCLUDED_TYPES_FROM_OPTIMIZATION.contains(query.getEntityFilter().getType())) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if ((query.getEntityFields() == null || query.getEntityFields().isEmpty()) &amp;&amp;</b>
+<b class="nc">&nbsp;                (query.getLatestValues() == null || query.getLatestValues().isEmpty())) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;EntityKey&gt; filteringKeys = new HashSet&lt;&gt;(Optional.ofNullable(query.getKeyFilters()).orElse(Collections.emptyList()).stream().map(KeyFilter::getKey).toList());</b>
+<b class="nc">&nbsp;        Set&lt;EntityKey&gt; entityFields = new HashSet&lt;&gt;(Optional.ofNullable(query.getEntityFields()).orElse(Collections.emptyList()));</b>
+<b class="nc">&nbsp;        Set&lt;EntityKey&gt; latestValues = new HashSet&lt;&gt;(Optional.ofNullable(query.getLatestValues()).orElse(Collections.emptyList()));</b>
+&nbsp;
+<b class="nc">&nbsp;        return !(filteringKeys.containsAll(entityFields) &amp;&amp; filteringKeys.containsAll(latestValues));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private PageData&lt;EntityData&gt; findEntityIdsByFilterAndSorterColumns(TenantId tenantId, CustomerId customerId, EntityDataQuery query) {
+<b class="nc">&nbsp;        List&lt;EntityKey&gt; entityFields = null;</b>
+<b class="nc">&nbsp;        List&lt;EntityKey&gt; latestValues = null;</b>
+<b class="nc">&nbsp;        if (query.getPageLink().getSortOrder() != null) {</b>
+<b class="nc">&nbsp;            if (query.getEntityFields() != null) {</b>
+<b class="nc">&nbsp;                entityFields = query.getEntityFields().stream()</b>
+<b class="nc">&nbsp;                        .filter(entityKey -&gt; entityKey.getKey().equals(query.getPageLink().getSortOrder().getKey().getKey()))</b>
+<b class="nc">&nbsp;                        .collect(Collectors.toList());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (query.getLatestValues() != null) {</b>
+<b class="nc">&nbsp;                latestValues = query.getLatestValues().stream()</b>
+<b class="nc">&nbsp;                        .filter(entityKey -&gt; entityKey.getKey().equals(query.getPageLink().getSortOrder().getKey().getKey()))</b>
+<b class="nc">&nbsp;                        .collect(Collectors.toList());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        EntityDataQuery entityQuery = new EntityDataQuery(query.getEntityFilter(), query.getPageLink(), entityFields, latestValues, query.getKeyFilters());</b>
+<b class="nc">&nbsp;        return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, entityQuery);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityData&gt; fetchEntityDataByIdsFromInitialQuery(TenantId tenantId, CustomerId customerId, EntityDataQuery query, List&lt;EntityData&gt; initialQueryResult) {
+<b class="nc">&nbsp;        List&lt;EntityData&gt; result = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;String&gt; entityIds = initialQueryResult.stream().map(d -&gt; d.getEntityId().getId().toString()).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        EntityType entityType = initialQueryResult.get(0).getEntityId().getEntityType();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (entityIds.size() &gt; MAX_ENTITY_IDS_SIZE) {</b>
+<b class="nc">&nbsp;            List&lt;List&lt;String&gt;&gt; chunks = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (int i = 0; i &lt; entityIds.size(); i += MAX_ENTITY_IDS_SIZE) {</b>
+<b class="nc">&nbsp;                chunks.add(entityIds.subList(i, Math.min(entityIds.size(), i + MAX_ENTITY_IDS_SIZE)));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            for (List&lt;String&gt; chunk : chunks) {</b>
+<b class="nc">&nbsp;                result.addAll(findEntityDataByEntityIds(tenantId, customerId, query, chunk, entityType, chunk.size()));</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            result.addAll(findEntityDataByEntityIds(tenantId, customerId, query, entityIds, entityType, query.getPageLink().getPageSize()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;EntityData&gt; findEntityDataByEntityIds(TenantId tenantId, CustomerId customerId, EntityDataQuery query,
+&nbsp;                                                       List&lt;String&gt; entityIds, EntityType entityType, int pageSize) {
+<b class="nc">&nbsp;        EntityListFilter filter = new EntityListFilter();</b>
+<b class="nc">&nbsp;        filter.setEntityType(entityType);</b>
+<b class="nc">&nbsp;        filter.setEntityList(entityIds);</b>
+&nbsp;
+<b class="nc">&nbsp;        EntityDataPageLink pageLink = new EntityDataPageLink(pageSize, 0, null, query.getPageLink().getSortOrder());</b>
+<b class="nc">&nbsp;        EntityDataQuery entityQuery = new EntityDataQuery(filter, pageLink, query.getEntityFields(), query.getLatestValues(), null);</b>
+<b class="nc">&nbsp;        return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, entityQuery).getData();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseTimeseriesService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.dao.timeseries</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseTimeseriesService (org.thingsboard.server.dao.timeseries)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseTimeseriesService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/76)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/118)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseTimeseriesService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/82)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/125)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.dao.timeseries;
+&nbsp;
+&nbsp;import com.google.common.base.Function;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import com.google.common.util.concurrent.MoreExecutors;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.checkerframework.checker.nullness.qual.Nullable;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.EntityView;
+&nbsp;import org.thingsboard.server.common.data.ObjectType;
+&nbsp;import org.thingsboard.server.common.data.edqs.LatestTsKv;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityViewId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.kv.Aggregation;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseDeleteTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+&nbsp;import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
+&nbsp;import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvEntry;
+&nbsp;import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
+&nbsp;import org.thingsboard.server.common.msg.edqs.EdqsService;
+&nbsp;import org.thingsboard.server.dao.entityview.EntityViewService;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.StringUtils.isBlank;
+&nbsp;
+&nbsp;/**
+&nbsp; * @author Andrew Shvayka
+&nbsp; */
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+<b class="nc">&nbsp;public class BaseTimeseriesService implements TimeseriesService {</b>
+&nbsp;
+&nbsp;    private static final int INSERTS_PER_ENTRY = 3;
+&nbsp;    private static final int INSERTS_PER_ENTRY_WITHOUT_LATEST = 2;
+&nbsp;    private static final int DELETES_PER_ENTRY = INSERTS_PER_ENTRY;
+<b class="nc">&nbsp;    public static final Function&lt;List&lt;Integer&gt;, Integer&gt; SUM_ALL_INTEGERS = new Function&lt;&gt;() {</b>
+&nbsp;        @Override
+&nbsp;        public @Nullable Integer apply(@Nullable List&lt;Integer&gt; input) {
+<b class="nc">&nbsp;            int result = 0;</b>
+<b class="nc">&nbsp;            if (input != null) {</b>
+<b class="nc">&nbsp;                for (Integer tmp : input) {</b>
+<b class="nc">&nbsp;                    if (tmp != null) {</b>
+<b class="nc">&nbsp;                        result += tmp;</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return result;</b>
+&nbsp;        }
+&nbsp;    };
+&nbsp;
+&nbsp;    @Value(&quot;${database.ts_max_intervals}&quot;)
+&nbsp;    private long maxTsIntervals;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TimeseriesDao timeseriesDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TimeseriesLatestDao timeseriesLatestDao;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EntityViewService entityViewService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EdqsService edqsService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;ReadTsKvQueryResult&gt;&gt; findAllByQueries(TenantId tenantId, EntityId entityId, List&lt;ReadTsKvQuery&gt; queries) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        queries.forEach(this::validate);</b>
+<b class="nc">&nbsp;        if (entityId.getEntityType().equals(EntityType.ENTITY_VIEW)) {</b>
+<b class="nc">&nbsp;            EntityView entityView = entityViewService.findEntityViewById(tenantId, (EntityViewId) entityId);</b>
+<b class="nc">&nbsp;            List&lt;String&gt; keys = entityView.getKeys() != null &amp;&amp; entityView.getKeys().getTimeseries() != null ?</b>
+<b class="nc">&nbsp;                    entityView.getKeys().getTimeseries() : Collections.emptyList();</b>
+<b class="nc">&nbsp;            List&lt;ReadTsKvQuery&gt; filteredQueries =</b>
+<b class="nc">&nbsp;                    queries.stream()</b>
+<b class="nc">&nbsp;                            .filter(query -&gt; keys.isEmpty() || keys.contains(query.getKey()))</b>
+<b class="nc">&nbsp;                            .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;            return timeseriesDao.findAllAsync(tenantId, entityView.getEntityId(), updateQueriesForEntityView(entityView, filteredQueries));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return timeseriesDao.findAllAsync(tenantId, entityId, queries);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; findAll(TenantId tenantId, EntityId entityId, List&lt;ReadTsKvQuery&gt; queries) {
+<b class="nc">&nbsp;        return Futures.transform(findAllByQueries(tenantId, entityId, queries),</b>
+&nbsp;                result -&gt; {
+<b class="nc">&nbsp;                    if (result != null &amp;&amp; !result.isEmpty()) {</b>
+<b class="nc">&nbsp;                        return result.stream().map(ReadTsKvQueryResult::getData).flatMap(Collection::stream).collect(Collectors.toList());</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return Collections.emptyList();</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Optional&lt;TsKvEntry&gt;&gt; findLatest(TenantId tenantId, EntityId entityId, String key) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        return timeseriesLatestDao.findLatestOpt(tenantId, entityId, key);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; findLatest(TenantId tenantId, EntityId entityId, Collection&lt;String&gt; keys) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;TsKvEntry&gt;&gt; futures = new ArrayList&lt;&gt;(keys.size());</b>
+<b class="nc">&nbsp;        keys.forEach(key -&gt; Validator.validateString(key, k -&gt; &quot;Incorrect key &quot; + k));</b>
+<b class="nc">&nbsp;        for (String key : keys) {</b>
+<b class="nc">&nbsp;            futures.add(timeseriesLatestDao.findLatest(tenantId, entityId, key));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.allAsList(futures);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TsKvEntry&gt;&gt; findAllLatest(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        return timeseriesLatestDao.findAllLatest(tenantId, entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId) {
+<b class="nc">&nbsp;        return timeseriesLatestDao.findAllKeysByDeviceProfileId(tenantId, deviceProfileId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;String&gt; findAllKeysByEntityIds(TenantId tenantId, List&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        return timeseriesLatestDao.findAllKeysByEntityIds(tenantId, entityIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;String&gt;&gt; findAllKeysByEntityIdsAsync(TenantId tenantId, List&lt;EntityId&gt; entityIds) {
+<b class="nc">&nbsp;        return timeseriesLatestDao.findAllKeysByEntityIdsAsync(tenantId, entityIds);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void cleanup(long systemTtl) {
+<b class="nc">&nbsp;        timeseriesDao.cleanup(systemTtl);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TimeseriesSaveResult&gt; save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        return doSave(tenantId, entityId, List.of(tsKvEntry), 0L, true, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TimeseriesSaveResult&gt; save(TenantId tenantId, EntityId entityId, List&lt;TsKvEntry&gt; tsKvEntries, long ttl) {
+<b class="nc">&nbsp;        return doSave(tenantId, entityId, tsKvEntries, ttl, true, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TimeseriesSaveResult&gt; saveWithoutLatest(TenantId tenantId, EntityId entityId, List&lt;TsKvEntry&gt; tsKvEntries, long ttl) {
+<b class="nc">&nbsp;        return doSave(tenantId, entityId, tsKvEntries, ttl, false, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;TimeseriesSaveResult&gt; saveLatest(TenantId tenantId, EntityId entityId, List&lt;TsKvEntry&gt; tsKvEntries) {
+<b class="nc">&nbsp;        return doSave(tenantId, entityId, tsKvEntries, 0L, true, false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TimeseriesSaveResult&gt; doSave(TenantId tenantId, EntityId entityId, List&lt;TsKvEntry&gt; tsKvEntries, long ttl, boolean saveLatest, boolean saveTs) {
+<b class="nc">&nbsp;        if (saveTs &amp;&amp; entityId.getEntityType().equals(EntityType.ENTITY_VIEW)) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Telemetry data can&#39;t be stored for entity view. Read only&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;Integer&gt;&gt; tsFutures = saveTs ? new ArrayList&lt;&gt;(tsKvEntries.size() * INSERTS_PER_ENTRY_WITHOUT_LATEST) : null;</b>
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;Long&gt;&gt; latestFutures = saveLatest ? new ArrayList&lt;&gt;(tsKvEntries.size()) : null;</b>
+<b class="nc">&nbsp;        for (TsKvEntry tsKvEntry : tsKvEntries) {</b>
+<b class="nc">&nbsp;            if (saveTs) {</b>
+<b class="nc">&nbsp;                tsFutures.add(timeseriesDao.savePartition(tenantId, entityId, tsKvEntry.getTs(), tsKvEntry.getKey()));</b>
+<b class="nc">&nbsp;                tsFutures.add(timeseriesDao.save(tenantId, entityId, tsKvEntry, ttl));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (saveLatest) {</b>
+<b class="nc">&nbsp;                latestFutures.add(Futures.transform(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry), version -&gt; {</b>
+<b class="nc">&nbsp;                    if (version != null) {</b>
+<b class="nc">&nbsp;                        TenantId edqsTenantId = entityId.getEntityType() == EntityType.TENANT ? (TenantId) entityId : tenantId;</b>
+<b class="nc">&nbsp;                        edqsService.onUpdate(edqsTenantId, ObjectType.LATEST_TS_KV, new LatestTsKv(entityId, tsKvEntry, version));</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                    return version;</b>
+<b class="nc">&nbsp;                }, MoreExecutors.directExecutor()));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        ListenableFuture&lt;Integer&gt; dpsFuture = saveTs ? Futures.transform(Futures.allAsList(tsFutures), SUM_ALL_INTEGERS, MoreExecutors.directExecutor()) : Futures.immediateFuture(0);</b>
+<b class="nc">&nbsp;        ListenableFuture&lt;List&lt;Long&gt;&gt; versionsFuture = saveLatest ? Futures.allAsList(latestFutures) : Futures.immediateFuture(null);</b>
+<b class="nc">&nbsp;        return Futures.whenAllComplete(dpsFuture, versionsFuture).call(() -&gt; {</b>
+<b class="nc">&nbsp;            Integer dataPoints = dpsFuture.get();</b>
+<b class="nc">&nbsp;            List&lt;Long&gt; versions = versionsFuture.get();</b>
+<b class="nc">&nbsp;            return TimeseriesSaveResult.of(dataPoints, versions);</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;ReadTsKvQuery&gt; updateQueriesForEntityView(EntityView entityView, List&lt;ReadTsKvQuery&gt; queries) {
+<b class="nc">&nbsp;        return queries.stream().map(query -&gt; {</b>
+&nbsp;            long startTs;
+<b class="nc">&nbsp;            if (entityView.getStartTimeMs() != 0 &amp;&amp; entityView.getStartTimeMs() &gt; query.getStartTs()) {</b>
+<b class="nc">&nbsp;                startTs = entityView.getStartTimeMs();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                startTs = query.getStartTs();</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            long endTs;
+<b class="nc">&nbsp;            if (entityView.getEndTimeMs() != 0 &amp;&amp; entityView.getEndTimeMs() &lt; query.getEndTs()) {</b>
+<b class="nc">&nbsp;                endTs = entityView.getEndTimeMs();</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                endTs = query.getEndTs();</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return new BaseReadTsKvQuery(query, startTs, endTs);</b>
+<b class="nc">&nbsp;        }).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TsKvLatestRemovingResult&gt;&gt; remove(TenantId tenantId, EntityId entityId, List&lt;DeleteTsKvQuery&gt; deleteTsKvQueries) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        deleteTsKvQueries.forEach(BaseTimeseriesService::validate);</b>
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;TsKvLatestRemovingResult&gt;&gt; futures = new ArrayList&lt;&gt;(deleteTsKvQueries.size() * DELETES_PER_ENTRY);</b>
+<b class="nc">&nbsp;        for (DeleteTsKvQuery tsKvQuery : deleteTsKvQueries) {</b>
+<b class="nc">&nbsp;            deleteAndRegisterFutures(tenantId, futures, entityId, tsKvQuery);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.allAsList(futures);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;TsKvLatestRemovingResult&gt;&gt; removeLatest(TenantId tenantId, EntityId entityId, Collection&lt;String&gt; keys) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        List&lt;ListenableFuture&lt;TsKvLatestRemovingResult&gt;&gt; futures = new ArrayList&lt;&gt;(keys.size());</b>
+<b class="nc">&nbsp;        for (String key : keys) {</b>
+<b class="nc">&nbsp;            DeleteTsKvQuery query = new BaseDeleteTsKvQuery(key, 0, System.currentTimeMillis(), false);</b>
+<b class="nc">&nbsp;            futures.add(doRemove(tenantId, entityId, query));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.allAsList(futures);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;List&lt;String&gt;&gt; removeAllLatest(TenantId tenantId, EntityId entityId) {
+<b class="nc">&nbsp;        validate(entityId);</b>
+<b class="nc">&nbsp;        return Futures.transformAsync(this.findAllLatest(tenantId, entityId), latest -&gt; {</b>
+<b class="nc">&nbsp;            if (latest != null &amp;&amp; !latest.isEmpty()) {</b>
+<b class="nc">&nbsp;                List&lt;String&gt; keys = latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList());</b>
+<b class="nc">&nbsp;                return Futures.transform(this.removeLatest(tenantId, entityId, keys), res -&gt; keys, MoreExecutors.directExecutor());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return Futures.immediateFuture(Collections.emptyList());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteAndRegisterFutures(TenantId tenantId, List&lt;ListenableFuture&lt;TsKvLatestRemovingResult&gt;&gt; futures, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        futures.add(Futures.transform(timeseriesDao.remove(tenantId, entityId, query), v -&gt; null, MoreExecutors.directExecutor()));</b>
+<b class="nc">&nbsp;        if (query.getDeleteLatest()) {</b>
+<b class="nc">&nbsp;            futures.add(doRemove(tenantId, entityId, query));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;TsKvLatestRemovingResult&gt; doRemove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        return Futures.transform(timeseriesLatestDao.removeLatest(tenantId, entityId, query), result -&gt; {</b>
+<b class="nc">&nbsp;            if (result.isRemoved()) {</b>
+<b class="nc">&nbsp;                Long version = result.getVersion();</b>
+<b class="nc">&nbsp;                TenantId edqsTenantId = entityId.getEntityType() == EntityType.TENANT ? (TenantId) entityId : tenantId;</b>
+<b class="nc">&nbsp;                edqsService.onDelete(edqsTenantId, ObjectType.LATEST_TS_KV, new LatestTsKv(entityId, query.getKey(), version));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return result;</b>
+<b class="nc">&nbsp;        }, MoreExecutors.directExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validate(EntityId entityId) {
+<b class="nc">&nbsp;        Validator.validateEntityId(entityId, id -&gt; &quot;Incorrect entityId &quot; + id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validate(ReadTsKvQuery query) {
+<b class="nc">&nbsp;        if (query == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;ReadTsKvQuery can&#39;t be null&quot;);</b>
+<b class="nc">&nbsp;        } else if (isBlank(query.getKey())) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Incorrect ReadTsKvQuery. Key can&#39;t be empty&quot;);</b>
+<b class="nc">&nbsp;        } else if (query.getAggregation() == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Incorrect ReadTsKvQuery. Aggregation can&#39;t be empty&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!Aggregation.NONE.equals(query.getAggregation())) {</b>
+<b class="nc">&nbsp;            long interval = query.getInterval();</b>
+<b class="nc">&nbsp;            if (interval &lt; 1) {</b>
+<b class="nc">&nbsp;                throw new IncorrectParameterException(&quot;Invalid TsKvQuery: &#39;interval&#39; must be greater than 0, but got &quot; + interval +</b>
+&nbsp;                        &quot;. Please check your query parameters and ensure &#39;endTs&#39; is greater than &#39;startTs&#39; or increase &#39;interval&#39;.&quot;);
+&nbsp;            }
+<b class="nc">&nbsp;            long step = Math.max(interval, 1000);</b>
+<b class="nc">&nbsp;            long intervalCounts = (query.getEndTs() - query.getStartTs()) / step;</b>
+<b class="nc">&nbsp;            if (intervalCounts &gt; maxTsIntervals || intervalCounts &lt; 0) {</b>
+<b class="nc">&nbsp;                throw new IncorrectParameterException(&quot;Incorrect TsKvQuery. Number of intervals is to high - &quot; + intervalCounts + &quot;. &quot; +</b>
+&nbsp;                        &quot;Please increase &#39;interval&#39; parameter for your query or reduce the time range of the query.&quot;);
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void validate(DeleteTsKvQuery query) {
+<b class="nc">&nbsp;        if (query == null) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;DeleteTsKvQuery can&#39;t be null&quot;);</b>
+<b class="nc">&nbsp;        } else if (isBlank(query.getKey())) {</b>
+<b class="nc">&nbsp;            throw new IncorrectParameterException(&quot;Incorrect DeleteTsKvQuery. Key can&#39;t be empty&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

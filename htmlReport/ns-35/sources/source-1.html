@@ -1,0 +1,565 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbHttpClient</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.rest</a>
+</div>
+
+<h1>Coverage Summary for Class: TbHttpClient (org.thingsboard.rule.engine.rest)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbHttpClient</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/118)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/190)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.rest;
+&nbsp;
+&nbsp;import io.netty.channel.EventLoopGroup;
+&nbsp;import io.netty.channel.nio.NioEventLoopGroup;
+&nbsp;import io.netty.handler.ssl.SslContext;
+&nbsp;import io.netty.handler.timeout.ReadTimeoutHandler;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.HttpMethod;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+&nbsp;import org.springframework.web.reactive.function.BodyInserters;
+&nbsp;import org.springframework.web.reactive.function.client.WebClient;
+&nbsp;import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
+&nbsp;import org.springframework.web.reactive.function.client.WebClientResponseException;
+&nbsp;import org.springframework.web.util.UriComponentsBuilder;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.rule.engine.credentials.BasicCredentials;
+&nbsp;import org.thingsboard.rule.engine.credentials.ClientCredentials;
+&nbsp;import org.thingsboard.rule.engine.credentials.CredentialsType;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.TbMsgMetaData;
+&nbsp;import reactor.netty.http.client.HttpClient;
+&nbsp;import reactor.netty.resources.ConnectionProvider;
+&nbsp;import reactor.netty.transport.ProxyProvider;
+&nbsp;
+&nbsp;import javax.net.ssl.SSLException;
+&nbsp;import java.net.URI;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.Base64;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Properties;
+&nbsp;import java.util.concurrent.Semaphore;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;@Data
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class TbHttpClient {
+&nbsp;
+&nbsp;    private static final String STATUS = &quot;status&quot;;
+&nbsp;    private static final String STATUS_CODE = &quot;statusCode&quot;;
+&nbsp;    private static final String STATUS_REASON = &quot;statusReason&quot;;
+&nbsp;    private static final String ERROR = &quot;error&quot;;
+&nbsp;    private static final String ERROR_BODY = &quot;error_body&quot;;
+&nbsp;    private static final String ERROR_SYSTEM_PROPERTIES = &quot;Didn&#39;t set any system proxy properties. Should be added next system proxy properties: \&quot;http.proxyHost\&quot; and \&quot;http.proxyPort\&quot; or  \&quot;https.proxyHost\&quot; and \&quot;https.proxyPort\&quot; or \&quot;socksProxyHost\&quot; and \&quot;socksProxyPort\&quot;&quot;;
+&nbsp;
+&nbsp;    private static final String HTTP_PROXY_HOST = &quot;http.proxyHost&quot;;
+&nbsp;    private static final String HTTP_PROXY_PORT = &quot;http.proxyPort&quot;;
+&nbsp;    private static final String HTTPS_PROXY_HOST = &quot;https.proxyHost&quot;;
+&nbsp;    private static final String HTTPS_PROXY_PORT = &quot;https.proxyPort&quot;;
+&nbsp;
+&nbsp;    private static final String SOCKS_PROXY_HOST = &quot;socksProxyHost&quot;;
+&nbsp;    private static final String SOCKS_PROXY_PORT = &quot;socksProxyPort&quot;;
+&nbsp;    private static final String SOCKS_VERSION = &quot;socksProxyVersion&quot;;
+&nbsp;    private static final String SOCKS_VERSION_5 = &quot;5&quot;;
+&nbsp;    private static final String SOCKS_VERSION_4 = &quot;4&quot;;
+&nbsp;    public static final String PROXY_USER = &quot;tb.proxy.user&quot;;
+&nbsp;    public static final String PROXY_PASSWORD = &quot;tb.proxy.password&quot;;
+&nbsp;
+&nbsp;    public static final String MAX_IN_MEMORY_BUFFER_SIZE_IN_KB = &quot;tb.http.maxInMemoryBufferSizeInKb&quot;;
+&nbsp;
+&nbsp;    private final TbRestApiCallNodeConfiguration config;
+&nbsp;
+&nbsp;    private EventLoopGroup eventLoopGroup;
+&nbsp;    private WebClient webClient;
+&nbsp;    private Semaphore semaphore;
+&nbsp;
+<b class="nc">&nbsp;    TbHttpClient(TbRestApiCallNodeConfiguration config, EventLoopGroup eventLoopGroupShared) throws TbNodeException {</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            this.config = config;</b>
+<b class="nc">&nbsp;            if (config.getMaxParallelRequestsCount() &gt; 0) {</b>
+<b class="nc">&nbsp;                semaphore = new Semaphore(config.getMaxParallelRequestsCount());</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            ConnectionProvider connectionProvider = ConnectionProvider</b>
+<b class="nc">&nbsp;                    .builder(&quot;rule-engine-http-client&quot;)</b>
+<b class="nc">&nbsp;                    .maxConnections(getPoolMaxConnections())</b>
+<b class="nc">&nbsp;                    .build();</b>
+&nbsp;
+<b class="nc">&nbsp;            HttpClient httpClient = HttpClient.create(connectionProvider)</b>
+<b class="nc">&nbsp;                    .runOn(getSharedOrCreateEventLoopGroup(eventLoopGroupShared))</b>
+<b class="nc">&nbsp;                    .doOnConnected(c -&gt;</b>
+<b class="nc">&nbsp;                            c.addHandlerLast(new ReadTimeoutHandler(config.getReadTimeoutMs(), TimeUnit.MILLISECONDS)));</b>
+&nbsp;
+<b class="nc">&nbsp;            if (config.isEnableProxy()) {</b>
+<b class="nc">&nbsp;                if (config.isUseSystemProxyProperties()) {</b>
+<b class="nc">&nbsp;                    checkSystemProxyProperties();</b>
+<b class="nc">&nbsp;                    httpClient = httpClient.proxy(this::createSystemProxyProvider);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    checkProxyHost(config.getProxyHost());</b>
+<b class="nc">&nbsp;                    checkProxyPort(config.getProxyPort());</b>
+<b class="nc">&nbsp;                    String proxyUser = config.getProxyUser();</b>
+<b class="nc">&nbsp;                    String proxyPassword = config.getProxyPassword();</b>
+&nbsp;
+<b class="nc">&nbsp;                    httpClient = httpClient.proxy(options -&gt; {</b>
+<b class="nc">&nbsp;                        var o = options.type(ProxyProvider.Proxy.HTTP)</b>
+<b class="nc">&nbsp;                                .host(config.getProxyHost())</b>
+<b class="nc">&nbsp;                                .port(config.getProxyPort());</b>
+&nbsp;
+<b class="nc">&nbsp;                        if (useAuth(proxyUser, proxyPassword)) {</b>
+<b class="nc">&nbsp;                            o.username(proxyUser).password(u -&gt; proxyPassword);</b>
+&nbsp;                        }
+&nbsp;                    });
+<b class="nc">&nbsp;                    SslContext sslContext = config.getCredentials().initSslContext();</b>
+<b class="nc">&nbsp;                    httpClient = httpClient.secure(t -&gt; t.sslContext(sslContext));</b>
+&nbsp;                }
+<b class="nc">&nbsp;            } else if (config.isUseSimpleClientHttpFactory()) {</b>
+<b class="nc">&nbsp;                if (CredentialsType.CERT_PEM == config.getCredentials().getType()) {</b>
+<b class="nc">&nbsp;                    throw new TbNodeException(&quot;Simple HTTP Factory does not support CERT PEM credentials!&quot;);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                SslContext sslContext = config.getCredentials().initSslContext();</b>
+<b class="nc">&nbsp;                httpClient = httpClient.secure(t -&gt; t.sslContext(sslContext));</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            validateMaxInMemoryBufferSize(config);</b>
+&nbsp;
+<b class="nc">&nbsp;            this.webClient = WebClient.builder()</b>
+<b class="nc">&nbsp;                    .clientConnector(new ReactorClientHttpConnector(httpClient))</b>
+<b class="nc">&nbsp;                    .codecs(configurer -&gt; configurer.defaultCodecs().maxInMemorySize(</b>
+<b class="nc">&nbsp;                            (config.getMaxInMemoryBufferSizeInKb() &gt; 0 ? config.getMaxInMemoryBufferSizeInKb() : 256) * 1024))</b>
+<b class="nc">&nbsp;                    .build();</b>
+&nbsp;        } catch (SSLException e) {
+<b class="nc">&nbsp;            throw new TbNodeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private int getPoolMaxConnections() {
+<b class="nc">&nbsp;        String poolMaxConnectionsEnv = System.getenv(&quot;TB_RE_HTTP_CLIENT_POOL_MAX_CONNECTIONS&quot;);</b>
+&nbsp;
+&nbsp;        int poolMaxConnections;
+<b class="nc">&nbsp;        if (poolMaxConnectionsEnv != null) {</b>
+<b class="nc">&nbsp;            poolMaxConnections = Integer.parseInt(poolMaxConnectionsEnv);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            poolMaxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return poolMaxConnections;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateMaxInMemoryBufferSize(TbRestApiCallNodeConfiguration config) throws TbNodeException {
+<b class="nc">&nbsp;        int systemMaxInMemoryBufferSizeInKb = 25000;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            Properties properties = System.getProperties();</b>
+<b class="nc">&nbsp;            if (properties.containsKey(MAX_IN_MEMORY_BUFFER_SIZE_IN_KB)) {</b>
+<b class="nc">&nbsp;                systemMaxInMemoryBufferSizeInKb = Integer.parseInt(properties.getProperty(MAX_IN_MEMORY_BUFFER_SIZE_IN_KB));</b>
+&nbsp;            }
+&nbsp;        } catch (Exception ignored) {}
+<b class="nc">&nbsp;        if (config.getMaxInMemoryBufferSizeInKb() &gt; systemMaxInMemoryBufferSizeInKb) {</b>
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;The configured maximum in-memory buffer size (in KB) exceeds the system limit for this parameter.\n&quot; +</b>
+&nbsp;                    &quot;The system limit is &quot; + systemMaxInMemoryBufferSizeInKb + &quot; KB.\n&quot; +
+&nbsp;                    &quot;Please use the system variable &#39;&quot; + MAX_IN_MEMORY_BUFFER_SIZE_IN_KB + &quot;&#39; to override the system limit.&quot;);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    EventLoopGroup getSharedOrCreateEventLoopGroup(EventLoopGroup eventLoopGroupShared) {
+<b class="nc">&nbsp;        if (eventLoopGroupShared != null) {</b>
+<b class="nc">&nbsp;            return eventLoopGroupShared;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return this.eventLoopGroup = new NioEventLoopGroup();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkSystemProxyProperties() throws TbNodeException {
+<b class="nc">&nbsp;        boolean useHttpProxy = !StringUtils.isEmpty(System.getProperty(&quot;http.proxyHost&quot;)) &amp;&amp; !StringUtils.isEmpty(System.getProperty(&quot;http.proxyPort&quot;));</b>
+<b class="nc">&nbsp;        boolean useHttpsProxy = !StringUtils.isEmpty(System.getProperty(&quot;https.proxyHost&quot;)) &amp;&amp; !StringUtils.isEmpty(System.getProperty(&quot;https.proxyPort&quot;));</b>
+<b class="nc">&nbsp;        boolean useSocksProxy = !StringUtils.isEmpty(System.getProperty(&quot;socksProxyHost&quot;)) &amp;&amp; !StringUtils.isEmpty(System.getProperty(&quot;socksProxyPort&quot;));</b>
+<b class="nc">&nbsp;        if (!(useHttpProxy || useHttpsProxy || useSocksProxy)) {</b>
+<b class="nc">&nbsp;            log.warn(ERROR_SYSTEM_PROPERTIES);</b>
+<b class="nc">&nbsp;            throw new TbNodeException(ERROR_SYSTEM_PROPERTIES);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean useAuth(String proxyUser, String proxyPassword) {
+<b class="nc">&nbsp;        return !StringUtils.isEmpty(proxyUser) &amp;&amp; !StringUtils.isEmpty(proxyPassword);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void destroy() {
+<b class="nc">&nbsp;        if (this.eventLoopGroup != null) {</b>
+<b class="nc">&nbsp;            this.eventLoopGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void processMessage(TbContext ctx, TbMsg msg,
+&nbsp;                               Consumer&lt;TbMsg&gt; onSuccess,
+&nbsp;                               BiConsumer&lt;TbMsg, Throwable&gt; onFailure) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (semaphore != null &amp;&amp; !semaphore.tryAcquire(config.getReadTimeoutMs(), TimeUnit.MILLISECONDS)) {</b>
+<b class="nc">&nbsp;                onFailure.accept(msg, new RuntimeException(&quot;Timeout during waiting for reply!&quot;));</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String endpointUrl = TbNodeUtils.processPattern(config.getRestEndpointUrlPattern(), msg);</b>
+<b class="nc">&nbsp;            HttpMethod method = HttpMethod.valueOf(config.getRequestMethod());</b>
+<b class="nc">&nbsp;            URI uri = buildEncodedUri(endpointUrl);</b>
+&nbsp;
+<b class="nc">&nbsp;            RequestBodySpec request = webClient</b>
+<b class="nc">&nbsp;                    .method(method)</b>
+<b class="nc">&nbsp;                    .uri(uri)</b>
+<b class="nc">&nbsp;                    .headers(headers -&gt; prepareHeaders(headers, msg));</b>
+&nbsp;
+<b class="nc">&nbsp;            if ((HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method) ||</b>
+<b class="nc">&nbsp;                    HttpMethod.PATCH.equals(method) || HttpMethod.DELETE.equals(method)) &amp;&amp;</b>
+<b class="nc">&nbsp;                    !config.isIgnoreRequestBody()) {</b>
+<b class="nc">&nbsp;                request.body(BodyInserters.fromValue(getData(msg, config.isParseToPlainText())));</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            request</b>
+<b class="nc">&nbsp;                    .retrieve()</b>
+<b class="nc">&nbsp;                    .toEntity(String.class)</b>
+<b class="nc">&nbsp;                    .subscribe(responseEntity -&gt; {</b>
+<b class="nc">&nbsp;                        if (semaphore != null) {</b>
+<b class="nc">&nbsp;                            semaphore.release();</b>
+&nbsp;                        }
+&nbsp;
+<b class="nc">&nbsp;                        if (responseEntity.getStatusCode().is2xxSuccessful()) {</b>
+<b class="nc">&nbsp;                            onSuccess.accept(processResponse(ctx, msg, responseEntity));</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            onFailure.accept(processFailureResponse(msg, responseEntity), null);</b>
+&nbsp;                        }
+&nbsp;                    }, throwable -&gt; {
+<b class="nc">&nbsp;                        if (semaphore != null) {</b>
+<b class="nc">&nbsp;                            semaphore.release();</b>
+&nbsp;                        }
+&nbsp;
+<b class="nc">&nbsp;                        onFailure.accept(processException(msg, throwable), processThrowable(throwable));</b>
+&nbsp;                    });
+&nbsp;        } catch (InterruptedException e) {
+<b class="nc">&nbsp;            log.warn(&quot;Timeout during waiting for reply!&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Throwable processThrowable(Throwable origin) {
+<b class="nc">&nbsp;        if (origin instanceof WebClientResponseException restClientResponseException</b>
+<b class="nc">&nbsp;                &amp;&amp; restClientResponseException.getStatusCode().is2xxSuccessful()) {</b>
+&nbsp;            // return cause instead of original exception in case 2xx status code
+&nbsp;            // this will provide meaningful error message to the user
+<b class="nc">&nbsp;            return new RuntimeException(restClientResponseException.getCause());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return origin;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public URI buildEncodedUri(String endpointUrl) {
+<b class="nc">&nbsp;        if (endpointUrl == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Url string cannot be null!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (endpointUrl.isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Url string cannot be empty!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        URI uri = UriComponentsBuilder.fromUriString(endpointUrl).build().encode().toUri();</b>
+<b class="nc">&nbsp;        if (uri.getScheme() == null || uri.getScheme().isEmpty()) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Transport scheme(protocol) must be provided!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean authorityNotValid = uri.getAuthority() == null || uri.getAuthority().isEmpty();</b>
+<b class="nc">&nbsp;        boolean hostNotValid = uri.getHost() == null || uri.getHost().isEmpty();</b>
+<b class="nc">&nbsp;        if (authorityNotValid || hostNotValid) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Url string is invalid!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return uri;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Object getData(TbMsg tbMsg, boolean parseToPlainText) {
+<b class="nc">&nbsp;        String data = tbMsg.getData();</b>
+<b class="nc">&nbsp;        return parseToPlainText ? JacksonUtil.toPlainText(data) : JacksonUtil.toJsonNode(data);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg processResponse(TbContext ctx, TbMsg origMsg, ResponseEntity&lt;String&gt; response) {
+<b class="nc">&nbsp;        TbMsgMetaData metaData = origMsg.getMetaData();</b>
+<b class="nc">&nbsp;        HttpStatus httpStatus = (HttpStatus) response.getStatusCode();</b>
+<b class="nc">&nbsp;        metaData.putValue(STATUS, httpStatus.name());</b>
+<b class="nc">&nbsp;        metaData.putValue(STATUS_CODE, response.getStatusCode().value() + &quot;&quot;);</b>
+<b class="nc">&nbsp;        metaData.putValue(STATUS_REASON, httpStatus.getReasonPhrase());</b>
+<b class="nc">&nbsp;        headersToMetaData(response.getHeaders(), metaData::putValue);</b>
+<b class="nc">&nbsp;        String body = response.getBody() == null ? TbMsg.EMPTY_JSON_OBJECT : response.getBody();</b>
+<b class="nc">&nbsp;        return ctx.transformMsg(origMsg, metaData, body);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    void headersToMetaData(Map&lt;String, List&lt;String&gt;&gt; headers, BiConsumer&lt;String, String&gt; consumer) {
+<b class="nc">&nbsp;        if (headers == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        headers.forEach((key, values) -&gt; {</b>
+<b class="nc">&nbsp;            if (values != null &amp;&amp; !values.isEmpty()) {</b>
+<b class="nc">&nbsp;                if (values.size() == 1) {</b>
+<b class="nc">&nbsp;                    consumer.accept(key, values.get(0));</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    consumer.accept(key, JacksonUtil.toString(values));</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg processFailureResponse(TbMsg origMsg, ResponseEntity&lt;String&gt; response) {
+<b class="nc">&nbsp;        HttpStatus httpStatus = (HttpStatus) response.getStatusCode();</b>
+<b class="nc">&nbsp;        TbMsgMetaData metaData = origMsg.getMetaData();</b>
+<b class="nc">&nbsp;        metaData.putValue(STATUS, httpStatus.name());</b>
+<b class="nc">&nbsp;        metaData.putValue(STATUS_CODE, httpStatus.value() + &quot;&quot;);</b>
+<b class="nc">&nbsp;        metaData.putValue(STATUS_REASON, httpStatus.getReasonPhrase());</b>
+<b class="nc">&nbsp;        metaData.putValue(ERROR_BODY, response.getBody());</b>
+<b class="nc">&nbsp;        headersToMetaData(response.getHeaders(), metaData::putValue);</b>
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbMsg processException(TbMsg origMsg, Throwable e) {
+<b class="nc">&nbsp;        TbMsgMetaData metaData = origMsg.getMetaData();</b>
+<b class="nc">&nbsp;        metaData.putValue(ERROR, e.getClass() + &quot;: &quot; + e.getMessage());</b>
+<b class="nc">&nbsp;        if (e instanceof WebClientResponseException restClientResponseException) {</b>
+<b class="nc">&nbsp;            metaData.putValue(STATUS, restClientResponseException.getStatusText());</b>
+<b class="nc">&nbsp;            metaData.putValue(STATUS_CODE, restClientResponseException.getStatusCode().value() + &quot;&quot;);</b>
+<b class="nc">&nbsp;            metaData.putValue(ERROR_BODY, restClientResponseException.getResponseBodyAsString());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return origMsg.transform()</b>
+<b class="nc">&nbsp;                .metaData(metaData)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void prepareHeaders(HttpHeaders headers, TbMsg msg) {
+<b class="nc">&nbsp;        config.getHeaders().forEach((k, v) -&gt; headers.add(TbNodeUtils.processPattern(k, msg), TbNodeUtils.processPattern(v, msg)));</b>
+<b class="nc">&nbsp;        ClientCredentials credentials = config.getCredentials();</b>
+<b class="nc">&nbsp;        if (CredentialsType.BASIC == credentials.getType()) {</b>
+<b class="nc">&nbsp;            BasicCredentials basicCredentials = (BasicCredentials) credentials;</b>
+<b class="nc">&nbsp;            String authString = basicCredentials.getUsername() + &quot;:&quot; + basicCredentials.getPassword();</b>
+<b class="nc">&nbsp;            String encodedAuthString = new String(Base64.getEncoder().encode(authString.getBytes(StandardCharsets.UTF_8)));</b>
+<b class="nc">&nbsp;            headers.add(&quot;Authorization&quot;, &quot;Basic &quot; + encodedAuthString);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkProxyHost(String proxyHost) {
+<b class="nc">&nbsp;        if (StringUtils.isEmpty(proxyHost)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Proxy host can&#39;t be empty&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void checkProxyPort(int proxyPort) {
+<b class="nc">&nbsp;        if (proxyPort &lt; 0 || proxyPort &gt; 65535) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Proxy port out of range:&quot; + proxyPort);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createSystemProxyProvider(ProxyProvider.TypeSpec option) {
+<b class="nc">&nbsp;        Properties properties = System.getProperties();</b>
+<b class="nc">&nbsp;        if (properties.containsKey(HTTP_PROXY_HOST) || properties.containsKey(HTTPS_PROXY_HOST)) {</b>
+<b class="nc">&nbsp;            createHttpProxyFrom(option, properties);</b>
+<b class="nc">&nbsp;        } else if (properties.containsKey(SOCKS_PROXY_HOST)) {</b>
+<b class="nc">&nbsp;            createSocksProxyFrom(option, properties);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createHttpProxyFrom(ProxyProvider.TypeSpec option, Properties properties) {
+&nbsp;        String hostProperty;
+&nbsp;        String portProperty;
+<b class="nc">&nbsp;        if (properties.containsKey(HTTPS_PROXY_HOST)) {</b>
+<b class="nc">&nbsp;            hostProperty = HTTPS_PROXY_HOST;</b>
+<b class="nc">&nbsp;            portProperty = HTTPS_PROXY_PORT;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            hostProperty = HTTP_PROXY_HOST;</b>
+<b class="nc">&nbsp;            portProperty = HTTP_PROXY_PORT;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String hostname = properties.getProperty(hostProperty);</b>
+<b class="nc">&nbsp;        int port = Integer.parseInt(properties.getProperty(portProperty));</b>
+&nbsp;
+<b class="nc">&nbsp;        checkProxyHost(hostname);</b>
+<b class="nc">&nbsp;        checkProxyPort(port);</b>
+&nbsp;
+<b class="nc">&nbsp;        var proxy = option</b>
+<b class="nc">&nbsp;                .type(ProxyProvider.Proxy.HTTP)</b>
+<b class="nc">&nbsp;                .host(hostname)</b>
+<b class="nc">&nbsp;                .port(port);</b>
+&nbsp;
+<b class="nc">&nbsp;        var proxyUser = properties.getProperty(PROXY_USER);</b>
+<b class="nc">&nbsp;        var proxyPassword = properties.getProperty(PROXY_PASSWORD);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (useAuth(proxyUser, proxyPassword)) {</b>
+<b class="nc">&nbsp;            proxy.username(proxyUser).password(u -&gt; proxyPassword);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createSocksProxyFrom(ProxyProvider.TypeSpec option, Properties properties) {
+<b class="nc">&nbsp;        String hostname = properties.getProperty(SOCKS_PROXY_HOST);</b>
+<b class="nc">&nbsp;        String version = properties.getProperty(SOCKS_VERSION, SOCKS_VERSION_5);</b>
+<b class="nc">&nbsp;        if (!SOCKS_VERSION_5.equals(version) &amp;&amp; !SOCKS_VERSION_4.equals(version)) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(String.format(&quot;Wrong socks version %s! Supported only socks versions 4 and 5.&quot;, version));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        ProxyProvider.Proxy type = SOCKS_VERSION_5.equals(version) ? ProxyProvider.Proxy.SOCKS5 : ProxyProvider.Proxy.SOCKS4;</b>
+<b class="nc">&nbsp;        int port = Integer.parseInt(properties.getProperty(SOCKS_PROXY_PORT));</b>
+&nbsp;
+<b class="nc">&nbsp;        checkProxyHost(hostname);</b>
+<b class="nc">&nbsp;        checkProxyPort(port);</b>
+&nbsp;
+<b class="nc">&nbsp;        ProxyProvider.Builder proxy = option</b>
+<b class="nc">&nbsp;                .type(type)</b>
+<b class="nc">&nbsp;                .host(hostname)</b>
+<b class="nc">&nbsp;                .port(port);</b>
+&nbsp;
+<b class="nc">&nbsp;        var proxyUser = properties.getProperty(PROXY_USER);</b>
+<b class="nc">&nbsp;        var proxyPassword = properties.getProperty(PROXY_PASSWORD);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (useAuth(proxyUser, proxyPassword)) {</b>
+<b class="nc">&nbsp;            proxy.username(proxyUser).password(u -&gt; proxyPassword);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

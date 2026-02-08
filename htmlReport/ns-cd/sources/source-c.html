@@ -1,0 +1,1238 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseController (org.thingsboard.server.controller)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/86)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/140)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/290)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BaseController$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/87)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/140)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/291)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.controller;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import jakarta.mail.MessagingException;
+&nbsp;import jakarta.servlet.ServletOutputStream;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;import jakarta.validation.ConstraintViolation;
+&nbsp;import lombok.Getter;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.dao.DataAccessException;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.core.Authentication;
+&nbsp;import org.springframework.security.core.context.SecurityContextHolder;
+&nbsp;import org.springframework.web.bind.MethodArgumentNotValidException;
+&nbsp;import org.springframework.web.bind.annotation.ExceptionHandler;
+&nbsp;import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
+&nbsp;import org.springframework.web.context.request.async.DeferredResult;
+&nbsp;import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+&nbsp;import org.thingsboard.common.util.DonAsynchron;
+&nbsp;import org.thingsboard.common.util.JacksonUtil;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.Customer;
+&nbsp;import org.thingsboard.server.common.data.Dashboard;
+&nbsp;import org.thingsboard.server.common.data.DashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.Device;
+&nbsp;import org.thingsboard.server.common.data.DeviceInfo;
+&nbsp;import org.thingsboard.server.common.data.DeviceProfile;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.EntityView;
+&nbsp;import org.thingsboard.server.common.data.EntityViewInfo;
+&nbsp;import org.thingsboard.server.common.data.HasName;
+&nbsp;import org.thingsboard.server.common.data.HasTenantId;
+&nbsp;import org.thingsboard.server.common.data.HomeDashboardInfo;
+&nbsp;import org.thingsboard.server.common.data.OtaPackage;
+&nbsp;import org.thingsboard.server.common.data.OtaPackageInfo;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.TbResource;
+&nbsp;import org.thingsboard.server.common.data.TbResourceInfo;
+&nbsp;import org.thingsboard.server.common.data.Tenant;
+&nbsp;import org.thingsboard.server.common.data.TenantInfo;
+&nbsp;import org.thingsboard.server.common.data.TenantProfile;
+&nbsp;import org.thingsboard.server.common.data.User;
+&nbsp;import org.thingsboard.server.common.data.ai.AiModel;
+&nbsp;import org.thingsboard.server.common.data.alarm.Alarm;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmComment;
+&nbsp;import org.thingsboard.server.common.data.alarm.AlarmInfo;
+&nbsp;import org.thingsboard.server.common.data.asset.Asset;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetInfo;
+&nbsp;import org.thingsboard.server.common.data.asset.AssetProfile;
+&nbsp;import org.thingsboard.server.common.data.audit.ActionType;
+&nbsp;import org.thingsboard.server.common.data.cf.CalculatedField;
+&nbsp;import org.thingsboard.server.common.data.domain.Domain;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeInfo;
+&nbsp;import org.thingsboard.server.common.data.exception.EntityVersionMismatchException;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+&nbsp;import org.thingsboard.server.common.data.exception.ThingsboardException;
+&nbsp;import org.thingsboard.server.common.data.id.AiModelId;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmCommentId;
+&nbsp;import org.thingsboard.server.common.data.id.AlarmId;
+&nbsp;import org.thingsboard.server.common.data.id.ApiKeyId;
+&nbsp;import org.thingsboard.server.common.data.id.AssetId;
+&nbsp;import org.thingsboard.server.common.data.id.AssetProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.CalculatedFieldId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DashboardId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.DomainId;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.id.EntityViewId;
+&nbsp;import org.thingsboard.server.common.data.id.HasId;
+&nbsp;import org.thingsboard.server.common.data.id.JobId;
+&nbsp;import org.thingsboard.server.common.data.id.MobileAppBundleId;
+&nbsp;import org.thingsboard.server.common.data.id.MobileAppId;
+&nbsp;import org.thingsboard.server.common.data.id.NotificationTargetId;
+&nbsp;import org.thingsboard.server.common.data.id.OAuth2ClientId;
+&nbsp;import org.thingsboard.server.common.data.id.OtaPackageId;
+&nbsp;import org.thingsboard.server.common.data.id.QueueId;
+&nbsp;import org.thingsboard.server.common.data.id.RpcId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleChainId;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TbResourceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.UUIDBased;
+&nbsp;import org.thingsboard.server.common.data.id.UserId;
+&nbsp;import org.thingsboard.server.common.data.id.WidgetTypeId;
+&nbsp;import org.thingsboard.server.common.data.id.WidgetsBundleId;
+&nbsp;import org.thingsboard.server.common.data.job.Job;
+&nbsp;import org.thingsboard.server.common.data.mobile.app.MobileApp;
+&nbsp;import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+&nbsp;import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+&nbsp;import org.thingsboard.server.common.data.oauth2.OAuth2Client;
+&nbsp;import org.thingsboard.server.common.data.page.PageLink;
+&nbsp;import org.thingsboard.server.common.data.page.SortOrder;
+&nbsp;import org.thingsboard.server.common.data.page.TimePageLink;
+&nbsp;import org.thingsboard.server.common.data.pat.ApiKey;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+&nbsp;import org.thingsboard.server.common.data.query.EntityKey;
+&nbsp;import org.thingsboard.server.common.data.queue.Queue;
+&nbsp;import org.thingsboard.server.common.data.rpc.Rpc;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChain;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleChainType;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNode;
+&nbsp;import org.thingsboard.server.common.data.security.UserCredentials;
+&nbsp;import org.thingsboard.server.common.data.util.ThrowingBiFunction;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
+&nbsp;import org.thingsboard.server.common.data.widget.WidgetsBundle;
+&nbsp;import org.thingsboard.server.dao.ai.AiModelService;
+&nbsp;import org.thingsboard.server.dao.alarm.AlarmCommentService;
+&nbsp;import org.thingsboard.server.dao.asset.AssetProfileService;
+&nbsp;import org.thingsboard.server.dao.asset.AssetService;
+&nbsp;import org.thingsboard.server.dao.attributes.AttributesService;
+&nbsp;import org.thingsboard.server.dao.audit.AuditLogService;
+&nbsp;import org.thingsboard.server.dao.cf.CalculatedFieldService;
+&nbsp;import org.thingsboard.server.dao.customer.CustomerService;
+&nbsp;import org.thingsboard.server.dao.dashboard.DashboardService;
+&nbsp;import org.thingsboard.server.dao.device.ClaimDevicesService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceCredentialsService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceProfileService;
+&nbsp;import org.thingsboard.server.dao.device.DeviceService;
+&nbsp;import org.thingsboard.server.dao.domain.DomainService;
+&nbsp;import org.thingsboard.server.dao.edge.EdgeService;
+&nbsp;import org.thingsboard.server.dao.entityview.EntityViewService;
+&nbsp;import org.thingsboard.server.dao.exception.IncorrectParameterException;
+&nbsp;import org.thingsboard.server.dao.job.JobService;
+&nbsp;import org.thingsboard.server.dao.mobile.MobileAppBundleService;
+&nbsp;import org.thingsboard.server.dao.mobile.MobileAppService;
+&nbsp;import org.thingsboard.server.dao.model.ModelConstants;
+&nbsp;import org.thingsboard.server.dao.notification.NotificationTargetService;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
+&nbsp;import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
+&nbsp;import org.thingsboard.server.dao.ota.OtaPackageService;
+&nbsp;import org.thingsboard.server.dao.pat.ApiKeyService;
+&nbsp;import org.thingsboard.server.dao.queue.QueueService;
+&nbsp;import org.thingsboard.server.dao.relation.RelationService;
+&nbsp;import org.thingsboard.server.dao.resource.ResourceService;
+&nbsp;import org.thingsboard.server.dao.rpc.RpcService;
+&nbsp;import org.thingsboard.server.dao.rule.RuleChainService;
+&nbsp;import org.thingsboard.server.dao.service.ConstraintValidator;
+&nbsp;import org.thingsboard.server.dao.service.Validator;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantProfileService;
+&nbsp;import org.thingsboard.server.dao.tenant.TenantService;
+&nbsp;import org.thingsboard.server.dao.user.UserService;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetTypeService;
+&nbsp;import org.thingsboard.server.dao.widget.WidgetsBundleService;
+&nbsp;import org.thingsboard.server.exception.DataValidationException;
+&nbsp;import org.thingsboard.server.exception.EntitiesLimitExceededException;
+&nbsp;import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+&nbsp;import org.thingsboard.server.queue.util.TbCoreComponent;
+&nbsp;import org.thingsboard.server.service.action.EntityActionService;
+&nbsp;import org.thingsboard.server.service.component.ComponentDiscoveryService;
+&nbsp;import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
+&nbsp;import org.thingsboard.server.service.entitiy.ai.TbAiModelService;
+&nbsp;import org.thingsboard.server.service.entitiy.user.TbUserSettingsService;
+&nbsp;import org.thingsboard.server.service.ota.OtaPackageStateService;
+&nbsp;import org.thingsboard.server.service.profile.TbAssetProfileCache;
+&nbsp;import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+&nbsp;import org.thingsboard.server.service.security.model.SecurityUser;
+&nbsp;import org.thingsboard.server.service.security.permission.AccessControlService;
+&nbsp;import org.thingsboard.server.service.security.permission.Operation;
+&nbsp;import org.thingsboard.server.service.security.permission.Resource;
+&nbsp;import org.thingsboard.server.service.state.DeviceStateService;
+&nbsp;import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
+&nbsp;import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
+&nbsp;import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
+&nbsp;import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.net.URI;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutionException;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;import java.util.function.BiFunction;
+&nbsp;import java.util.function.Function;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.zip.GZIPOutputStream;
+&nbsp;
+&nbsp;import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
+&nbsp;import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_DASHBOARD;
+&nbsp;import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
+&nbsp;import static org.thingsboard.server.controller.UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION;
+&nbsp;import static org.thingsboard.server.dao.service.Validator.validateId;
+&nbsp;
+&nbsp;@TbCoreComponent
+<b class="nc">&nbsp;public abstract class BaseController {</b>
+&nbsp;
+&nbsp;    protected static final String HOME_DASHBOARD_ID = &quot;homeDashboardId&quot;;
+&nbsp;    protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = &quot;homeDashboardHideToolbar&quot;;
+&nbsp;
+<b class="nc">&nbsp;    protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());</b>
+&nbsp;
+&nbsp;    /*Swagger UI description*/
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ThingsboardErrorResponseHandler errorResponseHandler;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AccessControlService accessControlService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TenantService tenantService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TenantProfileService tenantProfileService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected CustomerService customerService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected UserService userService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbUserSettingsService userSettingsService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected DeviceService deviceService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected DeviceProfileService deviceProfileService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AssetService assetService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AssetProfileService assetProfileService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AlarmSubscriptionService alarmService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AlarmCommentService alarmCommentService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected DeviceCredentialsService deviceCredentialsService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected WidgetsBundleService widgetsBundleService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected WidgetTypeService widgetTypeService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected DashboardService dashboardService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected OAuth2ClientService oAuth2ClientService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected DomainService domainService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected MobileAppService mobileAppService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected MobileAppBundleService mobileAppBundleService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected OAuth2ConfigTemplateService oAuth2ConfigTemplateService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ComponentDiscoveryService componentDescriptorService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected RuleChainService ruleChainService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbClusterService tbClusterService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected RelationService relationService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AuditLogService auditLogService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected DeviceStateService deviceStateService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected EntityViewService entityViewService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TelemetrySubscriptionService tsSubService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AttributesService attributesService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ClaimDevicesService claimDevicesService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected PartitionService partitionService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ResourceService resourceService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected OtaPackageService otaPackageService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected OtaPackageStateService otaPackageStateService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected RpcService rpcService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbQueueProducerProvider producerProvider;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbTenantProfileCache tenantProfileCache;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbDeviceProfileCache deviceProfileCache;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbAssetProfileCache assetProfileCache;
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    protected EdgeService edgeService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbLogEntityActionService logEntityActionService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected EntityActionService entityActionService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected QueueService queueService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected EntitiesVersionControlService vcService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ExportableEntitiesService entitiesService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbServiceInfoProvider serviceInfoProvider;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected NotificationTargetService notificationTargetService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected JobService jobService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected CalculatedFieldService calculatedFieldService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected AiModelService aiModelService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected TbAiModelService tbAiModelService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    protected ApiKeyService apiKeyService;
+&nbsp;
+&nbsp;    @Value(&quot;${server.log_controller_error_stack_trace}&quot;)
+&nbsp;    @Getter
+&nbsp;    private boolean logControllerErrorStackTrace;
+&nbsp;
+&nbsp;    @Value(&quot;${edges.enabled}&quot;)
+&nbsp;    @Getter
+&nbsp;    protected boolean edgesEnabled;
+&nbsp;
+&nbsp;    @ExceptionHandler(Exception.class)
+&nbsp;    public void handleControllerException(Exception e, HttpServletResponse response) {
+<b class="nc">&nbsp;        ThingsboardException thingsboardException = handleException(e);</b>
+<b class="nc">&nbsp;        if (thingsboardException.getErrorCode() == ThingsboardErrorCode.GENERAL &amp;&amp; thingsboardException.getCause() instanceof Exception</b>
+<b class="nc">&nbsp;                &amp;&amp; StringUtils.equals(thingsboardException.getCause().getMessage(), thingsboardException.getMessage())) {</b>
+<b class="nc">&nbsp;            e = (Exception) thingsboardException.getCause();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            e = thingsboardException;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        errorResponseHandler.handle(e, response);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ExceptionHandler(ThingsboardException.class)
+&nbsp;    public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
+<b class="nc">&nbsp;        errorResponseHandler.handle(ex, response);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @deprecated Exceptions that are not of {@link ThingsboardException} type
+&nbsp;     * are now caught and mapped to {@link ThingsboardException} by
+&nbsp;     * {@link ExceptionHandler} {@link BaseController#handleControllerException(Exception, HttpServletResponse)}
+&nbsp;     * which basically acts like the following boilerplate:
+&nbsp;     * {@code
+&nbsp;     *  try {
+&nbsp;     *      someExceptionThrowingMethod();
+&nbsp;     *  } catch (Exception e) {
+&nbsp;     *      throw handleException(e);
+&nbsp;     *  }
+&nbsp;     * }
+&nbsp;     * */
+&nbsp;    @Deprecated
+&nbsp;    ThingsboardException handleException(Exception exception) {
+<b class="nc">&nbsp;        return handleException(exception, true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ThingsboardException handleException(Throwable exception, boolean logException) {
+<b class="nc">&nbsp;        if (logException &amp;&amp; logControllerErrorStackTrace) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;                log.error(&quot;[{}][{}] Error&quot;, user.getTenantId(), user.getId(), exception);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;Error&quot;, exception);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Throwable cause = exception.getCause();</b>
+<b class="nc">&nbsp;        if (exception instanceof ExecutionException) {</b>
+<b class="nc">&nbsp;            exception = cause;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (exception instanceof ThingsboardException) {</b>
+<b class="nc">&nbsp;            return (ThingsboardException) exception;</b>
+<b class="nc">&nbsp;        } else if (exception instanceof EntitiesLimitExceededException) {</b>
+<b class="nc">&nbsp;            return new ThingsboardException(exception, ThingsboardErrorCode.ENTITIES_LIMIT_EXCEEDED);</b>
+<b class="nc">&nbsp;        } else if (exception instanceof IllegalArgumentException || exception instanceof IncorrectParameterException</b>
+&nbsp;                || exception instanceof DataValidationException || cause instanceof IncorrectParameterException) {
+<b class="nc">&nbsp;            return new ThingsboardException(exception.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;        } else if (exception instanceof MessagingException) {</b>
+<b class="nc">&nbsp;            return new ThingsboardException(&quot;Unable to send mail&quot;, ThingsboardErrorCode.GENERAL);</b>
+<b class="nc">&nbsp;        } else if (exception instanceof AsyncRequestTimeoutException) {</b>
+<b class="nc">&nbsp;            return new ThingsboardException(&quot;Request timeout&quot;, ThingsboardErrorCode.GENERAL);</b>
+<b class="nc">&nbsp;        } else if (exception instanceof DataAccessException) {</b>
+<b class="nc">&nbsp;            return new ThingsboardException(exception, ThingsboardErrorCode.DATABASE);</b>
+<b class="nc">&nbsp;        } else if (exception instanceof EntityVersionMismatchException) {</b>
+<b class="nc">&nbsp;            return new ThingsboardException(exception.getMessage(), exception, ThingsboardErrorCode.VERSION_CONFLICT);</b>
+<b class="nc">&nbsp;        } else if (exception instanceof MethodArgumentTypeMismatchException) {</b>
+<b class="nc">&nbsp;            return new ThingsboardException(exception.getMessage(), exception, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new ThingsboardException(exception.getMessage(), exception, ThingsboardErrorCode.GENERAL);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles validation error for controller method arguments annotated with @{@link jakarta.validation.Valid}
+&nbsp;     * */
+&nbsp;    @ExceptionHandler(MethodArgumentNotValidException.class)
+&nbsp;    public void handleValidationError(MethodArgumentNotValidException validationError, HttpServletResponse response) {
+<b class="nc">&nbsp;        List&lt;ConstraintViolation&lt;Object&gt;&gt; constraintsViolations = validationError.getFieldErrors().stream()</b>
+<b class="nc">&nbsp;                .map(fieldError -&gt; {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        return (ConstraintViolation&lt;Object&gt;) fieldError.unwrap(ConstraintViolation.class);</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        log.warn(&quot;FieldError source is not of type ConstraintViolation&quot;);</b>
+<b class="nc">&nbsp;                        return null; // should not happen</b>
+&nbsp;                    }
+&nbsp;                })
+<b class="nc">&nbsp;                .filter(Objects::nonNull)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;        String errorMessage = &quot;Validation error: &quot; + ConstraintValidator.getErrorMessage(constraintsViolations);</b>
+<b class="nc">&nbsp;        ThingsboardException thingsboardException = new ThingsboardException(errorMessage, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+<b class="nc">&nbsp;        handleControllerException(thingsboardException, response);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    &lt;T&gt; T checkNotNull(T reference) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkNotNull(reference, &quot;Requested item wasn&#39;t found!&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    &lt;T&gt; T checkNotNull(T reference, String notFoundMessage) throws ThingsboardException {
+<b class="nc">&nbsp;        if (reference == null) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(notFoundMessage, ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return reference;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    &lt;T&gt; T checkNotNull(Optional&lt;T&gt; reference) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkNotNull(reference, &quot;Requested item wasn&#39;t found!&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    &lt;T&gt; T checkNotNull(Optional&lt;T&gt; reference, String notFoundMessage) throws ThingsboardException {
+<b class="nc">&nbsp;        if (reference.isPresent()) {</b>
+<b class="nc">&nbsp;            return reference.get();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(notFoundMessage, ThingsboardErrorCode.ITEM_NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    static void checkParameter(String name, String param) throws ThingsboardException {
+<b class="nc">&nbsp;        if (StringUtils.isBlank(param)) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Parameter &#39;&quot; + name + &quot;&#39; can&#39;t be empty!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    void checkArrayParameter(String name, String[] params) throws ThingsboardException {
+<b class="nc">&nbsp;        if (params == null || params.length == 0) {</b>
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;Parameter &#39;&quot; + name + &quot;&#39; can&#39;t be empty!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            for (String param : params) {</b>
+<b class="nc">&nbsp;                checkParameter(name, param);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;T&gt; T checkEnumParameter(String name, String param, Function&lt;String, T&gt; valueOf) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            return valueOf.apply(param.toUpperCase());</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            throw new ThingsboardException(name + &quot; \&quot;&quot; + param + &quot;\&quot; is not supported!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    UUID toUUID(String id) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            return UUID.fromString(id);</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    PageLink createPageLink(int pageSize, int page, String textSearch, String sortProperty, String sortOrder) throws ThingsboardException {
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(sortProperty)) {</b>
+<b class="nc">&nbsp;            if (!Validator.isValidProperty(sortProperty)) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Invalid sort property&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            SortOrder.Direction direction = SortOrder.Direction.ASC;</b>
+<b class="nc">&nbsp;            if (StringUtils.isNotEmpty(sortOrder)) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    direction = SortOrder.Direction.valueOf(sortOrder.toUpperCase());</b>
+&nbsp;                } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                    throw new ThingsboardException(&quot;Unsupported sort order &#39;&quot; + sortOrder + &quot;&#39;! Only &#39;ASC&#39; or &#39;DESC&#39; types are allowed.&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            SortOrder sort = new SortOrder(sortProperty, direction);</b>
+<b class="nc">&nbsp;            return new PageLink(pageSize, page, textSearch, sort);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return new PageLink(pageSize, page, textSearch);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    TimePageLink createTimePageLink(int pageSize, int page, String textSearch,
+&nbsp;                                    String sortProperty, String sortOrder, Long startTime, Long endTime) throws ThingsboardException {
+<b class="nc">&nbsp;        PageLink pageLink = this.createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);</b>
+<b class="nc">&nbsp;        return new TimePageLink(pageLink, startTime, endTime);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected SecurityUser getCurrentUser() throws ThingsboardException {
+<b class="nc">&nbsp;        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();</b>
+<b class="nc">&nbsp;        if (authentication != null &amp;&amp; authentication.getPrincipal() instanceof SecurityUser) {</b>
+<b class="nc">&nbsp;            return (SecurityUser) authentication.getPrincipal();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new ThingsboardException(&quot;You aren&#39;t authorized to perform this operation!&quot;, ThingsboardErrorCode.AUTHENTICATION);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    Tenant checkTenantId(TenantId tenantId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(tenantId, (t, i) -&gt; tenantService.findTenantById(tenantId), operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    TenantInfo checkTenantInfoId(TenantId tenantId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(tenantId, (t, i) -&gt; tenantService.findTenantInfoById(tenantId), operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    TenantProfile checkTenantProfileId(TenantProfileId tenantProfileId, Operation operation) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            validateId(tenantProfileId, id -&gt; &quot;Incorrect tenantProfileId &quot; + id);</b>
+<b class="nc">&nbsp;            TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(getTenantId(), tenantProfileId);</b>
+<b class="nc">&nbsp;            checkNotNull(tenantProfile, &quot;Tenant profile with id [&quot; + tenantProfileId + &quot;] is not found&quot;);</b>
+<b class="nc">&nbsp;            accessControlService.checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, operation);</b>
+<b class="nc">&nbsp;            return tenantProfile;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected TenantId getTenantId() throws ThingsboardException {
+<b class="nc">&nbsp;        return getCurrentUser().getTenantId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Customer checkCustomerId(CustomerId customerId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(customerId, customerService::findCustomerById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    User checkUserId(UserId userId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(userId, userService::findUserById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;I extends EntityId, T extends HasTenantId&gt; void checkEntity(I entityId, T entity, Resource resource) throws ThingsboardException {
+<b class="nc">&nbsp;        if (entityId == null) {</b>
+<b class="nc">&nbsp;            accessControlService.checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            checkEntityId(entityId, Operation.WRITE);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected HasId&lt;? extends EntityId&gt; checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (entityId == null) {</b>
+<b class="nc">&nbsp;                throw new ThingsboardException(&quot;Parameter entityId can&#39;t be empty!&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            validateId(entityId.getId(), id -&gt; &quot;Incorrect entityId &quot; + id);</b>
+<b class="nc">&nbsp;            return switch (entityId.getEntityType()) {</b>
+<b class="nc">&nbsp;                case ALARM -&gt; checkAlarmId(new AlarmId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case DEVICE -&gt; checkDeviceId(new DeviceId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case DEVICE_PROFILE -&gt; checkDeviceProfileId(new DeviceProfileId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case CUSTOMER -&gt; checkCustomerId(new CustomerId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case TENANT -&gt; checkTenantId(TenantId.fromUUID(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case TENANT_PROFILE -&gt; checkTenantProfileId(new TenantProfileId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case RULE_CHAIN -&gt; checkRuleChain(new RuleChainId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case RULE_NODE -&gt; checkRuleNode(new RuleNodeId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case ASSET -&gt; checkAssetId(new AssetId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case ASSET_PROFILE -&gt; checkAssetProfileId(new AssetProfileId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case DASHBOARD -&gt; checkDashboardId(new DashboardId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case USER -&gt; checkUserId(new UserId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case ENTITY_VIEW -&gt; checkEntityViewId(new EntityViewId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case EDGE -&gt; checkEdgeId(new EdgeId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case WIDGETS_BUNDLE -&gt; checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case WIDGET_TYPE -&gt; checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case TB_RESOURCE -&gt; checkResourceInfoId(new TbResourceId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case OTA_PACKAGE -&gt; checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case QUEUE -&gt; checkQueueId(new QueueId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case OAUTH2_CLIENT -&gt; checkOauth2ClientId(new OAuth2ClientId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case DOMAIN -&gt; checkDomainId(new DomainId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case MOBILE_APP -&gt; checkMobileAppId(new MobileAppId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case MOBILE_APP_BUNDLE -&gt; checkMobileAppBundleId(new MobileAppBundleId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case CALCULATED_FIELD -&gt; checkCalculatedFieldId(new CalculatedFieldId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case AI_MODEL -&gt; checkAiModelId(new AiModelId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                case API_KEY -&gt; checkApiKeyId(new ApiKeyId(entityId.getId()), operation);</b>
+<b class="nc">&nbsp;                default -&gt; (HasId&lt;? extends EntityId&gt;) checkEntityId(entityId, entitiesService::findEntityByTenantIdAndId, operation);</b>
+&nbsp;            };
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;E extends HasId&lt;I&gt; &amp; HasTenantId, I extends EntityId&gt; E checkEntityId(I entityId, ThrowingBiFunction&lt;TenantId, I, E&gt; findingFunction, Operation operation) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            validateId((UUIDBased) entityId, id -&gt; &quot;Invalid entity id&quot;);</b>
+<b class="nc">&nbsp;            SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;            E entity = findingFunction.apply(user.getTenantId(), entityId);</b>
+<b class="nc">&nbsp;            checkNotNull(entity, entityId.getEntityType().getNormalName() + &quot; with id [&quot; + entityId + &quot;] is not found&quot;);</b>
+<b class="nc">&nbsp;            return checkEntity(user, entity, operation);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;E extends HasId&lt;I&gt; &amp; HasTenantId, I extends EntityId&gt; E checkEntity(SecurityUser user, E entity, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        checkNotNull(entity, &quot;Entity not found&quot;);</b>
+<b class="nc">&nbsp;        accessControlService.checkPermission(user, Resource.of(entity.getId().getEntityType()), operation, entity.getId(), entity);</b>
+<b class="nc">&nbsp;        return entity;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Device checkDeviceId(DeviceId deviceId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(deviceId, deviceService::findDeviceById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    DeviceInfo checkDeviceInfoId(DeviceId deviceId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(deviceId, deviceService::findDeviceInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    DeviceProfile checkDeviceProfileId(DeviceProfileId deviceProfileId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(deviceProfileId, deviceProfileService::findDeviceProfileById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected EntityView checkEntityViewId(EntityViewId entityViewId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(entityViewId, entityViewService::findEntityViewById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    EntityViewInfo checkEntityViewInfoId(EntityViewId entityViewId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(entityViewId, entityViewService::findEntityViewInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Asset checkAssetId(AssetId assetId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(assetId, assetService::findAssetById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    AssetInfo checkAssetInfoId(AssetId assetId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(assetId, assetService::findAssetInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    AssetProfile checkAssetProfileId(AssetProfileId assetProfileId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(assetProfileId, assetProfileService::findAssetProfileById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Alarm checkAlarmId(AlarmId alarmId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(alarmId, alarmService::findAlarmById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    AlarmInfo checkAlarmInfoId(AlarmId alarmId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(alarmId, alarmService::findAlarmInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    AlarmComment checkAlarmCommentId(AlarmCommentId alarmCommentId, AlarmId alarmId) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            validateId(alarmCommentId, id -&gt; &quot;Incorrect alarmCommentId &quot; + id);</b>
+<b class="nc">&nbsp;            AlarmComment alarmComment = alarmCommentService.findAlarmCommentByIdAsync(getCurrentUser().getTenantId(), alarmCommentId).get();</b>
+<b class="nc">&nbsp;            checkNotNull(alarmComment, &quot;Alarm comment with id [&quot; + alarmCommentId + &quot;] is not found&quot;);</b>
+<b class="nc">&nbsp;            if (!alarmId.equals(alarmComment.getAlarmId())) {</b>
+<b class="nc">&nbsp;                throw new ThingsboardException(&quot;Alarm id does not match with comment alarm id&quot;, ThingsboardErrorCode.BAD_REQUEST_PARAMS);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return alarmComment;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    WidgetsBundle checkWidgetsBundleId(WidgetsBundleId widgetsBundleId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(widgetsBundleId, widgetsBundleService::findWidgetsBundleById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    WidgetTypeDetails checkWidgetTypeId(WidgetTypeId widgetTypeId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(widgetTypeId, widgetTypeService::findWidgetTypeDetailsById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    WidgetTypeInfo checkWidgetTypeInfoId(WidgetTypeId widgetTypeId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(widgetTypeId, widgetTypeService::findWidgetTypeInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Dashboard checkDashboardId(DashboardId dashboardId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(dashboardId, dashboardService::findDashboardById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Edge checkEdgeId(EdgeId edgeId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(edgeId, edgeService::findEdgeById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    EdgeInfo checkEdgeInfoId(EdgeId edgeId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(edgeId, edgeService::findEdgeInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    DashboardInfo checkDashboardInfoId(DashboardId dashboardId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(dashboardId, dashboardService::findDashboardInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    ComponentDescriptor checkComponentDescriptorByClazz(String clazz) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Lookup component descriptor&quot;, clazz);</b>
+<b class="nc">&nbsp;            return checkNotNull(componentDescriptorService.getComponent(clazz));</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    List&lt;ComponentDescriptor&gt; checkComponentDescriptorsByType(ComponentType type, RuleChainType ruleChainType) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Lookup component descriptors&quot;, type);</b>
+<b class="nc">&nbsp;            return componentDescriptorService.getComponents(type, ruleChainType);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    List&lt;ComponentDescriptor&gt; checkComponentDescriptorsByTypes(Set&lt;ComponentType&gt; types, RuleChainType ruleChainType) throws ThingsboardException {
+&nbsp;        try {
+<b class="nc">&nbsp;            log.debug(&quot;[{}] Lookup component descriptors&quot;, types);</b>
+<b class="nc">&nbsp;            return componentDescriptorService.getComponents(types, ruleChainType);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw handleException(e, false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected RuleChain checkRuleChain(RuleChainId ruleChainId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(ruleChainId, ruleChainService::findRuleChainById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected RuleNode checkRuleNode(RuleNodeId ruleNodeId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        validateId(ruleNodeId, id -&gt; &quot;Incorrect ruleNodeId &quot; + id);</b>
+<b class="nc">&nbsp;        RuleNode ruleNode = ruleChainService.findRuleNodeById(getTenantId(), ruleNodeId);</b>
+<b class="nc">&nbsp;        checkNotNull(ruleNode, &quot;Rule node with id [&quot; + ruleNodeId + &quot;] is not found&quot;);</b>
+<b class="nc">&nbsp;        checkRuleChain(ruleNode.getRuleChainId(), operation);</b>
+<b class="nc">&nbsp;        return ruleNode;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    TbResource checkResourceId(TbResourceId resourceId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(resourceId, resourceService::findResourceById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    TbResourceInfo checkResourceInfoId(TbResourceId resourceId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(resourceId, resourceService::findResourceInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    OtaPackage checkOtaPackageId(OtaPackageId otaPackageId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(otaPackageId, otaPackageService::findOtaPackageById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    OtaPackageInfo checkOtaPackageInfoId(OtaPackageId otaPackageId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(otaPackageId, otaPackageService::findOtaPackageInfoById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Rpc checkRpcId(RpcId rpcId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(rpcId, rpcService::findById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Queue checkQueueId(QueueId queueId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        Queue queue = checkEntityId(queueId, queueService::findQueueById, operation);</b>
+<b class="nc">&nbsp;        TenantId tenantId = getTenantId();</b>
+<b class="nc">&nbsp;        if (queue.getTenantId().isNullUid() &amp;&amp; !tenantId.isNullUid()) {</b>
+<b class="nc">&nbsp;            TenantProfile tenantProfile = tenantProfileCache.get(tenantId);</b>
+<b class="nc">&nbsp;            if (tenantProfile.isIsolatedTbRuleEngine()) {</b>
+<b class="nc">&nbsp;                throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,</b>
+&nbsp;                        ThingsboardErrorCode.PERMISSION_DENIED);
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return queue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    OAuth2Client checkOauth2ClientId(OAuth2ClientId oAuth2ClientId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(oAuth2ClientId, oAuth2ClientService::findOAuth2ClientById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Domain checkDomainId(DomainId domainId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(domainId, domainService::findDomainById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    MobileApp checkMobileAppId(MobileAppId mobileAppId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(mobileAppId, mobileAppService::findMobileAppById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    MobileAppBundle checkMobileAppBundleId(MobileAppBundleId mobileAppBundleId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(mobileAppBundleId, mobileAppBundleService::findMobileAppBundleById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    NotificationTarget checkNotificationTargetId(NotificationTargetId notificationTargetId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(notificationTargetId, notificationTargetService::findNotificationTargetById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    Job checkJobId(JobId jobId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(jobId, jobService::findJobById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    AiModel checkAiModelId(AiModelId settingsId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(settingsId, (tenantId, id) -&gt; aiModelService.findAiModelByTenantIdAndId(tenantId, id).orElse(null), operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    ApiKey checkApiKeyId(ApiKeyId apiKeyId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        return checkEntityId(apiKeyId, apiKeyService::findApiKeyById, operation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;I extends EntityId&gt; I emptyId(EntityType entityType) {
+<b class="nc">&nbsp;        return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Exception toException(Throwable error) {
+<b class="nc">&nbsp;        return error != null ? (error instanceof Exception ? (Exception) error : new Exception(error)) : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;E extends HasName &amp; HasId&lt;? extends EntityId&gt;&gt; void logEntityAction(SecurityUser user, EntityType entityType, E savedEntity, ActionType actionType) {
+<b class="nc">&nbsp;        logEntityAction(user, entityType, null, savedEntity, actionType, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;E extends HasName &amp; HasId&lt;? extends EntityId&gt;&gt; void logEntityAction(SecurityUser user, EntityType entityType, E entity, E savedEntity, ActionType actionType, Exception e) {
+<b class="nc">&nbsp;        EntityId entityId = savedEntity != null ? savedEntity.getId() : emptyId(entityType);</b>
+<b class="nc">&nbsp;        entityActionService.logEntityAction(user, entityId, savedEntity != null ? savedEntity : entity,</b>
+<b class="nc">&nbsp;                user.getCustomerId(), actionType, e);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;E extends HasName &amp; HasId&lt;? extends EntityId&gt;&gt; E doSaveAndLog(EntityType entityType, E entity, BiFunction&lt;TenantId, E, E&gt; savingFunction) throws Exception {
+<b class="nc">&nbsp;        ActionType actionType = entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED;</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            E savedEntity = savingFunction.apply(user.getTenantId(), entity);</b>
+<b class="nc">&nbsp;            logEntityAction(user, entityType, savedEntity, actionType);</b>
+<b class="nc">&nbsp;            return savedEntity;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityAction(user, entityType, entity, null, actionType, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;E extends HasName &amp; HasId&lt;I&gt;, I extends EntityId&gt; void doDeleteAndLog(EntityType entityType, E entity, BiConsumer&lt;TenantId, I&gt; deleteFunction) throws Exception {
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            deleteFunction.accept(user.getTenantId(), entity.getId());</b>
+<b class="nc">&nbsp;            logEntityAction(user, entityType, entity, ActionType.DELETED);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logEntityAction(user, entityType, entity, entity, ActionType.DELETED, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void checkUserInfo(User user) throws ThingsboardException {
+&nbsp;        ObjectNode info;
+<b class="nc">&nbsp;        if (user.getAdditionalInfo() instanceof ObjectNode additionalInfo) {</b>
+<b class="nc">&nbsp;            info = additionalInfo;</b>
+<b class="nc">&nbsp;            checkDashboardInfo(info);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            info = JacksonUtil.newObjectNode();</b>
+<b class="nc">&nbsp;            user.setAdditionalInfo(info);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());</b>
+<b class="nc">&nbsp;        info.put(&quot;userCredentialsEnabled&quot;, userCredentials.isEnabled());</b>
+<b class="nc">&nbsp;        info.put(&quot;userActivated&quot;, userCredentials.getActivateToken() == null);</b>
+<b class="nc">&nbsp;        info.put(&quot;lastLoginTs&quot;, userCredentials.getLastLoginTs());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void checkDashboardInfo(JsonNode additionalInfo) throws ThingsboardException {
+<b class="nc">&nbsp;        checkDashboardInfo(additionalInfo, DEFAULT_DASHBOARD);</b>
+<b class="nc">&nbsp;        checkDashboardInfo(additionalInfo, HOME_DASHBOARD);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void checkDashboardInfo(JsonNode node, String dashboardField) throws ThingsboardException {
+<b class="nc">&nbsp;        if (node instanceof ObjectNode additionalInfo) {</b>
+<b class="nc">&nbsp;            DashboardId dashboardId = Optional.ofNullable(additionalInfo.get(dashboardField))</b>
+<b class="nc">&nbsp;                    .filter(JsonNode::isTextual).map(JsonNode::asText)</b>
+<b class="nc">&nbsp;                    .map(id -&gt; {</b>
+&nbsp;                        try {
+<b class="nc">&nbsp;                            return new DashboardId(UUID.fromString(id));</b>
+&nbsp;                        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;                            return null;</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                    }).orElse(null);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (dashboardId != null &amp;&amp; !dashboardService.existsById(getTenantId(), dashboardId)) {</b>
+<b class="nc">&nbsp;                additionalInfo.remove(dashboardField);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private CalculatedField checkCalculatedFieldId(CalculatedFieldId calculatedFieldId, Operation operation) throws ThingsboardException {
+<b class="nc">&nbsp;        validateId(calculatedFieldId, id -&gt; &quot;Invalid entity id&quot;);</b>
+<b class="nc">&nbsp;        SecurityUser user = getCurrentUser();</b>
+<b class="nc">&nbsp;        CalculatedField cf = calculatedFieldService.findById(user.getTenantId(), calculatedFieldId);</b>
+<b class="nc">&nbsp;        checkNotNull(cf, calculatedFieldId.getEntityType().getNormalName() + &quot; with id [&quot; + calculatedFieldId + &quot;] is not found&quot;);</b>
+<b class="nc">&nbsp;        checkEntityId(cf.getEntityId(), operation);</b>
+<b class="nc">&nbsp;        return cf;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected HomeDashboardInfo getHomeDashboardInfo(SecurityUser securityUser, JsonNode additionalInfo) {
+<b class="nc">&nbsp;        HomeDashboardInfo homeDashboardInfo = extractHomeDashboardInfoFromAdditionalInfo(additionalInfo);</b>
+<b class="nc">&nbsp;        if (homeDashboardInfo == null) {</b>
+<b class="nc">&nbsp;            if (securityUser.isCustomerUser()) {</b>
+<b class="nc">&nbsp;                Customer customer = customerService.findCustomerById(securityUser.getTenantId(), securityUser.getCustomerId());</b>
+<b class="nc">&nbsp;                homeDashboardInfo = extractHomeDashboardInfoFromAdditionalInfo(customer.getAdditionalInfo());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (homeDashboardInfo == null) {</b>
+<b class="nc">&nbsp;                Tenant tenant = tenantService.findTenantById(securityUser.getTenantId());</b>
+<b class="nc">&nbsp;                homeDashboardInfo = extractHomeDashboardInfoFromAdditionalInfo(tenant.getAdditionalInfo());</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return homeDashboardInfo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private HomeDashboardInfo extractHomeDashboardInfoFromAdditionalInfo(JsonNode additionalInfo) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (additionalInfo != null &amp;&amp; additionalInfo.has(HOME_DASHBOARD_ID) &amp;&amp; !additionalInfo.get(HOME_DASHBOARD_ID).isNull()) {</b>
+<b class="nc">&nbsp;                String strDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();</b>
+<b class="nc">&nbsp;                DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));</b>
+<b class="nc">&nbsp;                checkDashboardId(dashboardId, Operation.READ);</b>
+<b class="nc">&nbsp;                boolean hideDashboardToolbar = true;</b>
+<b class="nc">&nbsp;                if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {</b>
+<b class="nc">&nbsp;                    hideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();</b>
+&nbsp;                }
+<b class="nc">&nbsp;                return new HomeDashboardInfo(dashboardId, hideDashboardToolbar);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception ignored) {
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected MediaType parseMediaType(String contentType) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return MediaType.parseMediaType(contentType);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return MediaType.APPLICATION_OCTET_STREAM;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;T&gt; DeferredResult&lt;T&gt; wrapFuture(ListenableFuture&lt;T&gt; future) {
+<b class="nc">&nbsp;        DeferredResult&lt;T&gt; deferredResult = new DeferredResult&lt;&gt;(); // Timeout of spring.mvc.async.request-timeout is used</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future, deferredResult::setResult, deferredResult::setErrorResult);</b>
+<b class="nc">&nbsp;        return deferredResult;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;T&gt; DeferredResult&lt;T&gt; wrapFuture(ListenableFuture&lt;T&gt; future, long timeoutMs) {
+<b class="nc">&nbsp;        DeferredResult&lt;T&gt; deferredResult = new DeferredResult&lt;&gt;(timeoutMs);</b>
+<b class="nc">&nbsp;        DonAsynchron.withCallback(future, deferredResult::setResult, deferredResult::setErrorResult);</b>
+<b class="nc">&nbsp;        return deferredResult;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected EntityDataSortOrder createEntityDataSortOrder(String sortProperty, String sortOrder) {
+<b class="nc">&nbsp;        if (isNotEmpty(sortProperty)) {</b>
+<b class="nc">&nbsp;            EntityDataSortOrder entityDataSortOrder = new EntityDataSortOrder();</b>
+<b class="nc">&nbsp;            entityDataSortOrder.setKey(new EntityKey(ENTITY_FIELD, sortProperty));</b>
+<b class="nc">&nbsp;            if (isNotEmpty(sortOrder)) {</b>
+<b class="nc">&nbsp;                entityDataSortOrder.setDirection(EntityDataSortOrder.Direction.valueOf(sortOrder));</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return entityDataSortOrder;</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void compressResponseWithGzipIFAccepted(String acceptEncodingHeader, HttpServletResponse response, byte[] content) throws IOException {
+<b class="nc">&nbsp;        if (StringUtils.isNotEmpty(acceptEncodingHeader) &amp;&amp; acceptEncodingHeader.contains(&quot;gzip&quot;)) {</b>
+<b class="nc">&nbsp;            response.setHeader(HttpHeaders.CONTENT_ENCODING, &quot;gzip&quot;);</b>
+<b class="nc">&nbsp;            response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());</b>
+<b class="nc">&nbsp;            try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(response.getOutputStream())) {</b>
+<b class="nc">&nbsp;                gzipOutputStream.write(content);</b>
+<b class="nc">&nbsp;                gzipOutputStream.finish();</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            try (ServletOutputStream outputStream = response.getOutputStream()) {</b>
+<b class="nc">&nbsp;                outputStream.write(content);</b>
+<b class="nc">&nbsp;                outputStream.flush();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;T&gt; ResponseEntity&lt;T&gt; response(HttpStatus status) {
+<b class="nc">&nbsp;        return ResponseEntity.status(status).build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected &lt;T&gt; ResponseEntity&lt;T&gt; redirectTo(String location) {
+&nbsp;        URI uri;
+&nbsp;        try {
+<b class="nc">&nbsp;            uri = URI.create(location);</b>
+&nbsp;        } catch (IllegalArgumentException e) {
+<b class="nc">&nbsp;            log.error(&quot;Failed to create URI from &#39;{}&#39;&quot;, location, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+<b class="nc">&nbsp;        return ResponseEntity.status(HttpStatus.SEE_OTHER)</b>
+<b class="nc">&nbsp;                .location(uri)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected List&lt;OAuth2ClientId&gt; getOAuth2ClientIds(UUID[] ids) throws ThingsboardException {
+<b class="nc">&nbsp;        if (ids == null) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;OAuth2ClientId&gt; oAuth2ClientIds = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (UUID id : ids) {</b>
+<b class="nc">&nbsp;            OAuth2ClientId oauth2ClientId = new OAuth2ClientId(id);</b>
+<b class="nc">&nbsp;            checkOauth2ClientId(oauth2ClientId, Operation.READ);</b>
+<b class="nc">&nbsp;            oAuth2ClientIds.add(oauth2ClientId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return oAuth2ClientIds;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

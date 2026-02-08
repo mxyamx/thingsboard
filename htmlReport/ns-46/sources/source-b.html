@@ -1,0 +1,358 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RuleNodeActorMessageProcessor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.actors.ruleChain</a>
+</div>
+
+<h1>Coverage Summary for Class: RuleNodeActorMessageProcessor (org.thingsboard.server.actors.ruleChain)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RuleNodeActorMessageProcessor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/92)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.actors.ruleChain;
+&nbsp;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.DebugModeUtil;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.actors.TbActorCtx;
+&nbsp;import org.thingsboard.server.actors.TbRuleNodeUpdateException;
+&nbsp;import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
+&nbsp;import org.thingsboard.server.common.data.ApiUsageRecordKey;
+&nbsp;import org.thingsboard.server.common.data.id.RuleNodeId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
+&nbsp;import org.thingsboard.server.common.data.rule.RuleNode;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.RuleNodeException;
+&nbsp;import org.thingsboard.server.common.msg.queue.RuleNodeInfo;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;
+&nbsp;/**
+&nbsp; * @author Andrew Shvayka
+&nbsp; */
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor&lt;RuleNodeId&gt; {
+&nbsp;
+&nbsp;    private static final String UNKNOWN_NAME = &quot;Unknown&quot;;
+&nbsp;    private final String ruleChainName;
+&nbsp;    private final TbApiUsageReportClient apiUsageClient;
+&nbsp;    private final DefaultTbContext defaultCtx;
+&nbsp;    private RuleNode ruleNode;
+&nbsp;    private TbNode tbNode;
+&nbsp;    private RuleNodeInfo info;
+&nbsp;
+&nbsp;    RuleNodeActorMessageProcessor(TenantId tenantId, String ruleChainName,
+&nbsp;                                  RuleNodeId ruleNodeId, ActorSystemContext systemContext, TbActorCtx selfActor) {
+<b class="nc">&nbsp;        super(systemContext, tenantId, ruleNodeId);</b>
+<b class="nc">&nbsp;        this.apiUsageClient = systemContext.getApiUsageClient();</b>
+<b class="nc">&nbsp;        this.ruleChainName = ruleChainName;</b>
+<b class="nc">&nbsp;        this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);</b>
+<b class="nc">&nbsp;        this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, selfActor, ruleNode));</b>
+<b class="nc">&nbsp;        this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, getName(ruleNode));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void start(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        if (isMyNodePartition()) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] Starting&quot;, tenantId, entityId);</b>
+<b class="nc">&nbsp;            tbNode = initComponent(ruleNode);</b>
+<b class="nc">&nbsp;            if (tbNode != null) {</b>
+<b class="nc">&nbsp;                state = ComponentLifecycleState.ACTIVE;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onUpdate(TbActorCtx context) throws Exception {
+<b class="nc">&nbsp;        RuleNode newRuleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);</b>
+<b class="nc">&nbsp;        if (isMyNodePartition(newRuleNode)) {</b>
+<b class="nc">&nbsp;            this.info = new RuleNodeInfo(entityId, ruleChainName, getName(newRuleNode));</b>
+<b class="nc">&nbsp;            boolean restartRequired = state != ComponentLifecycleState.ACTIVE ||</b>
+<b class="nc">&nbsp;                    !(ruleNode.getType().equals(newRuleNode.getType()) &amp;&amp;</b>
+<b class="nc">&nbsp;                            ruleNode.getConfiguration().equals(newRuleNode.getConfiguration()));</b>
+<b class="nc">&nbsp;            this.ruleNode = newRuleNode;</b>
+<b class="nc">&nbsp;            this.defaultCtx.updateSelf(newRuleNode);</b>
+<b class="nc">&nbsp;            if (restartRequired) {</b>
+<b class="nc">&nbsp;                if (tbNode != null) {</b>
+<b class="nc">&nbsp;                    tbNode.destroy();</b>
+&nbsp;                }
+&nbsp;                try {
+<b class="nc">&nbsp;                    start(context);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    throw new TbRuleNodeUpdateException(&quot;Failed to update rule node&quot;, e);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (tbNode != null) {</b>
+<b class="nc">&nbsp;            stop(null);</b>
+<b class="nc">&nbsp;            tbNode = null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void stop(TbActorCtx context) {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] Stopping&quot;, tenantId, entityId);</b>
+<b class="nc">&nbsp;        if (tbNode != null) {</b>
+<b class="nc">&nbsp;            tbNode.destroy();</b>
+<b class="nc">&nbsp;            state = ComponentLifecycleState.SUSPENDED;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onPartitionChangeMsg(PartitionChangeMsg msg) throws Exception {
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}] onPartitionChangeMsg: [{}]&quot;, tenantId, entityId, msg);</b>
+<b class="nc">&nbsp;        if (tbNode != null) {</b>
+<b class="nc">&nbsp;            if (!isMyNodePartition()) {</b>
+<b class="nc">&nbsp;                stop(null);</b>
+<b class="nc">&nbsp;                tbNode = null;</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                tbNode.onPartitionChangeMsg(defaultCtx, msg);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (isMyNodePartition()) {</b>
+<b class="nc">&nbsp;            start(null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void onRuleToSelfMsg(RuleNodeToSelfMsg msg) throws Exception {
+<b class="nc">&nbsp;        checkComponentStateActive(msg.getMsg());</b>
+<b class="nc">&nbsp;        TbMsg tbMsg = msg.getMsg();</b>
+<b class="nc">&nbsp;        int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();</b>
+<b class="nc">&nbsp;        var tenantProfileConfiguration = getTenantProfileConfiguration();</b>
+<b class="nc">&nbsp;        int maxRuleNodeExecutionsPerMessage = tenantProfileConfiguration.getMaxRuleNodeExecsPerMessage();</b>
+<b class="nc">&nbsp;        if (maxRuleNodeExecutionsPerMessage == 0 || ruleNodeCount &lt; maxRuleNodeExecutionsPerMessage) {</b>
+<b class="nc">&nbsp;            apiUsageClient.report(tenantId, tbMsg.getCustomerId(), ApiUsageRecordKey.RE_EXEC_COUNT);</b>
+<b class="nc">&nbsp;            persistDebugInputIfAllowed(msg.getMsg(), &quot;Self&quot;);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                tbNode.onMsg(defaultCtx, msg.getMsg());</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                defaultCtx.tellFailure(msg.getMsg(), e);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            tbMsg.getCallback().onFailure(new RuleNodeException(&quot;Message is processed by more then &quot; + maxRuleNodeExecutionsPerMessage + &quot; rule nodes!&quot;, ruleChainName, ruleNode));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    void onRuleChainToRuleNodeMsg(RuleChainToRuleNodeMsg msg) throws Exception {
+<b class="nc">&nbsp;        if (!isMyNodePartition()) {</b>
+<b class="nc">&nbsp;            putToNodePartition(msg.getMsg());</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            msg.getMsg().getCallback().onProcessingStart(info);</b>
+<b class="nc">&nbsp;            checkComponentStateActive(msg.getMsg());</b>
+<b class="nc">&nbsp;            TbMsg tbMsg = msg.getMsg();</b>
+<b class="nc">&nbsp;            int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();</b>
+<b class="nc">&nbsp;            var tenantProfileConfiguration = getTenantProfileConfiguration();</b>
+<b class="nc">&nbsp;            int maxRuleNodeExecutionsPerMessage = tenantProfileConfiguration.getMaxRuleNodeExecsPerMessage();</b>
+<b class="nc">&nbsp;            if (maxRuleNodeExecutionsPerMessage == 0 || ruleNodeCount &lt; maxRuleNodeExecutionsPerMessage) {</b>
+<b class="nc">&nbsp;                apiUsageClient.report(tenantId, tbMsg.getCustomerId(), ApiUsageRecordKey.RE_EXEC_COUNT);</b>
+<b class="nc">&nbsp;                persistDebugInputIfAllowed(msg.getMsg(), msg.getFromRelationType());</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    tbNode.onMsg(msg.getCtx(), msg.getMsg());</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    msg.getCtx().tellFailure(msg.getMsg(), e);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                tbMsg.getCallback().onFailure(new RuleNodeException(&quot;Message is processed by more then &quot; + maxRuleNodeExecutionsPerMessage + &quot; rule nodes!&quot;, ruleChainName, ruleNode));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getComponentName() {
+<b class="nc">&nbsp;        return getName(ruleNode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getName(RuleNode ruleNode) {
+<b class="nc">&nbsp;        return ruleNode != null ? ruleNode.getName() : UNKNOWN_NAME;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private TbNode initComponent(RuleNode ruleNode) throws Exception {
+<b class="nc">&nbsp;        TbNode tbNode = null;</b>
+<b class="nc">&nbsp;        if (ruleNode != null) {</b>
+<b class="nc">&nbsp;            Class&lt;?&gt; componentClazz = Class.forName(ruleNode.getType());</b>
+<b class="nc">&nbsp;            tbNode = (TbNode) (componentClazz.getDeclaredConstructor().newInstance());</b>
+<b class="nc">&nbsp;            tbNode.init(defaultCtx, new TbNodeConfiguration(ruleNode.getConfiguration()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return tbNode;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected RuleNodeException getInactiveException() {
+<b class="nc">&nbsp;        return new RuleNodeException(&quot;Rule Node is not active! Failed to initialize.&quot;, ruleChainName, ruleNode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isMyNodePartition() {
+<b class="nc">&nbsp;        return isMyNodePartition(this.ruleNode);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean isMyNodePartition(RuleNode ruleNode) {
+<b class="nc">&nbsp;        boolean result = ruleNode == null || !ruleNode.isSingletonMode()</b>
+<b class="nc">&nbsp;                || systemContext.getDiscoveryService().isMonolith()</b>
+<b class="nc">&nbsp;                || defaultCtx.isLocalEntity(ruleNode.getId());</b>
+<b class="nc">&nbsp;        if (!result) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}][{}] Is not my node partition&quot;, tenantId, entityId);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    //Message will return after processing. See RuleChainActorMessageProcessor.pushToTarget.
+&nbsp;    private void putToNodePartition(TbMsg source) {
+<b class="nc">&nbsp;        TbMsg tbMsg = TbMsg.newMsg(source, source.getQueueName(), source.getRuleChainId(), entityId);</b>
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = systemContext.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, ruleNode.getId());</b>
+<b class="nc">&nbsp;        TransportProtos.ToRuleEngineMsg toQueueMsg = TransportProtos.ToRuleEngineMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setTbMsgProto(TbMsg.toProto(tbMsg))</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        systemContext.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), toQueueMsg, null);</b>
+<b class="nc">&nbsp;        defaultCtx.ack(source);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void persistDebugInputIfAllowed(TbMsg msg, String fromNodeConnectionType) {
+<b class="nc">&nbsp;        if (DebugModeUtil.isDebugAllAvailable(ruleNode)) {</b>
+<b class="nc">&nbsp;            systemContext.persistDebugInput(tenantId, entityId, msg, fromNodeConnectionType);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

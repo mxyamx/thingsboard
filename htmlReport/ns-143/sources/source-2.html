@@ -1,0 +1,227 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PartitionedQueueConsumerManager</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.queue.common.consumer</a>
+</div>
+
+<h1>Coverage Summary for Class: PartitionedQueueConsumerManager (org.thingsboard.server.queue.common.consumer)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PartitionedQueueConsumerManager</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.queue.common.consumer;
+&nbsp;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.server.common.data.queue.QueueConfig;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.queue.TbQueueAdmin;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.TbQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.TbQueueConsumerManagerTask.AddPartitionsTask;
+&nbsp;import org.thingsboard.server.queue.common.consumer.TbQueueConsumerManagerTask.DeletePartitionsTask;
+&nbsp;import org.thingsboard.server.queue.common.consumer.TbQueueConsumerManagerTask.RemovePartitionsTask;
+&nbsp;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.function.BiFunction;
+&nbsp;import java.util.function.Consumer;
+&nbsp;import java.util.function.Function;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class PartitionedQueueConsumerManager&lt;M extends TbQueueMsg&gt; extends MainQueueConsumerManager&lt;M, QueueConfig&gt; {
+&nbsp;
+&nbsp;    private final ConsumerPerPartitionWrapper consumerWrapper;
+&nbsp;    private final TbQueueAdmin queueAdmin;
+&nbsp;    @Getter
+&nbsp;    private final String topic;
+&nbsp;
+&nbsp;    @Builder(builderMethodName = &quot;create&quot;) // not to conflict with super.builder()
+&nbsp;    public PartitionedQueueConsumerManager(Object queueKey, String topic, long pollInterval, MsgPackProcessor&lt;M, QueueConfig&gt; msgPackProcessor,
+&nbsp;                                           BiFunction&lt;QueueConfig, TopicPartitionInfo, TbQueueConsumer&lt;M&gt;&gt; consumerCreator, TbQueueAdmin queueAdmin,
+&nbsp;                                           ExecutorService consumerExecutor, ScheduledExecutorService scheduler,
+&nbsp;                                           ExecutorService taskExecutor, Consumer&lt;Throwable&gt; uncaughtErrorHandler) {
+<b class="nc">&nbsp;        super(queueKey, QueueConfig.of(true, pollInterval), msgPackProcessor, consumerCreator, consumerExecutor, scheduler, taskExecutor, uncaughtErrorHandler);</b>
+<b class="nc">&nbsp;        this.topic = topic;</b>
+<b class="nc">&nbsp;        this.consumerWrapper = (ConsumerPerPartitionWrapper) super.consumerWrapper;</b>
+<b class="nc">&nbsp;        this.queueAdmin = queueAdmin;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void processTask(TbQueueConsumerManagerTask task) {
+<b class="nc">&nbsp;        if (task instanceof AddPartitionsTask addPartitionsTask) {</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}] Added partitions: {}&quot;, queueKey, addPartitionsTask.partitions());</b>
+<b class="nc">&nbsp;            consumerWrapper.addPartitions(addPartitionsTask.partitions(), addPartitionsTask.onStop(), addPartitionsTask.startOffsetProvider());</b>
+<b class="nc">&nbsp;        } else if (task instanceof RemovePartitionsTask removePartitionsTask) {</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}] Removed partitions: {}&quot;, queueKey, removePartitionsTask.partitions());</b>
+<b class="nc">&nbsp;            consumerWrapper.removePartitions(removePartitionsTask.partitions());</b>
+<b class="nc">&nbsp;        } else if (task instanceof DeletePartitionsTask deletePartitionsTask) {</b>
+<b class="nc">&nbsp;            log.info(&quot;[{}] Removing partitions and deleting topics: {}&quot;, queueKey, deletePartitionsTask.partitions());</b>
+<b class="nc">&nbsp;            consumerWrapper.removePartitions(deletePartitionsTask.partitions());</b>
+<b class="nc">&nbsp;            deletePartitionsTask.partitions().forEach(tpi -&gt; {</b>
+<b class="nc">&nbsp;                String topic = tpi.getFullTopicName();</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    queueAdmin.deleteTopic(topic);</b>
+&nbsp;                } catch (Throwable t) {
+<b class="nc">&nbsp;                    log.error(&quot;Failed to delete topic {}&quot;, topic, t);</b>
+&nbsp;                }
+&nbsp;            });
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addPartitions(Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        addPartitions(partitions, null, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addPartitions(Set&lt;TopicPartitionInfo&gt; partitions, Consumer&lt;TopicPartitionInfo&gt; onStop, Function&lt;String, Long&gt; startOffsetProvider) {
+<b class="nc">&nbsp;        addTask(new AddPartitionsTask(partitions, onStop, startOffsetProvider));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void removePartitions(Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        addTask(new RemovePartitionsTask(partitions));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void delete(Set&lt;TopicPartitionInfo&gt; partitions) {
+<b class="nc">&nbsp;        addTask(new DeletePartitionsTask(partitions));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

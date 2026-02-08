@@ -1,0 +1,285 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultDatabaseSchemaSettingsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.install</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultDatabaseSchemaSettingsService (org.thingsboard.server.service.install)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultDatabaseSchemaSettingsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.install;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.jdbc.core.JdbcTemplate;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
+&nbsp;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSettingsService {
+&nbsp;
+&nbsp;    // map of versions from which the upgrade to the current version is possible
+&nbsp;    // key - supported version prefix, value - display name
+<b class="nc">&nbsp;    private static final Map&lt;String, String&gt; SUPPORTED_VERSIONS_FOR_UPGRADE = Map.of(</b>
+&nbsp;            &quot;4.3.0&quot;, &quot;4.3.0.x&quot;
+&nbsp;    );
+&nbsp;
+&nbsp;    private final ProjectInfo projectInfo;
+&nbsp;    private final JdbcTemplate jdbcTemplate;
+&nbsp;
+&nbsp;    private String packageSchemaVersion;
+&nbsp;    private String schemaVersionFromDb;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void validateSchemaSettings() {
+<b class="nc">&nbsp;        if (DefaultDataUpdateService.getEnv(&quot;SKIP_SCHEMA_VERSION_CHECK&quot;, false)) {</b>
+<b class="nc">&nbsp;            log.info(&quot;Skipped DB schema version check due to SKIP_SCHEMA_VERSION_CHECK set to &#39;true&#39;.&quot;);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String product = getProductFromDb();</b>
+<b class="nc">&nbsp;        if (!projectInfo.getProductType().equals(product)) {</b>
+<b class="nc">&nbsp;            onSchemaSettingsError(String.format(&quot;Upgrade failed: can&#39;t upgrade ThingsBoard %s database using ThingsBoard %s.&quot;, product, projectInfo.getProductType()));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String dbSchemaVersion = getDbSchemaVersion();</b>
+<b class="nc">&nbsp;        if (dbSchemaVersion.equals(getPackageSchemaVersion())) {</b>
+<b class="nc">&nbsp;            onSchemaSettingsError(&quot;Upgrade failed: database already upgraded to current version. You can set SKIP_SCHEMA_VERSION_CHECK to &#39;true&#39; if force re-upgrade needed.&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (SUPPORTED_VERSIONS_FOR_UPGRADE.keySet().stream().noneMatch(dbSchemaVersion::startsWith)) {</b>
+<b class="nc">&nbsp;            onSchemaSettingsError(String.format(&quot;Upgrade failed: database version &#39;%s&#39; is not supported for upgrade. Supported versions are: %s.&quot;,</b>
+<b class="nc">&nbsp;                    dbSchemaVersion, SUPPORTED_VERSIONS_FOR_UPGRADE.values()</b>
+&nbsp;            ));
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void createSchemaSettings() {
+<b class="nc">&nbsp;        Long schemaVersion = getSchemaVersionFromDb();</b>
+<b class="nc">&nbsp;        if (schemaVersion == null) {</b>
+<b class="nc">&nbsp;            jdbcTemplate.execute(&quot;INSERT INTO tb_schema_settings (schema_version, product) VALUES (&quot; + getPackageSchemaVersionForDb() + &quot;, &#39;&quot; + projectInfo.getProductType() + &quot;&#39;)&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void updateSchemaVersion() {
+<b class="nc">&nbsp;        jdbcTemplate.execute(&quot;UPDATE tb_schema_settings SET schema_version = &quot; + getPackageSchemaVersionForDb());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getPackageSchemaVersion() {
+<b class="nc">&nbsp;        if (packageSchemaVersion == null) {</b>
+<b class="nc">&nbsp;            packageSchemaVersion = normalizeVersion(projectInfo.getProjectVersion());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return packageSchemaVersion;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getDbSchemaVersion() {
+<b class="nc">&nbsp;        if (schemaVersionFromDb == null) {</b>
+<b class="nc">&nbsp;            Long dbVersion = getSchemaVersionFromDb();</b>
+<b class="nc">&nbsp;            if (dbVersion == null) {</b>
+<b class="nc">&nbsp;                onSchemaSettingsError(&quot;Upgrade failed: the database schema version is missing.&quot;);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            @SuppressWarnings(&quot;DataFlowIssue&quot;)
+<b class="nc">&nbsp;            long version = dbVersion;</b>
+&nbsp;
+<b class="nc">&nbsp;            if (version &lt; 1_000_000_000) {</b>
+&nbsp;                // Old format: MMM mmm ppp (e.g., 4002001 = 4.2.1)
+<b class="nc">&nbsp;                long major = version / 1_000_000;</b>
+<b class="nc">&nbsp;                long minor = (version % 1_000_000) / 1000;</b>
+<b class="nc">&nbsp;                long maintenance = version % 1000;</b>
+<b class="nc">&nbsp;                schemaVersionFromDb = major + &quot;.&quot; + minor + &quot;.&quot; + maintenance + &quot;.0&quot;;</b>
+&nbsp;            } else {
+&nbsp;                // New format: MMM mmm mmm ppp (e.g., 4002001001 = 4.2.1.1)
+<b class="nc">&nbsp;                long major = version / 1_000_000_000;</b>
+<b class="nc">&nbsp;                long minor = (version % 1_000_000_000) / 1_000_000;</b>
+<b class="nc">&nbsp;                long maintenance = (version % 1_000_000) / 1000;</b>
+<b class="nc">&nbsp;                long patch = version % 1000;</b>
+<b class="nc">&nbsp;                schemaVersionFromDb = major + &quot;.&quot; + minor + &quot;.&quot; + maintenance + &quot;.&quot; + patch;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return schemaVersionFromDb;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Long getSchemaVersionFromDb() {
+<b class="nc">&nbsp;        return jdbcTemplate.queryForList(&quot;SELECT schema_version FROM tb_schema_settings&quot;, Long.class).stream().findFirst().orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getProductFromDb() {
+<b class="nc">&nbsp;        return jdbcTemplate.queryForList(&quot;SELECT product FROM tb_schema_settings&quot;, String.class).stream().findFirst().orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private long getPackageSchemaVersionForDb() {
+<b class="nc">&nbsp;        String[] versionParts = getPackageSchemaVersion().split(&quot;\\.&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        long major = Integer.parseInt(versionParts[0]);</b>
+<b class="nc">&nbsp;        long minor = Integer.parseInt(versionParts[1]);</b>
+<b class="nc">&nbsp;        long maintenance = Integer.parseInt(versionParts[2]);</b>
+<b class="nc">&nbsp;        long patch = Integer.parseInt(versionParts[3]);</b>
+&nbsp;
+<b class="nc">&nbsp;        return major * 1_000_000_000L + minor * 1_000_000L + maintenance * 1000L + patch;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void onSchemaSettingsError(String message) {
+<b class="nc">&nbsp;        Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; log.error(message)));</b>
+<b class="nc">&nbsp;        throw new RuntimeException(message);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String normalizeVersion(String version) {
+<b class="nc">&nbsp;        String[] parts = version.split(&quot;\\.&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        int major = Integer.parseInt(parts[0]);</b>
+<b class="nc">&nbsp;        int minor = parts.length &gt; 1 ? Integer.parseInt(parts[1]) : 0;</b>
+<b class="nc">&nbsp;        int maintenance = parts.length &gt; 2 ? Integer.parseInt(parts[2]) : 0;</b>
+<b class="nc">&nbsp;        int patch = parts.length &gt; 3 ? Integer.parseInt(parts[3]) : 0;</b>
+&nbsp;
+<b class="nc">&nbsp;        return major + &quot;.&quot; + minor + &quot;.&quot; + maintenance + &quot;.&quot; + patch;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

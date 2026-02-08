@@ -1,0 +1,319 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > KafkaEdgeGrpcSession</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.edge.rpc</a>
+</div>
+
+<h1>Coverage Summary for Class: KafkaEdgeGrpcSession (org.thingsboard.server.service.edge.rpc)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KafkaEdgeGrpcSession</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/65)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.edge.rpc;
+&nbsp;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import io.grpc.stub.StreamObserver;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.common.data.edge.Edge;
+&nbsp;import org.thingsboard.server.common.data.edge.EdgeEvent;
+&nbsp;import org.thingsboard.server.common.data.id.EdgeId;
+&nbsp;import org.thingsboard.server.common.util.ProtoUtils;
+&nbsp;import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+&nbsp;import org.thingsboard.server.gen.edge.v1.ResponseMsg;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.TopicService;
+&nbsp;import org.thingsboard.server.queue.kafka.KafkaAdmin;
+&nbsp;import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+&nbsp;import org.thingsboard.server.service.edge.EdgeContextComponent;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
+&nbsp;
+&nbsp;    private final TopicService topicService;
+&nbsp;    private final TbCoreQueueFactory tbCoreQueueFactory;
+&nbsp;    private final KafkaAdmin kafkaAdmin;
+&nbsp;
+&nbsp;    private volatile boolean isHighPriorityProcessing;
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    private QueueConsumerManager&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt; consumer;
+&nbsp;
+&nbsp;    private ExecutorService consumerExecutor;
+&nbsp;
+&nbsp;    public KafkaEdgeGrpcSession(EdgeContextComponent ctx, TopicService topicService, TbCoreQueueFactory tbCoreQueueFactory,
+&nbsp;                                KafkaAdmin kafkaAdmin, StreamObserver&lt;ResponseMsg&gt; outputStream,
+&nbsp;                                BiConsumer&lt;EdgeId, EdgeGrpcSession&gt; sessionOpenListener, BiConsumer&lt;Edge, UUID&gt; sessionCloseListener,
+&nbsp;                                ScheduledExecutorService sendDownlinkExecutorService, int maxInboundMessageSize, int maxHighPriorityQueueSizePerSession) {
+<b class="nc">&nbsp;        super(ctx, outputStream, sessionOpenListener, sessionCloseListener, sendDownlinkExecutorService, maxInboundMessageSize, maxHighPriorityQueueSizePerSession);</b>
+<b class="nc">&nbsp;        this.topicService = topicService;</b>
+<b class="nc">&nbsp;        this.tbCoreQueueFactory = tbCoreQueueFactory;</b>
+<b class="nc">&nbsp;        this.kafkaAdmin = kafkaAdmin;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void processMsgs(List&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt; consumer) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}] starting processing edge events&quot;, tenantId, edge.getId());</b>
+<b class="nc">&nbsp;        if (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;[{}][{}] edge not connected, edge sync is not completed or high priority processing in progress, &quot; +</b>
+&nbsp;                      &quot;connected = {}, sync in progress = {}, high priority in progress = {}. Skipping iteration&quot;,
+<b class="nc">&nbsp;                    tenantId, edge.getId(), isConnected(), isSyncInProgress(), isHighPriorityProcessing);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;EdgeEvent&gt; edgeEvents = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt; msg : msgs) {</b>
+<b class="nc">&nbsp;            EdgeEvent edgeEvent = ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg());</b>
+<b class="nc">&nbsp;            edgeEvents.add(edgeEvent);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        List&lt;DownlinkMsg&gt; downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);</b>
+<b class="nc">&nbsp;        boolean isInterrupted = true;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            isInterrupted = sendDownlinkMsgsPack(downlinkMsgsPack).get();</b>
+<b class="nc">&nbsp;            if (isInterrupted) {</b>
+<b class="nc">&nbsp;                log.debug(&quot;[{}][{}] Send downlink messages task was interrupted&quot;, tenantId, edge.getId());</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;[{}][{}] Failed to process downlink messages&quot;, tenantId, edge.getId(), e);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!isInterrupted) {</b>
+<b class="nc">&nbsp;            consumer.commit();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Boolean&gt; migrateEdgeEvents() throws Exception {
+<b class="nc">&nbsp;        return super.processEdgeEvents();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ListenableFuture&lt;Boolean&gt; processEdgeEvents() {
+<b class="nc">&nbsp;        if (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}] Session is not ready (connected={}, syncInProgress={}, highPriority={}), skip starting edge event consumer&quot;,</b>
+<b class="nc">&nbsp;                    tenantId, edge != null ? edge.getId() : null, isConnected(), isSyncInProgress(), isHighPriorityProcessing);</b>
+<b class="nc">&nbsp;            return Futures.immediateFuture(Boolean.FALSE);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (consumer == null || (consumer.getConsumer() != null &amp;&amp; consumer.getConsumer().isStopped())) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (consumerExecutor != null &amp;&amp; !consumerExecutor.isShutdown()) {</b>
+&nbsp;                    try {
+<b class="nc">&nbsp;                        consumerExecutor.shutdown();</b>
+<b class="nc">&nbsp;                        awaitConsumerTermination();</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        log.warn(&quot;[{}][{}] Failed to shutdown previous consumer executor&quot;, tenantId, edge.getId(), e);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                this.consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(&quot;edge-event-consumer&quot;));</b>
+<b class="nc">&nbsp;                this.consumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;ToEdgeEventNotificationMsg&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                        .name(&quot;TB Edge events [&quot; + edge.getId() + &quot;]&quot;)</b>
+<b class="nc">&nbsp;                        .msgPackProcessor(this::processMsgs)</b>
+<b class="nc">&nbsp;                        .pollInterval(ctx.getEdgeEventStorageSettings().getNoRecordsSleepInterval())</b>
+<b class="nc">&nbsp;                        .consumerCreator(() -&gt; tbCoreQueueFactory.createEdgeEventMsgConsumer(tenantId, edge.getId()))</b>
+<b class="nc">&nbsp;                        .consumerExecutor(consumerExecutor)</b>
+<b class="nc">&nbsp;                        .threadPrefix(&quot;edge-events-&quot; + edge.getId())</b>
+<b class="nc">&nbsp;                        .build();</b>
+<b class="nc">&nbsp;                consumer.subscribe();</b>
+<b class="nc">&nbsp;                consumer.launch();</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                destroy();</b>
+<b class="nc">&nbsp;                log.warn(&quot;[{}][{}] Failed to start edge event consumer&quot;, sessionId, edge.getId(), e);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return Futures.immediateFuture(Boolean.FALSE);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void processHighPriorityEvents() {
+<b class="nc">&nbsp;        isHighPriorityProcessing = true;</b>
+<b class="nc">&nbsp;        super.processHighPriorityEvents();</b>
+<b class="nc">&nbsp;        isHighPriorityProcessing = false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean destroy() {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (consumer != null) {</b>
+<b class="nc">&nbsp;                log.info(&quot;[{}][{}] Stopping edge event consumer...&quot;, tenantId, edge != null ? edge.getId() : null);</b>
+<b class="nc">&nbsp;                consumer.stop();</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}] Failed to stop edge event consumer&quot;, tenantId, edge.getId(), e);</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        consumer = null;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            if (consumerExecutor != null &amp;&amp; !consumerExecutor.isShutdown()) {</b>
+<b class="nc">&nbsp;                consumerExecutor.shutdown();</b>
+<b class="nc">&nbsp;                awaitConsumerTermination();</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}] Failed to shutdown edge event consumer executor&quot;, tenantId, edge.getId(), e);</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void awaitConsumerTermination() {
+&nbsp;        try {
+<b class="nc">&nbsp;            consumerExecutor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);</b>
+&nbsp;        } catch (InterruptedException ie) {
+<b class="nc">&nbsp;            log.warn(&quot;[{}][{}] Interrupted while awaiting consumer executor termination&quot;, tenantId, edge.getId());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void cleanUp() {
+<b class="nc">&nbsp;        String topic = topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edge.getId()).getTopic();</b>
+<b class="nc">&nbsp;        kafkaAdmin.deleteTopic(topic);</b>
+<b class="nc">&nbsp;        kafkaAdmin.deleteConsumerGroup(topic);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

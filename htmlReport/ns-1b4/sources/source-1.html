@@ -1,0 +1,389 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AbstractConsumerService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.queue.processing</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractConsumerService (org.thingsboard.server.service.queue.processing)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractConsumerService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/68)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/104)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.queue.processing;
+&nbsp;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.context.ApplicationEventPublisher;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.common.util.ThingsBoardThreadFactory;
+&nbsp;import org.thingsboard.server.actors.ActorSystemContext;
+&nbsp;import org.thingsboard.server.common.data.EntityType;
+&nbsp;import org.thingsboard.server.common.data.id.AssetId;
+&nbsp;import org.thingsboard.server.common.data.id.AssetProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.CalculatedFieldId;
+&nbsp;import org.thingsboard.server.common.data.id.CustomerId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceId;
+&nbsp;import org.thingsboard.server.common.data.id.DeviceProfileId;
+&nbsp;import org.thingsboard.server.common.data.id.TbResourceId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantProfileId;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+&nbsp;import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TbCallback;
+&nbsp;import org.thingsboard.server.dao.resource.TbResourceDataCache;
+&nbsp;import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+&nbsp;import org.thingsboard.server.queue.TbQueueConsumer;
+&nbsp;import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+&nbsp;import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+&nbsp;import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+&nbsp;import org.thingsboard.server.queue.util.AfterStartUp;
+&nbsp;import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+&nbsp;import org.thingsboard.server.service.cf.CalculatedFieldCache;
+&nbsp;import org.thingsboard.server.service.profile.TbAssetProfileCache;
+&nbsp;import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+&nbsp;import org.thingsboard.server.service.queue.TbPackCallback;
+&nbsp;import org.thingsboard.server.service.queue.TbPackProcessingContext;
+&nbsp;import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.ExecutorService;
+&nbsp;import java.util.concurrent.Executors;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@RequiredArgsConstructor
+&nbsp;public abstract class AbstractConsumerService&lt;N extends com.google.protobuf.GeneratedMessageV3&gt; extends TbApplicationEventListener&lt;PartitionChangeEvent&gt; {
+&nbsp;
+&nbsp;    protected final Logger log = LoggerFactory.getLogger(getClass());
+&nbsp;
+&nbsp;    protected final ActorSystemContext actorContext;
+&nbsp;    protected final TbTenantProfileCache tenantProfileCache;
+&nbsp;    protected final TbDeviceProfileCache deviceProfileCache;
+&nbsp;    protected final TbAssetProfileCache assetProfileCache;
+&nbsp;    protected final TbResourceDataCache tbResourceDataCache;
+&nbsp;    protected final CalculatedFieldCache calculatedFieldCache;
+&nbsp;    protected final TbApiUsageStateService apiUsageStateService;
+&nbsp;    protected final PartitionService partitionService;
+&nbsp;    protected final ApplicationEventPublisher eventPublisher;
+&nbsp;    protected final JwtSettingsService jwtSettingsService;
+&nbsp;
+&nbsp;    protected QueueConsumerManager&lt;TbProtoQueueMsg&lt;N&gt;&gt; nfConsumer;
+&nbsp;
+&nbsp;    protected ExecutorService consumersExecutor;
+&nbsp;    protected ExecutorService mgmtExecutor;
+&nbsp;    protected ScheduledExecutorService scheduler;
+&nbsp;
+&nbsp;    public void init(String prefix) {
+<b class="nc">&nbsp;        this.consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName(prefix + &quot;-consumer&quot;));</b>
+<b class="nc">&nbsp;        this.mgmtExecutor = ThingsBoardExecutors.newWorkStealingPool(getMgmtThreadPoolSize(), prefix + &quot;-mgmt&quot;);</b>
+<b class="nc">&nbsp;        this.scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor(prefix + &quot;-consumer-scheduler&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        this.nfConsumer = QueueConsumerManager.&lt;TbProtoQueueMsg&lt;N&gt;&gt;builder()</b>
+<b class="nc">&nbsp;                .name(getServiceType().getLabel() + &quot; Notifications&quot;)</b>
+<b class="nc">&nbsp;                .msgPackProcessor(this::processNotifications)</b>
+<b class="nc">&nbsp;                .pollInterval(getNotificationPollDuration())</b>
+<b class="nc">&nbsp;                .consumerCreator(this::createNotificationsConsumer)</b>
+<b class="nc">&nbsp;                .consumerExecutor(consumersExecutor)</b>
+<b class="nc">&nbsp;                .threadPrefix(&quot;notifications&quot;)</b>
+<b class="nc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
+&nbsp;    public void afterStartUp() {
+<b class="nc">&nbsp;        startConsumers();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void startConsumers() {
+<b class="nc">&nbsp;        nfConsumer.subscribe();</b>
+<b class="nc">&nbsp;        nfConsumer.launch();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
+<b class="nc">&nbsp;        return event.getServiceType() == getServiceType();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract ServiceType getServiceType();
+&nbsp;
+&nbsp;    protected void stopConsumers() {
+<b class="nc">&nbsp;        nfConsumer.stop();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract long getNotificationPollDuration();
+&nbsp;
+&nbsp;    protected abstract long getNotificationPackProcessingTimeout();
+&nbsp;
+&nbsp;    protected abstract int getMgmtThreadPoolSize();
+&nbsp;
+&nbsp;    protected abstract TbQueueConsumer&lt;TbProtoQueueMsg&lt;N&gt;&gt; createNotificationsConsumer();
+&nbsp;
+&nbsp;    protected void processNotifications(List&lt;TbProtoQueueMsg&lt;N&gt;&gt; msgs, TbQueueConsumer&lt;TbProtoQueueMsg&lt;N&gt;&gt; consumer) throws Exception {
+<b class="nc">&nbsp;        List&lt;IdMsgPair&lt;N&gt;&gt; orderedMsgList = msgs.stream().map(msg -&gt; new IdMsgPair&lt;&gt;(UUID.randomUUID(), msg)).toList();</b>
+<b class="nc">&nbsp;        ConcurrentMap&lt;UUID, TbProtoQueueMsg&lt;N&gt;&gt; pendingMap = orderedMsgList.stream().collect(</b>
+<b class="nc">&nbsp;                Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));</b>
+<b class="nc">&nbsp;        CountDownLatch processingTimeoutLatch = new CountDownLatch(1);</b>
+<b class="nc">&nbsp;        TbPackProcessingContext&lt;TbProtoQueueMsg&lt;N&gt;&gt; ctx = new TbPackProcessingContext&lt;&gt;(</b>
+&nbsp;                processingTimeoutLatch, pendingMap, new ConcurrentHashMap&lt;&gt;());
+<b class="nc">&nbsp;        orderedMsgList.forEach(element -&gt; {</b>
+<b class="nc">&nbsp;            UUID id = element.getUuid();</b>
+<b class="nc">&nbsp;            TbProtoQueueMsg&lt;N&gt; msg = element.getMsg();</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Creating notification callback for message: {}&quot;, id, msg.getValue());</b>
+<b class="nc">&nbsp;            TbCallback callback = new TbPackCallback&lt;&gt;(id, ctx);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                handleNotification(id, msg, callback);</b>
+&nbsp;            } catch (Throwable e) {
+<b class="nc">&nbsp;                log.warn(&quot;[{}] Failed to process notification: {}&quot;, id, msg, e);</b>
+<b class="nc">&nbsp;                callback.onFailure(e);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="nc">&nbsp;        if (!processingTimeoutLatch.await(getNotificationPackProcessingTimeout(), TimeUnit.MILLISECONDS)) {</b>
+<b class="nc">&nbsp;            ctx.getAckMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Timeout to process notification: {}&quot;, id, msg.getValue()));</b>
+<b class="nc">&nbsp;            ctx.getFailedMap().forEach((id, msg) -&gt; log.warn(&quot;[{}] Failed to process notification: {}&quot;, id, msg.getValue()));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        consumer.commit();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected final void handleComponentLifecycleMsg(UUID id, ComponentLifecycleMsg componentLifecycleMsg) {
+<b class="nc">&nbsp;        TenantId tenantId = componentLifecycleMsg.getTenantId();</b>
+<b class="nc">&nbsp;        log.debug(&quot;[{}][{}][{}] Received Lifecycle event: {}&quot;, tenantId, componentLifecycleMsg.getEntityId().getEntityType(),</b>
+<b class="nc">&nbsp;                componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());</b>
+<b class="nc">&nbsp;        if (EntityType.TENANT_PROFILE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            TenantProfileId tenantProfileId = new TenantProfileId(componentLifecycleMsg.getEntityId().getId());</b>
+<b class="nc">&nbsp;            tenantProfileCache.evict(tenantProfileId);</b>
+<b class="nc">&nbsp;            if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {</b>
+<b class="nc">&nbsp;                apiUsageStateService.onTenantProfileUpdate(tenantProfileId);</b>
+<b class="nc">&nbsp;                calculatedFieldCache.handleTenantProfileUpdate(tenantProfileId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (EntityType.TENANT.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            if (TenantId.SYS_TENANT_ID.equals(tenantId)) {</b>
+<b class="nc">&nbsp;                jwtSettingsService.reloadJwtSettings();</b>
+&nbsp;                return;
+&nbsp;            } else {
+<b class="nc">&nbsp;                tenantProfileCache.evict(tenantId);</b>
+<b class="nc">&nbsp;                partitionService.evictTenantInfo(tenantId);</b>
+<b class="nc">&nbsp;                if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {</b>
+<b class="nc">&nbsp;                    apiUsageStateService.onTenantUpdate(tenantId);</b>
+<b class="nc">&nbsp;                } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {</b>
+<b class="nc">&nbsp;                    apiUsageStateService.onTenantDelete(tenantId);</b>
+<b class="nc">&nbsp;                    calculatedFieldCache.evictOwner(tenantId);</b>
+<b class="nc">&nbsp;                    partitionService.removeTenant(tenantId);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (EntityType.DEVICE_PROFILE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            deviceProfileCache.evict(tenantId, new DeviceProfileId(componentLifecycleMsg.getEntityId().getId()));</b>
+<b class="nc">&nbsp;        } else if (EntityType.DEVICE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            deviceProfileCache.evict(tenantId, new DeviceId(componentLifecycleMsg.getEntityId().getId()));</b>
+<b class="nc">&nbsp;            if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.CREATED)) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.addOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;            } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED) &amp;&amp; componentLifecycleMsg.isOwnerChanged()) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.updateOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;            } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.evictEntity(componentLifecycleMsg.getEntityId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (EntityType.ASSET_PROFILE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            assetProfileCache.evict(tenantId, new AssetProfileId(componentLifecycleMsg.getEntityId().getId()));</b>
+<b class="nc">&nbsp;        } else if (EntityType.ASSET.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            assetProfileCache.evict(tenantId, new AssetId(componentLifecycleMsg.getEntityId().getId()));</b>
+<b class="nc">&nbsp;            if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.CREATED)) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.addOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;            } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED) &amp;&amp; componentLifecycleMsg.isOwnerChanged()) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.updateOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;            } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.evictEntity(componentLifecycleMsg.getEntityId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (EntityType.ENTITY_VIEW.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            actorContext.getTbEntityViewService().onComponentLifecycleMsg(componentLifecycleMsg);</b>
+<b class="nc">&nbsp;        } else if (EntityType.API_USAGE_STATE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            apiUsageStateService.onApiUsageStateUpdate(tenantId);</b>
+<b class="nc">&nbsp;        } else if (EntityType.CUSTOMER.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.CREATED)) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.addOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;            } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED) &amp;&amp; componentLifecycleMsg.isOwnerChanged()) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.updateOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;            } else if (componentLifecycleMsg.getEvent() == ComponentLifecycleEvent.DELETED) {</b>
+<b class="nc">&nbsp;                apiUsageStateService.onCustomerDelete((CustomerId) componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;                calculatedFieldCache.evictOwner(componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;                calculatedFieldCache.evictEntity(componentLifecycleMsg.getEntityId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (EntityType.CALCULATED_FIELD.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            if (componentLifecycleMsg.getEvent() == ComponentLifecycleEvent.CREATED) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.addCalculatedField(tenantId, (CalculatedFieldId) componentLifecycleMsg.getEntityId());</b>
+<b class="nc">&nbsp;            } else if (componentLifecycleMsg.getEvent() == ComponentLifecycleEvent.UPDATED) {</b>
+<b class="nc">&nbsp;                calculatedFieldCache.updateCalculatedField(tenantId, (CalculatedFieldId) componentLifecycleMsg.getEntityId());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                calculatedFieldCache.evict((CalculatedFieldId) componentLifecycleMsg.getEntityId());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (EntityType.TB_RESOURCE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {</b>
+<b class="nc">&nbsp;            tbResourceDataCache.evictResourceData(tenantId, new TbResourceId(componentLifecycleMsg.getEntityId().getId()));</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        eventPublisher.publishEvent(componentLifecycleMsg);</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Forwarding component lifecycle message to App Actor {}&quot;, id, componentLifecycleMsg);</b>
+<b class="nc">&nbsp;        actorContext.tellWithHighPriority(componentLifecycleMsg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected abstract void handleNotification(UUID id, TbProtoQueueMsg&lt;N&gt; msg, TbCallback callback) throws Exception;
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void destroy() {
+<b class="nc">&nbsp;        stopConsumers();</b>
+<b class="nc">&nbsp;        if (consumersExecutor != null) {</b>
+<b class="nc">&nbsp;            consumersExecutor.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (mgmtExecutor != null) {</b>
+<b class="nc">&nbsp;            mgmtExecutor.shutdownNow();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (scheduler != null) {</b>
+<b class="nc">&nbsp;            scheduler.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

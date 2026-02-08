@@ -1,0 +1,338 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultTbRuleEngineRpcService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.server.service.rpc</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultTbRuleEngineRpcService (org.thingsboard.server.service.rpc)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultTbRuleEngineRpcService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/74)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.server.service.rpc;
+&nbsp;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.annotation.PreDestroy;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.thingsboard.common.util.ThingsBoardExecutors;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcRequest;
+&nbsp;import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcResponse;
+&nbsp;import org.thingsboard.server.cluster.TbClusterService;
+&nbsp;import org.thingsboard.server.common.data.id.RpcId;
+&nbsp;import org.thingsboard.server.common.data.id.TenantId;
+&nbsp;import org.thingsboard.server.common.data.rpc.Rpc;
+&nbsp;import org.thingsboard.server.common.data.rpc.RpcError;
+&nbsp;import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;import org.thingsboard.server.common.msg.queue.ServiceType;
+&nbsp;import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+&nbsp;import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+&nbsp;import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
+&nbsp;import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
+&nbsp;import org.thingsboard.server.dao.rpc.RpcService;
+&nbsp;import org.thingsboard.server.gen.transport.TransportProtos;
+&nbsp;import org.thingsboard.server.queue.discovery.PartitionService;
+&nbsp;import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+&nbsp;import org.thingsboard.server.queue.util.TbRuleEngineComponent;
+&nbsp;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.UUID;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.ConcurrentMap;
+&nbsp;import java.util.concurrent.ScheduledExecutorService;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;@Service
+&nbsp;@TbRuleEngineComponent
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class DefaultTbRuleEngineRpcService implements TbRuleEngineDeviceRpcService {
+&nbsp;
+&nbsp;    private final PartitionService partitionService;
+&nbsp;    private final TbClusterService clusterService;
+&nbsp;    private final TbServiceInfoProvider serviceInfoProvider;
+&nbsp;    private final RpcService rpcService;
+&nbsp;
+<b class="nc">&nbsp;    private final ConcurrentMap&lt;UUID, Consumer&lt;FromDeviceRpcResponse&gt;&gt; toDeviceRpcRequests = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    private Optional&lt;TbCoreDeviceRpcService&gt; tbCoreRpcService;
+&nbsp;    private ScheduledExecutorService scheduler;
+&nbsp;    private String serviceId;
+&nbsp;
+&nbsp;    public DefaultTbRuleEngineRpcService(PartitionService partitionService,
+&nbsp;                                         TbClusterService clusterService,
+&nbsp;                                         TbServiceInfoProvider serviceInfoProvider,
+<b class="nc">&nbsp;                                         RpcService rpcService) {</b>
+<b class="nc">&nbsp;        this.partitionService = partitionService;</b>
+<b class="nc">&nbsp;        this.clusterService = clusterService;</b>
+<b class="nc">&nbsp;        this.serviceInfoProvider = serviceInfoProvider;</b>
+<b class="nc">&nbsp;        this.rpcService = rpcService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired(required = false)
+&nbsp;    public void setTbCoreRpcService(Optional&lt;TbCoreDeviceRpcService&gt; tbCoreRpcService) {
+<b class="nc">&nbsp;        this.tbCoreRpcService = tbCoreRpcService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void initExecutor() {
+<b class="nc">&nbsp;        scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor(&quot;rule-engine-rpc-scheduler&quot;);</b>
+<b class="nc">&nbsp;        serviceId = serviceInfoProvider.getServiceId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PreDestroy
+&nbsp;    public void shutdownExecutor() {
+<b class="nc">&nbsp;        if (scheduler != null) {</b>
+<b class="nc">&nbsp;            scheduler.shutdownNow();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendRpcReplyToDevice(String serviceId, UUID sessionId, int requestId, String body) {
+<b class="nc">&nbsp;        if (serviceId == null || serviceId.isEmpty()){</b>
+<b class="nc">&nbsp;            log.trace(&quot;sendRpcReplyToDevice: skipping message without serviceId [{}], sessionId[{}], requestId[{}], body[{}]&quot;, serviceId, sessionId, requestId, body);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        TransportProtos.ToServerRpcResponseMsg responseMsg = TransportProtos.ToServerRpcResponseMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setRequestId(requestId)</b>
+<b class="nc">&nbsp;                .setPayload(body).build();</b>
+<b class="nc">&nbsp;        TransportProtos.ToTransportMsg msg = TransportProtos.ToTransportMsg.newBuilder()</b>
+<b class="nc">&nbsp;                .setSessionIdMSB(sessionId.getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setSessionIdLSB(sessionId.getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setToServerResponse(responseMsg)</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        clusterService.pushNotificationToTransport(serviceId, msg, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendRpcRequestToDevice(RuleEngineDeviceRpcRequest src, Consumer&lt;RuleEngineDeviceRpcResponse&gt; consumer) {
+<b class="nc">&nbsp;        ToDeviceRpcRequest request = new ToDeviceRpcRequest(src.getRequestUUID(), src.getTenantId(), src.getDeviceId(),</b>
+<b class="nc">&nbsp;                src.isOneway(), src.getExpirationTime(), new ToDeviceRpcRequestBody(src.getMethod(), src.getBody()), src.isPersisted(), src.getRetries(), src.getAdditionalInfo());</b>
+<b class="nc">&nbsp;        forwardRpcRequestToDeviceActor(request, response -&gt; {</b>
+<b class="nc">&nbsp;            String originServiceId = src.getOriginServiceId();</b>
+<b class="nc">&nbsp;            if (src.isRestApiCall() &amp;&amp; originServiceId != null) {</b>
+<b class="nc">&nbsp;                sendRpcResponseToTbCore(originServiceId, response);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            consumer.accept(RuleEngineDeviceRpcResponse.builder()</b>
+<b class="nc">&nbsp;                    .deviceId(src.getDeviceId())</b>
+<b class="nc">&nbsp;                    .requestId(src.getRequestId())</b>
+<b class="nc">&nbsp;                    .error(response.getError())</b>
+<b class="nc">&nbsp;                    .response(response.getResponse())</b>
+<b class="nc">&nbsp;                    .build());</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void sendRestApiCallReply(String serviceId, UUID requestId, TbMsg tbMsg) {
+<b class="nc">&nbsp;        TransportProtos.RestApiCallResponseMsgProto msg = TransportProtos.RestApiCallResponseMsgProto.newBuilder()</b>
+<b class="nc">&nbsp;                .setRequestIdMSB(requestId.getMostSignificantBits())</b>
+<b class="nc">&nbsp;                .setRequestIdLSB(requestId.getLeastSignificantBits())</b>
+<b class="nc">&nbsp;                .setResponseProto(TbMsg.toProto(tbMsg))</b>
+<b class="nc">&nbsp;                .build();</b>
+<b class="nc">&nbsp;        clusterService.pushNotificationToCore(serviceId, msg, null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Rpc findRpcById(TenantId tenantId, RpcId id) {
+<b class="nc">&nbsp;        return rpcService.findById(tenantId, id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void processRpcResponseFromDevice(FromDeviceRpcResponse response) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}] Received response to server-side RPC request from Core RPC Service&quot;, response.getId());</b>
+<b class="nc">&nbsp;        UUID requestId = response.getId();</b>
+<b class="nc">&nbsp;        Consumer&lt;FromDeviceRpcResponse&gt; consumer = toDeviceRpcRequests.remove(requestId);</b>
+<b class="nc">&nbsp;        if (consumer != null) {</b>
+<b class="nc">&nbsp;            scheduler.submit(() -&gt; consumer.accept(response));</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Unknown or stale rpc response received [{}]&quot;, requestId, response);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void forwardRpcRequestToDeviceActor(ToDeviceRpcRequest request, Consumer&lt;FromDeviceRpcResponse&gt; responseConsumer) {
+<b class="nc">&nbsp;        log.trace(&quot;[{}][{}] Processing local rpc call to device actor [{}]&quot;, request.getTenantId(), request.getId(), request.getDeviceId());</b>
+<b class="nc">&nbsp;        UUID requestId = request.getId();</b>
+<b class="nc">&nbsp;        toDeviceRpcRequests.put(requestId, responseConsumer);</b>
+<b class="nc">&nbsp;        sendRpcRequestToDevice(request);</b>
+<b class="nc">&nbsp;        scheduleTimeout(request, requestId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendRpcRequestToDevice(ToDeviceRpcRequest msg) {
+<b class="nc">&nbsp;        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, msg.getTenantId(), msg.getDeviceId());</b>
+<b class="nc">&nbsp;        ToDeviceRpcRequestActorMsg rpcMsg = new ToDeviceRpcRequestActorMsg(serviceId, msg);</b>
+<b class="nc">&nbsp;        if (tpi.isMyPartition()) {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding msg {} to device actor!&quot;, msg.getDeviceId(), msg);</b>
+<b class="nc">&nbsp;            if (tbCoreRpcService.isPresent()) {</b>
+<b class="nc">&nbsp;                tbCoreRpcService.get().forwardRpcRequestToDeviceActor(rpcMsg);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to find tbCoreRpcService for local service. Possible duplication of serviceIds.&quot;);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            log.trace(&quot;[{}] Forwarding msg {} to queue actor!&quot;, msg.getDeviceId(), msg);</b>
+<b class="nc">&nbsp;            clusterService.pushMsgToCore(rpcMsg, null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendRpcResponseToTbCore(String originServiceId, FromDeviceRpcResponse response) {
+<b class="nc">&nbsp;        if (serviceId.equals(originServiceId)) {</b>
+<b class="nc">&nbsp;            if (tbCoreRpcService.isPresent()) {</b>
+<b class="nc">&nbsp;                tbCoreRpcService.get().processRpcResponseFromRuleEngine(response);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to find tbCoreRpcService for local service. Possible duplication of serviceIds.&quot;);</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="nc">&nbsp;            clusterService.pushNotificationToCore(originServiceId, response, null);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void scheduleTimeout(ToDeviceRpcRequest request, UUID requestId) {
+<b class="nc">&nbsp;        long timeout = Math.max(0, request.getExpirationTime() - System.currentTimeMillis()) + TimeUnit.SECONDS.toMillis(1);</b>
+<b class="nc">&nbsp;        log.trace(&quot;[{}] processing the request: [{}]&quot;, this.hashCode(), requestId);</b>
+<b class="nc">&nbsp;        scheduler.schedule(() -&gt; {</b>
+<b class="nc">&nbsp;            log.trace(&quot;[{}] timeout the request: [{}]&quot;, this.hashCode(), requestId);</b>
+<b class="nc">&nbsp;            Consumer&lt;FromDeviceRpcResponse&gt; consumer = toDeviceRpcRequests.remove(requestId);</b>
+<b class="nc">&nbsp;            if (consumer != null) {</b>
+<b class="nc">&nbsp;                scheduler.submit(() -&gt; consumer.accept(new FromDeviceRpcResponse(requestId, null, RpcError.TIMEOUT)));</b>
+&nbsp;            }
+&nbsp;        }, timeout, TimeUnit.MILLISECONDS);
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>

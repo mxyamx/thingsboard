@@ -1,0 +1,262 @@
+<!--
+
+    Copyright © 2016-2026 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TbCheckRelationNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.thingsboard.rule.engine.filter</a>
+</div>
+
+<h1>Coverage Summary for Class: TbCheckRelationNode (org.thingsboard.rule.engine.filter)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TbCheckRelationNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/**
+&nbsp; * Copyright © 2016-2026 The Thingsboard Authors
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.thingsboard.rule.engine.filter;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import com.google.common.util.concurrent.Futures;
+&nbsp;import com.google.common.util.concurrent.ListenableFuture;
+&nbsp;import org.thingsboard.rule.engine.api.RuleNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbContext;
+&nbsp;import org.thingsboard.rule.engine.api.TbNode;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+&nbsp;import org.thingsboard.rule.engine.api.TbNodeException;
+&nbsp;import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+&nbsp;import org.thingsboard.server.common.data.StringUtils;
+&nbsp;import org.thingsboard.server.common.data.id.EntityId;
+&nbsp;import org.thingsboard.server.common.data.id.EntityIdFactory;
+&nbsp;import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+&nbsp;import org.thingsboard.server.common.data.plugin.ComponentType;
+&nbsp;import org.thingsboard.server.common.data.relation.EntityRelation;
+&nbsp;import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+&nbsp;import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+&nbsp;import org.thingsboard.server.common.data.util.TbPair;
+&nbsp;import org.thingsboard.server.common.msg.TbMsg;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import static org.thingsboard.common.util.DonAsynchron.withCallback;
+&nbsp;
+&nbsp;@RuleNode(
+&nbsp;        type = ComponentType.FILTER,
+&nbsp;        name = &quot;check relation presence&quot;,
+&nbsp;        configClazz = TbCheckRelationNodeConfiguration.class,
+&nbsp;        version = 1,
+&nbsp;        relationTypes = {TbNodeConnectionType.TRUE, TbNodeConnectionType.FALSE},
+&nbsp;        nodeDescription = &quot;Checks the presence of the relation between the originator of the message and other entities.&quot;,
+&nbsp;        nodeDetails = &quot;If &#39;check relation to specific entity&#39; is selected, you should specify a related entity. &quot; +
+&nbsp;                &quot;Otherwise, the rule node checks the presence of a relation to any entity. &quot; +
+&nbsp;                &quot;In both cases, relation lookup is based on configured direction and type.&lt;br&gt;&lt;br&gt;&quot; +
+&nbsp;                &quot;Output connections: &lt;code&gt;True&lt;/code&gt;, &lt;code&gt;False&lt;/code&gt;, &lt;code&gt;Failure&lt;/code&gt;&quot;,
+&nbsp;        configDirective = &quot;tbFilterNodeCheckRelationConfig&quot;,
+&nbsp;        docUrl = &quot;https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/filter/check-relation-presence/&quot;
+&nbsp;)
+<b class="nc">&nbsp;public class TbCheckRelationNode implements TbNode {</b>
+&nbsp;
+&nbsp;    private TbCheckRelationNodeConfiguration config;
+&nbsp;    private EntityId singleEntityId;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+<b class="nc">&nbsp;        this.config = TbNodeUtils.convert(configuration, TbCheckRelationNodeConfiguration.class);</b>
+<b class="nc">&nbsp;        if (config.isCheckForSingleEntity()) {</b>
+<b class="nc">&nbsp;            if (StringUtils.isEmpty(config.getEntityType()) || StringUtils.isEmpty(config.getEntityId())) {</b>
+<b class="nc">&nbsp;                throw new TbNodeException(&quot;Entity should be specified!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            this.singleEntityId = EntityIdFactory.getByTypeAndId(config.getEntityType(), config.getEntityId());</b>
+<b class="nc">&nbsp;            ctx.checkTenantEntity(singleEntityId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
+<b class="nc">&nbsp;        ListenableFuture&lt;Boolean&gt; checkRelationFuture = config.isCheckForSingleEntity() ?</b>
+<b class="nc">&nbsp;                processSingle(ctx, msg) : processList(ctx, msg);</b>
+<b class="nc">&nbsp;        withCallback(checkRelationFuture,</b>
+<b class="nc">&nbsp;                filterResult -&gt; ctx.tellNext(msg, filterResult ? TbNodeConnectionType.TRUE : TbNodeConnectionType.FALSE),</b>
+<b class="nc">&nbsp;                t -&gt; ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Boolean&gt; processSingle(TbContext ctx, TbMsg msg) {
+&nbsp;        EntityId from;
+&nbsp;        EntityId to;
+<b class="nc">&nbsp;        if (EntitySearchDirection.FROM.name().equals(config.getDirection())) {</b>
+<b class="nc">&nbsp;            to = singleEntityId;</b>
+<b class="nc">&nbsp;            from = msg.getOriginator();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            from = singleEntityId;</b>
+<b class="nc">&nbsp;            to = msg.getOriginator();</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return ctx.getRelationService().checkRelationAsync(ctx.getTenantId(), from, to, config.getRelationType(), RelationTypeGroup.COMMON);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Boolean&gt; processList(TbContext ctx, TbMsg msg) {
+<b class="nc">&nbsp;        ListenableFuture&lt;List&lt;EntityRelation&gt;&gt; relationListFuture = EntitySearchDirection.FROM.name().equals(config.getDirection()) ?</b>
+<b class="nc">&nbsp;                ctx.getRelationService().findByFromAndTypeAsync(ctx.getTenantId(), msg.getOriginator(), config.getRelationType(), RelationTypeGroup.COMMON) :</b>
+<b class="nc">&nbsp;                ctx.getRelationService().findByToAndTypeAsync(ctx.getTenantId(), msg.getOriginator(), config.getRelationType(), RelationTypeGroup.COMMON);</b>
+<b class="nc">&nbsp;        return Futures.transformAsync(relationListFuture, this::isEmptyList, ctx.getDbCallbackExecutor());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private ListenableFuture&lt;Boolean&gt; isEmptyList(List&lt;EntityRelation&gt; entityRelations) {
+<b class="nc">&nbsp;        return entityRelations.isEmpty() ? Futures.immediateFuture(false) : Futures.immediateFuture(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public TbPair&lt;Boolean, JsonNode&gt; upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+<b class="nc">&nbsp;        if (fromVersion == 0) {</b>
+<b class="nc">&nbsp;            var newConfigObjectNode = (ObjectNode) oldConfiguration;</b>
+<b class="nc">&nbsp;            var directionPropertyName = &quot;direction&quot;;</b>
+<b class="nc">&nbsp;            if (!newConfigObjectNode.has(directionPropertyName)) {</b>
+<b class="nc">&nbsp;                throw new TbNodeException(&quot;property to update: &#39;&quot; + directionPropertyName + &quot;&#39; doesn&#39;t exists in configuration!&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String direction = newConfigObjectNode.get(directionPropertyName).asText();</b>
+<b class="nc">&nbsp;            if (EntitySearchDirection.TO.name().equals(direction)) {</b>
+<b class="nc">&nbsp;                newConfigObjectNode.put(directionPropertyName, EntitySearchDirection.FROM.name());</b>
+<b class="nc">&nbsp;                return new TbPair&lt;&gt;(true, newConfigObjectNode);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (EntitySearchDirection.FROM.name().equals(direction)) {</b>
+<b class="nc">&nbsp;                newConfigObjectNode.put(directionPropertyName, EntitySearchDirection.TO.name());</b>
+<b class="nc">&nbsp;                return new TbPair&lt;&gt;(true, newConfigObjectNode);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            throw new TbNodeException(&quot;property to update: &#39;&quot; + directionPropertyName + &quot;&#39; has invalid value!&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return new TbPair&lt;&gt;(false, oldConfiguration);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-07 20:03</div>
+</div>
+</body>
+</html>
