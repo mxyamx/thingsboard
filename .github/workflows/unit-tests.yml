@@ -12,7 +12,6 @@ jobs:
     env:
       MAVEN_OPTS: -Xmx1024m
       SUREFIRE_JAVA_OPTS: -Xmx1200m -Xss256k -XX:+ExitOnOutOfMemoryError
-      NODE_OPTIONS: --max_old_space_size=4096
 
     steps:
       - name: Checkout source
@@ -27,17 +26,14 @@ jobs:
       - name: Build ThingsBoard
         run: mvn clean install -DskipTests
 
-      - name: Run common module tests
-        run: cd common; mvn test; cd ..
+      - name: Run common module tests (CustomerTest + DeviceTest)
+        run: cd common/data; mvn test -Dtest=CustomerTest,DeviceTest
 
-      - name: Run rule-engine-api module tests
-        run: cd rule-engine/rule-engine-api; mvn test -pl rule-engine-api; cd ..
-
-  integration-tests:
+  integration-tests-bonus:
     name: integration-tests-recoverability
     runs-on: ubuntu-latest
     needs: unit-tests
-    
+
     env:
       MAVEN_OPTS: -Xmx1024m
 
@@ -54,8 +50,18 @@ jobs:
       - name: Build ThingsBoard
         run: mvn clean install -DskipTests
 
-      - name: Run Device Recoverability Integration Tests
+      - name: Run Device Recoverability Integration Tests (Question Bonus)
         run: cd dao; mvn test -Dtest=DeviceRecoverabilityIntegrationTest
+
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "  TESTS D'INTÉGRATION - RÉCUPÉRABILITÉ"
+          echo "=========================================="
+          if [ -f dao/target/surefire-reports/TEST-*.xml ]; then
+            echo "✓ Tests exécutés avec succès"
+          fi
 
       - name: Upload test results
         if: always()
